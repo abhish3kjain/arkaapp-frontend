@@ -1,4 +1,4 @@
-	/**
+		/**
        * T0: JS execution start time.
        * Captured before any variable declarations so it is as close to
        * true page-load start as possible. Used to measure BigGulpMs and TotalMs.
@@ -8,7 +8,21 @@
       const APP_LOAD_T0 = Date.now();
       let currentAppVersion = "v44";      //This variable is overwritten with version received from Backend
       let activeEmail = "";  
-      let currentUser = ""; 
+      let currentUser = "";
+
+// app.js (Hosted on GitHub)
+
+// DO NOT declare the variable again. It already exists!
+// You can immediately read the data passed from Google:
+
+if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
+  console.log("Member accessed via email tracking ID: " + ARKA_LAUNCH_PARAMS.eid);
+  // Trigger your specific onboarding or tracking logic here
+} else {
+  console.log("Standard dashboard load.");
+}
+
+	
 
       /**
        * Public URL of this deployed Arka web app.
