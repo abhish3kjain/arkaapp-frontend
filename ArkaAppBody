@@ -1,3 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/styles.css?v=1.2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&family=Cinzel:wght@400;700&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+  </head>
   <body>
     <div class="app-header">
       <div class="header-logo">
@@ -2123,7 +2134,7 @@
     </div>
 
     <div id="libraryView" class="view-section">
-        <div id="libraryMainCard">
+        <div id="libraryMainCard" style="overflow:hidden; margin:-40px -20px 0;">
 
           <!-- ── Library Banner ───────────────────────────────────────────────── -->
           <!-- Dark-green identity block. Replaces the old white card header and  -->
@@ -2131,18 +2142,14 @@
           <!-- so calculateLibraryPulse() requires zero changes.                  -->
           <div id="libraryBanner">
 
-            <!-- Row 1: Icon + title + Add Book ghost button -->
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <div class="lib-banner-icon-wrap">
-                  <i class="fa-solid fa-book-open" style="color:#a8e6c4;font-size:1.1rem;"></i>
-                </div>
-                <div>
-                  <div class="lib-banner-title">Arka Library</div>
-                  <div class="lib-banner-club-label">Arka Readers Club</div>
-                </div>
+            <!-- Row 1: Centered icon + title + subtitle; Add Book floated top-right -->
+            <button onclick="showAddBookWorkspace()" class="lib-banner-add-btn">+ Add Book</button>
+            <div style="text-align:center; margin-bottom:14px; position:relative; z-index:2;">
+              <div class="lib-banner-icon-wrap">
+                <i class="fa-solid fa-book-open" style="color:#a8e6c4;font-size:1.1rem;"></i>
               </div>
-              <button onclick="showAddBookWorkspace()" class="lib-banner-add-btn">+ Add Book</button>
+              <div class="lib-banner-title">Arka Library</div>
+              <div class="lib-banner-club-label">Arka Readers Club</div>
             </div>
 
             <!-- Row 2: Stat pills — IDs preserved; calculateLibraryPulse() unchanged -->
@@ -4478,3 +4485,4 @@
     <script src="https://abhish3kjain.github.io/arkaapp-frontend/app.js?v=1.2"></script>
 
   </body>
+</html>
