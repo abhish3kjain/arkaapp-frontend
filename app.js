@@ -11,21 +11,6 @@
       let currentUser = ""; 
 
       /**
-       * Launch parameters injected by doGet(e) at HTML-serve time.
-       * The scriptlet  <?!= launchParamsJson ?>  is replaced with a JSON literal
-       * by the GAS template engine before the page is sent to the browser —
-       * it never reaches the client as a raw scriptlet tag.
-       *
-       * Shape: { eid: string }
-       *   eid — email tracking token (ARKA_ET_XXXXXXXX) when the app was opened
-       *         via an Arka email deep-link. Empty string for direct opens.
-       *
-       * Read once on init by _logEmailClickIfPresent_() then never referenced again.
-       * @type {{ eid: string }}
-       */
-      const ARKA_LAUNCH_PARAMS = <?!= launchParamsJson ?>; 
-
-      /**
        * Public URL of this deployed Arka web app.
        * Included in share card messages so recipients can tap to open the app.
        * Update this string whenever the deployment URL changes.
