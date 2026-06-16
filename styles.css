@@ -1838,40 +1838,50 @@
       #libraryBanner {
         background: #0d1f12;
         border-radius: 12px 12px 0 0;
-        padding: 16px 20px 0;
-        position: relative;   /* required for ::before/::after circles */
+        padding: 28px 16px 0;
+        position: relative;   /* required for ::before/::after circles and abs button */
         overflow: hidden;     /* clips circles cleanly at rounded corners  */
       }
-      /* Decorative background circles — same motif as Help Center & HOF hero */
+      /* Decorative background circles — same motif as Members & HOF hero */
       #libraryBanner::before {
         content: '';
-        position: absolute; top: -22px; right: -22px;
-        width: 100px; height: 100px; border-radius: 50%;
-        background: rgba(39, 174, 96, 0.1); pointer-events: none;
+        position: absolute; top: -25px; right: -25px;
+        width: 110px; height: 110px; border-radius: 50%;
+        background: rgba(39, 174, 96, 0.12); pointer-events: none;
       }
       #libraryBanner::after {
         content: '';
-        position: absolute; bottom: -28px; left: 24px;
-        width: 70px; height: 70px; border-radius: 50%;
-        background: rgba(39, 174, 96, 0.06); pointer-events: none;
+        position: absolute; bottom: -35px; left: -15px;
+        width: 90px; height: 90px; border-radius: 50%;
+        background: rgba(39, 174, 96, 0.07); pointer-events: none;
       }
       .lib-banner-icon-wrap {
-        width: 36px; height: 36px;
-        background: rgba(39, 174, 96, 0.2);   /* green tint matches theme */
-        border-radius: 8px;
+        width: 46px; height: 46px;
+        background: rgba(39, 174, 96, 0.15);
+        border: 1px solid rgba(39, 174, 96, 0.25);
+        border-radius: 12px;
         display: flex; align-items: center; justify-content: center;
-        flex-shrink: 0;
+        margin: 0 auto 10px;   /* centered, matches Members icon wrap */
       }
-      .lib-banner-title   { font-size: 1.05rem; font-weight: bold; color: #ffffff; line-height: 1.2; }
-      /* Green tint mirrors Help Center banner purple subtitle — each view has its colour identity */
-      .lib-banner-club-label { font-size: 0.58rem; color: rgba(93, 202, 122, 0.65); text-transform: uppercase; letter-spacing: 0.09em; }
+      .lib-banner-title {
+        font-size: 1.05rem; font-weight: bold; color: #ffffff;
+        letter-spacing: 2.5px; font-family: var(--font-display);
+        margin-bottom: 3px; text-align: center; line-height: 1.2;
+      }
+      /* Green tint mirrors Members' blue subtitle — each view has its colour identity */
+      .lib-banner-club-label {
+        font-size: 0.58rem; color: rgba(93, 202, 122, 0.65);
+        text-transform: uppercase; letter-spacing: 1.5px;
+        text-align: center; margin-bottom: 14px; display: block;
+      }
       .lib-banner-add-btn {
-        background: rgba(46, 204, 113, 0.15);         /* green ghost fill */
-        border: 1px solid rgba(46, 204, 113, 0.35);   /* green border     */
-        color: #5dca7a;                                /* green label      */
+        position: absolute; top: 14px; right: 14px;  /* floated so centered title stays clean */
+        background: rgba(46, 204, 113, 0.15);
+        border: 1px solid rgba(46, 204, 113, 0.35);
+        color: #5dca7a;
         padding: 5px 12px; border-radius: 20px;
         font-size: 0.8rem; font-weight: 600; cursor: pointer;
-        white-space: nowrap; flex-shrink: 0; width: auto;
+        white-space: nowrap; width: auto;
         transition: background 0.15s;
       }
       .lib-banner-add-btn:hover { background: rgba(46, 204, 113, 0.25); }
