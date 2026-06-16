@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library Banner Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:ital@1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --arka-accent: #A984BA;
+      --arka-accent-hover: #8b6ba0;
+      --text-strong: #2c3e50;
+      --text-muted: #5b6b6e;
+      --surface-alt: #f8f9fa;
+      --border-soft: #ecf0f1;
+      --text-faint: #6a7878;
+      --neutral-mid: #bdc3c7;
+      --font-body: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      --font-display: 'Cinzel', serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: #f4f7f6;
+      margin: 0;
+      padding: 24px 16px;
+    }
+    h2 {
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-faint);
+      margin: 0 0 8px;
+    }
+    .compare-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    /* ── Shared tab bar ───────────────────────────────────── */
+    .library-tabs {
+      display: flex;
+      gap: 0;
+    }
+    .lib-tab {
+      flex: 1;
+      text-align: center;
+      padding: 9px 0 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       CURRENT Library Banner
+    ══════════════════════════════════════════════════════ */
+    #libraryBanner-current {
+      background: #0d1f12;
+      border-radius: 12px 12px 0 0;
+      padding: 16px 20px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    #libraryBanner-current::before {
+      content: '';
+      position: absolute; top: -22px; right: -22px;
+      width: 100px; height: 100px; border-radius: 50%;
+      background: rgba(39,174,96,0.1); pointer-events: none;
+    }
+    #libraryBanner-current::after {
+      content: '';
+      position: absolute; bottom: -28px; left: 24px;
+      width: 70px; height: 70px; border-radius: 50%;
+      background: rgba(39,174,96,0.06); pointer-events: none;
+    }
+    .lib-banner-top-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .lib-banner-icon-wrap-current {
+      width: 36px; height: 36px;
+      background: rgba(39,174,96,0.2);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .lib-banner-text { flex: 1; min-width: 0; }
+    .lib-banner-title-current {
+      font-size: 1.05rem; font-weight: bold; color: #ffffff; line-height: 1.2;
+    }
+    .lib-banner-club-label-current {
+      font-size: 0.58rem; color: rgba(93,202,122,0.65);
+      text-transform: uppercase; letter-spacing: 0.09em;
+    }
+    .lib-banner-add-btn {
+      background: rgba(46,204,113,0.15);
+      border: 1px solid rgba(46,204,113,0.35);
+      color: #5dca7a;
+      padding: 5px 12px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .lib-stat-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .lib-stat-pill {
+      flex: 1; text-align: center; padding: 10px 5px; border-radius: 8px;
+      background: rgba(255,255,255,0.07); border: 1px solid transparent;
+    }
+    .lib-stat-pill.lib-stat-reading {
+      background: rgba(169,132,186,0.18);
+      border-color: rgba(169,132,186,0.45);
+    }
+    .lib-stat-value {
+      display: block; font-size: 1.25rem; font-weight: bold;
+      font-family: var(--font-display); color: #f1c40f; line-height: 1.2;
+    }
+    .lib-stat-pill.lib-stat-reading .lib-stat-value { color: #ffffff; }
+    .lib-stat-label {
+      display: block; font-size: 0.58rem; text-transform: uppercase;
+      letter-spacing: 0.06em; color: rgba(255,255,255,0.5); margin-top: 3px;
+    }
+    #libraryBanner-current .library-tabs {
+      background: transparent; padding: 0;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    #libraryBanner-current .lib-tab {
+      color: rgba(255,255,255,0.45); border-radius: 0;
+    }
+    #libraryBanner-current .lib-tab.active {
+      color: #5dca7a; border-bottom: 2px solid #5dca7a;
+    }
+    .content-area {
+      background: #ffffff;
+      border-radius: 0 0 12px 12px;
+      padding: 16px 20px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      margin-bottom: 0;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       MEMBERS Banner (reference)
+    ══════════════════════════════════════════════════════ */
+    #membersBanner {
+      background: #042C53;
+      position: relative;
+      border-radius: 12px 12px 0 0;
+      padding: 28px 16px 0;
+      overflow: hidden;
+    }
+    #membersBanner::before {
+      content: '';
+      position: absolute; top: -25px; right: -25px;
+      width: 110px; height: 110px; border-radius: 50%;
+      background: rgba(100,150,220,0.15); pointer-events: none;
+    }
+    #membersBanner::after {
+      content: '';
+      position: absolute; bottom: -35px; left: -15px;
+      width: 90px; height: 90px; border-radius: 50%;
+      background: rgba(100,150,220,0.08); pointer-events: none;
+    }
+    .mbr-banner-icon-wrap {
+      width: 46px; height: 46px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 10px;
+    }
+    .mbr-banner-title {
+      font-size: 1.05rem; font-weight: bold; color: #ffffff;
+      letter-spacing: 2.5px; font-family: var(--font-display);
+      margin-bottom: 3px; text-align: center;
+    }
+    .mbr-banner-sub {
+      font-size: 0.58rem; color: rgba(133,183,235,0.65);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      text-align: center; margin-bottom: 14px;
+    }
+    #membersBanner .library-tabs {
+      background: transparent; padding: 0;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    #membersBanner .lib-tab {
+      color: rgba(255,255,255,0.4); border-radius: 0;
+      font-size: 0.9rem;
+    }
+    #membersBanner .lib-tab.active {
+      color: #85B7EB; border-bottom: 2px solid #85B7EB;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       PROPOSED Library Banner (Members-aligned)
+    ══════════════════════════════════════════════════════ */
+    #libraryBanner-new {
+      background: #0d1f12;
+      border-radius: 12px 12px 0 0;
+      padding: 28px 16px 0;       /* matches Members top padding */
+      position: relative;
+      overflow: hidden;
+    }
+    #libraryBanner-new::before {
+      content: '';
+      position: absolute; top: -25px; right: -25px;
+      width: 110px; height: 110px; border-radius: 50%;
+      background: rgba(39,174,96,0.12); pointer-events: none;
+    }
+    #libraryBanner-new::after {
+      content: '';
+      position: absolute; bottom: -35px; left: -15px;
+      width: 90px; height: 90px; border-radius: 50%;
+      background: rgba(39,174,96,0.07); pointer-events: none;
+    }
+    /* Centered icon — matches Members' mbr-banner-icon-wrap */
+    .lib-banner-icon-wrap-new {
+      width: 46px; height: 46px;
+      background: rgba(39,174,96,0.15);
+      border: 1px solid rgba(39,174,96,0.25);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 10px;           /* centered */
+    }
+    /* Cinzel display font + letter-spacing — matches Members' mbr-banner-title */
+    .lib-banner-title-new {
+      font-size: 1.05rem; font-weight: bold; color: #ffffff;
+      letter-spacing: 2.5px; font-family: var(--font-display);
+      margin-bottom: 3px; text-align: center;
+    }
+    /* Green-tinted subtitle — mirrors Members' mbr-banner-sub in green */
+    .lib-banner-sub-new {
+      font-size: 0.58rem; color: rgba(93,202,122,0.65);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      text-align: center; margin-bottom: 14px;
+    }
+    /* Add button floated to top-right — keeps function, doesn't disrupt centered title */
+    .lib-banner-add-btn-new {
+      position: absolute;
+      top: 14px; right: 14px;
+      background: rgba(46,204,113,0.15);
+      border: 1px solid rgba(46,204,113,0.35);
+      color: #5dca7a;
+      padding: 5px 12px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer;
+      white-space: nowrap;
+    }
+    /* Stat pills — same as current, just reused below the centered title */
+    .lib-stat-row-new { display: flex; gap: 8px; margin-bottom: 14px; }
+    .lib-stat-pill-new {
+      flex: 1; text-align: center; padding: 10px 5px; border-radius: 8px;
+      background: rgba(255,255,255,0.07); border: 1px solid transparent;
+    }
+    .lib-stat-pill-new.lib-stat-reading-new {
+      background: rgba(169,132,186,0.18);
+      border-color: rgba(169,132,186,0.45);
+    }
+    .lib-stat-value-new {
+      display: block; font-size: 1.25rem; font-weight: bold;
+      font-family: var(--font-display); color: #f1c40f; line-height: 1.2;
+    }
+    .lib-stat-pill-new.lib-stat-reading-new .lib-stat-value-new { color: #ffffff; }
+    .lib-stat-label-new {
+      display: block; font-size: 0.58rem; text-transform: uppercase;
+      letter-spacing: 0.06em; color: rgba(255,255,255,0.5); margin-top: 3px;
+    }
+    #libraryBanner-new .library-tabs {
+      background: transparent; padding: 0;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    #libraryBanner-new .lib-tab {
+      color: rgba(255,255,255,0.45); border-radius: 0;
+      font-size: 0.9rem;
+    }
+    #libraryBanner-new .lib-tab.active {
+      color: #5dca7a; border-bottom: 2px solid #5dca7a;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 3px 8px; border-radius: 20px;
+      margin-bottom: 10px;
+    }
+    .tag-current  { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+    .tag-members  { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+    .tag-proposed { background: rgba(39,174,96,0.25); color: #5dca7a; }
+  </style>
+</head>
+<body>
+  <div class="compare-wrap">
+
+    <!-- ── CURRENT Library Banner ── -->
+    <div>
+      <h2>Current — Library Banner</h2>
+      <div id="libraryBanner-current">
+        <div class="lib-banner-top-row">
+          <div class="lib-banner-icon-wrap-current">
+            <i class="fa-solid fa-book-open" style="color:#5dca7a;font-size:16px;"></i>
+          </div>
+          <div class="lib-banner-text">
+            <div class="lib-banner-title-current">Arka Library</div>
+            <div class="lib-banner-club-label-current">Arka Book Club</div>
+          </div>
+          <button class="lib-banner-add-btn">+ Add Book</button>
+        </div>
+        <div class="lib-stat-row">
+          <div class="lib-stat-pill">
+            <span class="lib-stat-value">42</span>
+            <span class="lib-stat-label">Books</span>
+          </div>
+          <div class="lib-stat-pill lib-stat-reading">
+            <span class="lib-stat-value">8</span>
+            <span class="lib-stat-label">Reading Now</span>
+          </div>
+          <div class="lib-stat-pill">
+            <span class="lib-stat-value">186</span>
+            <span class="lib-stat-label">Reads Logged</span>
+          </div>
+        </div>
+        <div class="library-tabs">
+          <div class="lib-tab active">All Books</div>
+          <div class="lib-tab">Reading</div>
+          <div class="lib-tab">Finished</div>
+        </div>
+      </div>
+      <div class="content-area">Book list goes here…</div>
+    </div>
+
+    <!-- ── MEMBERS Banner (reference) ── -->
+    <div>
+      <h2>Reference — Members Banner</h2>
+      <div id="membersBanner">
+        <div class="mbr-banner-icon-wrap">
+          <i class="fa-solid fa-users" style="color:rgba(133,183,235,0.9);font-size:20px;"></i>
+        </div>
+        <div class="mbr-banner-title">Members</div>
+        <div class="mbr-banner-sub">Arka Book Club</div>
+        <div class="library-tabs">
+          <div class="lib-tab active">Directory</div>
+          <div class="lib-tab">Leaderboard</div>
+        </div>
+      </div>
+      <div class="content-area">Members list goes here…</div>
+    </div>
+
+    <!-- ── PROPOSED Library Banner ── -->
+    <div>
+      <h2>Proposed — Library Banner (Members-aligned)</h2>
+      <div id="libraryBanner-new">
+        <!-- Add book button floated top-right so the centered title stays clean -->
+        <button class="lib-banner-add-btn-new">+ Add Book</button>
+
+        <div class="lib-banner-icon-wrap-new">
+          <i class="fa-solid fa-book-open" style="color:#5dca7a;font-size:20px;"></i>
+        </div>
+        <div class="lib-banner-title-new">Library</div>
+        <div class="lib-banner-sub-new">Arka Book Club</div>
+
+        <div class="lib-stat-row-new">
+          <div class="lib-stat-pill-new">
+            <span class="lib-stat-value-new">42</span>
+            <span class="lib-stat-label-new">Books</span>
+          </div>
+          <div class="lib-stat-pill-new lib-stat-reading-new">
+            <span class="lib-stat-value-new">8</span>
+            <span class="lib-stat-label-new">Reading Now</span>
+          </div>
+          <div class="lib-stat-pill-new">
+            <span class="lib-stat-value-new">186</span>
+            <span class="lib-stat-label-new">Reads Logged</span>
+          </div>
+        </div>
+
+        <div class="library-tabs">
+          <div class="lib-tab active">All Books</div>
+          <div class="lib-tab">Reading</div>
+          <div class="lib-tab">Finished</div>
+        </div>
+      </div>
+      <div class="content-area">Book list goes here…</div>
+    </div>
+
+  </div>
+</body>
+</html>
