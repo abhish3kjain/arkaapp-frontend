@@ -1875,7 +1875,7 @@
         text-align: center; margin-bottom: 14px; display: block;
       }
       .lib-banner-add-btn {
-        position: absolute; top: 28px; right: 16px;  /* vertically centred with icon row; matches banner side padding */
+        position: absolute; top: 28px; right: 16px; z-index: 3;  /* above the z-index:2 centered content div */
         background: rgba(46, 204, 113, 0.15);
         border: 1px solid rgba(46, 204, 113, 0.35);
         color: #5dca7a;
