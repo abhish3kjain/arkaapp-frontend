@@ -436,11 +436,10 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 
 ## 15. Versioning Discipline
 
-- When providing code that goes into production, state the new version number.
-- Example: "This belongs in `ArkaClubApp_v112.html`" (increment from current).
+- When providing code that goes into production, state the new version number..
 - Never suggest reverting to a prior version as a fix strategy.
 - The `help-whats-new` article in `Arka_Help` should be updated whenever user-facing features ship.
 
 ---
 
-*Last updated: June 2026 | App version at time of writing: v111 (frontend), v55 (backend), v30 (MasterEngine)*
+*Last updated: June 2026 | App version at time of writing: v127*
