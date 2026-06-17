@@ -32,16 +32,18 @@
 
 | File | Purpose | Current Version |
 |---|---|---|
-| `ArkaClubApp_vXXX.html` | Single-file SPA frontend (~42,000+ lines) | v111 |
-| `ArkaClubAppCode_vXX.gs` | Backend GAS — all `google.script.run` handlers | v55 |
-| `MasterEngine_vXX.gs` | Nightly batch engine — stats, badges, email queue | v30 |
+| `styles.css` | core style css for the app|
+| `app.js` | Core Javascript of the app |  |
+| `ArkaAppBody` | Google App Script html file | Versioning done in styles.css and app.js link |
+| `ArkaMainAppCode.gs` | Backend GAS — all `google.script.run` handlers | version varibale to be maintained |
+| `MasterEngine.gs` | Nightly batch engine — stats, badges, email queue | current |
 | `ArkaAIPass.gs` | Gemini AI narrative generation via `UrlFetchApp` | (current) |
 | `ArkaEmailPass.gs` | Email pipeline — reads queue, sends, logs | (current) |
 | `ArkaPersonaPass.gs` | Reading personality / archetype computation | (current) |
-| `ArkaAdminControlPanel_vX.html` | Admin-only control panel (separate GAS file) | v4 |
-| `Arka_Help_vX.html` | In-app help content (47 articles as of Jun 2026) | v40 |
-| `Arka_Design_Tokens_v1.md` | Design token definitions — single source of truth for colour/type | v1 |
-| `Arka_Database_Definitions_vX.md` | Column-by-column schema for every sheet | v5 |
+| `ArkaAdminControlPanel.html` | Admin-only control panel (separate GAS file) | v4 |
+| `Arka_Help.html` | In-app help content (47 articles as of Jun 2026) | v40 |
+| `Arka_Design_Tokens.md` | Design token definitions — single source of truth for colour/type | v1 |
+| `ArkaDatabase_Definitions.md` | Column-by-column schema for every sheet | v5 |
 | `Arka_Product_Audit_v2.md` | Product audit framework + open items | v2 |
 
 **Version naming:** Frontend increments as `v111`, `v112`, …. Backend as `v55`, `v56`, …. MasterEngine as `v30`, `v31`, …. Never skip or reset version numbers.
