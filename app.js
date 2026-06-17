@@ -11934,6 +11934,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             ${buildRankedListHtml(rankedMembers, scoreMap, cfg)}
           </div>
         `;
+
+        // Restore the active chip into view — innerHTML rebuild resets scroll to 0.
+        const activeChip = container.querySelector('.genre-chips-container .genre-chip[style*="background:var(--text-strong)"]');
+        if (activeChip) activeChip.scrollIntoView({ block: 'nearest', inline: 'center' });
       }
       
       
