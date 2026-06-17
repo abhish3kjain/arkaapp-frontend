@@ -11793,12 +11793,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             break;
 
           case 'ratings':
-            // Source: MemberShelfDB — count shelf records where the member has submitted
-            // a star rating (rating > 0). Deleted records are excluded because their
-            // rating is reset to 0 on soft-delete (per DB spec Col E behaviour).
-            globalShelvesDB.forEach(shelf => {
-              if (!(Number(shelf.rating) > 0)) return;
-              scoreMap.set(shelf.memberId, (scoreMap.get(shelf.memberId) || 0) + 1);
+            // Use MasterEngine-computed all-time count from Col O (deduped by shelfId)
+            globalMembersDB.forEach(member => {
+              const n = Number(((member.stats || {}).allTime || {}).ratings) || 0;
+              if (n > 0) scoreMap.set(member.id, n);
             });
             break;
 
