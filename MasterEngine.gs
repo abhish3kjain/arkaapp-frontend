@@ -1879,18 +1879,22 @@ function syncAllMemberStats() {
       }
     }
 
-    // All-time ratings per member — counted from MemberShelfDB Col E (rating field, index 4).
-    // Deleted records are skipped; rating > 0 means a star rating was submitted.
-    // This mirrors how memberReviewCountMap is built above, but for ratings.
-    // Previously computed only inside runYearEndBadgePass(); now computed here so the
-    // nightly Stats JSON (Col O) can include an accurate all-time ratings count.
+    // All-time ratings per member from ActivityLogDB, deduplicated by shelfId.
+    // Mirrors _buildYearStatsMap_ ratings logic (ARKA_ACTTYP_BOOKRATING + shelfId dedup)
+    // but with no year filter, so re-ratings on the same shelf never double-count.
+    var memberRatingShelfSets = {};  // { memberId: { shelfId: true } }
+    for (var rci = 1; rci < activityData.length; rci++) {
+      if ((activityData[rci][1] || '').toString() !== 'ARKA_ACTTYP_BOOKRATING') continue;
+      var rcMemberId = (activityData[rci][3] || '').toString();
+      var rcShelfId  = (activityData[rci][4] || '').toString();
+      if (!rcMemberId || !rcShelfId) continue;
+      if (!memberRatingShelfSets[rcMemberId]) memberRatingShelfSets[rcMemberId] = {};
+      memberRatingShelfSets[rcMemberId][rcShelfId] = true;
+    }
     var memberRatingCountMap = {};
-    for (var rci = 1; rci < shelfData.length; rci++) {
-      if ((shelfData[rci][3] || '').toString() === 'Deleted') continue;
-      var rcMemberId = (shelfData[rci][1] || '').toString();
-      var rcRating   = Number(shelfData[rci][4]) || 0;
-      if (!rcMemberId || rcRating <= 0) continue;
-      memberRatingCountMap[rcMemberId] = (memberRatingCountMap[rcMemberId] || 0) + 1;
+    for (var rrRatMid in memberRatingShelfSets) {
+      if (!memberRatingShelfSets.hasOwnProperty(rrRatMid)) continue;
+      memberRatingCountMap[rrRatMid] = Object.keys(memberRatingShelfSets[rrRatMid]).length;
     }
 
     // Active badge count per member — counted from BadgeAwardDB before the badge
