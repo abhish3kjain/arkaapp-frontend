@@ -26653,7 +26653,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           var otyPagesData = yearsActive.map(function(y) { return yearlyStats[y].pages; });
           var otyBooksData = yearsActive.map(function(y) { return yearlyStats[y].books; });
           var otyMaxPages  = Math.max.apply(null, otyPagesData) || 1;
-          var otyMaxBooks  = Math.max.apply(null, otyBooksData) || 1;
 
           // Bar geometry constants (px)
           var OTY_BAR_MAX_H  = 110;  // tallest bar height
@@ -26683,7 +26682,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           otyHtml +=   '</div>';
           otyHtml +=   '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);">';
           otyHtml +=     '<span style="font-size:9px;font-weight:700;color:white;background:var(--arka-accent);';
-          otyHtml +=       'border-radius:3px;padding:1px 4px;line-height:1.4;">' + otyMaxBooks + '</span>';
+          otyHtml +=       'border-radius:3px;padding:1px 4px;line-height:1.4;">N</span>';
           otyHtml +=     'Books finished';
           otyHtml +=   '</div>';
           otyHtml += '</div>';
