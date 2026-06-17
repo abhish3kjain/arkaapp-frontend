@@ -80,8 +80,7 @@ Replace with:
 ## 4. Delivery Preferences (Critical)
 
 ### Surgical Edits Over Full-File Regeneration
-- For changes covering **< ~30–40% of a file**, always deliver **targeted find/replace blocks in chat**.
-- Full file output is **only acceptable** for brand-new files or very large multi-section merges.
+- Direct edits of the file in Github
 - **Python patch scripts that produce full-file outputs are explicitly rejected.** They are not reviewable and consume excessive tokens.
 
 ### Mockup Before Code (AJ's Standard Workflow)
@@ -92,7 +91,7 @@ Replace with:
 ### Know the Code Before Writing It
 - **Never write code for a function without first reading its current state in the project files.**
 - If the relevant file or function is not in context, **ask AJ to share it** rather than guessing.
-- This applies to both frontend (`.html`) and backend (`.gs`) files.
+- This applies to both frontend and backend files.
 
 ### Minimal Valid Fix
 - AJ prefers the **most minimal valid fix** over structural refactors.
