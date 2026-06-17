@@ -1815,18 +1815,24 @@ function syncAllMemberStats() {
       }
     }
 
-    // Per-member review counts from MemberShelfDB (source of truth: Col F review field).
-    // Deleted rows are skipped — deleteShelfRecord() always clears Col F to '' on soft-delete,
-    // but the explicit status guard is kept as a belt-and-suspenders safety check.
-    // No status restriction — Finished and DNF reviews both count.
-    var memberReviewCountMap = {};  // { memberId: count of shelf records with non-empty review }
-    for (var rsi = 1; rsi < shelfData.length; rsi++) {
-      var rsStatus = (shelfData[rsi][3] || '').toString();
-      if (rsStatus === 'Deleted') continue;
-      var rsMemberId = (shelfData[rsi][1] || '').toString();
-      var rsReview   = (shelfData[rsi][5] || '').toString().trim();
-      if (!rsMemberId || !rsReview) continue;
-      memberReviewCountMap[rsMemberId] = (memberReviewCountMap[rsMemberId] || 0) + 1;
+    // Per-member all-time review counts from ActivityLogDB, deduplicated by shelfId.
+    // Mirrors _buildYearStatsMap_ review logic (ARKA_ACTTYP_BOOKREVIEW + shelfId dedup)
+    // but with no year filter, so edits/re-submissions on the same shelf never double-count.
+    // Using the activity log (not shelf Col F text) ensures consistency with yearly stats.
+    var memberReviewShelfSets = {};  // { memberId: { shelfId: true } }
+    for (var rsi = 1; rsi < activityData.length; rsi++) {
+      var rsType  = (activityData[rsi][1] || '').toString();
+      if (rsType !== 'ARKA_ACTTYP_BOOKREVIEW') continue;
+      var rsMemberId = (activityData[rsi][3] || '').toString();
+      var rsShelfId  = (activityData[rsi][4] || '').toString();
+      if (!rsMemberId || !rsShelfId) continue;
+      if (!memberReviewShelfSets[rsMemberId]) memberReviewShelfSets[rsMemberId] = {};
+      memberReviewShelfSets[rsMemberId][rsShelfId] = true;
+    }
+    var memberReviewCountMap = {};  // { memberId: unique reviewed shelf count }
+    for (var rrMid in memberReviewShelfSets) {
+      if (!memberReviewShelfSets.hasOwnProperty(rrMid)) continue;
+      memberReviewCountMap[rrMid] = Object.keys(memberReviewShelfSets[rrMid]).length;
     }
 
     // Per-member event-attendance counts from ActivityLogDB.
@@ -1957,15 +1963,14 @@ function syncAllMemberStats() {
           memberCanonGenreMap[shMemberId][cg] = (memberCanonGenreMap[shMemberId][cg] || 0) + 1;
         }
 
-        // Genre Collector — add every normalised tag to the member's unique set.
-        // resolveGenreForCollector_() collapses synonyms but keeps distinct genres
-        // (e.g. "historical fiction" is separate from "fiction").
+        // Genre Collector — add every raw lowercased tag to the member's unique set.
+        // No synonym collapsing — mirrors the leaderboard logic so all unique raw
+        // tags count toward the 1000-tier milestone.
         if (!memberGenreCollectorMap[shMemberId]) memberGenreCollectorMap[shMemberId] = {};
         for (var ti = 0; ti < rawTags.length; ti++) {
-          var trimmedTag = rawTags[ti].trim();
+          var trimmedTag = rawTags[ti].trim().toLowerCase();
           if (!trimmedTag) continue;
-          var normalisedTag = resolveGenreForCollector_(trimmedTag);
-          memberGenreCollectorMap[shMemberId][normalisedTag] = true;
+          memberGenreCollectorMap[shMemberId][trimmedTag] = true;
         }
       }
     }
