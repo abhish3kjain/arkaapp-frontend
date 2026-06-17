@@ -1838,7 +1838,7 @@
       #libraryBanner {
         background: #0d1f12;
         border-radius: 12px 12px 0 0;
-        padding: 28px 20px 0;
+        padding: 28px 16px 0;  /* matches Members banner side padding exactly */
         position: relative;   /* required for ::before/::after circles and abs button */
         overflow: hidden;     /* clips circles cleanly at rounded corners  */
         margin: 0 -20px;      /* break out of container padding so banner is full-bleed */
@@ -1876,7 +1876,7 @@
         text-align: center; margin-bottom: 14px; display: block;
       }
       .lib-banner-add-btn {
-        position: absolute; top: 14px; right: 20px;  /* floated so centered title stays clean */
+        position: absolute; top: 28px; right: 16px;  /* vertically centred with icon row; matches banner side padding */
         background: rgba(46, 204, 113, 0.15);
         border: 1px solid rgba(46, 204, 113, 0.35);
         color: #5dca7a;

@@ -2134,7 +2134,7 @@
     </div>
 
     <div id="libraryView" class="view-section">
-        <div id="libraryMainCard" style="margin:-40px 0 0;">
+        <div id="libraryMainCard" style="margin:-60px 0 0;">
 
           <!-- ── Library Banner ───────────────────────────────────────────────── -->
           <!-- Dark-green identity block. Replaces the old white card header and  -->
