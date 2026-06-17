@@ -6460,11 +6460,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             genreCounts[g] = (genreCounts[g] || 0) + 1;
           });
 
-          // Collector: every tag, synonym-collapsed
+          // Collector: every raw tag, case-insensitive dedup (no synonym collapsing)
           book.genre.split(',').forEach(function(rawTag) {
-            const trimmed = rawTag.trim();
+            const trimmed = rawTag.trim().toLowerCase();
             if (!trimmed) return;
-            collectorGenreSet[resolveGenreForCollector_(trimmed)] = true;
+            collectorGenreSet[trimmed] = true;
           });
         });
 
@@ -7456,6 +7456,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               return gap * 7; // each gap unit is one calendar week that must elapse
             case 'PLOGGER':
               return gap * 7; // each unique week = 7 calendar days minimum
+            case 'ANNIVERSARY':
+              return Math.round(gap * 365.25); // gap is in years; convert to days
             case 'FAT_READ':
               // Time to read one book of `threshold` pages — not gap / pace
               return paceAvgPagesPerDay > 0 ? Math.round(threshold / paceAvgPagesPerDay) : 99999;
@@ -10570,8 +10572,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             const toLabel   = shiftM ? shiftM[2].trim() : '';
             let dateLabel = '';
             try {
-              const d = new Date(shift.activityDate);
-              if (!isNaN(d)) dateLabel = d.toLocaleDateString('en-GB', { month:'short', year:'numeric' });
+              const d = parseArkaDateString_(shift.activityDate);
+              if (d && !isNaN(d)) dateLabel = d.toLocaleDateString('en-GB', { month:'short', year:'numeric' });
             } catch(e) {}
             return `
               <div style="display:flex;align-items:flex-start;gap:10px;
@@ -11749,10 +11751,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             break;
 
           case 'reviews':
-            // Source: MemberShelfDB — count each non-empty review field (any status)
-            globalShelvesDB.forEach(shelf => {
-              if (!(shelf.review || '').trim()) return;
-              scoreMap.set(shelf.memberId, (scoreMap.get(shelf.memberId) || 0) + 1);
+            // Use MasterEngine-computed all-time count from Col O (excludes Deleted records)
+            globalMembersDB.forEach(member => {
+              const n = Number(((member.stats || {}).allTime || {}).reviews) || 0;
+              if (n > 0) scoreMap.set(member.id, n);
             });
             break;
 
@@ -11791,12 +11793,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             break;
 
           case 'ratings':
-            // Source: MemberShelfDB — count shelf records where the member has submitted
-            // a star rating (rating > 0). Deleted records are excluded because their
-            // rating is reset to 0 on soft-delete (per DB spec Col E behaviour).
-            globalShelvesDB.forEach(shelf => {
-              if (!(Number(shelf.rating) > 0)) return;
-              scoreMap.set(shelf.memberId, (scoreMap.get(shelf.memberId) || 0) + 1);
+            // Use MasterEngine-computed all-time count from Col O (deduped by shelfId)
+            globalMembersDB.forEach(member => {
+              const n = Number(((member.stats || {}).allTime || {}).ratings) || 0;
+              if (n > 0) scoreMap.set(member.id, n);
             });
             break;
 
@@ -26680,7 +26680,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           otyHtml +=   '</div>';
           otyHtml +=   '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);">';
           otyHtml +=     '<span style="font-size:9px;font-weight:700;color:white;background:var(--arka-accent);';
-          otyHtml +=       'border-radius:3px;padding:1px 4px;line-height:1.4;">12</span>';
+          otyHtml +=       'border-radius:3px;padding:1px 4px;line-height:1.4;">N</span>';
           otyHtml +=     'Books finished';
           otyHtml +=   '</div>';
           otyHtml += '</div>';
