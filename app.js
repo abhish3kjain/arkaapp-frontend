@@ -10572,8 +10572,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             const toLabel   = shiftM ? shiftM[2].trim() : '';
             let dateLabel = '';
             try {
-              const d = parseArkaDateString_(shift.activityDate);
-              if (d && !isNaN(d)) dateLabel = d.toLocaleDateString('en-GB', { month:'short', year:'numeric' });
+              // activityDate format: "dd-MM-yyyy HH:mm:ss +ZZZZ"
+              // new Date() mis-parses this, so split manually.
+              const parts = (shift.activityDate || '').split(/[\s\-:+]/);
+              const d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+              if (!isNaN(d)) dateLabel = d.toLocaleDateString('en-GB', { month:'short', year:'numeric' });
             } catch(e) {}
             return `
               <div style="display:flex;align-items:flex-start;gap:10px;
