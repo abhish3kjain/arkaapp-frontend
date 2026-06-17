@@ -1841,7 +1841,6 @@
         padding: 28px 16px 0;  /* matches Members banner side padding exactly */
         position: relative;   /* required for ::before/::after circles and abs button */
         overflow: hidden;     /* clips circles cleanly at rounded corners  */
-        margin: 0 -20px;      /* break out of container padding so banner is full-bleed */
       }
       /* Decorative background circles — same motif as Members & HOF hero */
       #libraryBanner::before {
