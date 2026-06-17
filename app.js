@@ -1349,12 +1349,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           } catch(e) {}
 
           if (isWave3Loaded) {
-            // Default to directory, but honour deep-link flags from goToLeaderboard()
-            // and goToActiveReaders() set via sessionStorage before navigation.
+            // Honour deep-link flags first, then restore last active sub-tab,
+            // falling back to directory only if no prior state exists.
             if (activeMembersFilter === 'rankings') {
               switchMembersTab('rankings');
             } else {
-              switchMembersTab('directory');
+              switchMembersTab(currentMembersSubTab || 'directory');
             }
             // Apply active-reader pre-filter: show only members who have a Reading shelf record.
             if (activeMembersFilter === 'active') {
