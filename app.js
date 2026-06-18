@@ -14989,27 +14989,50 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               subText = u.pages > 0
                 ? 'p.&nbsp;' + u.pages
                 : getSmartTimeAgo(parseGoogleDate(u.date));
-            } else if (cfg.key === 'Finished') {
-              const stars = u.rating > 0 ? '★ ' + u.rating : '';
-              subText = stars || formatShelfDate(u.dateFinished) || getSmartTimeAgo(parseGoogleDate(u.date));
-            } else {
+            } else if (cfg.key !== 'Finished') {
               subText = getSmartTimeAgo(parseGoogleDate(u.date));
             }
 
             // Truncate long display names for the avatar label
             const shortName = u.name.length > 8 ? u.name.slice(0, 7) + '…' : u.name;
 
-            avItems +=
-              `<div class="detail-shelf-av-item"
-                    onclick="showMemberProfile('${u.memberId}')"
-                    style="cursor:pointer;">
-                 ${buildShelfAvHtml(u, cfg.bg, cfg.fg)}
-                 <div style="font-size:0.68rem;color:#34495e;margin-top:4px;
-                             white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                   ${escapeHtml(shortName)}
-                 </div>
-                 <div style="font-size:0.62rem;color:var(--text-faint);">${subText}</div>
-               </div>`;
+            if (cfg.key === 'Finished') {
+              const ratingBadge = u.rating > 0
+                ? `<div style="position:absolute;top:-6px;right:-10px;
+                               background:#e67e22;color:#fff;
+                               font-size:0.6rem;font-weight:700;
+                               padding:3px 5px;border-radius:12px;
+                               box-shadow:0 2px 4px rgba(0,0,0,0.2);
+                               white-space:nowrap;z-index:10;line-height:1.2;">★ ${u.rating}</div>`
+                : '';
+              const dateLabel = formatShelfDate(u.dateFinished) || getSmartTimeAgo(parseGoogleDate(u.date));
+              avItems +=
+                `<div class="detail-shelf-av-item"
+                      onclick="showMemberProfile('${u.memberId}')"
+                      style="cursor:pointer;">
+                   <div style="position:relative;display:inline-block;">
+                     ${buildShelfAvHtml(u, cfg.bg, cfg.fg)}
+                     ${ratingBadge}
+                   </div>
+                   <div style="font-size:0.68rem;color:#34495e;margin-top:4px;
+                               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                     ${escapeHtml(shortName)}
+                   </div>
+                   <div style="font-size:0.6rem;color:var(--text-faint);">${escapeHtml(dateLabel)}</div>
+                 </div>`;
+            } else {
+              avItems +=
+                `<div class="detail-shelf-av-item"
+                      onclick="showMemberProfile('${u.memberId}')"
+                      style="cursor:pointer;">
+                   ${buildShelfAvHtml(u, cfg.bg, cfg.fg)}
+                   <div style="font-size:0.68rem;color:#34495e;margin-top:4px;
+                               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                     ${escapeHtml(shortName)}
+                   </div>
+                   <div style="font-size:0.62rem;color:var(--text-faint);">${subText}</div>
+                 </div>`;
+            }
           });
 
           shelvesHtml +=

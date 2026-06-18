@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Club Shelves — Finished Members Mock</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f7fa;
+    margin: 0;
+    padding: 28px 20px;
+    color: #1a2530;
+  }
+  h1 { font-size: 17px; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 32px; }
+
+  .row { display: flex; gap: 24px; flex-wrap: wrap; }
+
+  /* ── Card shell (mimics Book Details card) ── */
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    flex: 1;
+    min-width: 280px;
+    max-width: 360px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+  .card-label { font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 16px; }
+  .card-label.before { color: #c0392b; }
+  .card-label.after  { color: #1D9E75; }
+
+  /* ── Section header (same as app) ── */
+  .shelf-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 14px;
+  }
+  .shelf-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #1D9E75;
+    flex-shrink: 0;
+  }
+  .shelf-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #1D9E75;
+  }
+  .shelf-count {
+    font-size: 0.68rem;
+    color: #aaa;
+  }
+
+  /* ── Member strip ── */
+  .members-strip {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  /* ════════════════════════════════════════
+     BEFORE — current layout
+  ════════════════════════════════════════ */
+  .av-item-before {
+    flex-shrink: 0;
+    text-align: center;
+    width: 50px;
+    cursor: pointer;
+  }
+  .av-item-before img {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto;
+  }
+  .av-initials {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: #E1F5EE;
+    color: #085041;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: bold;
+    margin: 0 auto;
+  }
+  .av-name {
+    font-size: 0.68rem;
+    color: #34495e;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .av-sub-before {
+    font-size: 0.62rem;
+    color: #999;
+    margin-top: 1px;
+  }
+
+  /* ════════════════════════════════════════
+     AFTER — talk bubble rating + date
+  ════════════════════════════════════════ */
+  .av-item-after {
+    flex-shrink: 0;
+    text-align: center;
+    width: 54px;
+    cursor: pointer;
+  }
+  .av-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  .av-wrapper img,
+  .av-wrapper .av-initials {
+    display: block;
+  }
+
+  /* Talk bubble badge */
+  .talk-bubble {
+    position: absolute;
+    top: -10px;
+    right: -12px;
+    background: #e67e22;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 3px 5px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+    white-space: nowrap;
+    z-index: 10;
+    line-height: 1.2;
+  }
+.av-name-after {
+    font-size: 0.68rem;
+    color: #34495e;
+    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .av-date {
+    font-size: 0.6rem;
+    color: #aaa;
+    margin-top: 1px;
+  }
+
+  /* ── Annotation boxes ── */
+  .note {
+    margin-top: 18px;
+    padding: 10px 13px;
+    border-radius: 0 8px 8px 0;
+    font-size: 11.5px;
+    color: #555;
+    line-height: 1.6;
+    border-left: 3px solid #ccc;
+    background: #fafafa;
+  }
+  .note.bad  { border-color: #c0392b; background: #fff5f5; }
+  .note.good { border-color: #1D9E75; background: #f0fbf6; }
+</style>
+</head>
+<body>
+
+<h1>Book Details — Club Shelves · Finished</h1>
+<p class="subtitle">Mock with 3 members: Santhosh (rated 5), Meera (rated 3), Rahul (no rating)</p>
+
+<div class="row">
+
+  <!-- ══════════ BEFORE ══════════ -->
+  <div class="card">
+    <div class="card-label before">Before (current)</div>
+
+    <div class="shelf-header">
+      <div class="shelf-dot"></div>
+      <span class="shelf-title">Finished</span>
+      <span class="shelf-count">· 3</span>
+    </div>
+
+    <div class="members-strip">
+
+      <!-- Santhosh — has photo + rating -->
+      <div class="av-item-before">
+        <img src="https://i.pravatar.cc/80?img=11" alt="S">
+        <div class="av-name">Santhosh</div>
+        <div class="av-sub-before">★ 5</div>
+      </div>
+
+      <!-- Meera — initials + rating -->
+      <div class="av-item-before">
+        <div class="av-initials">M</div>
+        <div class="av-name">Meera</div>
+        <div class="av-sub-before">★ 3</div>
+      </div>
+
+      <!-- Rahul — initials, no rating → shows date -->
+      <div class="av-item-before">
+        <div class="av-initials" style="background:#E1F5EE;color:#085041;">R</div>
+        <div class="av-name">Rahul</div>
+        <div class="av-sub-before">12 May</div>
+      </div>
+
+    </div>
+
+    <div class="note bad">
+      Rating and date compete for the same one line below the name — when there's a rating the date is lost entirely. Layout feels flat; nothing draws the eye to the rating.
+    </div>
+  </div>
+
+  <!-- ══════════ AFTER ══════════ -->
+  <div class="card">
+    <div class="card-label after">After (proposed)</div>
+
+    <div class="shelf-header">
+      <div class="shelf-dot"></div>
+      <span class="shelf-title">Finished</span>
+      <span class="shelf-count">· 3</span>
+    </div>
+
+    <div class="members-strip">
+
+      <!-- Santhosh — photo + talk bubble rating + date -->
+      <div class="av-item-after">
+        <div class="av-wrapper">
+          <img src="https://i.pravatar.cc/80?img=11" alt="S"
+               style="width:38px;height:38px;border-radius:50%;object-fit:cover;">
+          <div class="talk-bubble">★ 5</div>
+        </div>
+        <div class="av-name-after">Santhosh</div>
+        <div class="av-date">4 Jun 2025</div>
+      </div>
+
+      <!-- Meera — initials + talk bubble rating + date -->
+      <div class="av-item-after">
+        <div class="av-wrapper">
+          <div class="av-initials">M</div>
+          <div class="talk-bubble">★ 3</div>
+        </div>
+        <div class="av-name-after">Meera</div>
+        <div class="av-date">18 May 2025</div>
+      </div>
+
+      <!-- Rahul — no rating → no bubble, just date -->
+      <div class="av-item-after">
+        <div class="av-wrapper">
+          <div class="av-initials">R</div>
+          <!-- no bubble when no rating -->
+        </div>
+        <div class="av-name-after">Rahul</div>
+        <div class="av-date">12 May 2025</div>
+      </div>
+
+    </div>
+
+    <div class="note good">
+      Talk bubble sits top-right of the avatar (same corner as the book-card rating pill, same orange). Finished date always shows below the name. When there's no rating, no bubble appears — Rahul just shows the date.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
