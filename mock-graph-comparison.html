@@ -98,17 +98,17 @@
       <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div> Priya</div>
     </div>
     <div class="annotation good">
-      <strong>Fix:</strong> On Jun 2, only Priya has a dot (she logged). On Jun 5, only you have a dot. The line still shows cumulative progress across all dates — it just only marks dots where that person actually logged.
+      <strong>Fix:</strong> Data is <code>null</code> on dates a member didn't log. With <code>spanGaps: true</code>, the line connects only between a member's own logged points — it never passes through a date they didn't read on. Priya's line doesn't touch Jun 1 or Jun 5; your line doesn't touch Jun 2 or Jun 6.
     </div>
     <div class="data-table">
-      <h3>Data plotted (dot only on actual log days)</h3>
+      <h3>Data plotted (null on days not logged)</h3>
       <table>
-        <tr><th>Date</th><th>You (dot?)</th><th>Priya (dot?)</th></tr>
-        <tr><td>1 Jun</td><td class="highlight">50 ●</td><td>— (no dot)</td></tr>
-        <tr><td>2 Jun</td><td>— (no dot)</td><td class="highlight">60 ●</td></tr>
+        <tr><th>Date</th><th>You</th><th>Priya</th></tr>
+        <tr><td>1 Jun</td><td class="highlight">50 ●</td><td>null (skipped)</td></tr>
+        <tr><td>2 Jun</td><td>null (skipped)</td><td class="highlight">60 ●</td></tr>
         <tr><td>3 Jun</td><td class="highlight">80 ●</td><td class="highlight">80 ●</td></tr>
-        <tr><td>5 Jun</td><td class="highlight">120 ●</td><td>— (no dot)</td></tr>
-        <tr><td>6 Jun</td><td>— (no dot)</td><td class="highlight">130 ●</td></tr>
+        <tr><td>5 Jun</td><td class="highlight">120 ●</td><td>null (skipped)</td></tr>
+        <tr><td>6 Jun</td><td>null (skipped)</td><td class="highlight">130 ●</td></tr>
       </table>
     </div>
   </div>
@@ -171,7 +171,12 @@ new Chart(document.getElementById('chartBefore').getContext('2d'), {
   }
 });
 
-// ── AFTER: dot radius array — 0 on days with no log ──────────
+// ── AFTER: null on days with no log + spanGaps so line only connects own points ──
+// Cumulative value is carried forward in the data only on logged days;
+// null on other days so the line never passes through positions the member didn't log.
+var youSparse  = youCumulative.map(function(v, i)  { return youLogged[i]  ? v : null; });
+var priaSparse = priaCumulative.map(function(v, i) { return priaLogged[i] ? v : null; });
+
 new Chart(document.getElementById('chartAfter').getContext('2d'), {
   type: 'line',
   data: {
@@ -179,23 +184,25 @@ new Chart(document.getElementById('chartAfter').getContext('2d'), {
     datasets: [
       {
         label: 'You',
-        data: youCumulative,
+        data: youSparse,
         borderColor: '#534AB7',
         backgroundColor: '#534AB718',
         borderWidth: 2,
-        pointRadius:      youLogged.map(function(logged) { return logged ? 5 : 0; }),
-        pointHoverRadius: youLogged.map(function(logged) { return logged ? 7 : 0; }),
+        spanGaps: true,          // line connects across null gaps (other members' dates)
+        pointRadius: 5,
+        pointHoverRadius: 7,
         fill: false,
         tension: 0.3
       },
       {
         label: 'Priya',
-        data: priaCumulative,
+        data: priaSparse,
         borderColor: '#1D9E75',
         backgroundColor: '#1D9E7518',
         borderWidth: 2,
-        pointRadius:      priaLogged.map(function(logged) { return logged ? 5 : 0; }),
-        pointHoverRadius: priaLogged.map(function(logged) { return logged ? 7 : 0; }),
+        spanGaps: true,          // line connects across null gaps
+        pointRadius: 5,
+        pointHoverRadius: 7,
         fill: false,
         tension: 0.3
       }
