@@ -115,9 +115,7 @@
    - `--color-success: #1D9E75` · `--color-danger: #e74c3c` · `--color-warning: #e67e22` · `--color-gamification: #EF9F27` · `--color-challenge: #534AB7`
    - Note: `--color-warning` also covers star-rating orange (decorative). A future `--color-star` split is possible if dark mode needs divergence.
    
-2. **`fa-pencil-alt` deprecation** → minor icon inconsistency:
-   - In `renderMeActionBand()`: change `fa-pencil-alt` → `fa-pencil` for FA6 compliance.
-   - **Impact:** Quick Win · **Effort:** 5 minutes
+2. ✅ **`fa-pencil-alt` deprecation** → `fa-pencil-alt` removed from `app.js` (incl. `renderMeActionBand()`). Two residual instances in `ArkaHelp.html` are help article illustrations, not app UI.
 ---
  
 ## 4. ENGAGEMENT & MOTIVATION
@@ -271,7 +269,7 @@ A measurably stronger product across every dimension. The design token system cl
 - ✅ **Remove "Temp" badge from `logReadingSyncNote`** — Done. Orange dot element and JS toggle removed.
 - **Persona-shift celebration card** — `PERSONAUPDATE` detection + `meCelebrationCard` injection. Same container and CSS as the existing system.
 - **"Share this finish" persistent row on Finished shelf** — Recover the dismissed share nudge. `openBookFinishedShare()` already exists; one render-line in `renderUserShelves()`.
-- **`fa-pencil-alt` → `fa-pencil`** in `renderMeActionBand()` — 5-minute FA6 fix.
+- ✅ **`fa-pencil-alt` → `fa-pencil`** in `renderMeActionBand()` — Done.
 - ✅ **`LOG_READING_PICKER_BOOK_CHIPS` from 2 → 3** — Done. Constant already at 3 in app.js.
 - **Club median line in Me stat pills** — One sentence from `getReportsData()` aggregates already loaded in Wave 3.
 - **`help-whats-new` June 2026 entry** — Document the action band, unified log, insightsView for members who track what's new.
