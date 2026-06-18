@@ -18368,11 +18368,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           +            'cursor:pointer;flex-shrink:0;margin-left:8px;"></i>'
           + '</div>'
           + '<div class="feed-z175-body">'
-          +   '<div class="feed-z175-cover" onclick="openBookDetailView(\'' + safeBookId + '\')">'
+          +   '<div class="feed-z175-cover" onclick="openBookDetailView(\'' + safeBookId + '\', \'home\')">'
           +     coverHtml
           +   '</div>'
           +   '<div class="feed-z175-meta">'
-          +     '<div class="feed-z175-title" onclick="openBookDetailView(\'' + safeBookId + '\')">'
+          +     '<div class="feed-z175-title" onclick="openBookDetailView(\'' + safeBookId + '\', \'home\')">'
           +       escapeHtml(book.title)
           +     '</div>'
           +     '<div class="feed-z175-author">by ' + escapeHtml(book.author) + '</div>'
@@ -18381,7 +18381,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   ? '<div class="feed-z175-blurb">' + escapeHtml(blurbSnippet) + '</div>'
                   : '')
           +     '<button class="feed-z175-view-btn" onclick="openBookDetailView(\''
-          +       safeBookId + '\')">View Book</button>'
+          +       safeBookId + '\', \'home\')">View Book</button>'
           +   '</div>'
           + '</div>'
           + '</div>';
