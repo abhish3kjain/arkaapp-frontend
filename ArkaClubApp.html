@@ -189,7 +189,7 @@
 
             <!-- 6. Events & Club Life -->
             <div class="help-category-card" role="button" tabindex="0" data-action onclick="openHelpCategory('Events & Club Life')">
-              <i class="fa-solid fa-calendar-days help-category-icon" style="color: #e74c3c;"></i>
+              <i class="fa-solid fa-calendar-days help-category-icon" style="color: var(--color-danger);"></i>
               <div class="help-category-title">Events &amp; Club Life</div>
             </div>
 
@@ -767,7 +767,7 @@
                       padding:14px 16px; margin-bottom:20px;">
             <!-- Header row: icon + label + ? info button -->
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-              <i class="fa-solid fa-dna" style="color:#534AB7; font-size:13px;"></i>
+              <i class="fa-solid fa-dna" style="color:var(--color-challenge); font-size:13px;"></i>
               <span style="font-size:0.82rem; font-weight:700; color:var(--text-strong);">
                 Reading Personality
               </span>
@@ -777,12 +777,12 @@
                     style="margin-left:auto; width:22px; height:22px; border-radius:50%;
                            background:#e8def0; display:flex; align-items:center;
                            justify-content:center; cursor:pointer; font-size:11px;
-                           color:#534AB7; font-weight:700; flex-shrink:0;">?</span>
+                           color:var(--color-challenge); font-weight:700; flex-shrink:0;">?</span>
             </div>
             <!-- Toggle row -->
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
               <div style="flex:1;">
-                <div style="font-size:0.78rem; font-weight:600; color:#534AB7; margin-bottom:3px;">
+                <div style="font-size:0.78rem; font-weight:600; color:var(--color-challenge); margin-bottom:3px;">
                   Show my personality to other members
                 </div>
                 <div id="personaVisibilityHelp"
@@ -878,7 +878,7 @@
                             font-size:18px;font-weight:700;color:var(--text-muted);">A</div>
                 <!-- Pencil badge makes the My Profile tap target discoverable -->
                 <div style="position:absolute;bottom:0;right:0;width:16px;height:16px;border-radius:50%;
-                            background:#e67e22;border:2px solid #fff;
+                            background:var(--color-warning);border:2px solid #fff;
                             display:flex;align-items:center;justify-content:center;
                             font-size:8px;color:#fff;pointer-events:none;">✏️</div>
               </div>
@@ -896,9 +896,9 @@
               <!-- Our Story chip — unchanged behaviour, navigates to help article -->
               <div role="button" tabindex="0" data-action onclick="openHelpArticle('help-arka-story-index')"
                    style="display:inline-flex; align-items:center; gap:5px;
-                          background:#fff8f0; border:0.5px solid #e67e22;
+                          background:#fff8f0; border:0.5px solid var(--color-warning);
                           border-radius:40px; padding:4px 11px; cursor:pointer;">
-                <i class="fa-solid fa-mountain-sun" style="font-size:13px; color:#e67e22;"></i>
+                <i class="fa-solid fa-mountain-sun" style="font-size:13px; color:var(--color-warning);"></i>
                 <span style="font-size:12px; font-weight:500; color:#b8640a;">Our story</span>
               </div>
               <!-- My personality chip — always visible; acts as discovery nudge for
@@ -1030,7 +1030,7 @@
               </div>
             </div>
             <div style="height:8px; background:#f1efe8; border-radius:4px; overflow:hidden;">
-              <div id="meLevelProgressFill" style="height:100%; width:0%; border-radius:4px; background:#EF9F27; transition:width 0.6s ease;"></div>
+              <div id="meLevelProgressFill" style="height:100%; width:0%; border-radius:4px; background:var(--color-gamification); transition:width 0.6s ease;"></div>
             </div>
             <div style="display:flex; justify-content:space-between; margin-top:5px;">
               <div style="font-size:10px; color:var(--text-faint);" id="meLevelBarLeft">–</div>
@@ -1070,7 +1070,7 @@
               <div style="flex:1; height:2px; background:linear-gradient(to right, var(--text-strong), transparent);"></div>
               <span style="font-size:13px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; display:flex; align-items:center; gap:6px;">
                 Arka Coach
-                <span id="meCoachNewBadge" style="display:none; background:#1D9E75; color:white; font-size:9px; font-weight:700; border-radius:20px; padding:2px 7px; vertical-align:middle;">NEW</span>
+                <span id="meCoachNewBadge" style="display:none; background:var(--color-success); color:white; font-size:9px; font-weight:700; border-radius:20px; padding:2px 7px; vertical-align:middle;">NEW</span>
                 <i class="fa-solid fa-circle-question"
                    onclick="openHelpArticle('help-me-coach');"
                    title="About Arka Coach"
@@ -1085,7 +1085,7 @@
             <!-- AI text card — hidden until aiAdvice field exists in coachInsights JSON -->
             <div id="meCoachAiCard" style="display:none; background:white; border:1.5px solid var(--arka-accent); border-radius:12px; padding:14px; position:relative; overflow:hidden;">
               <!-- Rainbow shimmer strip — signals this is AI-generated -->
-              <div style="position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--arka-accent),#EF9F27,#1D9E75,var(--arka-accent));"></div>
+              <div style="position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--arka-accent),var(--color-gamification),var(--color-success),var(--arka-accent));"></div>
               <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; margin-top:2px;">
                 <div style="width:32px; height:32px; border-radius:8px; background:var(--arka-accent); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                   <i class="fa-solid fa-wand-magic-sparkles" style="color:white; font-size:13px;"></i>
@@ -1445,7 +1445,7 @@
             <div style="display:flex;gap:6px;flex-wrap:wrap;position:relative;z-index:1;">
               <div style="background:white;border:1px solid #c9c2f0;border-radius:20px;
                           padding:3px 10px;display:flex;align-items:center;gap:5px;
-                          font-size:10px;font-weight:600;color:#534AB7;">
+                          font-size:10px;font-weight:600;color:var(--color-challenge);">
                 <i class="fa-solid fa-chart-line" style="font-size:9px;"></i> Pace
               </div>
               <div style="background:white;border:1px solid #e8d49a;border-radius:20px;
@@ -1487,7 +1487,7 @@
                 <div style="width:30px;height:30px;border-radius:8px;flex-shrink:0;
                             background:#EEEDFE;border:1px solid #c9c2f0;
                             display:flex;align-items:center;justify-content:center;">
-                  <i class="fa-solid fa-chart-line" style="font-size:13px;color:#534AB7;"></i>
+                  <i class="fa-solid fa-chart-line" style="font-size:13px;color:var(--color-challenge);"></i>
                 </div>
                 <div style="font-size:14px;font-weight:700;color:var(--text-strong);line-height:1.2;">
                   Am I ahead of last year?
@@ -1803,7 +1803,7 @@
             Stay
           </button>
           <button onclick="confirmLeaveApp()"
-                  style="flex:1; background:#e74c3c; color:#fff; border:none;
+                  style="flex:1; background:var(--color-danger); color:#fff; border:none;
                          padding:12px; border-radius:6px; font-size:1rem; cursor:pointer;">
             Leave
           </button>
@@ -1903,7 +1903,7 @@
                       border: 1px solid var(--border-soft);">
           <span style="flex: 1; font-size: 0.82rem; color: var(--text-muted);">Screenshot attached</span>
           <button onclick="clearFeedbackScreenshot()"
-                  style="background: none; border: none; color: #e74c3c; cursor: pointer;
+                  style="background: none; border: none; color: var(--color-danger); cursor: pointer;
                          font-size: 0.82rem; padding: 0; font-weight: 600;">
             ✕ Remove
           </button>
@@ -2028,7 +2028,7 @@
           <!-- Deviation warning — shown by JS when entered pages look implausible -->
           <div id="shelfPagesWarning"
               style="display: none; margin-top: 6px; font-size: 0.78rem;
-                      color: #e67e22; line-height: 1.4;">
+                      color: var(--color-warning); line-height: 1.4;">
             ⚠️ That's well above the listed page count. Different edition?
           </div>
           <!-- Sync to 10 Pages A Day — dual members only, shown with pages input.
@@ -2078,10 +2078,10 @@
                     gap: 5px; margin-top: 11px; padding-top: 10px;
                     border-top: 1px solid var(--border-soft); cursor: pointer;"
              onclick="confirmShelfDelete()"
-             onmouseenter="this.querySelector('.shelf-delete-label').style.color='#e74c3c'; this.querySelector('.shelf-delete-icon').style.stroke='#e74c3c';"
-             onmouseleave="this.querySelector('.shelf-delete-label').style.color='var(--text-faint)'; this.querySelector('.shelf-delete-icon').style.stroke='#e74c3c';">
+             onmouseenter="this.querySelector('.shelf-delete-label').style.color='var(--color-danger)'; this.querySelector('.shelf-delete-icon').style.stroke='var(--color-danger)';"
+             onmouseleave="this.querySelector('.shelf-delete-label').style.color='var(--text-faint)'; this.querySelector('.shelf-delete-icon').style.stroke='var(--color-danger)';">
           <svg class="shelf-delete-icon"
-               style="width:11px;height:11px;flex-shrink:0;stroke:#e74c3c;transition:stroke 0.15s;"
+               style="width:11px;height:11px;flex-shrink:0;stroke:var(--color-danger);transition:stroke 0.15s;"
                viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M2 3.5h10M5 3.5V2.5a.5.5 0 01.5-.5h3a.5.5 0 01.5.5v1M5.5 6v4M8.5 6v4M3 3.5l.667 7a.5.5 0 00.5.5h5.666a.5.5 0 00.5-.5L11 3.5"
                   stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2119,7 +2119,7 @@
         <div style="display:flex;gap:10px;">
           <!-- Destructive confirm button — colour set by showConfirmModal() -->
           <button id="confirmModalOkBtn"
-                  style="flex:1;background-color:#e74c3c;border:none;border-radius:6px;
+                  style="flex:1;background-color:var(--color-danger);border:none;border-radius:6px;
                          padding:12px;color:white;font-size:0.95rem;font-weight:bold;
                          cursor:pointer;">
             Confirm
@@ -2359,7 +2359,7 @@
                     <p style="margin:0 0 2px;font-size:0.88rem;font-weight:600;color:#3C3489;">
                       Create a new entry
                     </p>
-                    <p style="margin:0;font-size:0.78rem;color:#534AB7;">
+                    <p style="margin:0;font-size:0.78rem;color:var(--color-challenge);">
                       Use ISBN auto-fill or enter manually
                     </p>
                   </div>
@@ -2411,15 +2411,15 @@
               <div style="background:white;border:0.5px solid var(--border-soft);border-radius:12px;
                           padding:14px 16px;margin-bottom:14px;">
             
-                <label class="form-label">Title <span style="color:#e74c3c;">*</span></label>
+                <label class="form-label">Title <span style="color:var(--color-danger);">*</span></label>
                 <input type="text" id="newBookTitle" placeholder="e.g. Project Hail Mary">
             
-                <label class="form-label">Author <span style="color:#e74c3c;">*</span></label>
+                <label class="form-label">Author <span style="color:var(--color-danger);">*</span></label>
                 <input type="text" id="newBookAuthor" placeholder="e.g. Andy Weir">
             
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                   <div>
-                    <label class="form-label">Pages <span style="color:#e74c3c;">*</span></label>
+                    <label class="form-label">Pages <span style="color:var(--color-danger);">*</span></label>
                     <input type="number" id="newBookPages" placeholder="e.g. 476" min="1">
                   </div>
                   <div>
@@ -2430,7 +2430,7 @@
                           maxlength="4"
                           oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4); _onPubYearInput(this.value)">
                     <!-- Disambiguation hint shown only for 1–2 digit entries (e.g. 26 CE vs 2026) -->
-                    <div id="pubYearAmbiguityHint" style="display:none; font-size:11.5px; color:#e67e22; margin-top:4px; line-height:1.4;"></div>
+                    <div id="pubYearAmbiguityHint" style="display:none; font-size:11.5px; color:var(--color-warning); margin-top:4px; line-height:1.4;"></div>
                   </div>
                 </div>
               </div>
@@ -2438,7 +2438,7 @@
               <!-- ── GENRE TAG INPUT ────────────────────────────────────────────────── -->
               <div style="font-size:0.68rem;font-weight:600;color:var(--text-muted);
                           text-transform:uppercase;letter-spacing:0.6px;margin:0 0 8px;">
-                Genre <span style="color:#e74c3c;">*</span>
+                Genre <span style="color:var(--color-danger);">*</span>
               </div>
               <div style="background:white;border:0.5px solid var(--border-soft);border-radius:12px;
                           padding:14px 16px;margin-bottom:14px;">
@@ -3262,7 +3262,7 @@
       
           <!-- What you'll earn by joining -->
           <div id="chalEnrolPointsNotice" style="background:#EEEDFE; border-radius:8px;
-                padding:10px 14px; margin-bottom:16px; font-size:0.82rem; color:#534AB7;
+                padding:10px 14px; margin-bottom:16px; font-size:0.82rem; color:var(--color-challenge);
                 line-height:1.5;">
             <!-- Filled dynamically by openChalEnrolSheet() -->
           </div>
@@ -3496,7 +3496,7 @@
 
             <!-- Deviation warning -->
             <div id="logReadingWarning"
-                 style="display:none;font-size:0.78rem;color:#e67e22;margin-bottom:10px;line-height:1.4;">
+                 style="display:none;font-size:0.78rem;color:var(--color-warning);margin-bottom:10px;line-height:1.4;">
               ⚠️ That's above the listed page count. Different edition?
             </div>
             <!-- Finish strip — same pattern as the old progress form -->
@@ -3752,7 +3752,7 @@
                 </label>
                 <span title="This feature is temporary and will be removed when 10 Pages A Day is retired."
                       style="width:7px;height:7px;border-radius:50%;
-                             background:#e67e22;display:inline-block;
+                             background:var(--color-warning);display:inline-block;
                              flex-shrink:0;cursor:help;"></span>
               </div>
               <!-- Right: clear note button — load button removed, note auto-loads on open -->
@@ -4258,7 +4258,7 @@
 
         <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openMyPersonality()">
           <div class="drawer-grid-icon" style="background:#f0e8f5;">
-            <i class="fa-solid fa-dna" style="color:#534AB7;"></i>
+            <i class="fa-solid fa-dna" style="color:var(--color-challenge);"></i>
           </div>
           <span>My Personality</span>
         </div>
@@ -4307,7 +4307,7 @@
 
         <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openHelpArticle('help-arka-story-index')">
           <div class="drawer-grid-icon" style="background:#fff8f0;">
-            <i class="fa-solid fa-mountain-sun" style="color:#e67e22;"></i>
+            <i class="fa-solid fa-mountain-sun" style="color:var(--color-warning);"></i>
           </div>
           <span>Our Story</span>
         </div>

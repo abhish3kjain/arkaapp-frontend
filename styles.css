@@ -15,6 +15,12 @@
         --font-body: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  /* default UI / body text */
         --font-display: 'Cinzel', serif;  /* ceremonial surfaces; face not yet loaded, falls back to serif */
         --font-quote: 'Merriweather', Georgia, serif;  /* daily-quote card — readable serif */
+        /* Semantic colors (Phase 6) */
+        --color-success:      #1D9E75;  /* reading progress, completed states */
+        --color-danger:       #e74c3c;  /* errors, delete, overdue */
+        --color-warning:      #e67e22;  /* caution states, nudges */
+        --color-gamification: #EF9F27;  /* AP / points, badges, rewards */
+        --color-challenge:    #534AB7;  /* challenges, indigo accent */
       }
 
       /* ====================================================================
