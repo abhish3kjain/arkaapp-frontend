@@ -3,22 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Share Nudge Persistence — Before / After</title>
+<title>Share Icon on Finished Book Cards — Before / After</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f0f0f5;
-    margin: 0;
-    padding: 24px 16px;
-    color: #1a1a2e;
+  :root {
+    --purple: #6c47b8;
+    --purple-light: #f3eeff;
+    --purple-border: #e0d4f7;
+    --text: #1a1a2e;
+    --text-muted: #7a6ea0;
+    --text-faint: #aaa;
+    --card-bg: #fff;
+    --bg: #f0edf8;
   }
 
-  h1 { font-size: 1rem; color: #555; text-align: center; font-weight: 500; margin-bottom: 4px; }
-  .subtitle { text-align: center; font-size: 0.8rem; color: #888; margin-bottom: 28px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    padding: 24px 16px 40px;
+    color: var(--text);
+  }
+
+  h1 { font-size: 0.95rem; color: #555; text-align: center; font-weight: 500; margin-bottom: 4px; }
+  .subtitle { text-align: center; font-size: 0.75rem; color: #999; margin-bottom: 28px; }
 
   .columns {
     display: flex;
-    gap: 24px;
+    gap: 20px;
     justify-content: center;
     flex-wrap: wrap;
   }
@@ -26,176 +39,180 @@
   .col {
     flex: 1;
     min-width: 280px;
-    max-width: 340px;
+    max-width: 330px;
   }
 
   .col-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 6px 12px;
-    border-radius: 6px 6px 0 0;
-    margin-bottom: 0;
+    padding: 7px 14px;
+    border-radius: 8px 8px 0 0;
     text-align: center;
   }
-  .col-label.before { background: #e8e8e8; color: #888; }
-  .col-label.after  { background: #6c47b8; color: #fff; }
+  .col-label.before { background: #e0dce8; color: #777; }
+  .col-label.after  { background: var(--purple); color: #fff; }
 
   /* ── App shell ─────────────────────────────────────────────────────── */
   .app-shell {
     background: #f7f5fb;
-    border-radius: 0 0 16px 16px;
+    border-radius: 0 0 14px 14px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.13);
   }
 
-  /* ── Nav bar ────────────────────────────────────────────────────────── */
+  /* Nav */
   .nav-bar {
     background: #fff;
-    border-bottom: 1px solid #ece8f5;
+    border-bottom: 1px solid var(--purple-border);
     padding: 10px 12px;
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .nav-bar .back-btn {
-    font-size: 1rem;
-    color: #6c47b8;
+  .nav-bar .back { color: var(--purple); font-size: 0.9rem; }
+  .nav-bar .title { font-size: 0.82rem; font-weight: 600; }
+
+  /* Search bar */
+  .search-bar {
+    background: #fff;
+    border-bottom: 1px solid var(--purple-border);
+    padding: 7px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  .nav-bar .page-title {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #1a1a2e;
+  .search-input {
+    flex: 1;
+    background: #f3f0f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
-  /* ── Shelf filter pills ─────────────────────────────────────────────── */
+  /* Filter pills */
   .filter-row {
     display: flex;
     gap: 6px;
-    padding: 8px 12px;
+    padding: 8px 10px;
     overflow-x: auto;
     background: #fff;
-    border-bottom: 1px solid #ece8f5;
+    border-bottom: 1px solid var(--purple-border);
   }
-  .filter-pill {
-    font-size: 0.7rem;
-    padding: 3px 10px;
+  .pill {
+    font-size: 0.65rem;
+    padding: 3px 9px;
     border-radius: 99px;
     border: 1px solid #d9d0ee;
-    color: #7a6ea0;
+    color: var(--text-muted);
     white-space: nowrap;
     background: #fff;
   }
-  .filter-pill.active {
-    background: #6c47b8;
-    color: #fff;
-    border-color: #6c47b8;
-  }
+  .pill.active { background: var(--purple); color: #fff; border-color: var(--purple); }
 
-  /* ── Book cards ─────────────────────────────────────────────────────── */
+  /* Book list */
   .book-list {
     padding: 8px 10px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
 
+  /* ── Book card — matches renderLibrary() exactly ─────────────────── */
   .book-card {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    border-radius: 8px;
     overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    background: var(--card-bg);
   }
-
-  /* Finished card gets a subtle tint (matching SHELF_CARD_BG['finished'] */
-  .book-card.finished {
-    background: #f3eeff;
-  }
+  .book-card.finished { background: var(--purple-light); }
 
   .book-card-inner {
     display: flex;
+    width: 100%;
     align-items: center;
-    padding: 10px 10px 10px 10px;
-    position: relative;
     cursor: pointer;
-    gap: 10px;
+    position: relative;
+    overflow: hidden;
+    padding: 10px;
+    gap: 0;   /* cover has its own margin-right via book-cover class */
   }
 
+  /* Cover: 75×115 in real app — scaled ~55% for mockup */
   .book-cover {
-    width: 52px;
-    height: 78px;
-    border-radius: 3px 5px 5px 3px;
-    object-fit: cover;
-    flex-shrink: 0;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.15);
-  }
-
-  .book-cover-placeholder {
-    width: 52px;
-    height: 78px;
+    width: 50px;
+    height: 76px;
     border-radius: 3px 5px 5px 3px;
     flex-shrink: 0;
+    margin-right: 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 4px;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.15);
-    font-size: 0.55rem;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.18);
+    font-size: 0.5rem;
     color: #fff;
     text-align: center;
     gap: 3px;
+    line-height: 1.2;
   }
+  .cover-title { font-weight: 700; font-size: 0.52rem; }
+  .cover-divider { border-top: 1px solid rgba(255,255,255,0.4); width: 75%; }
+  .cover-author { font-size: 0.45rem; opacity: 0.85; }
 
+  /* book-info: padding-right:45px matches real code */
   .book-info {
     flex: 1;
     min-width: 0;
-    padding-right: 30px;
+    padding-right: 38px; /* a bit tighter in mockup */
   }
-
   .book-title {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 600;
-    color: #1a1a2e;
     line-height: 1.2;
     margin-bottom: 2px;
+    overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    overflow: hidden;
   }
-
   .book-author {
-    font-size: 0.7rem;
-    color: #7a6ea0;
-    margin-bottom: 2px;
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .book-meta {
-    font-size: 0.65rem;
-    color: #aaa;
     margin-bottom: 2px;
   }
-
+  .book-meta {
+    font-size: 0.62rem;
+    color: var(--text-faint);
+    margin-bottom: 2px;
+  }
   .book-stats {
-    font-size: 0.65rem;
-    color: #aaa;
+    font-size: 0.62rem;
+    color: var(--text-faint);
     display: flex;
-    gap: 5px;
+    gap: 4px;
     align-items: center;
   }
+  .star { color: #e67e22; }
 
-  .book-shelf-btn {
+  /* + shelf button — position:absolute right:0 bottom:0 border-radius:8px 0 8px 0 */
+  .shelf-btn {
     position: absolute;
     right: 0;
     bottom: 0;
-    width: 28px;
-    height: 28px;
-    background: #6c47b8;
+    width: 30px;
+    height: 30px;
+    background: var(--purple);
     color: #fff;
     border: none;
     border-radius: 8px 0 8px 0;
@@ -205,356 +222,300 @@
     justify-content: center;
     cursor: pointer;
   }
+  .shelf-btn.done { background: #27ae60; font-size: 0.75rem; }
 
-  /* ── Share row (AFTER only) ─────────────────────────────────────────── */
-  .share-row {
-    border-top: 1px solid #e8e0f5;
-    padding: 7px 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #ede7fb;
-  }
-
-  .share-row-label {
-    font-size: 0.7rem;
-    color: #7a6ea0;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .share-row-label .checkmark {
-    font-size: 0.75rem;
-    color: #6c47b8;
-    font-weight: 700;
-  }
-
-  .share-btn {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: #6c47b8;
-    background: #fff;
-    border: 1px solid #c4b0e8;
-    border-radius: 99px;
-    padding: 4px 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-  }
-
-  /* ── Toast (BEFORE only) ────────────────────────────────────────────── */
-  .toast-overlay {
-    position: relative;
-    padding: 6px 10px 10px;
-    background: #f3eeff;
-  }
-
-  .toast {
-    background: #1a1a2e;
-    color: #fff;
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 0.72rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-    position: relative;
-  }
-
-  .toast-content { flex: 1; }
-  .toast-title { font-weight: 700; font-size: 0.75rem; margin-bottom: 2px; }
-  .toast-sub { color: #b0a0d0; font-size: 0.65rem; }
-  .toast-share-btn {
-    background: #6c47b8;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 5px 10px;
-    font-size: 0.68rem;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .toast-dismiss {
-    color: #888;
-    font-size: 0.7rem;
-    cursor: pointer;
-    padding: 2px;
-  }
-
-  .toast-timer {
+  /* Share icon button — NEW — position:absolute right:0 top:0 border-radius:0 8px 0 8px */
+  .share-icon-btn {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 3px;
-    background: #6c47b8;
-    border-radius: 0 0 0 10px;
-    width: 30%;
-    animation: drain 9s linear;
+    right: 0;
+    top: 0;
+    width: 28px;
+    height: 28px;
+    background: rgba(108, 71, 184, 0.12);
+    color: var(--purple);
+    border: none;
+    border-radius: 0 8px 0 8px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
   }
+  .share-icon-btn:hover { background: rgba(108, 71, 184, 0.22); }
 
-  @keyframes drain {
-    from { width: 100%; }
-    to   { width: 0%; }
-  }
-
-  .toast-caption {
-    font-size: 0.62rem;
-    color: #9985cc;
-    text-align: center;
-    margin-top: 5px;
-  }
-
-  .dismissed-label {
-    font-size: 0.62rem;
-    color: #c0b0d8;
-    text-align: center;
-    padding: 8px;
-    font-style: italic;
-  }
-
-  /* ── Caption boxes ──────────────────────────────────────────────────── */
+  /* Caption */
   .caption-box {
     background: #fff;
     border-radius: 8px;
     padding: 10px 12px;
     margin-top: 10px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: #555;
-    line-height: 1.5;
+    line-height: 1.55;
     box-shadow: 0 1px 4px rgba(0,0,0,0.07);
   }
-  .caption-box strong { color: #1a1a2e; }
-  .caption-box ul { margin: 4px 0 0 0; padding-left: 16px; }
+  .caption-box strong { color: var(--text); }
+  .caption-box ul { margin: 4px 0 0; padding-left: 16px; }
   .caption-box li { margin-bottom: 3px; }
 
-  /* ── Flow annotation arrows ─────────────────────────────────────────── */
-  .flow-arrow {
-    text-align: center;
-    font-size: 1.4rem;
-    color: #c4b0e8;
-    margin: 6px 0 2px;
-    line-height: 1;
+  .badge {
+    display: inline-block;
+    background: var(--purple);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin-left: 4px;
+    vertical-align: middle;
   }
 
-  .section-label {
+  .annotation {
     font-size: 0.62rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #aaa;
-    text-align: center;
-    margin-bottom: 4px;
+    color: var(--purple);
+    font-style: italic;
+    text-align: right;
+    margin-top: 3px;
+    padding-right: 2px;
   }
 </style>
 </head>
 <body>
 
-<h1>Share Nudge Persistence</h1>
-<p class="subtitle">Share nudge currently auto-dismisses in 9 s with no recovery path from the shelf</p>
+<h1>Share nudge persistence — Library book card</h1>
+<p class="subtitle">Small <i class="fa-solid fa-share-nodes"></i> icon at top-right of Finished cards · calls existing openBookFinishedShare()</p>
 
 <div class="columns">
 
-  <!-- ══════════════════ BEFORE ══════════════════ -->
+  <!-- ══ BEFORE ══ -->
   <div class="col">
     <div class="col-label before">BEFORE — Current</div>
     <div class="app-shell">
 
-      <!-- Nav -->
       <div class="nav-bar">
-        <span class="back-btn">←</span>
-        <span class="page-title">My Shelf · Finished</span>
+        <span class="back">←</span>
+        <span class="title">Library</span>
       </div>
 
-      <!-- Filters -->
+      <div class="search-bar">
+        <div class="search-input">
+          <i class="fa-solid fa-magnifying-glass" style="color:#bbb;font-size:0.7rem;"></i>
+          <span>Search books…</span>
+        </div>
+      </div>
+
       <div class="filter-row">
-        <div class="filter-pill">All</div>
-        <div class="filter-pill">To Read</div>
-        <div class="filter-pill">Reading</div>
-        <div class="filter-pill active">Finished ✓</div>
-        <div class="filter-pill">DNF</div>
+        <div class="pill active">All</div>
+        <div class="pill">To Read</div>
+        <div class="pill">Reading</div>
+        <div class="pill">Finished</div>
+        <div class="pill">DNF</div>
       </div>
 
       <div class="book-list">
 
-        <!-- Toast shown immediately after finish — 9s then gone -->
-        <div class="section-label">Just finished → toast appears…</div>
-        <div class="toast-overlay">
-          <div class="toast">
-            <div class="toast-content">
-              <div class="toast-title">🎉 Book finished!</div>
-              <div class="toast-sub">Share your achievement with the club</div>
-            </div>
-            <button class="toast-share-btn">📤 Share</button>
-            <span class="toast-dismiss">✕</span>
-            <div class="toast-timer"></div>
-          </div>
-          <div class="toast-caption">Auto-dismisses in 9 s · no way back after</div>
-        </div>
-
-        <div class="flow-arrow">↓ 9 s pass (or member taps ✕)</div>
-        <div class="section-label">Toast gone — shelf card has no share CTA</div>
-
-        <!-- Finished book card — no share row -->
+        <!-- Finished book — no share button -->
         <div class="book-card finished">
           <div class="book-card-inner">
-            <div class="book-cover-placeholder" style="background: linear-gradient(135deg,#7c5cbf,#4a3080);">
-              <div style="font-weight:700;font-size:0.6rem;line-height:1.1;text-align:center;">Atomic Habits</div>
-              <div style="border-top:1px solid rgba(255,255,255,0.3);width:70%;"></div>
-              <div style="font-size:0.5rem;opacity:0.8;">James Clear</div>
+            <div class="book-cover" style="background:linear-gradient(135deg,#7c5cbf,#4a3080);">
+              <div class="cover-title">Atomic Habits</div>
+              <div class="cover-divider"></div>
+              <div class="cover-author">James Clear</div>
             </div>
             <div class="book-info">
               <div class="book-title">Atomic Habits</div>
               <div class="book-author">by James Clear</div>
-              <div class="book-meta">320 pages · Self Help</div>
+              <div class="book-meta">320 pages | Self Help</div>
               <div class="book-stats">
-                <span style="color:#e67e22;">★ 4.7</span>
+                <span class="star">★ 4.7</span>
                 <span>·</span>
                 <span>12 readers</span>
               </div>
             </div>
-            <button class="book-shelf-btn">+</button>
+            <!-- No share icon -->
+            <button class="shelf-btn done" title="Update shelf">✓</button>
           </div>
-          <!-- No share row -->
         </div>
 
-        <!-- Another finished book -->
-        <div class="book-card finished">
+        <!-- Reading book — normal -->
+        <div class="book-card">
           <div class="book-card-inner">
-            <div class="book-cover-placeholder" style="background: linear-gradient(135deg,#2e7d9c,#1a4f63);">
-              <div style="font-weight:700;font-size:0.6rem;line-height:1.1;text-align:center;">Deep Work</div>
-              <div style="border-top:1px solid rgba(255,255,255,0.3);width:70%;"></div>
-              <div style="font-size:0.5rem;opacity:0.8;">Cal Newport</div>
+            <div class="book-cover" style="background:linear-gradient(135deg,#2e7d9c,#1a4f63);">
+              <div class="cover-title">Deep Work</div>
+              <div class="cover-divider"></div>
+              <div class="cover-author">Cal Newport</div>
             </div>
             <div class="book-info">
               <div class="book-title">Deep Work</div>
               <div class="book-author">by Cal Newport</div>
-              <div class="book-meta">296 pages · Productivity</div>
+              <div class="book-meta">296 pages | Productivity</div>
               <div class="book-stats">
-                <span style="color:#e67e22;">★ 4.5</span>
+                <span class="star">★ 4.5</span>
                 <span>·</span>
                 <span>8 readers</span>
               </div>
             </div>
-            <button class="book-shelf-btn">+</button>
+            <button class="shelf-btn">+</button>
           </div>
         </div>
 
-      </div><!-- /book-list -->
-    </div><!-- /app-shell -->
+        <!-- Another finished book — no share button -->
+        <div class="book-card finished">
+          <div class="book-card-inner">
+            <div class="book-cover" style="background:linear-gradient(135deg,#c0392b,#7b241c);">
+              <div class="cover-title">The 48 Laws of Power</div>
+              <div class="cover-divider"></div>
+              <div class="cover-author">Robert Greene</div>
+            </div>
+            <div class="book-info">
+              <div class="book-title">The 48 Laws of Power</div>
+              <div class="book-author">by Robert Greene</div>
+              <div class="book-meta">452 pages | Psychology</div>
+              <div class="book-stats">
+                <span class="star">★ 4.2</span>
+                <span>·</span>
+                <span>5 readers</span>
+              </div>
+            </div>
+            <!-- No share icon -->
+            <button class="shelf-btn done" title="Update shelf">✓</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
 
     <div class="caption-box">
-      <strong>Problem:</strong>
+      <strong>Current state:</strong>
       <ul>
-        <li>Toast fires once, auto-dismisses in 9 s</li>
-        <li>If member taps ✕ or misses it, share CTA is gone</li>
-        <li>Only recovery: find the card in the Community Feed (may not be visible or may scroll off)</li>
-        <li>No share entry point on the personal shelf at all</li>
+        <li>Finished cards are tinted purple (SHELF_CARD_BG)</li>
+        <li>✓ shelf button at bottom-right (updates status)</li>
+        <li>No share CTA anywhere on the card</li>
+        <li>Only option: find the spark card in Community Feed</li>
       </ul>
     </div>
   </div>
 
-  <!-- ══════════════════ AFTER ══════════════════ -->
+  <!-- ══ AFTER ══ -->
   <div class="col">
     <div class="col-label after">AFTER — Proposed</div>
     <div class="app-shell">
 
-      <!-- Nav -->
       <div class="nav-bar">
-        <span class="back-btn">←</span>
-        <span class="page-title">My Shelf · Finished</span>
+        <span class="back">←</span>
+        <span class="title">Library</span>
       </div>
 
-      <!-- Filters -->
+      <div class="search-bar">
+        <div class="search-input">
+          <i class="fa-solid fa-magnifying-glass" style="color:#bbb;font-size:0.7rem;"></i>
+          <span>Search books…</span>
+        </div>
+      </div>
+
       <div class="filter-row">
-        <div class="filter-pill">All</div>
-        <div class="filter-pill">To Read</div>
-        <div class="filter-pill">Reading</div>
-        <div class="filter-pill active">Finished ✓</div>
-        <div class="filter-pill">DNF</div>
+        <div class="pill active">All</div>
+        <div class="pill">To Read</div>
+        <div class="pill">Reading</div>
+        <div class="pill">Finished</div>
+        <div class="pill">DNF</div>
       </div>
 
       <div class="book-list">
 
-        <div class="section-label">Toast still fires — member can act now or later</div>
-
-        <!-- Finished book card — WITH persistent share row -->
+        <!-- Finished book — WITH share icon top-right -->
         <div class="book-card finished">
           <div class="book-card-inner">
-            <div class="book-cover-placeholder" style="background: linear-gradient(135deg,#7c5cbf,#4a3080);">
-              <div style="font-weight:700;font-size:0.6rem;line-height:1.1;text-align:center;">Atomic Habits</div>
-              <div style="border-top:1px solid rgba(255,255,255,0.3);width:70%;"></div>
-              <div style="font-size:0.5rem;opacity:0.8;">James Clear</div>
+            <div class="book-cover" style="background:linear-gradient(135deg,#7c5cbf,#4a3080);">
+              <div class="cover-title">Atomic Habits</div>
+              <div class="cover-divider"></div>
+              <div class="cover-author">James Clear</div>
             </div>
             <div class="book-info">
               <div class="book-title">Atomic Habits</div>
               <div class="book-author">by James Clear</div>
-              <div class="book-meta">320 pages · Self Help</div>
+              <div class="book-meta">320 pages | Self Help</div>
               <div class="book-stats">
-                <span style="color:#e67e22;">★ 4.7</span>
+                <span class="star">★ 4.7</span>
                 <span>·</span>
                 <span>12 readers</span>
               </div>
             </div>
-            <button class="book-shelf-btn">+</button>
-          </div>
-          <!-- Persistent share row — NEW -->
-          <div class="share-row">
-            <div class="share-row-label">
-              <span class="checkmark">✓</span>
-              Finished · share your achievement
-            </div>
-            <button class="share-btn">📤 Share</button>
+            <!-- NEW: share icon top-right, mirrored border-radius of shelf btn -->
+            <button class="share-icon-btn" title="Share this finish"
+                    onclick="event.stopPropagation()">
+              <i class="fa-solid fa-share-nodes"></i>
+            </button>
+            <button class="shelf-btn done" title="Update shelf">✓</button>
           </div>
         </div>
+        <div class="annotation">← new share icon · top-right · same corner treatment as + btn</div>
 
-        <!-- Another finished book — also has share row -->
-        <div class="book-card finished">
+        <!-- Reading book — unchanged, no share icon -->
+        <div class="book-card">
           <div class="book-card-inner">
-            <div class="book-cover-placeholder" style="background: linear-gradient(135deg,#2e7d9c,#1a4f63);">
-              <div style="font-weight:700;font-size:0.6rem;line-height:1.1;text-align:center;">Deep Work</div>
-              <div style="border-top:1px solid rgba(255,255,255,0.3);width:70%;"></div>
-              <div style="font-size:0.5rem;opacity:0.8;">Cal Newport</div>
+            <div class="book-cover" style="background:linear-gradient(135deg,#2e7d9c,#1a4f63);">
+              <div class="cover-title">Deep Work</div>
+              <div class="cover-divider"></div>
+              <div class="cover-author">Cal Newport</div>
             </div>
             <div class="book-info">
               <div class="book-title">Deep Work</div>
               <div class="book-author">by Cal Newport</div>
-              <div class="book-meta">296 pages · Productivity</div>
+              <div class="book-meta">296 pages | Productivity</div>
               <div class="book-stats">
-                <span style="color:#e67e22;">★ 4.5</span>
+                <span class="star">★ 4.5</span>
                 <span>·</span>
                 <span>8 readers</span>
               </div>
             </div>
-            <button class="book-shelf-btn">+</button>
-          </div>
-          <div class="share-row">
-            <div class="share-row-label">
-              <span class="checkmark">✓</span>
-              Finished · share your achievement
-            </div>
-            <button class="share-btn">📤 Share</button>
+            <button class="shelf-btn">+</button>
           </div>
         </div>
 
-      </div><!-- /book-list -->
-    </div><!-- /app-shell -->
+        <!-- Another finished book — also has share icon -->
+        <div class="book-card finished">
+          <div class="book-card-inner">
+            <div class="book-cover" style="background:linear-gradient(135deg,#c0392b,#7b241c);">
+              <div class="cover-title">The 48 Laws of Power</div>
+              <div class="cover-divider"></div>
+              <div class="cover-author">Robert Greene</div>
+            </div>
+            <div class="book-info">
+              <div class="book-title">The 48 Laws of Power</div>
+              <div class="book-author">by Robert Greene</div>
+              <div class="book-meta">452 pages | Psychology</div>
+              <div class="book-stats">
+                <span class="star">★ 4.2</span>
+                <span>·</span>
+                <span>5 readers</span>
+              </div>
+            </div>
+            <button class="share-icon-btn" title="Share this finish"
+                    onclick="event.stopPropagation()">
+              <i class="fa-solid fa-share-nodes"></i>
+            </button>
+            <button class="shelf-btn done" title="Update shelf">✓</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
 
     <div class="caption-box">
-      <strong>Change:</strong>
+      <strong>Change — only on own Finished cards:</strong>
       <ul>
-        <li>Add a <code>share-row</code> at the bottom of every Finished library card (current user's shelf only)</li>
-        <li>Calls the existing <code>openBookFinishedShare(bookId, shelfId, btn)</code> — no new backend</li>
-        <li>Toast stays as-is — this is the "I missed it" safety net</li>
-        <li>Only shown on own shelf (same guard already used on feed cards)</li>
+        <li><code>fa-share-nodes</code> icon button, <code>position:absolute; top:0; right:0</code></li>
+        <li><code>border-radius: 0 8px 0 8px</code> — mirrors ✓ btn at bottom-right</li>
+        <li>Subtle purple tint background (<code>rgba(108,71,184,0.12)</code>)</li>
+        <li>Calls <code>openBookFinishedShare(bookId, shelfId, btn)</code> — no new backend</li>
+        <li>Non-Finished cards unchanged (Reading, To Read, DNF)</li>
       </ul>
     </div>
   </div>
 
-</div><!-- /columns -->
+</div>
 
 </body>
 </html>
