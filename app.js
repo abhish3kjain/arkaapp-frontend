@@ -14998,19 +14998,19 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
             if (cfg.key === 'Finished') {
               const ratingBadge = u.rating > 0
-                ? `<div style="position:absolute;top:-6px;right:-10px;
+                ? `<div style="position:absolute;top:-7px;right:-8px;
                                background:#e67e22;color:#fff;
-                               font-size:0.6rem;font-weight:700;
-                               padding:3px 5px;border-radius:12px;
-                               box-shadow:0 2px 4px rgba(0,0,0,0.2);
-                               white-space:nowrap;z-index:10;line-height:1.2;">★ ${u.rating}</div>`
+                               font-size:0.58rem;font-weight:700;
+                               padding:2px 5px;border-radius:10px;
+                               box-shadow:0 1px 3px rgba(0,0,0,0.25);
+                               white-space:nowrap;z-index:10;line-height:1.3;">★ ${u.rating}</div>`
                 : '';
               const dateLabel = formatShelfDate(u.dateFinished) || getSmartTimeAgo(parseGoogleDate(u.date));
               avItems +=
                 `<div class="detail-shelf-av-item"
                       onclick="showMemberProfile('${u.memberId}')"
                       style="cursor:pointer;">
-                   <div style="position:relative;display:inline-block;">
+                   <div style="position:relative;display:inline-block;padding:6px 8px 0 0;">
                      ${buildShelfAvHtml(u, cfg.bg, cfg.fg)}
                      ${ratingBadge}
                    </div>
