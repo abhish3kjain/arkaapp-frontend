@@ -448,7 +448,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // ── Featured card: first article in a category view that has order:1 ──
           if (isCategoryView && idx === 0 && article.order === 1) {
             listContainer.innerHTML += `
-              <div class="help-featured-card" onclick="openHelpArticle('${article.id}')">
+              <div class="help-featured-card" role="button" tabindex="0" data-action onclick="openHelpArticle('${article.id}')">
                 <div style="flex-grow:1;">
                   <div class="help-featured-badge-pill">✨ Start Here</div>
                   <div class="help-featured-title">${article.title}</div>
@@ -469,7 +469,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             : '';
 
           listContainer.innerHTML += `
-            <div class="help-result-card" onclick="openHelpArticle('${article.id}')">
+            <div class="help-result-card" role="button" tabindex="0" data-action onclick="openHelpArticle('${article.id}')">
               <div style="flex-grow:1;">
                 <div style="font-size:0.75rem;color:var(--arka-accent);font-weight:bold;text-transform:uppercase;margin-bottom:2px;">${article.category}</div>
                 <div style="font-weight:bold;color:var(--text-strong);font-size:1.05rem;margin-bottom:4px;">${article.title}</div>
@@ -9105,8 +9105,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                        +       '<strong>?</strong> icon on this card.'
                        +     '</div>'
                        +     '<div class="ob-warn-btns">'
-                       +       '<div class="ob-warn-btn-keep" onclick="_onboardKeepIt()">Keep it</div>'
-                       +       '<div class="ob-warn-btn-remove" onclick="confirmOnboardingDismiss()">Remove it</div>'
+                       +       '<div class="ob-warn-btn-keep" role="button" tabindex="0" data-action onclick="_onboardKeepIt()">Keep it</div>'
+                       +       '<div class="ob-warn-btn-remove" role="button" tabindex="0" data-action onclick="confirmOnboardingDismiss()">Remove it</div>'
                        +     '</div>'
                        +   '</div>'
                        + '</div>';
@@ -11880,7 +11880,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const toggleHtml = `
           <div style="display:flex; background:var(--surface-alt); border-radius:8px;
                       padding:3px; margin-bottom:10px; gap:0;">
-            <div onclick="setRankingsTimeframe('alltime')"
+            <div role="button" tabindex="0" data-action onclick="setRankingsTimeframe('alltime')"
                  style="flex:1; text-align:center; padding:7px 0; border-radius:6px;
                         font-size:0.88rem; font-weight:500; cursor:pointer;
                         ${!isYear
@@ -11888,7 +11888,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                           : 'color:var(--text-muted);'}">
               All–Time
             </div>
-            <div onclick="setRankingsTimeframe('year')"
+            <div role="button" tabindex="0" data-action onclick="setRankingsTimeframe('year')"
                  style="flex:1; text-align:center; padding:7px 0; border-radius:6px;
                         font-size:0.88rem; font-weight:500; cursor:pointer;
                         ${isYear
@@ -22392,7 +22392,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           fullHtml += `<div class="genre-chips-container">`;
           topCanonicalGenres.forEach(function(canonicalGenre) {
             const safeGenre = canonicalGenre.replace(/'/g, "\\'");
-            fullHtml += `<div class="genre-chip" onclick="applyGenreFilter('${safeGenre}')">`
+            fullHtml += `<div class="genre-chip" role="button" tabindex="0" data-action onclick="applyGenreFilter('${safeGenre}')">`
               + escapeHtml(canonicalGenre)
               + `</div>`;
           });
@@ -22413,7 +22413,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             const adderName = adder ? adder.displayName : "Unknown";
             
             fullHtml += `
-              <div class="trending-card" onclick="openBookDetailView('${book.id}', 'library')">
+              <div class="trending-card" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', 'library')">
                 ${getCoverHtml(book)}
                 <div style="font-size: 0.7rem; color: var(--text-faint); margin-top: 4px;">Added by</div>
                 <div style="font-size: 0.85rem; font-weight: bold; color: var(--text-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${adderName}</div>
@@ -22438,7 +22438,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             if (!book) return;
 
             fullHtml += `
-              <div class="trending-card" onclick="openBookDetailView('${book.id}', 'library')">
+              <div class="trending-card" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', 'library')">
                 ${getCoverHtml(book)}
                 <div class="trending-title" title="${book.title}">${book.title}</div>
                 <div class="trending-stat" style="display: flex; align-items: center; margin-top: 6px; color: #e67e22;">
@@ -22459,7 +22459,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           `;
           hiddenGems.forEach(book => {
             fullHtml += `
-              <div class="trending-card" onclick="openBookDetailView('${book.id}', 'library')">
+              <div class="trending-card" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', 'library')">
                 ${getCoverHtml(book)}
                 <div class="trending-title" title="${book.title}">${book.title}</div>
                 <div style="font-size: 0.85rem; font-weight: bold; color: #f39c12; margin-top: 4px;">
