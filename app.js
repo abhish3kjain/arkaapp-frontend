@@ -12418,6 +12418,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       // ── Sort state ────────────────────────────────────────────────────────────
       /** Current sort key. Values: 'recent' | 'az' | 'rated' | 'mostread' | 'pages' | 'year' | 'readtime' | 'activity' */
       var currentLibrarySort        = 'recent';
+      /** true = ascending, false = descending. Each sort has its own sensible default. */
+      var currentLibrarySortAsc     = false; // 'recent' defaults descending (newest first)
 
       /** Active genre filter — canonical name from GENRE_ALIAS_MAP_FRONTEND, or null. */
       var currentLibraryGenreFilter = null;
@@ -12470,16 +12472,17 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        */
       var LIBRARY_SORT_OPTIONS = [
         {
-          key  : 'recent',
-          label: 'Recently Added',
-          // globalBooksDB is in insertion order (oldest first) — reverse for newest first
+          key       : 'recent',
+          label     : 'Recently Added',
+          defaultAsc: false, // newest first
           sort : function(books) {
             return books.slice().reverse();
           }
         },
         {
-          key  : 'az',
-          label: 'A – Z',
+          key       : 'az',
+          label     : 'A – Z',
+          defaultAsc: true, // A→Z
           sort : function(books) {
             return books.slice().sort(function(a, b) {
               return a.title.localeCompare(b.title);
@@ -12487,8 +12490,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         },
         {
-          key  : 'rated',
-          label: 'Top Rated',
+          key       : 'rated',
+          label     : 'Top Rated',
+          defaultAsc: false, // highest first
           sort : function(books) {
             // Build avg rating from globalShelvesDB — O(n) once per sort
             var ratingMap = new Map(); // bookId → { sum, count }
@@ -12514,8 +12518,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         },
         {
-          key  : 'mostread',
-          label: 'Most Read',
+          key       : 'mostread',
+          label     : 'Most Read',
+          defaultAsc: false, // most readers first
           sort : function(books) {
             // Count unique members who have this book on their shelf (any status)
             var readerMap = new Map(); // bookId → Set of memberIds
@@ -12535,8 +12540,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         },
         {
-          key  : 'pages',
-          label: 'Pages',
+          key       : 'pages',
+          label     : 'Pages',
+          defaultAsc: true, // shortest first
           sort : function(books) {
             return books.slice().sort(function(a, b) {
               var pa = Number(a.pages) || 0;
@@ -12550,8 +12556,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         },
         {
-          key  : 'year',
-          label: 'Year Published',
+          key       : 'year',
+          label     : 'Year Published',
+          defaultAsc: false, // newest first
           sort : function(books) {
             return books.slice().sort(function(a, b) {
               var ya = parseInt((a.publishedDate || '').toString().trim().slice(0, 4)) || 0;
@@ -12561,8 +12568,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         },
         {
-          key  : 'readtime',
-          label: 'Reading Time',
+          key       : 'readtime',
+          label     : 'Reading Time',
+          defaultAsc: true, // quickest first
           sort : function(books) {
             // Use the same 90-day rolling pace already computed in Book Detail.
             // If the user has no recent logs, pace = 0 and we fall back to page count.
@@ -12593,8 +12601,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         },
         {
-          key  : 'activity',
-          label: 'Club Activity',
+          key       : 'activity',
+          label     : 'Club Activity',
+          defaultAsc: false, // most active first
           sort : function(books) {
             // Composite score per book (all from in-memory DBs, no fetch):
             //   - recency:   ms timestamp of most recent page log or post (last 90 days)
@@ -12672,15 +12681,16 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       function renderSortChips() {
         var container = document.getElementById('libSortChips');
         if (!container) return;
-    
+
         container.innerHTML = LIBRARY_SORT_OPTIONS.map(function(opt) {
-          var isActive = opt.key === currentLibrarySort;
+          var isActive  = opt.key === currentLibrarySort;
+          var arrow     = isActive ? ' ' + (currentLibrarySortAsc ? '↑' : '↓') : '';
           return '<div class="genre-chip"' +
                 ' style="' + (isActive
                   ? 'background:var(--text-strong);color:white;border-color:var(--text-strong);'
                   : '') + '"' +
                 ' onclick="switchLibrarySort(\'' + opt.key + '\')">' +
-                  opt.label +
+                  opt.label + arrow +
                 '</div>';
         }).join('');
       }
@@ -12693,9 +12703,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        * @param {string} sortKey - One of the keys in LIBRARY_SORT_OPTIONS
        */
       function switchLibrarySort(sortKey) {
-        currentLibrarySort = sortKey;
+        if (sortKey === currentLibrarySort) {
+          currentLibrarySortAsc = !currentLibrarySortAsc; // same chip — flip direction
+        } else {
+          var opt = LIBRARY_SORT_OPTIONS.find(function(o) { return o.key === sortKey; });
+          currentLibrarySort    = sortKey;
+          currentLibrarySortAsc = opt ? opt.defaultAsc : false;
+        }
         renderSortChips();
-        filterLibrary(); // Re-apply current search with new sort
+        filterLibrary();
       }
 
       /**
@@ -12851,9 +12867,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           });
         }
 
-        // ── Step 4: Apply active sort ──────────────────────────────────────────────
+        // ── Step 4: Apply active sort + direction ─────────────────────────────────
         var sortOpt = LIBRARY_SORT_OPTIONS.find(function(o) { return o.key === currentLibrarySort; });
         var sorted  = sortOpt ? sortOpt.sort(shelfFiltered) : shelfFiltered;
+        // Each sort function always produces its "default" order; flip when needed.
+        if (sortOpt && currentLibrarySortAsc !== sortOpt.defaultAsc) sorted = sorted.slice().reverse();
 
         // ── Step 5: Update the active genre filter chip row ────────────────────────
         // Shows a dismissible pill so members can see the active filter and understand
@@ -13069,8 +13087,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         var searchEl = document.getElementById('librarySearch');
         if (searchEl) searchEl.value = '';
         currentLibrarySort        = 'recent';
-        currentLibraryGenreFilter = null;  // Clears any genre chip filter from a previous session
-        currentLibraryShelfFilter = 'all'; // Resets personal shelf filter to show all books
+        currentLibrarySortAsc     = false; // 'recent' defaults descending (newest first)
+        currentLibraryGenreFilter = null;
+        currentLibraryShelfFilter = 'all';
 
         renderShelfFilterChips();
         renderSortChips();
