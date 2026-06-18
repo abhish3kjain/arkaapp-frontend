@@ -34,7 +34,7 @@
 |---|---|---|
 | `styles.css` | core style css for the app|
 | `app.js` | Core Javascript of the app |  |
-| `ArkaAppBody` | Google App Script html file | Versioning done in styles.css and app.js link |
+| `ArkaClubApp.html` | Google App Script html file | Versioning done in styles.css and app.js link |
 | `ArkaMainAppCode.gs` | Backend GAS — all `google.script.run` handlers | version varibale to be maintained |
 | `MasterEngine.gs` | Nightly batch engine — stats, badges, email queue | current |
 | `ArkaAIPass.gs` | Gemini AI narrative generation via `UrlFetchApp` | (current) |
