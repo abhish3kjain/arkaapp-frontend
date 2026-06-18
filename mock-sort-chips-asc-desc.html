@@ -162,7 +162,7 @@
   <div class="section-label after">After — arrow appears on active chip, toggles asc/desc on tap</div>
   <div class="chip-strip" id="chipStrip"></div>
   <div class="note">
-    <strong>Behaviour:</strong> Tapping a chip selects it with its default direction (arrow shows the current direction). Tapping the arrow half of the active chip flips direction. Selecting a different chip resets direction to default. Inactive chips have no arrow — clean until needed.
+    <strong>Behaviour:</strong> Tap a chip to select it (arrow shows default direction). Tap the same chip again to flip between ↑ and ↓. Selecting a different chip resets direction to that sort's default. Inactive chips have no arrow — clean until needed.
   </div>
 </div>
 
@@ -201,34 +201,24 @@ function renderChips() {
   var strip = document.getElementById('chipStrip');
   strip.innerHTML = SORTS.map(function(s) {
     var isActive = s.key === activeKey;
-    var arrow    = '';
-    if (isActive) {
-      var dir = activeAsc ? '↑' : '↓';
-      arrow =
-        '<div class="chip-divider"></div>' +
-        '<div class="chip-arrow" onclick="toggleDir(event)">' + dir + '</div>';
-    }
+    var arrow = isActive ? ' ' + (activeAsc ? '↑' : '↓') : '';
     return (
       '<div class="chip-after' + (isActive ? ' active' : '') + '"' +
       '     onclick="selectSort(\'' + s.key + '\')">' +
-      '  <div class="chip-label">' + s.label + '</div>' +
-      arrow +
+      '  <div class="chip-label">' + s.label + arrow + '</div>' +
       '</div>'
     );
   }).join('');
 }
 
 function selectSort(key) {
-  if (key === activeKey) return; // arrow click is handled by toggleDir
-  var s = SORTS.find(function(x) { return x.key === key; });
-  activeKey = key;
-  activeAsc = s.defaultAsc;
-  renderChips();
-}
-
-function toggleDir(e) {
-  e.stopPropagation(); // don't re-trigger selectSort
-  activeAsc = !activeAsc;
+  if (key === activeKey) {
+    activeAsc = !activeAsc; // same chip clicked again — flip direction
+  } else {
+    var s = SORTS.find(function(x) { return x.key === key; });
+    activeKey = key;
+    activeAsc = s.defaultAsc;
+  }
   renderChips();
 }
 
