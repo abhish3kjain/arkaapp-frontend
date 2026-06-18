@@ -111,18 +111,9 @@
  
 **Top Improvement Opportunities:**
  
-1. **Semantic color tokens — Phase 6** → 5 high-frequency hardcoded semantic colors unresolved:
-   - Suggestion 1: Add the following to `:root` and to `Arka_Design_Tokens_v1.md`:
-     ```css
-     --color-success:      #1D9E75;  /* reading progress, completed states */
-     --color-danger:       #e74c3c;  /* errors, delete, overdue */
-     --color-warning:      #e67e22;  /* caution states, nudges */
-     --color-gamification: #EF9F27;  /* AP/points, badges, rewards */
-     --color-challenge:    #534AB7;  /* challenges, indigo accent */
-     ```
-     Then migrate `#1D9E75` → `var(--color-success)` (44 instances), `#e74c3c` → `var(--color-danger)` (46 instances), etc. This is a safe find-and-replace in editor; exact hex matches only.
-   - Suggestion 2: Migrate the `meActionBand` inline colors and `computeBookInsight_()` palette constants first, as they are JS-generated strings that are the hardest to maintain.
-   - **Impact:** Medium Effort · **Effort:** 1 day · **Unlocks:** dark mode preparedness
+1. ✅ **Semantic color tokens — Phase 6** → 5 tokens added to `:root` in `styles.css`; 186 hardcoded hex instances replaced across `ArkaClubApp.html` + `app.js`. Dark mode now achievable via a single `:root` override block.
+   - `--color-success: #1D9E75` · `--color-danger: #e74c3c` · `--color-warning: #e67e22` · `--color-gamification: #EF9F27` · `--color-challenge: #534AB7`
+   - Note: `--color-warning` also covers star-rating orange (decorative). A future `--color-star` split is possible if dark mode needs divergence.
    
 2. **`fa-pencil-alt` deprecation** → minor icon inconsistency:
    - In `renderMeActionBand()`: change `fa-pencil-alt` → `fa-pencil` for FA6 compliance.
@@ -267,7 +258,7 @@ A measurably stronger product across every dimension. The design token system cl
 ## Critical Path (top 5 changes that unlock the most value)
  
 1. ✅ **Surface persona on Me tab dashboard** — Done. Archetype chip in Me identity row, taps to personality panel.
-2. **Semantic color tokens — Phase 6** — Tokenize `--color-success`, `--color-danger`, `--color-warning`, `--color-gamification`, `--color-challenge`. Closes the remaining token gap, unlocks dark mode feasibility, protects 200+ UI surfaces from unsafe find-replace. *(Medium Effort — prerequisite for dark mode)*
+2. ✅ **Semantic color tokens — Phase 6** — Done. 5 tokens in `:root`; 186 instances replaced. Dark mode prerequisite cleared.
 3. **Persona-shift celebration variant** — When `PERSONAUPDATE` is detected, render a celebration card. The signal already exists; it just needs a UI layer. *(Quick Win)*
 4. ✅ **`data-action` migration** — Complete. All ~136 interactive `div onclick` targets across ArkaClubApp.html and app.js now carry `role="button" tabindex="0" data-action`. Coding rule in effect for new code.
 5. **Structured reading goal** — Add `{ type, target, period }` alongside free text. Render a "X / N" progress indicator in the Me stat pill row. Closes the last major data-clarity gap from V1. *(Medium Effort)*
