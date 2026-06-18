@@ -12541,6 +12541,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             return books.slice().sort(function(a, b) {
               var pa = Number(a.pages) || 0;
               var pb = Number(b.pages) || 0;
+              // books with no page count go to the end
+              if (!pa && !pb) return 0;
+              if (!pa) return 1;
+              if (!pb) return -1;
               return pa - pb; // shortest first
             });
           }
