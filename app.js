@@ -12416,9 +12416,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
 
       // ── Sort state ────────────────────────────────────────────────────────────
-      // Tracks which sort is currently active in the All Books tab.
-      // Values: 'recent' | 'az' | 'rated' | 'mostread'
-      /** Current sort key. Values: 'recent' | 'az' | 'rated' | 'mostread' */
+      /** Current sort key. Values: 'recent' | 'az' | 'rated' | 'mostread' | 'pages' | 'year' | 'readtime' | 'activity' */
       var currentLibrarySort        = 'recent';
 
       /** Active genre filter — canonical name from GENRE_ALIAS_MAP_FRONTEND, or null. */
@@ -12533,6 +12531,125 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               var countA = ra ? ra.size : 0;
               var countB = rb ? rb.size : 0;
               return countB - countA;
+            });
+          }
+        },
+        {
+          key  : 'pages',
+          label: 'Pages',
+          sort : function(books) {
+            return books.slice().sort(function(a, b) {
+              var pa = Number(a.pages) || 0;
+              var pb = Number(b.pages) || 0;
+              return pa - pb; // shortest first
+            });
+          }
+        },
+        {
+          key  : 'year',
+          label: 'Year Published',
+          sort : function(books) {
+            return books.slice().sort(function(a, b) {
+              var ya = parseInt((a.publishedDate || '').toString().trim().slice(0, 4)) || 0;
+              var yb = parseInt((b.publishedDate || '').toString().trim().slice(0, 4)) || 0;
+              return yb - ya; // newest first; books with no year go to the end
+            });
+          }
+        },
+        {
+          key  : 'readtime',
+          label: 'Reading Time',
+          sort : function(books) {
+            // Use the same 90-day rolling pace already computed in Book Detail.
+            // If the user has no recent logs, pace = 0 and we fall back to page count.
+            var cutoff90Ms      = Date.now() - 90 * 86400000;
+            var pagesLast90     = 0;
+            globalMyPageLogDB.forEach(function(l) {
+              if (l.pagesDelta <= 0) return;
+              var ts = parseGoogleDate(l.timestamp);
+              if (!ts || isNaN(ts.getTime()) || ts.getTime() < cutoff90Ms) return;
+              pagesLast90 += l.pagesDelta;
+            });
+            var pacePerDay = Math.round(pagesLast90 / 90); // may be 0
+
+            return books.slice().sort(function(a, b) {
+              var pa = Number(a.pages) || 0;
+              var pb = Number(b.pages) || 0;
+              if (pacePerDay > 0) {
+                // Sort by estimated days to finish (shortest first)
+                return (pa / pacePerDay) - (pb / pacePerDay);
+              }
+              // No pace data — fall back to raw page count ascending
+              return pa - pb;
+            });
+          }
+        },
+        {
+          key  : 'activity',
+          label: 'Club Activity',
+          sort : function(books) {
+            // Composite score per book (all from in-memory DBs, no fetch):
+            //   - recency:   ms timestamp of most recent page log or post (last 90 days)
+            //   - volume:    count of page logs in last 30 days
+            //   - posts:     count of book posts in last 30 days
+            //   - readers:   count of members with status = Reading right now
+            var NOW_MS    = Date.now();
+            var CUT90     = NOW_MS - 90  * 86400000;
+            var CUT30     = NOW_MS - 30  * 86400000;
+
+            // Page log signals
+            var logRecency = new Map(); // bookId → latest log ms within 90 days
+            var logCount30 = new Map(); // bookId → log count in last 30 days
+            globalPageLogDB.forEach(function(l) {
+              if (!l.bookId || l.pagesDelta <= 0) return;
+              var ts = parseGoogleDate(l.timestamp);
+              if (!ts || isNaN(ts.getTime())) return;
+              var ms = ts.getTime();
+              if (ms < CUT90) return;
+              if (!logRecency.has(l.bookId) || ms > logRecency.get(l.bookId)) {
+                logRecency.set(l.bookId, ms);
+              }
+              if (ms >= CUT30) {
+                logCount30.set(l.bookId, (logCount30.get(l.bookId) || 0) + 1);
+              }
+            });
+
+            // Post signals
+            var postRecency = new Map(); // bookId → latest post ms within 90 days
+            var postCount30 = new Map(); // bookId → post count in last 30 days
+            globalBookPostsDB.forEach(function(p) {
+              if (!p.bookId) return;
+              var ts = parseGoogleDate(p.timestamp);
+              if (!ts || isNaN(ts.getTime())) return;
+              var ms = ts.getTime();
+              if (ms < CUT90) return;
+              if (!postRecency.has(p.bookId) || ms > postRecency.get(p.bookId)) {
+                postRecency.set(p.bookId, ms);
+              }
+              if (ms >= CUT30) {
+                postCount30.set(p.bookId, (postCount30.get(p.bookId) || 0) + 1);
+              }
+            });
+
+            // Active readers count
+            var activeReaders = new Map(); // bookId → count of members with status=Reading
+            globalShelvesDB.forEach(function(s) {
+              if (s.status !== 'Reading') return;
+              activeReaders.set(s.bookId, (activeReaders.get(s.bookId) || 0) + 1);
+            });
+
+            function score(bookId) {
+              var latestMs   = Math.max(logRecency.get(bookId) || 0, postRecency.get(bookId) || 0);
+              var recency    = latestMs > 0 ? latestMs / 1000 : 0; // seconds, large number = recent
+              var logVol     = logCount30.get(bookId)   || 0;
+              var postVol    = postCount30.get(bookId)  || 0;
+              var liveReaders = activeReaders.get(bookId) || 0;
+              // Weights: recency dominates, then volume signals, live readers as tiebreaker
+              return recency + (logVol * 3600) + (postVol * 7200) + (liveReaders * 86400);
+            }
+
+            return books.slice().sort(function(a, b) {
+              return score(b.id) - score(a.id); // highest activity first
             });
           }
         }
