@@ -86,10 +86,7 @@
  
 1. ✅ **"Temp" badge leaking internal architecture** → Removed `logReadingNoteTempDot` orange dot from `ArkaClubApp.html` and its JS toggle in `app.js`. Sync note text retained; dot gone.
 2. ✅ **Context picker cap** → `LOG_READING_PICKER_BOOK_CHIPS` raised from 2 → 3. Sort by most-recently-logged already in place via `lastReadByBook` logic. "All N reading" chip remains the escape hatch.
-3. **Timezone-aware streak** → still open from V1:
-   - The `localOffset` column write from client is still deferred. For a globally distributed club, ISO-week streak boundaries near midnight remain skewed to GAS script tz (+0100).
-   - Suggestion: Pass `Intl.DateTimeFormat().resolvedOptions().timeZone` from the client in `logUnlinkedPages` and `logReadingProgress` payloads; store in a new PageLogDB column. MasterEngine can then resolve ISO-week membership against the member's offset.
-   - **Impact:** Medium Effort · **Effort:** 1–2 days
+3. ✅ **Timezone-aware streak** → `logReadingClientTzOffset_()` computes the member's local UTC offset (e.g. `+0530`) and sends `clientTzOffset` on every log path: `logReadingProgress`, `logUnlinkedPages`, `saveEventRSVP`, share progress. Backend receives it for ISO-week streak resolution.
 ---
  
 ## 3. VISUAL DESIGN & BRANDING
