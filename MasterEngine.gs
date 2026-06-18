@@ -1629,14 +1629,16 @@ function _buildYearStatsMap_(year, activityData, shelfData, pageLogData,
   }
 
   // ── 6. Badges earned (year) ──────────────────────────────────────────────
-  // BadgeAwardDB Col C (index 2) = MemberID, Col D (index 3) = AwardedDate,
-  // Col F (index 5) = Status. Only Active awards count; Revoked awards are
-  // excluded to match the existing badge-strip display rule.
+  // BadgeAwardDB layout: A=AwardID, B=BadgeID, C=MemberID, D=AwardedBy,
+  // E=AwardedDate (dd-MMM-yyyy), F=Status, G=BadgeCaption.
+  // Indices:              [0]        [1]       [2]          [3]
+  //                       [4]                  [5]           [6]
+  // Only Active awards count; Revoked awards are excluded.
   for (var bai = 1; bai < badgeAwardData.length; bai++) {
     if ((badgeAwardData[bai][5] || '').toString() !== 'Active') continue;
     var baMid  = (badgeAwardData[bai][2] || '').toString();
     if (!baMid) continue;
-    var baDate = parseArkaDateString_(badgeAwardData[bai][3]);  // Col D: AwardedDate
+    var baDate = parseArkaDateString_(badgeAwardData[bai][4]);  // Col E (index 4): AwardedDate
     if (isNaN(baDate.getTime()) || baDate.getFullYear() !== year) continue;
     _ensureMember_(baMid);
     stats[baMid].badges++;
