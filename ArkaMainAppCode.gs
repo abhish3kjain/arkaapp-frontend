@@ -9034,8 +9034,28 @@ const CACHE_TTL = 21600; // 6 hours
  * @param {string} key - One of the CACHE_KEYS values
  * @returns {Array|null}
  */
+// Sheet used as a cross-project dirty-flag channel (written by MasterEngine).
+const APP_CONFIG_SHEET = 'AppConfigData';
+const BADGE_DIRTY_ROW  = 2; // row in AppConfigData that holds badge_awards_dirty flag
+
 function getCachedDb(key) {
   try {
+    // For badge awards: check the shared dirty flag written by MasterEngine.
+    // MasterEngine runs in a separate GAS project so its CacheService namespace
+    // is isolated — the flag cell is the only shared channel between projects.
+    if (key === CACHE_KEYS.badgeAwards) {
+      const configSheet = SpreadsheetApp.openById(SPREADSHEET_ID)
+                            .getSheetByName(APP_CONFIG_SHEET);
+      if (configSheet) {
+        const flagVal = configSheet.getRange(BADGE_DIRTY_ROW, 2).getValue();
+        if (String(flagVal).toLowerCase() === 'true') {
+          configSheet.getRange(BADGE_DIRTY_ROW, 2).setValue('false');
+          CacheService.getScriptCache().remove(key);
+          console.log('Cache BYPASSED (badge dirty flag): ' + key);
+          return null;
+        }
+      }
+    }
     const cached = CacheService.getScriptCache().get(key);
     if (!cached) return null;
     console.log('Cache HIT: ' + key);
