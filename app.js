@@ -15008,7 +15008,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 `<div class="detail-shelf-av-item"
                       onclick="showMemberProfile('${u.memberId}')"
                       style="cursor:pointer;">
-                   <div style="position:relative;display:inline-block;">
+                   <div style="position:relative;display:inline-block;padding:6px 8px 0 0;">
                      ${buildShelfAvHtml(u, cfg.bg, cfg.fg)}
                      ${ratingBadge}
                    </div>
