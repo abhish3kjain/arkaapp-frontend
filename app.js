@@ -13865,9 +13865,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // ── 10 Pages a Day surfaces — dual members only. TEMPORARY. ──────────────
         const isDual   = TEN_PAGES_DUAL_MEMBER_IDS.indexOf(currentUser) !== -1;
         const syncNote = document.getElementById('logReadingSyncNote');
-        const tempDot  = document.getElementById('logReadingNoteTempDot');
         if (syncNote) syncNote.style.display = isDual ? 'flex' : 'none';
-        if (tempDot)  tempDot.style.display  = isDual ? 'inline-block' : 'none';
         if (isDual) logReadingLoadTenPagesNote();
 
         const saveBtn = document.getElementById('logReadingSaveBtn');

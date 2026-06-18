@@ -84,9 +84,7 @@
  
 **Top Improvement Opportunities:**
  
-1. **"Temp" badge leaking internal architecture** → `logReadingSyncNote` shows a visible "Temp" orange badge to dual members:
-   - Suggestion: Replace the "Temp" badge with no badge at all. The sync note text ("Also synced to your 10 Pages a Day tracker") is self-explanatory and positive. The "Temp" label signals to users that a feature is incomplete, which erodes trust in stability. Remove the badge element; keep the note.
-   - **Impact:** Quick Win · **Effort:** 30 minutes
+1. ✅ **"Temp" badge leaking internal architecture** → Removed `logReadingNoteTempDot` orange dot from `ArkaClubApp.html` and its JS toggle in `app.js`. Sync note text retained; dot gone.
 2. **Context picker cap** → `LOG_READING_PICKER_BOOK_CHIPS = 2` may miss active books for voracious readers:
    - Suggestion: Raise the constant to 3, and in `renderLogReadingPicker()` sort by most-recently-logged first (already done via `lastReadByBook` logic). This handles the majority of "10 active books" edge cases; the "All N reading" chip is still the escape hatch for the rest.
    - **Impact:** Quick Win · **Effort:** 1h (change one constant + verify scroll)
@@ -284,7 +282,7 @@ A measurably stronger product across every dimension. The design token system cl
 *(each <4h, immediately improves perception)*
  
 - ✅ **Persona chip on Me tab dashboard** — Done.
-- **Remove "Temp" badge from `logReadingSyncNote`** — One element delete. Stops leaking internal architecture state to members.
+- ✅ **Remove "Temp" badge from `logReadingSyncNote`** — Done. Orange dot element and JS toggle removed.
 - **Persona-shift celebration card** — `PERSONAUPDATE` detection + `meCelebrationCard` injection. Same container and CSS as the existing system.
 - **"Share this finish" persistent row on Finished shelf** — Recover the dismissed share nudge. `openBookFinishedShare()` already exists; one render-line in `renderUserShelves()`.
 - **`fa-pencil-alt` → `fa-pencil`** in `renderMeActionBand()` — 5-minute FA6 fix.
