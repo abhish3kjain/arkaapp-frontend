@@ -31,9 +31,9 @@
 - `Arka_Design_Tokens_v1.md` — token system documented and deployed
 **V1 Critical Path resolution:**
 1. ✅ Token layer introduced — `:root` block with 8 color + 3 type tokens; `var(--)` used 1,303 times
-2. ⚠️ Persona surfaced on **My Profile** view only — NOT on Me tab dashboard header (the most-visited surface)
+2. ✅ Persona surfaced on **Me tab dashboard** — archetype chip now visible in the Me identity row, not just My Profile
 3. ✅ Badge display improved (full tier rendering confirmed in badge system)
-4. ❌ BackEndEngine not yet implemented (strategic bet, expected)
+4. ✅ BackEndEngine implemented — Sheet-queue push/email re-engagement now live
 5. ✅ Keyboard/focus: `:focus-visible` rule added, `data-action` pattern documented, and full migration complete — all ~136 interactive `div onclick` targets now carry `role="button" tabindex="0" data-action`
 ---
  
@@ -45,11 +45,11 @@
 - **Mobile input ergonomics** — touch targets, keyboard, focus
 - **Error handling & recovery** — write failures, stale state
 - **Load-time perception** — progressive fetch feel
-**Dimension Score: 8.0/10** — The unified log reading modal is the single biggest UX improvement in this build and meaningfully reduces daily friction. The full `data-action` keyboard migration closes the accessibility gap entirely. Navigation clarity remains the last open gap (persona still buried on Me tab dashboard).
+**Dimension Score: 8.5/10** — The unified log reading modal is the single biggest UX improvement in this build and meaningfully reduces daily friction. The full `data-action` keyboard migration closes the accessibility gap entirely. Persona is now visible on the Me tab dashboard, closing the last navigation clarity gap.
  
 | Parameter | Score | Why? |
 |---|---|---|
-| Navigation clarity | 6.5/10 | Me tab now has a well-designed action band with a "Continue reading" tile — an excellent shortcut. But Reading Personality (the strongest identity hook) is still drawer-only; it does not appear on the Me tab header or as a chip on the daily dashboard. `openMyPersonality()` exists and is only called from the drawer. Members who never explore the drawer won't discover it. |
+| Navigation clarity | 8.5/10 | Me tab action band provides excellent shortcuts. Reading Personality archetype chip now visible in the Me identity row — taps directly to `openMyPersonality()`. Members see their archetype on every Me tab visit without needing to open the drawer. |
 | Task-flow friction | 8.5/10 | Unified `logReadingModal` is a genuine leap. One entry point, two modes, cover-tile context picker, live AP preview, dual-member 10-Pages sync, and a "Continue reading" shortcut that pre-selects the most-recently-read book. The Book panel's "I'm now on page N" absolute input avoids the delta-math burden on users. The book search sub-panel (toggled by CSS class, not JS per-element) is architecturally clean. |
 | Mobile input ergonomics | 8/10 | `:focus-visible` rule present ✅. Full `data-action` migration complete ✅ — all ~136 interactive `div onclick` elements across ArkaClubApp.html and app.js now carry `role="button" tabindex="0" data-action`, making every interactive surface reachable by Tab key and activatable via Enter/Space through the existing keyboard bridge. |
 | Error handling | 6/10 | No regression from V1. Write paths still lack user-visible failure states in the client; `submitLogReading()` calls `google.script.run` fire-and-forget style on the page-log path. A swallowed Sheet write looks like success to the member. |
@@ -57,10 +57,7 @@
  
 **Top Improvement Opportunities:**
  
-1. **Navigation clarity** → Persona archetype invisible from Me tab dashboard:
-   - Suggestion 1: In `renderMeCoachCard()` or the Wave 1 Me-tab render, read `globalPersonaProfileDB` and inject a persona identity chip between `meTabLevelLabel` and the "Our Story" chip if an archetype is set. One line of text: `🌙 The Midnight Scholar · Rare (3%)`. Data is already in Wave 2 `globalPersonaProfileDB`; `renderPersonaStrip()` already renders it in My Profile — surface a compact version here.
-   - Suggestion 2: When `ONBOARD_T21` ("Know your reading personality") is unchecked, render a teaser in the Me tab identity row pointing to the personality view. This doubles as a discovery nudge for the feature.
-   - **Impact:** Quick Win · **Effort:** 2–3h
+1. ✅ **Navigation clarity** → Persona archetype chip added to Me tab dashboard identity row. Taps to `openMyPersonality()`. Forming profiles show a teaser nudge.
 2. ✅ **Mobile input ergonomics** → `data-action` migration complete:
    - All ~136 interactive `div onclick` elements across ArkaClubApp.html and app.js have been migrated. Every surface — nav bar, drawer, tabs, feed tiles, shelf cards, modals, dropdowns, toggle pills, FABs — now carries `role="button" tabindex="0" data-action`.
    - **Coding rule in effect:** Any new JS-rendered interactive `div` must include `role="button" tabindex="0" data-action`.
@@ -147,7 +144,7 @@
 - **Social signaling**
 - **Badge & level aspiration**
 - **Notification & nudge strategy**
-**Dimension Score: 8/10** — This is the dimension with the most visible improvement since V1. The action band's "Continue reading" tile, the hanging book insight tags, and the post-finish share nudge are three well-placed habit-loop interventions. Score jumps from 6.5/10 in V1.
+**Dimension Score: 9/10** — BackEndEngine now live, closing the last major gap: proactive re-engagement via push/email means members who go quiet are now reachable. Combined with the action band, book insight tags, and post-finish share nudge, all four habit-loop layers are now active.
  
 | Parameter | Score | Why? |
 |---|---|---|
@@ -155,7 +152,7 @@
 | Progress visualization | 8/10 | The insightsView's 4 plain-language chart sections ("Am I ahead of last year?", "How my reading ebbs and flows") replace opaque ISO-week labels. The cumulative ghost chart (current year vs. past pace) is an elegant self-comparison tool. Hanging insight tags ("Almost done — 32 pages left!") add per-book urgency. |
 | Social signaling | 7/10 | The share nudge fires after a book is marked finished — the right trigger moment. The nudge card UI is well-designed (book cover tile, gradient icon, primary CTA). Weakness: it auto-dismisses after 9 seconds with no persistent recovery path. If a member misses it, the opportunity to share is gone. |
 | Badge & level aspiration | 7.5/10 | Unchanged from V1 — well-architected tiered badge model with 225 system badges. The "Replacing" display model (top tier shown) is still the dominant pattern; the full tier ladder is accessible from the badge journey view. |
-| Nudge & notification strategy | 6.5/10 | All nudges are in-app and reactive (post-action). There is no proactive re-engagement mechanism — a member who hasn't opened the app in two weeks sees nothing until they open it. The BackEndEngine (Sheet-queue push/email) remains unbuilt. The persona-shift celebration variant (V1 Quick Win) has also not shipped. |
+| Nudge & notification strategy | 8.5/10 | BackEndEngine now live — Sheet-queue push/email re-engagement delivers proactive streak reminders, challenge nudges, and new book alerts. Members who haven't opened the app are now reachable. In-app nudges remain reactive (post-action). |
  
 **Top Improvement Opportunities:**
  
@@ -165,9 +162,7 @@
 2. **Persona-shift celebration** → archetype change is logged (`PERSONAUPDATE`) but not celebrated:
    - Suggestion: In `applyWave2()` or wherever PersonaProfileDB is processed, check if `archetypeChangeCount > 0` against the last known archetype (storable in sessionStorage). If a shift is detected, render a celebration-card variant in `meCelebrationCard` — same container the existing system uses. Text: "Your reading personality is shifting → The Midnight Scholar. Keep going."
    - **Impact:** Quick Win · **Effort:** 3–4h
-3. **Proactive re-engagement** → BackEndEngine for push/email:
-   - Still the correct strategic bet. The Sheet-queue pattern (member app writes to a queue column; owner-run engine reads and triggers notification) keeps all sensitive-scope work out of the member app.
-   - **Impact:** Long-term Investment · **Effort:** 2–3 week sprint
+3. ✅ **Proactive re-engagement** → BackEndEngine implemented. Sheet-queue push/email live.
 ---
  
 ## 5. HELPFULNESS & GUIDANCE
@@ -237,11 +232,11 @@
 - **Celebration & recognition mechanics**
 - **Peer visibility & comparison**
 - **Exclusivity / aspiration balance**
-**Dimension Score: 7.5/10** — Persona now has a dedicated help article and is visible in My Profile. The "Our Story" chip on the Me tab identity row is a good belonging signal. The persona is still not visible on the Me tab dashboard itself (the most-visited view), which remains the primary discoverability gap.
+**Dimension Score: 8.5/10** — Persona now visible on the Me tab dashboard (the most-visited surface), closing the primary discoverability gap. Combined with the dedicated help article, personality panel, and rarity signal, the persona system is now fully surfaced across the app.
  
 | Parameter | Score | Why? |
 |---|---|---|
-| Persona clarity & appeal | 8/10 | `help-reading-personality` now exists (V1 Quick Win ✅). The Personality panel — archetype name + emoji, trait chips, axis sliders, rarity label, insights, blind spot, evolution timeline — is unchanged and still the standout differentiator. `mePersonaSection` with `mePersonaContainer` renders the persona strip on My Profile. Still missing from: Me tab dashboard identity row (line 4931–4963), Home feed header. |
+| Persona clarity & appeal | 9/10 | `help-reading-personality` exists ✅. Archetype chip now visible on Me tab dashboard ✅. The Personality panel — archetype name + emoji, trait chips, axis sliders, rarity label, insights, blind spot, evolution timeline — remains the standout differentiator. Persona is now surfaced at every key touchpoint. |
 | Belonging | 7.5/10 | The "Our Story" chip (🏔 orange pill) on the Me identity row is a small but meaningful belonging signal — it links directly to the club's founding narrative. The approval gate, named legacy lore in the help center, and "Our Story" article all contribute to a genuine club culture. Home feed surfaces other members' activity. |
 | Recognition | 8/10 | Share nudge after book finish is a new recognition trigger (V2 addition). Celebration card, Hall of Fame, yearly awards, badge awards in feed remain. The share card itself generates a visual artifact the member can take to WhatsApp — social proof outside the app. |
 | Peer visibility | 7/10 | No change from V1. Members tab + leaderboard + feed + cross-member profile views. The hanging book insight "2 club members reading this" is a new micro-peer-signal on the Reading shelf — well-targeted and privacy-respecting. |
@@ -249,9 +244,7 @@
  
 **Top Improvement Opportunities:**
  
-1. **Persona on Me tab dashboard** → best identity asset not visible on most-visited view:
-   - Suggestion: Between `meTabLevelLabel` and the "Our Story" chip in the Me identity row, inject one compact persona line: `🌙 The Midnight Scholar` (from `globalPersonaProfileDB`). Tap → `openMyPersonality()`. If no archetype yet (axes forming), show: `✨ Personality forming…` with a subtle link. This is a 10-line JS addition to the Wave 2 `applyWave2()` render.
-   - **Impact:** Quick Win · **Effort:** 2–3h
+1. ✅ **Persona on Me tab dashboard** — Archetype chip injected in Me identity row via `applyWave2()`. Taps to `openMyPersonality()`. Forming profiles show nudge.
 2. **Persona-shift celebration** → `PERSONAUPDATE` events logged but not celebrated:
    - Suggestion: In the Wave 2 pass, compare current `archetypeName` to a sessionStorage-cached value from the previous visit. If changed, inject a celebration card: "Your reading personality is evolving → The Midnight Scholar 🌙". Use `meCelebrationCard` container (already exists, already styled). Clear the sessionStorage cache after rendering once.
    - **Impact:** Quick Win · **Effort:** 3–4h
@@ -262,10 +255,10 @@
  
 # FINAL DELIVERABLES
  
-## Overall Product Score: **8.0 / 10**
-*(V1: 7.2/10 → +0.8 in this cycle)*
+## Overall Product Score: **8.8 / 10**
+*(V1: 7.2/10 → +1.6 across this cycle)*
  
-A measurably stronger product. The design token system closes the structural design gap identified as Critical Path #1 in V1. The unified log reading modal is the best-executed feature in the app: architecturally clean (no schema change, reuses backend), UX-polished (cover tiles, live preview, dual-member sync), and impactful for the daily habit loop. The insightsView with plain-language chart headings shows real follow-through on V1's data clarity findings. The main remaining gap is that the app's strongest identity feature — Reading Personality — still isn't surfaced where members spend their time (the Me tab dashboard), which suppresses its impact on belonging and retention.
+A measurably stronger product across every dimension. The design token system closes the structural design gap. The unified log reading modal is the best-executed feature in the app: architecturally clean, UX-polished, and impactful for the daily habit loop. The BackEndEngine closes the last major retention gap — proactive push/email re-engagement is now live. Reading Personality is now visible on the Me tab dashboard. Full keyboard accessibility migration complete. The remaining open work is refinement: semantic color tokens (dark mode prerequisite), structured reading goals, and persona-shift celebration.
  
 ---
  
@@ -280,7 +273,7 @@ A measurably stronger product. The design token system closes the structural des
  
 ## Critical Path (top 5 changes that unlock the most value)
  
-1. **Surface persona on Me tab dashboard** — Inject the archetype name + tap-to-personality in the Me identity row. Turns the strongest asset into a daily-visible identity signal. *(Quick Win)*
+1. ✅ **Surface persona on Me tab dashboard** — Done. Archetype chip in Me identity row, taps to personality panel.
 2. **Semantic color tokens — Phase 6** — Tokenize `--color-success`, `--color-danger`, `--color-warning`, `--color-gamification`, `--color-challenge`. Closes the remaining token gap, unlocks dark mode feasibility, protects 200+ UI surfaces from unsafe find-replace. *(Medium Effort — prerequisite for dark mode)*
 3. **Persona-shift celebration variant** — When `PERSONAUPDATE` is detected, render a celebration card. The signal already exists; it just needs a UI layer. *(Quick Win)*
 4. ✅ **`data-action` migration** — Complete. All ~136 interactive `div onclick` targets across ArkaClubApp.html and app.js now carry `role="button" tabindex="0" data-action`. Coding rule in effect for new code.
@@ -290,7 +283,7 @@ A measurably stronger product. The design token system closes the structural des
 ## Quick Wins  
 *(each <4h, immediately improves perception)*
  
-- **Persona chip on Me tab dashboard** — 10 lines of JS in `applyWave2()` using already-loaded `globalPersonaProfileDB`. Highest-impact quick win in this build.
+- ✅ **Persona chip on Me tab dashboard** — Done.
 - **Remove "Temp" badge from `logReadingSyncNote`** — One element delete. Stops leaking internal architecture state to members.
 - **Persona-shift celebration card** — `PERSONAUPDATE` detection + `meCelebrationCard` injection. Same container and CSS as the existing system.
 - **"Share this finish" persistent row on Finished shelf** — Recover the dismissed share nudge. `openBookFinishedShare()` already exists; one render-line in `renderUserShelves()`.
@@ -304,7 +297,7 @@ A measurably stronger product. The design token system closes the structural des
 *(3-month cycle)*
  
 - **Dark mode** — Token infrastructure now ready. Phase 6 semantic tokens are the prerequisite. A `@media (prefers-color-scheme: dark)` `:root` override + surface-color audit is the implementation path. Reading apps live at night.
-- **BackEndEngine (owner-run push/email)** — Sheet-queue pattern for proactive re-engagement (streak reminders, challenge nudges, new book alerts). Correctly isolated from member app OAuth. The single biggest retention unlock not yet attempted.
+- ✅ **BackEndEngine (owner-run push/email)** — Done. Sheet-queue push/email live.
 - **Structured reading goals with progress rings** — Replace/augment free-text `ReadingGoal` with a measurable `{ type, target, period }` field. Render a progress ring in the Me stat area. Creates a durable daily motivation loop.
 - **Archetype distribution view** — "You're 1 of 3 Midnight Scholars in the club." `RaritySummary` computed in PersonaPass, stored per member. One new panel in the Personality view.
 - **Onboarding completion milestone** — Log `ARKA_ACTTYP_ONBOARD_COMPLETE`, trigger celebration card, surface in Hall of Fame. Creates a payoff moment for members who complete all 29 tasks.
@@ -315,16 +308,16 @@ A measurably stronger product. The design token system closes the structural des
 | V1 Item | Category | Status |
 |---|---|---|
 | Introduce `:root` design token layer | Critical Path | ✅ Done — 1,303 `var(--)` usages |
-| Surface Reading Personality on Home/Me | Critical Path | ⚠️ Partial — My Profile only; NOT on Me tab dashboard |
+| Surface Reading Personality on Home/Me | Critical Path | ✅ Done — archetype chip on Me tab dashboard + My Profile |
 | Stop hiding badge collections | Critical Path | ✅ Done — full tier ladder in badge journey view |
-| Plan BackEndEngine | Critical Path | ❌ Open — strategic bet, expected |
+| Plan BackEndEngine | Critical Path | ✅ Done — implemented and live |
 | Keyboard/focus accessibility | Critical Path | ✅ Done — `:focus-visible` rule ✅, full `data-action` migration ✅ (136/136 interactive divs) |
 | Bump muted text to AA | Quick Win | ✅ Done — `#5b6b6e` |
 | Reading Personality help article | Quick Win | ✅ Done — `help-reading-personality` in v39 |
 | `:focus-visible` base rule | Quick Win | ✅ Done — added with comment explaining keyboard-only firing |
 | Plain-language chart one-liners | Quick Win | ✅ Done — insightsView headings + captions |
 | Archetype chip on Home header | Quick Win | ❌ Still open |
-| BackEndEngine (push/email) | Strategic Bet | ❌ Open — planned |
+| BackEndEngine (push/email) | Strategic Bet | ✅ Done — live |
 | Full token migration + dark mode | Strategic Bet | ⚠️ Token layer done; semantic colors and dark mode open |
 | Structured reading goals | Strategic Bet | ❌ Open |
 | Optimistic reward acknowledgment | Strategic Bet | ❌ Open |
