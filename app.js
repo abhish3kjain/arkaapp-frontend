@@ -19315,17 +19315,20 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               var nameLabel   = reader.isCurrentUser ? 'You' : reader.displayName.split(' ')[0];
               var cumulative  = 0;
               var dataPoints  = sortedDateLabels.map(function(dateLabel) {
-                  var dayMap    = dailyPagesByDateAndMember.get(dateLabel);
+                  var dayMap     = dailyPagesByDateAndMember.get(dateLabel);
                   var pagesOnDay = (dayMap && dayMap.get(reader.memberId)) || 0;
-                  cumulative   += pagesOnDay;
-                  return cumulative;
+                  cumulative    += pagesOnDay;
+                  // null on dates this member didn't log — keeps their line from
+                  // passing through positions that belong to other members only
+                  return pagesOnDay > 0 ? cumulative : null;
               });
               return {
                   label           : nameLabel,
                   data            : dataPoints,
                   borderColor     : color,
-                  backgroundColor : color + '18', // very light fill under the line
+                  backgroundColor : color + '18',
                   borderWidth     : 2,
+                  spanGaps        : true, // connect own logged points across null gaps
                   pointRadius     : 3,
                   pointHoverRadius: 5,
                   fill            : false,

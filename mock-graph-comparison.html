@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Together Graph — Before vs After</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f7fa; margin: 0; padding: 24px; }
+  h1 { font-size: 18px; color: #1a2530; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 32px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    flex: 1;
+    min-width: 320px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  .card-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .card-title.before { color: #c0392b; }
+  .card-title.after  { color: #1D9E75; }
+  .card-desc { font-size: 12px; color: #888; margin-bottom: 20px; line-height: 1.5; }
+  .chart-wrap { position: relative; height: 240px; }
+  .legend { display: flex; gap: 16px; margin-top: 14px; justify-content: center; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .data-table { margin-top: 20px; border-top: 1px solid #f0f0f0; padding-top: 16px; }
+  .data-table h3 { font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; color: #aaa; font-weight: 500; padding: 4px 6px; }
+  td { padding: 4px 6px; color: #444; }
+  tr:nth-child(even) td { background: #fafafa; }
+  .dot-cell { display: flex; align-items: center; gap: 6px; }
+  .mini-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .highlight { background: #fff3cd; }
+  .annotation {
+    margin-top: 16px;
+    background: #fff8e1;
+    border-left: 3px solid #f59e0b;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 12px;
+    color: #555;
+    line-height: 1.6;
+  }
+  .annotation.good {
+    background: #e8f8f2;
+    border-left-color: #1D9E75;
+  }
+</style>
+</head>
+<body>
+
+<h1>Reading Together — Progress Graph</h1>
+<p class="subtitle">
+  Example data: You and Priya are reading <em>Atomic Habits</em> (320 pages) together.<br>
+  Logs: <strong>You</strong> logged on Jun 1, Jun 3, Jun 5 &nbsp;·&nbsp; <strong>Priya</strong> logged on Jun 2, Jun 3, Jun 6
+</p>
+
+<div class="row">
+
+  <!-- BEFORE -->
+  <div class="card">
+    <div class="card-title before">Before (current behaviour)</div>
+    <div class="card-desc">Every member gets a dot on every date any member logged — even when they logged 0 pages that day.</div>
+    <div class="chart-wrap"><canvas id="chartBefore"></canvas></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#534AB7"></div> You</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div> Priya</div>
+    </div>
+    <div class="annotation">
+      <strong>Problem:</strong> On Jun 2, Priya read 60 pages — but <em>You</em> also get a dot (at 50 pages cumulative) even though you didn't read that day.
+      On Jun 5, you read 40 pages but Priya gets a dot too.
+      This makes it look like both people were active on every date.
+    </div>
+    <div class="data-table">
+      <h3>Data plotted (cumulative pages per date)</h3>
+      <table>
+        <tr><th>Date</th><th>You (dot?)</th><th>Priya (dot?)</th></tr>
+        <tr><td>1 Jun</td><td class="highlight">50 ●</td><td class="highlight">0 ●</td></tr>
+        <tr><td>2 Jun</td><td class="highlight">50 ●</td><td class="highlight">60 ●</td></tr>
+        <tr><td>3 Jun</td><td class="highlight">80 ●</td><td class="highlight">80 ●</td></tr>
+        <tr><td>5 Jun</td><td class="highlight">120 ●</td><td class="highlight">80 ●</td></tr>
+        <tr><td>6 Jun</td><td class="highlight">120 ●</td><td class="highlight">130 ●</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- AFTER -->
+  <div class="card">
+    <div class="card-title after">After (proposed fix)</div>
+    <div class="card-desc">A dot only appears on dates when a member actually logged pages. The line still connects through all dates.</div>
+    <div class="chart-wrap"><canvas id="chartAfter"></canvas></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#534AB7"></div> You</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div> Priya</div>
+    </div>
+    <div class="annotation good">
+      <strong>Fix:</strong> Data is <code>null</code> on dates a member didn't log. With <code>spanGaps: true</code>, the line connects only between a member's own logged points — it never passes through a date they didn't read on. Priya's line doesn't touch Jun 1 or Jun 5; your line doesn't touch Jun 2 or Jun 6.
+    </div>
+    <div class="data-table">
+      <h3>Data plotted (null on days not logged)</h3>
+      <table>
+        <tr><th>Date</th><th>You</th><th>Priya</th></tr>
+        <tr><td>1 Jun</td><td class="highlight">50 ●</td><td>null (skipped)</td></tr>
+        <tr><td>2 Jun</td><td>null (skipped)</td><td class="highlight">60 ●</td></tr>
+        <tr><td>3 Jun</td><td class="highlight">80 ●</td><td class="highlight">80 ●</td></tr>
+        <tr><td>5 Jun</td><td class="highlight">120 ●</td><td>null (skipped)</td></tr>
+        <tr><td>6 Jun</td><td>null (skipped)</td><td class="highlight">130 ●</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Example data ──────────────────────────────────────────────
+// You:   Jun 1 → +50, Jun 3 → +30, Jun 5 → +40
+// Priya: Jun 2 → +60, Jun 3 → +20, Jun 6 → +50
+
+var labels = ['1 Jun', '2 Jun', '3 Jun', '5 Jun', '6 Jun'];
+
+// Cumulative values (line data — same in both charts)
+var youCumulative   = [50, 50, 80, 120, 120];
+var priaCumulative  = [0,  60, 80,  80, 130];
+
+// Which dates each member actually logged (true = logged)
+var youLogged   = [true, false, true,  true,  false];
+var priaLogged  = [false, true, true,  false, true ];
+
+// ── BEFORE: every point gets a dot ───────────────────────────
+new Chart(document.getElementById('chartBefore').getContext('2d'), {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: 'You',
+        data: youCumulative,
+        borderColor: '#534AB7',
+        backgroundColor: '#534AB718',
+        borderWidth: 2,
+        pointRadius: 4,        // dot on every date
+        pointHoverRadius: 6,
+        fill: false,
+        tension: 0.3
+      },
+      {
+        label: 'Priya',
+        data: priaCumulative,
+        borderColor: '#1D9E75',
+        backgroundColor: '#1D9E7518',
+        borderWidth: 2,
+        pointRadius: 4,        // dot on every date
+        pointHoverRadius: 6,
+        fill: false,
+        tension: 0.3
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#888' } },
+      y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 }, color: '#888' } }
+    }
+  }
+});
+
+// ── AFTER: null on days with no log + spanGaps so line only connects own points ──
+// Cumulative value is carried forward in the data only on logged days;
+// null on other days so the line never passes through positions the member didn't log.
+var youSparse  = youCumulative.map(function(v, i)  { return youLogged[i]  ? v : null; });
+var priaSparse = priaCumulative.map(function(v, i) { return priaLogged[i] ? v : null; });
+
+new Chart(document.getElementById('chartAfter').getContext('2d'), {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: 'You',
+        data: youSparse,
+        borderColor: '#534AB7',
+        backgroundColor: '#534AB718',
+        borderWidth: 2,
+        spanGaps: true,          // line connects across null gaps (other members' dates)
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: false,
+        tension: 0.3
+      },
+      {
+        label: 'Priya',
+        data: priaSparse,
+        borderColor: '#1D9E75',
+        backgroundColor: '#1D9E7518',
+        borderWidth: 2,
+        spanGaps: true,          // line connects across null gaps
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: false,
+        tension: 0.3
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#888' } },
+      y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 }, color: '#888' } }
+    }
+  }
+});
+</script>
+
+</body>
+</html>
