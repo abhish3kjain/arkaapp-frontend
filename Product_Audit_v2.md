@@ -17,8 +17,8 @@
 | CSS token usages (`var(--)`) | 0 | 1,303 | +1,303 ✅ |
 | Unique hardcoded hex values | 220+ | 333 | Grew (residual semantic colors) |
 | `div onclick` tap targets | ~132 | 145 | +13 (still not accessible) |
-| `data-action` / `tabindex` usages | 0 | 8 / 2 | Pattern started, not migrated |
-| `role="button"` usages | 0 | 3 | Pattern started, not migrated |
+| `data-action` / `tabindex` usages | 0 | 136 / 136 | ✅ Full migration complete |
+| `role="button"` usages | 0 | 136 | ✅ Full migration complete |
  
 **New major features since v100:**
 - `meActionBand` — 3-tile action band on Me tab (log, continue reading, top coach task)
@@ -34,7 +34,7 @@
 2. ⚠️ Persona surfaced on **My Profile** view only — NOT on Me tab dashboard header (the most-visited surface)
 3. ✅ Badge display improved (full tier rendering confirmed in badge system)
 4. ❌ BackEndEngine not yet implemented (strategic bet, expected)
-5. ⚠️ Keyboard/focus: `:focus-visible` rule added + `data-action` pattern documented, but migration stalled at 8 of ~145 `div onclick` targets
+5. ✅ Keyboard/focus: `:focus-visible` rule added, `data-action` pattern documented, and full migration complete — all ~136 interactive `div onclick` targets now carry `role="button" tabindex="0" data-action`
 ---
  
 ## 1. UX EXPERIENCE
@@ -45,13 +45,13 @@
 - **Mobile input ergonomics** — touch targets, keyboard, focus
 - **Error handling & recovery** — write failures, stale state
 - **Load-time perception** — progressive fetch feel
-**Dimension Score: 7.5/10** — The unified log reading modal is the single biggest UX improvement in this build and meaningfully reduces daily friction. Navigation clarity is still held back by persona/personality being buried, and the div-onclick accessibility gap has grown slightly.
+**Dimension Score: 8.0/10** — The unified log reading modal is the single biggest UX improvement in this build and meaningfully reduces daily friction. The full `data-action` keyboard migration closes the accessibility gap entirely. Navigation clarity remains the last open gap (persona still buried on Me tab dashboard).
  
 | Parameter | Score | Why? |
 |---|---|---|
 | Navigation clarity | 6.5/10 | Me tab now has a well-designed action band with a "Continue reading" tile — an excellent shortcut. But Reading Personality (the strongest identity hook) is still drawer-only; it does not appear on the Me tab header or as a chip on the daily dashboard. `openMyPersonality()` exists and is only called from the drawer. Members who never explore the drawer won't discover it. |
 | Task-flow friction | 8.5/10 | Unified `logReadingModal` is a genuine leap. One entry point, two modes, cover-tile context picker, live AP preview, dual-member 10-Pages sync, and a "Continue reading" shortcut that pre-selects the most-recently-read book. The Book panel's "I'm now on page N" absolute input avoids the delta-math burden on users. The book search sub-panel (toggled by CSS class, not JS per-element) is architecturally clean. |
-| Mobile input ergonomics | 5/10 | The `:focus-visible` base rule is now present (V1 Quick Win ✅). The `data-action` delegation handler is documented and wired — but adoption is at 8 usages against 145 `div onclick` targets. The count has actually grown by 13 since V1. `role="button"` appears only 3 times; `tabindex="0"` only twice. The new meActionBand tiles, all three of them, are `div onclick` without `role` or `tabindex`. |
+| Mobile input ergonomics | 8/10 | `:focus-visible` rule present ✅. Full `data-action` migration complete ✅ — all ~136 interactive `div onclick` elements across ArkaClubApp.html and app.js now carry `role="button" tabindex="0" data-action`, making every interactive surface reachable by Tab key and activatable via Enter/Space through the existing keyboard bridge. |
 | Error handling | 6/10 | No regression from V1. Write paths still lack user-visible failure states in the client; `submitLogReading()` calls `google.script.run` fire-and-forget style on the page-log path. A swallowed Sheet write looks like success to the member. |
 | Load perception | 8/10 | 4-wave architecture unchanged and working. `AppLoadTimingDB` telemetry still recording. The new unified modal's context picker defers rendering to `openLogReadingSheet()` (not at load time), keeping Wave 1 lean. |
  
@@ -61,10 +61,9 @@
    - Suggestion 1: In `renderMeCoachCard()` or the Wave 1 Me-tab render, read `globalPersonaProfileDB` and inject a persona identity chip between `meTabLevelLabel` and the "Our Story" chip if an archetype is set. One line of text: `🌙 The Midnight Scholar · Rare (3%)`. Data is already in Wave 2 `globalPersonaProfileDB`; `renderPersonaStrip()` already renders it in My Profile — surface a compact version here.
    - Suggestion 2: When `ONBOARD_T21` ("Know your reading personality") is unchecked, render a teaser in the Me tab identity row pointing to the personality view. This doubles as a discovery nudge for the feature.
    - **Impact:** Quick Win · **Effort:** 2–3h
-2. **Mobile input ergonomics** → `data-action` migration stalled:
-   - Suggestion 1: Migrate the three new `meActionBand` tiles in `renderMeActionBand()` first (they're JS-generated strings — easiest to fix at source). Add `role="button" tabindex="0"` to each tile's outer `div` since the handler is already a delegated `keydown` listener.
-   - Suggestion 2: Set a rule that any new JS-rendered interactive `div` must include `role="button" tabindex="0" data-action` in code review. The pattern is documented; enforcement is the gap.
-   - **Impact:** Medium Effort · **Effort:** 1–2 days (incremental)
+2. ✅ **Mobile input ergonomics** → `data-action` migration complete:
+   - All ~136 interactive `div onclick` elements across ArkaClubApp.html and app.js have been migrated. Every surface — nav bar, drawer, tabs, feed tiles, shelf cards, modals, dropdowns, toggle pills, FABs — now carries `role="button" tabindex="0" data-action`.
+   - **Coding rule in effect:** Any new JS-rendered interactive `div` must include `role="button" tabindex="0" data-action`.
 3. **Share nudge persistence** → `showShareNudge_()` auto-dismisses in 9 seconds with no way back:
    - Suggestion: After dismissal, add a persistent "Share this finish" row to the book's Finished-shelf card (rendered in `renderUserShelves()`). The `shareData` object already contains everything needed; `openBookFinishedShare()` already accepts it. This turns a one-shot nudge into a durable action.
    - **Impact:** Quick Win · **Effort:** 2–3h
@@ -284,7 +283,7 @@ A measurably stronger product. The design token system closes the structural des
 1. **Surface persona on Me tab dashboard** — Inject the archetype name + tap-to-personality in the Me identity row. Turns the strongest asset into a daily-visible identity signal. *(Quick Win)*
 2. **Semantic color tokens — Phase 6** — Tokenize `--color-success`, `--color-danger`, `--color-warning`, `--color-gamification`, `--color-challenge`. Closes the remaining token gap, unlocks dark mode feasibility, protects 200+ UI surfaces from unsafe find-replace. *(Medium Effort — prerequisite for dark mode)*
 3. **Persona-shift celebration variant** — When `PERSONAUPDATE` is detected, render a celebration card. The signal already exists; it just needs a UI layer. *(Quick Win)*
-4. **`data-action` migration** — Migrate the `meActionBand` tiles first (JS-generated, easiest to fix at source), then continue incrementally. Set a coding rule: no new interactive `div` without `role="button" tabindex="0" data-action`. *(Medium Effort)*
+4. ✅ **`data-action` migration** — Complete. All ~136 interactive `div onclick` targets across ArkaClubApp.html and app.js now carry `role="button" tabindex="0" data-action`. Coding rule in effect for new code.
 5. **Structured reading goal** — Add `{ type, target, period }` alongside free text. Render a "X / N" progress indicator in the Me stat pill row. Closes the last major data-clarity gap from V1. *(Medium Effort)*
 ---
  
@@ -319,7 +318,7 @@ A measurably stronger product. The design token system closes the structural des
 | Surface Reading Personality on Home/Me | Critical Path | ⚠️ Partial — My Profile only; NOT on Me tab dashboard |
 | Stop hiding badge collections | Critical Path | ✅ Done — full tier ladder in badge journey view |
 | Plan BackEndEngine | Critical Path | ❌ Open — strategic bet, expected |
-| Keyboard/focus accessibility | Critical Path | ⚠️ Partial — `:focus-visible` rule ✅, `data-action` documented, 8/145 migrated |
+| Keyboard/focus accessibility | Critical Path | ✅ Done — `:focus-visible` rule ✅, full `data-action` migration ✅ (136/136 interactive divs) |
 | Bump muted text to AA | Quick Win | ✅ Done — `#5b6b6e` |
 | Reading Personality help article | Quick Win | ✅ Done — `help-reading-personality` in v39 |
 | `:focus-visible` base rule | Quick Win | ✅ Done — added with comment explaining keyboard-only firing |
