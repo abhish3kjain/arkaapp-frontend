@@ -2971,7 +2971,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             var soloBadgeName = soloBadge ? soloBadge.caption     : 'New Badge';
             var soloBadgeDesc = soloBadge ? soloBadge.description : '';
             var soloBadgeImg  = soloBadge ? soloBadge.imgUrl      : '';
-            html += '<div style="display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:4px;" onclick="openBadgeDetailSheet(\'' + awardedBadgeIds[0] + '\')">';
+            html += '<div style="display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:4px;" role="button" tabindex="0" data-action onclick="openBadgeDetailSheet(\'' + awardedBadgeIds[0] + '\')">';
             html +=   '<div class="celebration-hero-medal">';
             html +=     (soloBadgeImg
                           ? '<img src="' + soloBadgeImg + '" data-badge-id="' + awardedBadgeIds[0] + '" alt="' + soloBadgeName + '">'
@@ -2996,7 +2996,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               var badge     = badgesMap.get(badgeId);
               var badgeName = badge ? badge.caption : 'Badge';
               var badgeImg  = badge ? badge.imgUrl  : '';
-              html += '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:66px;max-width:74px;" onclick="openBadgeDetailSheet(\'' + badgeId + '\')">';
+              html += '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:66px;max-width:74px;" role="button" tabindex="0" data-action onclick="openBadgeDetailSheet(\'' + badgeId + '\')">';
               html +=   (badgeImg
                           ? '<img src="' + badgeImg + '" data-badge-id="' + badgeId + '" style="width:48px;height:48px;border-radius:11px;object-fit:cover;border:0.5px solid rgba(169,132,186,0.4);" alt="' + badgeName + '">'
                           : '<div style="width:48px;height:48px;border-radius:11px;background:#e8dff4;display:flex;align-items:center;justify-content:center;font-size:22px;">🏅</div>');
@@ -4503,7 +4503,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // Short type label (strip emoji for compactness inside the pill)
           var shortLabel = typeCfg.label.replace(/^[\u{1F000}-\u{1FFFF}\u2600-\u27BF]\s*/u, '');
 
-          return '<div class="ez-row" onclick="openEventDetailView(\'' + evt.eventId + '\')">'
+          return '<div class="ez-row" role="button" tabindex="0" data-action onclick="openEventDetailView(\'' + evt.eventId + '\')">'
             + '<div class="ez-date-col">'
             +   '<span class="ez-date-day">' + dayNum + '</span>'
             +   '<span class="ez-date-mon">' + monStr + '</span>'
@@ -4790,7 +4790,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             + '    <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-strong);'
             + '         margin-top: 1px;">'
             + escapeHtml(record.valueDisplay) + '</div>'
-            + '    <div onclick="showMemberProfile(\'' + record.holderId + '\')"'
+            + '    <div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + record.holderId + '\')"'
             + '         style="font-size: 0.68rem; color: var(--arka-accent); font-weight: 600;'
             + '                margin-top: 2px; cursor: pointer;">'
             + escapeHtml(record.holderName) + '</div>'
@@ -4871,7 +4871,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         }
         // Graceful fallback — styled emoji circle, still opens badge detail on tap
         var fallback = fallbackIcon || '&#127942;';
-        return '<div onclick="openBadgeDetailSheet(\'' + badgeId + '\')"'
+        return '<div role="button" tabindex="0" data-action onclick="openBadgeDetailSheet(\'' + badgeId + '\')"'
           + ' style="width:' + sizePx + 'px;height:' + sizePx + 'px;border-radius:50%;'
           + 'border:3px solid ' + accentClr + ';background:#f0e8f5;'
           + 'display:flex;align-items:center;justify-content:center;'
@@ -4982,7 +4982,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             + label + '</div>'
 
             // Winner row — avatar + name, tappable
-            + '  <div onclick="showMemberProfile(\'' + award.memberId + '\')"'
+            + '  <div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + award.memberId + '\')"'
             + '       style="display: flex; align-items: center; gap: 6px;'
             + '              cursor: pointer; justify-content: center;">'
             + avatarHtml
@@ -5070,7 +5070,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         // Name grid cells — each name truncated and tappable
         var nameCells = awardsForYear.map(function(award) {
-          return '<div onclick="showMemberProfile(\'' + award.memberId + '\')"'
+          return '<div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + award.memberId + '\')"'
             + ' style="font-size:0.72rem;font-weight:700;color:var(--text-strong);cursor:pointer;'
             + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 2px;">'
             + escapeHtml(award.memberDisplayName)
@@ -5241,7 +5241,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 + '<div style="display:flex;justify-content:center;margin-bottom:5px;">'
                 +   chipBadgeHtml
                 + '</div>'
-                + '<div onclick="showMemberProfile(\'' + award.memberId + '\')"'
+                + '<div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + award.memberId + '\')"'
                 +      ' style="font-size:0.65rem;font-weight:700;color:var(--text-strong);cursor:pointer;'
                 +             'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
                 +   firstName
@@ -5367,7 +5367,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             badgeLabel += ' (' + leader.badgeMeta + ')';
           }
 
-          html += '<div onclick="showMemberProfile(\'' + leader.memberId + '\')"'
+          html += '<div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + leader.memberId + '\')"'
             + '  style="flex-shrink: 0; width: 108px; background: #fff;'
             + '         border: 1px solid var(--border-soft);'
             + '         border-top: 3px solid ' + accent + ';'
@@ -5922,7 +5922,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             + escapeHtml(award.badgeName) + '</div>'
 
             // ── Member row — avatar + name, tappable ────────────────────
-            + '<div onclick="showMemberProfile(\'' + award.memberId + '\')"'
+            + '<div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + award.memberId + '\')"'
             + '     style="display: flex; align-items: center; gap: 8px;'
             + '            cursor: pointer;'
             + '            margin-bottom: ' + (award.notes ? '10px' : '0') + ';">'
@@ -9851,7 +9851,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                                  text-transform:uppercase;letter-spacing:0.5px;">Badges</span>
                     ${earnedCountLabel}
                   </div>
-                  <div onclick="openBadgeGallery()"
+                  <div role="button" tabindex="0" data-action onclick="openBadgeGallery()"
                        style="font-size:0.78rem;color:var(--arka-accent);font-weight:500;cursor:pointer;
                               background:#f5f0ff;padding:4px 10px;border-radius:12px;">
                     See all →
@@ -11994,7 +11994,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 ${escapeHtml(cfg.yearDescription || cfg.description)}
               </div>
             </div>
-            <div onclick="_goToBadgeByMeta_('${badgeMeta}')"
+            <div role="button" tabindex="0" data-action onclick="_goToBadgeByMeta_('${badgeMeta}')"
                  style="font-size:0.72rem; padding:4px 10px; border-radius:20px;
                         background:white; color:var(--arka-accent); font-weight:600;
                         border:0.5px solid #d8c8f0; cursor:pointer;
@@ -13611,7 +13611,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           + '-webkit-box-orient:vertical;color:var(--text-strong);">'
           + escapeHtml(opts.label) + '</div>';
 
-        return '<div onclick="' + opts.onclick + '" '
+        return '<div role="button" tabindex="0" data-action onclick="' + opts.onclick + '" '
           + 'style="display:flex;flex-direction:column;align-items:center;'
           + 'cursor:pointer;flex:0 0 auto;user-select:none;">'
           + coverHtml + labelHtml + '</div>';
@@ -15153,7 +15153,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             reviewsHtml +=
               `<div style="padding:10px 0;border-bottom:0.5px solid var(--border-soft);">
                  <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px;">
-                   <div onclick="showMemberProfile('${member.id}')"
+                   <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')"
                         style="cursor:pointer;flex-shrink:0;">
                      ${avHtml}
                    </div>
@@ -15207,7 +15207,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             reviewsHtml +=
               `<div style="padding:10px 0;border-bottom:0.5px solid var(--border-soft);">
                  <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px;">
-                   <div onclick="showMemberProfile('${member.id}')"
+                   <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')"
                         style="cursor:pointer;flex-shrink:0;">
                      ${avHtml}
                    </div>
@@ -16773,7 +16773,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               ? '<img src="' + currentMember.imageURL + '" style="width:48px;height:48px;border-radius:50%;object-fit:cover;" onerror="this.style.display=\'none\'">'
               : '<div class="feed-z1-avatar" style="width:48px;height:48px;font-size:16px;">' + youInit + '</div>';
 
-          var youTileHtml = '<div class="feed-z1-item" onclick="' + youOnclick + '">'
+          var youTileHtml = '<div class="feed-z1-item" role="button" tabindex="0" data-action onclick="' + youOnclick + '">'
               + '<div class="feed-z1-ring feed-z1-ring--you" style="width:56px;height:56px;">'
               + '<div class="feed-z1-ring-inner">' + youAvHtml + '</div>'
               + youSpineHtml
@@ -16804,7 +16804,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   : 'showMemberProfile(\'' + mid + '\')';
               var shortName = member.displayName.split(' ')[0];
 
-              return '<div class="feed-z1-item" onclick="' + clickTarget + '">'
+              return '<div class="feed-z1-item" role="button" tabindex="0" data-action onclick="' + clickTarget + '">'
                   + '<div class="feed-z1-ring feed-z1-ring--active" style="width:52px;height:52px;">'
                   + '<div class="feed-z1-ring-inner">' + avHtml + '</div>'
                   + spineHtml
@@ -16816,7 +16816,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // ── Build overflow pill ──────────────────────────────────────────────
           var overflowHtml = '';
           if (overflowN > 0) {
-              overflowHtml = '<div class="feed-z1-item" onclick="goToActiveReaders()">'
+              overflowHtml = '<div class="feed-z1-item" role="button" tabindex="0" data-action onclick="goToActiveReaders()">'
                   + '<div class="feed-z1-overflow">'
                   + '<span style="font-size:14px;font-weight:700;color:var(--text-muted);line-height:1;">+' + overflowN + '</span>'
                   + '<span style="font-size:9px;color:var(--text-faint);margin-top:1px;">more</span>'
@@ -16991,7 +16991,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             </div>
             <div class="feed-sc-body">
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" onclick="showMemberProfile('${member.id}')" style="cursor:pointer;" title="View ${escapeHtml(member.displayName.split(' ')[0])}'s profile">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')" style="cursor:pointer;" title="View ${escapeHtml(member.displayName.split(' ')[0])}'s profile">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div>
                     <span class="feed-sc-name" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</span>
@@ -17092,7 +17092,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             </div>
             <div class="feed-sc-body">
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <span class="feed-sc-name" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</span>
                   <div class="feed-sc-time" style="margin-top:2px;">${timeAgo}</div>
@@ -17164,7 +17164,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             </div>
             <div class="feed-sc-body">
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div>
                     <span class="feed-sc-name" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</span>
@@ -17263,7 +17263,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
                   return `
                   <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #f0f0f0;">
-                    <div class="feed-sc-av" style="width:32px;height:32px;font-size:12px;background:${tierStyle.ring};flex-shrink:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${avHtml}</div>
+                    <div class="feed-sc-av" role="button" tabindex="0" data-action style="width:32px;height:32px;font-size:12px;background:${tierStyle.ring};flex-shrink:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${avHtml}</div>
                     <span style="font-size:13px;font-weight:700;color:var(--text-strong);flex:1;min-width:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${escapeHtml(entry.member.displayName)}</span>
                     <div style="text-align:right;flex-shrink:0;">
                       <div style="font-size:11px;color:var(--text-faint);margin-bottom:3px;white-space:nowrap;">${escapeHtml(entry.oldLevel)} &rsaquo;&rsaquo;</div>
@@ -17290,7 +17290,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                           : init;
                       return `
                       <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #f0f0f0;">
-                        <div class="feed-sc-av" style="width:32px;height:32px;font-size:12px;background:${ts.ring};flex-shrink:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${av}</div>
+                        <div class="feed-sc-av" role="button" tabindex="0" data-action style="width:32px;height:32px;font-size:12px;background:${ts.ring};flex-shrink:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${av}</div>
                         <span style="font-size:13px;font-weight:700;color:var(--text-strong);flex:1;min-width:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${escapeHtml(entry.member.displayName)}</span>
                         <div style="text-align:right;flex-shrink:0;">
                           <div style="font-size:11px;color:var(--text-faint);margin-bottom:3px;white-space:nowrap;">${escapeHtml(entry.oldLevel)} &rsaquo;&rsaquo;</div>
@@ -17346,9 +17346,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 <span style="font-size:11px;color:rgba(255,255,255,0.45);">${timeAgo}</span>
               </div>
               <div style="display:flex;align-items:center;gap:10px;">
-                <div class="feed-sc-av" style="width:40px;height:40px;font-size:15px;background:${soloTierStyle.ring};" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action style="width:40px;height:40px;font-size:15px;background:${soloTierStyle.ring};" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div>
-                  <div style="font-size:14px;font-weight:700;color:#fff;cursor:pointer;" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</div>
+                  <div style="font-size:14px;font-weight:700;color:#fff;cursor:pointer;" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
                     <span style="font-size:11px;color:rgba(255,255,255,0.6);">${escapeHtml(oldLvl)}</span>
                     <i class="fa-solid fa-angles-right" style="color:${soloTierStyle.ring};font-size:10px;"></i>
@@ -17409,7 +17409,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           <div class="feed-sc feed-sc--gold">
             <div class="feed-sc-body">
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" style="background:#c8960c;" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action style="background:#c8960c;" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div>
                     <span class="feed-sc-name" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</span>
@@ -17477,10 +17477,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   : `<div style="width:38px;height:56px;border-radius:3px 5px 5px 3px;background:${spineColor};display:flex;align-items:center;justify-content:center;"></div>`;
               firstBookHtml = `
               <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #f0f0f0;margin-top:6px;">
-                <div onclick="openBookDetailView('${b.id}','home')" style="cursor:pointer;">${coverHtml}</div>
+                <div role="button" tabindex="0" data-action onclick="openBookDetailView('${b.id}','home')" style="cursor:pointer;">${coverHtml}</div>
                 <div>
                   <div style="font-size:11px;color:var(--text-faint);margin-bottom:2px;">First book</div>
-                  <div style="font-size:13px;font-weight:700;color:var(--text-strong);cursor:pointer;" onclick="openBookDetailView('${b.id}','home')">${escapeHtml(b.title)}</div>
+                  <div style="font-size:13px;font-weight:700;color:var(--text-strong);cursor:pointer;" role="button" tabindex="0" data-action onclick="openBookDetailView('${b.id}','home')">${escapeHtml(b.title)}</div>
                   <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(b.author)}</div>
                 </div>
               </div>`;
@@ -18391,11 +18391,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           +            'cursor:pointer;flex-shrink:0;margin-left:8px;"></i>'
           + '</div>'
           + '<div class="feed-z175-body">'
-          +   '<div class="feed-z175-cover" onclick="openBookDetailView(\'' + safeBookId + '\', \'home\')">'
+          +   '<div class="feed-z175-cover" role="button" tabindex="0" data-action onclick="openBookDetailView(\'' + safeBookId + '\', \'home\')">'
           +     coverHtml
           +   '</div>'
           +   '<div class="feed-z175-meta">'
-          +     '<div class="feed-z175-title" onclick="openBookDetailView(\'' + safeBookId + '\', \'home\')">'
+          +     '<div class="feed-z175-title" role="button" tabindex="0" data-action onclick="openBookDetailView(\'' + safeBookId + '\', \'home\')">'
           +       escapeHtml(book.title)
           +     '</div>'
           +     '<div class="feed-z175-author">by ' + escapeHtml(book.author) + '</div>'
@@ -18722,7 +18722,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // Library tab, which renders only books finished during this week.
           // Block display forces the link onto its own line below the delta badge.
           var booksLinkHtml = booksFinished > 0
-              ? '<div onclick="showThisWeekBooks()"'
+              ? '<div role="button" tabindex="0" data-action onclick="showThisWeekBooks()"'
                 + ' style="margin-top:10px; cursor:pointer; display:block;'
                 + ' font-size:10px; font-weight:600; color:rgba(255,255,255,0.72);'
                 + ' border-bottom:1px dashed rgba(255,255,255,0.35);'
@@ -19631,7 +19631,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
               <!-- Attribution row -->
               <div class="feed-sc-meta" style="align-items:flex-start;margin-bottom:10px;">
-                <div onclick="showMemberProfile('${member.id}')"
+                <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')"
                      style="cursor:pointer;flex-shrink:0;">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div style="font-size:13px;line-height:1.4;">
@@ -19778,7 +19778,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             <div class="feed-sc-body">
               <!-- Attribution row -->
               <div class="feed-sc-meta" style="align-items:flex-start;margin-bottom:8px;">
-                <div onclick="showMemberProfile('${member.id}')"
+                <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')"
                      style="cursor:pointer;flex-shrink:0;">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div style="font-size:13px;line-height:1.4;">
@@ -19884,7 +19884,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           <div class="feed-sc" style="border-left:3px solid ${cfg.borderColor};border-radius:10px;">
             <div class="feed-sc-body">
               <div style="display:flex;align-items:flex-start;gap:9px;">
-                <div onclick="showMemberProfile('${member.id}')" style="cursor:pointer;flex-shrink:0;">
+                <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')" style="cursor:pointer;flex-shrink:0;">
                   ${avHtml}
                 </div>
                 <div style="flex:1;min-width:0;">
@@ -20120,7 +20120,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             ${darkHeader}
             <div class="feed-sc-body">
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div>
                     <span class="feed-sc-name"
@@ -20304,7 +20304,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           <div class="feed-sc" style="border-left:3px solid ${borderColor};border-radius:10px;">
             <div class="feed-sc-body">
               <div style="display:flex;align-items:flex-start;gap:9px;">
-                <div onclick="showMemberProfile('${member.id}')" style="cursor:pointer;flex-shrink:0;">
+                <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')" style="cursor:pointer;flex-shrink:0;">
                   ${avHtml}
                 </div>
                 <div style="flex:1;min-width:0;">
@@ -20449,7 +20449,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 <span class="feed-sc-time">${timeAgo}</span>
               </div>
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div>
                     <span class="feed-sc-name" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</span>
@@ -21274,7 +21274,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   : buildFeedAutoCover(book);
                 
                 embeddedTileHtml = `
-                <div class="feed-embedded-tile" onclick="openBookDetailView('${book.id}', 'home')">
+                <div class="feed-embedded-tile" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', 'home')">
                   ${feedCoverHtml}
                   <div class="feed-tile-info">
                     <div class="feed-tile-title">${book.title}</div>
@@ -21477,7 +21477,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // At 24px the photo and initials are visually equivalent, so we skip
           // the broken onerror fallback entirely — the initials div is always shown.
           var init  = member.displayName ? member.displayName.charAt(0).toUpperCase() : '?';
-          var avEl  = '<div class="feed-z3-av" onclick="showMemberProfile(\''
+          var avEl  = '<div class="feed-z3-av" role="button" tabindex="0" data-action onclick="showMemberProfile(\''
               + member.id + '\')" style="cursor:pointer;">' + init + '</div>';
 
           // ── Book spine ─────────────────────────────────────────────────────
@@ -22506,7 +22506,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               : `<div style="width: 75px; height: 75px; border-radius: 50%; background-color: var(--border-soft); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--text-faint); margin: 0 auto 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #ffffff;">${initLetter}</div>`;
 
             fullHtml += `
-              <div class="trending-card" style="text-align: center; flex: 0 0 100px;" onclick="showMemberProfile('${member.id}')">
+              <div class="trending-card" role="button" tabindex="0" data-action style="text-align: center; flex: 0 0 100px;" onclick="showMemberProfile('${member.id}')">
                 ${avatarHtml}
                 <div style="font-weight: bold; font-size: 0.85rem; color: var(--text-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${member.displayName}">${member.displayName}</div>
                 <div style="font-size: 0.75rem; color: #e67e22; font-weight: bold; margin-top: 4px;">${reader.count} ${reader.count === 1 ? 'Book' : 'Books'}</div>
@@ -22774,7 +22774,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               + '<span class="genre-suggestion-highlight">' + escapeHtml(g.slice(idx, idx + q.length)) + '</span>'
               + escapeHtml(g.slice(idx + q.length));
           /* onSelect is serialized as a string for inline onclick */
-          return '<div class="genre-suggestion-option" onmousedown="event.preventDefault()" onclick="' + onSelect + '(\'' + escapeHtml(g).replace(/'/g, "\\'") + '\')">'
+          return '<div class="genre-suggestion-option" role="button" tabindex="0" data-action onmousedown="event.preventDefault()" onclick="' + onSelect + '(\'' + escapeHtml(g).replace(/'/g, "\\'") + '\')">'
             + highlighted
             + '</div>';
         }).join('');
@@ -24599,7 +24599,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             }
 
             html += `
-              <div style="${cardStyle}" onclick="openBookDetailView('${book.id}', '${routeFrom}', '${shelfRecord.shelfId}')" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+              <div style="${cardStyle}" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', '${routeFrom}', '${shelfRecord.shelfId}')" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
                 ${topBadge}
                 ${coverHtml}
                 ${extraVisuals}
@@ -24976,7 +24976,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           var cfg   = GR_EXPORT_SHELF_CONFIG[shelf.status] || GR_EXPORT_SHELF_CONFIG['To Read'];
           var title = book.title  || shelf.bookId;
           var author= book.author || '—';
-          return '<div class="gr-export-add-result" onclick="grExport_addBook_(\'' + shelf.shelfId + '\')" ' +
+          return '<div class="gr-export-add-result" role="button" tabindex="0" data-action onclick="grExport_addBook_(\'' + shelf.shelfId + '\')" ' +
             'style="display:flex;align-items:center;gap:8px;padding:8px 12px;' +
             'border-bottom:1px solid var(--border-soft);' +
             'border-left:3px solid ' + cfg.borderColor + ';border-radius:0;background:#fff;">' +
@@ -25398,8 +25398,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               : "Unrated";
 
           card.innerHTML = `
-            <div style="display: flex; width: 100%; align-items: center; cursor: pointer; position: relative; overflow: hidden;" onclick="openBookDetailView('${book.id}', 'fullShelf', '${shelfRecord.shelfId}')">
-              
+            <div style="display: flex; width: 100%; align-items: center; cursor: pointer; position: relative; overflow: hidden;" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', 'fullShelf', '${shelfRecord.shelfId}')">
+
               ${coverHtml}
               
               <div class="book-info" style="flex: 1; min-width: 0; padding-right: 5px;"> 
@@ -28512,7 +28512,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           dropdown.innerHTML = matches.map(function(m) {
             const initial  = (m.displayName || '?').charAt(0).toUpperCase();
             const avatarHtml = buildAvatarHtml(m, 22);
-            return '<div class="ann-member-option" onclick="selectAnnMember(\'' + m.id + '\')">'
+            return '<div class="ann-member-option" role="button" tabindex="0" data-action onclick="selectAnnMember(\'' + m.id + '\')">'
               + avatarHtml
               + '<span>' + escapeHtml(m.displayName) + '</span>'
               + '</div>';
@@ -29069,7 +29069,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const cardClass = evt.isPinned ? 'evt-card evt-card--pinned' : 'evt-card';
     
         return `
-          <div class="${cardClass}" onclick="openEventDetailView('${evt.eventId}')">
+          <div class="${cardClass}" role="button" tabindex="0" data-action onclick="openEventDetailView('${evt.eventId}')">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
               <span class="evt-type-badge ${typeCfg.badgeClass}">${typeCfg.label}</span>
               ${pinnedBadge} ${statusChip}
@@ -29551,7 +29551,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               || (m.fullName || '').toLowerCase().includes(query);
         }).slice(0, 8);
 
-        var noneOption = '<div class="evt-member-option" onclick="clearEvtHost();closeEvtHostDropdown();">'
+        var noneOption = '<div class="evt-member-option" role="button" tabindex="0" data-action onclick="clearEvtHost();closeEvtHostDropdown();">'
           + '<span style="color:var(--text-muted);font-style:italic;">— No host assigned —</span>'
           + '</div>';
 
@@ -29561,7 +29561,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         } else {
           dropdown.innerHTML = noneOption
             + matches.map(function(m) {
-                return '<div class="evt-member-option" onclick="selectEvtHost(\'' + m.id + '\')">'
+                return '<div class="evt-member-option" role="button" tabindex="0" data-action onclick="selectEvtHost(\'' + m.id + '\')">'
                   + _buildPickerAvatarHtml(m)
                   + '<span>' + escapeHtml(m.displayName) + '</span>'
                   + '</div>';
@@ -29888,7 +29888,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           dropdown.innerHTML = '<div class="evt-member-option-none">No more members to add</div>';
         } else {
           dropdown.innerHTML = matches.map(function(m) {
-            return '<div class="evt-member-option" onclick="selectEvtParticipant(\'' + m.id + '\')">'
+            return '<div class="evt-member-option" role="button" tabindex="0" data-action onclick="selectEvtParticipant(\'' + m.id + '\')">'
               + _buildPickerAvatarHtml(m)
               + '<span>' + escapeHtml(m.displayName) + '</span>'
               + '</div>';
@@ -30594,7 +30594,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
     
           html += `
-            <div class="chal-card${pinnedClass}" onclick="openChallengeDetailView('${c.challengeId}')">
+            <div class="chal-card${pinnedClass}" role="button" tabindex="0" data-action onclick="openChallengeDetailView('${c.challengeId}')">
 
               <div class="chal-card-header">
                 <div style="flex:1;">
@@ -32379,7 +32379,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               <div class="chal-stat-num">${isPages ? goal.toLocaleString() : goal}</div>
               <div class="chal-stat-label">your goal</div>
             </div>
-            <div class="chal-stat-tile" onclick="showPaceInfo()" style="cursor:pointer;">
+            <div class="chal-stat-tile" role="button" tabindex="0" data-action onclick="showPaceInfo()" style="cursor:pointer;">
               <div class="chal-stat-num">
                 ${projection > 0 ? (isPages ? projection.toLocaleString() : projection) : '—'}
               </div>
@@ -32498,6 +32498,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     
               return `
                 <div onclick="${bookId ? 'openBookDetailView(\'' + bookId + '\', \'challengeDetail\')' : ''}"
+                    ${bookId ? 'role="button" tabindex="0" data-action' : ''}
                     style="display:flex;align-items:center;gap:12px;padding:10px 0;
                             border-bottom:1px solid #f4f4f4;cursor:${bookId ? 'pointer' : 'default'};">
                   <div style="flex-shrink:0;">${coverHtml}</div>
@@ -32755,6 +32756,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
           return `
             <div onclick="${r.member ? 'showMemberProfile(\'' + r.memberId + '\')' : ''}"
+                ${r.member ? 'role="button" tabindex="0" data-action' : ''}
                 style="display:flex;align-items:center;gap:8px;padding:9px 10px;
                         border-bottom:1px solid #f4f4f4;cursor:${r.member ? 'pointer' : 'default'};
                         ${r.isMe ? 'background:#EEEDFE;border-radius:8px;margin:2px 0;' : ''}">
