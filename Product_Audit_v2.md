@@ -165,9 +165,7 @@
  
 **Top Improvement Opportunities:**
  
-1. **Onboarding chapter visibility** → members don't see they're in a structured 5-chapter journey:
-   - Suggestion: Add chapter header rows to `renderOnboardingCard()` — each chapter (e.g., "📚 Chapter 2: Reading & Logging") displayed as a collapsible section header with a completion count ("3/5 done"). The chapter structure already exists in the task definition array; it's just not exposed.
-   - **Impact:** Medium Effort · **Effort:** 4–6h
+1. ✅ **Onboarding chapter visibility** → `renderOnboardingCard()` renders all 5 chapters as collapsible sections with icons, per-chapter completion counts, a progress bar ("X of 5 chapters done"), and a full all-complete celebration state with badge grid.
 2. **`help-whats-new` article gap** → no changelog entry for v109 features:
    - Suggestion: Add a "June 2026" entry to `help-whats-new` covering: Unified Log Reading, Action Band, My Reading Story view, Reading Personality help article. Members who check "What's New" currently see stale content.
    - **Impact:** Quick Win · **Effort:** 1–2h
