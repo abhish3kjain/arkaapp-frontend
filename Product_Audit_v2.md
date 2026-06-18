@@ -141,9 +141,7 @@
 1. **Social signaling** → share nudge has no persistent recovery path:
    - Suggestion: After `dismissShareNudge_()` fires, store `_pendingShareData` in a session variable and render a compact "Share your finish" icon-row action in the book's Finished shelf card via `renderUserShelves()`. `openBookFinishedShare()` already accepts the book/shelf IDs.
    - **Impact:** Quick Win · **Effort:** 2–3h
-2. **Persona-shift celebration** → archetype change is logged (`PERSONAUPDATE`) but not celebrated:
-   - Suggestion: In `applyWave2()` or wherever PersonaProfileDB is processed, check if `archetypeChangeCount > 0` against the last known archetype (storable in sessionStorage). If a shift is detected, render a celebration-card variant in `meCelebrationCard` — same container the existing system uses. Text: "Your reading personality is shifting → The Midnight Scholar. Keep going."
-   - **Impact:** Quick Win · **Effort:** 3–4h
+2. ✅ **Persona-shift celebration** → `renderPersonaShiftCelebration()` implemented. Detects `ARKA_ACTTYP_PERSONAUPDATE` in activity log, renders into `#meCelebrationCard` with dismiss + seen-state persistence.
 3. ✅ **Proactive re-engagement** → BackEndEngine implemented. Sheet-queue push/email live.
 ---
  
@@ -227,9 +225,7 @@
 **Top Improvement Opportunities:**
  
 1. ✅ **Persona on Me tab dashboard** — Archetype chip injected in Me identity row via `applyWave2()`. Taps to `openMyPersonality()`. Forming profiles show nudge.
-2. **Persona-shift celebration** → `PERSONAUPDATE` events logged but not celebrated:
-   - Suggestion: In the Wave 2 pass, compare current `archetypeName` to a sessionStorage-cached value from the previous visit. If changed, inject a celebration card: "Your reading personality is evolving → The Midnight Scholar 🌙". Use `meCelebrationCard` container (already exists, already styled). Clear the sessionStorage cache after rendering once.
-   - **Impact:** Quick Win · **Effort:** 3–4h
+2. ✅ **Persona-shift celebration** → `renderPersonaShiftCelebration()` detects `PERSONAUPDATE`, renders celebration into `#meCelebrationCard`, dismisses with seen-state persistence.
 3. **Onboarding completion as milestone** → 29 tasks completed goes unacknowledged:
    - Suggestion: When all 29 tasks are confirmed (detectable in `renderOnboardingCard()` completion check), trigger a one-time celebration card ("You've completed the Arka Onboarding Journey 🎉") and log a `ARKA_ACTTYP_ONBOARD_COMPLETE` activity type. This creates a clear arc with a payoff moment.
    - **Impact:** Medium Effort · **Effort:** 4–6h
@@ -257,7 +253,7 @@ A measurably stronger product across every dimension. The design token system cl
  
 1. ✅ **Surface persona on Me tab dashboard** — Done. Archetype chip in Me identity row, taps to personality panel.
 2. ✅ **Semantic color tokens — Phase 6** — Done. 5 tokens in `:root`; 186 instances replaced. Dark mode prerequisite cleared.
-3. **Persona-shift celebration variant** — When `PERSONAUPDATE` is detected, render a celebration card. The signal already exists; it just needs a UI layer. *(Quick Win)*
+3. ✅ **Persona-shift celebration variant** — Done. `renderPersonaShiftCelebration()` implemented.
 4. ✅ **`data-action` migration** — Complete. All ~136 interactive `div onclick` targets across ArkaClubApp.html and app.js now carry `role="button" tabindex="0" data-action`. Coding rule in effect for new code.
 5. **Structured reading goal** — Add `{ type, target, period }` alongside free text. Render a "X / N" progress indicator in the Me stat pill row. Closes the last major data-clarity gap from V1. *(Medium Effort)*
 ---
@@ -267,7 +263,7 @@ A measurably stronger product across every dimension. The design token system cl
  
 - ✅ **Persona chip on Me tab dashboard** — Done.
 - ✅ **Remove "Temp" badge from `logReadingSyncNote`** — Done. Orange dot element and JS toggle removed.
-- **Persona-shift celebration card** — `PERSONAUPDATE` detection + `meCelebrationCard` injection. Same container and CSS as the existing system.
+- ✅ **Persona-shift celebration card** — Done. `renderPersonaShiftCelebration()` + `#meCelebrationCard` injection implemented.
 - **"Share this finish" persistent row on Finished shelf** — Recover the dismissed share nudge. `openBookFinishedShare()` already exists; one render-line in `renderUserShelves()`.
 - ✅ **`fa-pencil-alt` → `fa-pencil`** in `renderMeActionBand()` — Done.
 - ✅ **`LOG_READING_PICKER_BOOK_CHIPS` from 2 → 3** — Done. Constant already at 3 in app.js.
