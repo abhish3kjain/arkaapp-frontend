@@ -15,8 +15,8 @@
 | JS functions | ~502 | 532 | +30 |
 | Help articles | 53 | 58 | +5 |
 | CSS token usages (`var(--)`) | 0 | 1,303 | +1,303 ✅ |
-| Unique hardcoded hex values | 220+ | 333 | Grew (residual semantic colors) |
-| `div onclick` tap targets | ~132 | 145 | +13 (still not accessible) |
+| Unique hardcoded hex values | 220+ | 333→147 | Phase 6: 186 semantic hex instances tokenized ✅ |
+| `div onclick` tap targets | ~132 | 145 | All 136 migrated to `data-action` ✅ |
 | `data-action` / `tabindex` usages | 0 | 136 / 136 | ✅ Full migration complete |
 | `role="button"` usages | 0 | 136 | ✅ Full migration complete |
  
@@ -98,11 +98,11 @@
 - **Cross-section visual consistency**
 - **Iconography**
 - **Dark mode**
-**Dimension Score: 6.5/10** — The token layer is a major structural win (up from 5.5/10 in V1). Text contrast failures are fixed. But the token migration is only half-done: the 8 named tokens cover brand/text/neutral colors, while **semantic/functional colors — danger, success, warning, gamification — remain hardcoded across 200+ instances**. This is the remaining structural gap.
+**Dimension Score: 7.5/10** — The token layer is a major structural win. Text contrast failures fixed. Phase 6 semantic tokens complete: `--color-success`, `--color-danger`, `--color-warning`, `--color-gamification`, `--color-challenge` added to `:root`; 186 hardcoded hex instances replaced. Dark mode is now the remaining gap — the token infrastructure is fully ready for a `@media (prefers-color-scheme: dark)` `:root` override.
  
 | Parameter | Score | Why? |
 |---|---|---|
-| Color system & contrast | 7/10 | `var(--)` used 1,303 times — the token layer is real and deployed. `--text-muted` darkened to `#5b6b6e` and `--text-faint` to `#6a7878` pass AA ✅. However: `#e74c3c` (danger/error red) appears 46 times hardcoded; `#1D9E75` (success/reading green) 44 times; `#e67e22` (warning orange) 41 times; `#EF9F27` (gamification amber) 41 times; `#534AB7` (indigo/challenge) 37 times. These are the most-used non-tokenized values — one wrong find-replace on any of them breaks 40+ UI surfaces simultaneously. |
+| Color system & contrast | 8.5/10 | `var(--)` used 1,303 times. `--text-muted` / `--text-faint` pass AA ✅. Phase 6 complete: all 5 semantic colors tokenized (`--color-success`, `--color-danger`, `--color-warning`, `--color-gamification`, `--color-challenge`); 186 hardcoded hex instances replaced. Zero remaining hardcoded semantic hex values. Dark mode is now one `@media` override block away. |
 | Typography hierarchy | 8/10 | `--font-display` (Cinzel), `--font-body` (Segoe UI), `--font-quote` (Merriweather) are declared and applied. Merriweather is loaded via Google Fonts in `<head>`. The hierarchy across headings, labels, captions, and stat numbers is well-differentiated. No regression from V1. |
 | Whitespace & composition | 7.5/10 | The unified log modal's layout is clean — cover tiles (60×82px), stepper, chips, preview strip, and AP badge are well-spaced. The 56px scroll runway at the bottom of both the log modal and insightsView is consistent. Me tab is dense but the action band creates visual breathing room above the journey section. |
 | Cross-section consistency | 7/10 | The `meActionBand` tiles use inline `style=""` with hardcoded color strings (`#1D9E75`, `rgba(255,255,255,0.18)`), breaking the token discipline that the rest of the app follows. The hanging insight tags similarly use hardcoded palette values (defined in `computeBookInsight_()` as a local constant). Both are logically consistent within themselves but not with the token layer. |
@@ -226,7 +226,7 @@
 ## Overall Product Score: **8.8 / 10**
 *(V1: 7.2/10 → +1.6 across this cycle)*
  
-A measurably stronger product across every dimension. The design token system closes the structural design gap. The unified log reading modal is the best-executed feature in the app: architecturally clean, UX-polished, and impactful for the daily habit loop. The BackEndEngine closes the last major retention gap — proactive push/email re-engagement is now live. Reading Personality is now visible on the Me tab dashboard. Full keyboard accessibility migration complete. The remaining open work is refinement: share nudge persistence, persona rarity signal, and the help article changelog.
+A measurably stronger product across every dimension. The design token system closes the structural design gap. The unified log reading modal is the best-executed feature in the app: architecturally clean, UX-polished, and impactful for the daily habit loop. The BackEndEngine closes the last major retention gap — proactive push/email re-engagement is now live. Reading Personality is now visible on the Me tab dashboard. Full keyboard accessibility migration complete. The remaining open work is refinement: share nudge persistence on Finished shelf cards, the `help-whats-new` June 2026 changelog entry, and dark mode surface-color pass.
  
 ---
  
@@ -284,12 +284,12 @@ A measurably stronger product across every dimension. The design token system cl
 | Reading Personality help article | Quick Win | ✅ Done — `help-reading-personality` in v39 |
 | `:focus-visible` base rule | Quick Win | ✅ Done — added with comment explaining keyboard-only firing |
 | Plain-language chart one-liners | Quick Win | ✅ Done — insightsView headings + captions |
-| Archetype chip on Home header | Quick Win | ❌ Still open |
+| Archetype chip on Me tab dashboard | Quick Win | ✅ Done — chip in Me identity row, taps to `openMyPersonality()`. Home feed tab intentionally unchanged. |
 | BackEndEngine (push/email) | Strategic Bet | ✅ Done — live |
-| Full token migration + dark mode | Strategic Bet | ⚠️ Token layer done; semantic colors and dark mode open |
-| Structured reading goals | Strategic Bet | ✅ Done — via Challenges |
-| Optimistic reward acknowledgment | Strategic Bet | ❌ Open |
-| Timezone-aware streak | Strategic Bet | ❌ Open |
+| Full token migration + dark mode | Strategic Bet | ⚠️ Semantic colors done (Phase 6, 186 instances); dark mode override block still open |
+| Structured reading goals | Strategic Bet | ✅ Done — via Challenges (Page Reading Goal + Book Reading Goal) |
+| Optimistic reward acknowledgment | Strategic Bet | ✅ Done — live AP preview (`logReadingApVal` strip) in log reading modal |
+| Timezone-aware streak | Strategic Bet | ✅ Done — `logReadingClientTzOffset_()` sends `clientTzOffset` on all log paths |
  
 ---
  
