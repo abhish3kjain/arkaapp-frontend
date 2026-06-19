@@ -191,9 +191,7 @@
  
 **Top Improvement Opportunities:**
  
-1. **Comparison benchmarks** → peer context missing from member dashboard:
-   - Suggestion: Add one club-context sentence to the Me tab stat pills — e.g. "Club median this year: 3,200 pages" — computed from `getReportsData()` club aggregates already loaded in Wave 3. No new data needed; it's a display decision. Renders below the existing year/lifetime split stat pill.
-   - **Impact:** Quick Win · **Effort:** 2–3h
+1. ✅ **Comparison benchmarks** → `renderClubBenchmarks()` already implemented as Section 6 ("How do I compare to the club?") in `insightsView` (Reading Story). Percentile comparisons across four dimensions. Me tab kept uncluttered — deep-dive lives in Reading Story.
 2. **Goal tracking** → free-text `ReadingGoal` still unmeasurable (V1 Medium Effort, still open):
    - Suggestion: Add a structured goal field alongside free text: `{ type: 'books'|'pages', target: N, period: 'year' }`. The `meStatPagesYear` / `meStatBooksYear` values are already displayed — rendering a small progress ring or "X / N" label next to them is a one-view addition. Store as JSON in a new MemberDB column.
    - **Impact:** Medium Effort · **Effort:** 1–2 days
@@ -265,7 +263,7 @@ A measurably stronger product across every dimension. The design token system cl
 - **"Share this finish" persistent row on Finished shelf** — Recover the dismissed share nudge. `openBookFinishedShare()` already exists; one render-line in `renderUserShelves()`.
 - ✅ **`fa-pencil-alt` → `fa-pencil`** in `renderMeActionBand()` — Done.
 - ✅ **`LOG_READING_PICKER_BOOK_CHIPS` from 2 → 3** — Done. Constant already at 3 in app.js.
-- **Club median line in Me stat pills** — One sentence from `getReportsData()` aggregates already loaded in Wave 3.
+- ✅ **Club comparison benchmarks** — Done via `renderClubBenchmarks()` in Reading Story (Section 6). Me tab intentionally kept lean.
 - **`help-whats-new` June 2026 entry** — Document the action band, unified log, insightsView for members who track what's new.
 ---
  
