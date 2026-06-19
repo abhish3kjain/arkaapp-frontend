@@ -69,6 +69,19 @@
     .adm-nav-item.dimmed { opacity: 0.4; cursor: default; pointer-events: none; }
     .adm-nav-pending-bubble { margin-left: auto; background: var(--adm-danger); color: #fff; font-size: 0.66rem; font-weight: 800; border-radius: 99px; padding: 2px 7px; min-width: 20px; text-align: center; line-height: 1.4; }
 
+    /* ── Hamburger (mobile only — hidden on desktop) ───────────────── */
+    .adm-hamburger { display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; background: none; cursor: pointer; color: var(--text-strong); font-size: 1.1rem; border-radius: 6px; transition: background 0.12s; flex-shrink: 0; }
+    .adm-hamburger:hover { background: var(--surface-alt); }
+
+    /* ── Drawer close button (inside sidebar, mobile only) ─────────── */
+    .adm-drawer-close { display: none; align-items: center; gap: 8px; width: 100%; padding: 10px 16px 10px 20px; border: none; background: none; cursor: pointer; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border-soft); margin-bottom: 4px; font-family: var(--font-body); }
+    .adm-drawer-close:hover { background: var(--surface-alt); color: var(--text-strong); }
+    .adm-drawer-close i { font-size: 1rem; }
+
+    /* ── Drawer backdrop ───────────────────────────────────────────── */
+    .adm-drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 399; }
+    .adm-drawer-backdrop.open { display: block; }
+
     /* ── Content ───────────────────────────────────────────────────── */
     .adm-content { flex: 1; min-width: 0; padding: 24px 28px 60px; max-width: 1100px; }
     .adm-section { display: none; }
@@ -187,16 +200,45 @@
     .rpt-period-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     #rptThumbnailStrip { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; -webkit-overflow-scrolling: touch; }
 
-    /* ── Mobile ────────────────────────────────────────────────────── */
+    /* ── Mobile — slide-out drawer ─────────────────────────────────── */
     @media (max-width: 768px) {
-      .adm-sidebar { position: fixed; bottom: 0; left: 0; right: 0; top: auto; width: 100%; height: auto; min-height: unset; border-right: none; border-top: 1px solid var(--border-soft); display: flex; flex-direction: row; overflow-x: auto; padding: 4px 4px; z-index: 200; }
-      .adm-nav-group-label { display: none; }
-      .adm-nav-item { flex-direction: column; align-items: center; gap: 2px; padding: 6px 10px; min-width: 56px; font-size: 0.65rem; white-space: nowrap; }
-      .adm-nav-item.active::before { display: none; }
-      .adm-nav-item.active { background: transparent; color: var(--arka-accent); }
-      .adm-nav-pending-bubble { position: absolute; top: 4px; right: 6px; font-size: 0.6rem; padding: 1px 5px; }
-      #admShell { padding-bottom: 64px; }
-      .adm-content { padding: 16px 14px 80px; }
+      /* Show hamburger in topbar */
+      .adm-hamburger { display: flex; }
+      /* Show close button inside drawer */
+      .adm-drawer-close { display: flex; }
+
+      /* Sidebar becomes a fixed slide-in drawer from the left */
+      .adm-sidebar {
+        position: fixed;
+        top: 0; left: 0; bottom: 0; right: auto;
+        width: 260px;
+        height: 100%;
+        min-height: unset;
+        border-right: 1px solid var(--border-soft);
+        border-top: none;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0;
+        z-index: 400;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.14);
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+      }
+      .adm-sidebar.drawer-open { transform: translateX(0); }
+
+      /* Nav items restore full desktop appearance inside the drawer */
+      .adm-nav-group-label { display: block; }
+      .adm-nav-item { flex-direction: row; align-items: center; gap: 10px; padding: 9px 20px; min-width: unset; font-size: 0.875rem; white-space: normal; }
+      .adm-nav-item.active::before { display: block; }
+      .adm-nav-item.active { background: #f0eaf4; color: var(--arka-accent); }
+      /* Pending bubble sits inline (no absolute positioning needed in row layout) */
+      .adm-nav-pending-bubble { position: static; margin-left: auto; font-size: 0.66rem; padding: 2px 7px; }
+
+      /* Shell + content — no bottom tab strip clearance needed */
+      #admShell { padding-bottom: 0; }
+      .adm-content { padding: 16px 14px 32px; }
       .adm-stat-grid { grid-template-columns: repeat(2, 1fr); }
       .adm-topbar-admin-label { display: none; }
     }
@@ -224,12 +266,18 @@
   <button class="adm-btn adm-btn-accent" onclick="admInit()"><i class="fa-solid fa-rotate-right"></i> Try Again</button>
 </div>
 
+<!-- Drawer backdrop — tap to close on mobile -->
+<div class="adm-drawer-backdrop" id="admDrawerBackdrop" onclick="admCloseDrawer()"></div>
+
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <!--  MAIN ADMIN SHELL                                                   -->
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <div id="admShell" style="display:none">
 
   <header class="adm-topbar">
+    <button class="adm-hamburger" id="admHamburger" onclick="admOpenDrawer()" aria-label="Open navigation menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
     <span class="adm-topbar-wordmark"><i class="fa-solid fa-shield-halved"></i>Arka Admin</span>
     <span class="adm-topbar-badge">CONTROL PANEL</span>
     <div class="adm-topbar-spacer"></div>
@@ -239,8 +287,11 @@
 
   <div class="adm-layout">
 
-    <!-- Sidebar -->
-    <nav class="adm-sidebar">
+    <!-- Sidebar / mobile drawer -->
+    <nav class="adm-sidebar" id="admSidebar">
+      <button class="adm-drawer-close" onclick="admCloseDrawer()" aria-label="Close navigation menu">
+        <i class="fa-solid fa-xmark"></i> Close
+      </button>
       <div class="adm-nav-group-label">Dashboard</div>
       <button class="adm-nav-item active" data-section="overview" onclick="admSwitchSection('overview')">
         <i class="fa-solid fa-house"></i><span>Overview</span>
@@ -647,10 +698,32 @@
     document.querySelectorAll('.adm-nav-item[data-section]').forEach(function (btn) {
       btn.classList.toggle('active', btn.dataset.section === name);
     });
+    // Close drawer on mobile after nav tap
+    admCloseDrawer();
     // Lazy-load reports data on first visit to that section
     if (name === 'reports' && !admReportsDataLoaded) {
       admLoadReportsData();
     }
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     MOBILE DRAWER
+     ══════════════════════════════════════════════════════════════════ */
+
+  function admOpenDrawer() {
+    var sidebar  = document.getElementById('admSidebar');
+    var backdrop = document.getElementById('admDrawerBackdrop');
+    if (sidebar)  sidebar.classList.add('drawer-open');
+    if (backdrop) backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function admCloseDrawer() {
+    var sidebar  = document.getElementById('admSidebar');
+    var backdrop = document.getElementById('admDrawerBackdrop');
+    if (sidebar)  sidebar.classList.remove('drawer-open');
+    if (backdrop) backdrop.classList.remove('open');
+    document.body.style.overflow = '';
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -1193,6 +1266,8 @@
   window.admInit                = admInit;
   window.admRefresh             = admRefresh;
   window.admSwitchSection       = admSwitchSection;
+  window.admOpenDrawer          = admOpenDrawer;
+  window.admCloseDrawer         = admCloseDrawer;
   window.admFilterApprovals     = admFilterApprovals;
   window.admRenderApprovals     = admRenderApprovals;
   window.admSetApproval         = admSetApproval;
