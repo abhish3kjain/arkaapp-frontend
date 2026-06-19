@@ -56,7 +56,9 @@
 | `ArkaDesign_Tokens.md` | Design token definitions — single source of truth for colour/type |
 | `ArkaDatabase_Definitions.md` | Column-by-column schema for every sheet |
 | `Product_Audit_v3.md` | Latest comprehensive product audit (v127 build) — overall 8.5/10 |
-| `Product_Audit_Admin_v1.md` | Admin panel audit — overall 5.4/10 |
+| `Product_Audit_Admin_v1.md` | Admin panel audit — overall 5.4/10 (6.3/10 post-P1) |
+| `Arka_PersonaEngine_V1.md` | Formal design doc for ArkaPersonaPass — axes, archetypes, gating logic, frontend integration |
+| `Arka_ReadingSpeedEngine_V1.md` | Formal design doc for Reading Speed Engine — pace computation, outlier detection, genre fallback chain, frontend usage |
 
 **Version naming:** Frontend increments as `v111`, `v112`, …. Backend as `v55`, `v56`, …. MasterEngine as `v30`, `v31`, …. Never skip or reset version numbers.
 
@@ -405,11 +407,18 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 
 ## 12. Active / Upcoming Workstreams
 
+### Reading Speed Engine V1 (Active — from main)
+- Design fully documented in `Arka_ReadingSpeedEngine_V1.md`.
+- Output stored in `member.stats.readingSpeed` (MemberDB Col O). MasterEngine is the sole writer.
+- Key parameters: genre threshold = 3 books, moodMultiplier clamp = [0.4, 2.0], adaptiveIQR clamp = [1.2, 3.0], time-weight full period = 12 months, floor = 0.5 at 36+ months.
+- Frontend: Library "Reading Time" sort chip uses RSE fallback chain. Book Detail finish estimate to be upgraded to RSE V1.
+- Any change to V1 parameters requires a version bump in the JSON (`v` field) and a new entry in the version history table in the MD file.
+
 ### Admin Panel Improvement (Active)
 - Audit complete (`Product_Audit_Admin_v1.md`).
-- P1 (critical) items in progress — see §11 Admin Panel tracking table.
-- Mobile drawer (P1-1/2/3) shipped. Next: P1-4 confirmation modals, P1-5 post delete UI.
+- P1 (critical) items: P1-1/2/3 (mobile drawer) and P1-4 (confirmation modals) shipped. P1-5 (post delete UI) next.
 - P2 items (Announcements section, Events, email queue monitor) queued after P1 complete.
+- See §11 Admin Panel tracking table for full status.
 
 ### Prediction Engine Phase 1 (Next Active Workstream)
 - Technical design is complete: **Finish Date**, **DNF Risk Score**, **Rating Prediction**, **Oracle Score** mechanic.
