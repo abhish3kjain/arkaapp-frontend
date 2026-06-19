@@ -35,6 +35,11 @@
   var admToastTimer             = null;
   /** True once getReportsData() has returned successfully. */
   var admReportsDataLoaded = false;
+  /** Book posts loaded from getReportsData() — used by content moderation section. */
+  var admPostsDB          = [];
+  var admPostsTypeFilter  = 'All';
+  var admPostsShown       = 50;
+  var admPendingPostDeleteId = null;
 
   /* ══════════════════════════════════════════════════════════════════
      ADMIN INIT
@@ -101,9 +106,12 @@
     });
     // Close drawer on mobile after nav tap
     admCloseDrawer();
-    // Lazy-load reports data on first visit to that section
-    if (name === 'reports' && !admReportsDataLoaded) {
+    // Lazy-load reports data on first visit to reports or content section
+    if ((name === 'reports' || name === 'content') && !admReportsDataLoaded) {
       admLoadReportsData();
+    }
+    if (name === 'content' && admReportsDataLoaded) {
+      admRenderContent();
     }
   }
 
@@ -638,6 +646,140 @@
   }
 
   /* ══════════════════════════════════════════════════════════════════
+     CONTENT MODERATION — book post feed + delete
+     ══════════════════════════════════════════════════════════════════ */
+
+  function admFilterPostsType(type) {
+    admPostsTypeFilter = type;
+    admPostsShown = 50;
+    document.querySelectorAll('[data-posts-type]').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.postsType === type);
+    });
+    admRenderContent();
+  }
+
+  function admShowMorePosts() {
+    admPostsShown += 50;
+    admRenderContent();
+  }
+
+  function admRenderContent() {
+    var tbody     = document.getElementById('admContentTbody');
+    var showMore  = document.getElementById('admContentShowMore');
+    if (!tbody) return;
+
+    if (!admReportsDataLoaded) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty">'
+        + '<i class="fa-solid fa-circle-info"></i>'
+        + '<p>Post data is loaded with Club Reports.</p>'
+        + '<button class="adm-btn adm-btn-accent" onclick="admLoadReportsData()" style="margin-top:14px">'
+        + '<i class="fa-solid fa-download"></i> Load Posts</button></div></td></tr>';
+      if (showMore) showMore.style.display = 'none';
+      return;
+    }
+
+    var searchRaw = (document.getElementById('admPostsSearch') || {}).value || '';
+    var search    = searchRaw.toLowerCase().trim();
+
+    var filtered = admPostsDB.filter(function (p) {
+      if (admPostsTypeFilter !== 'All' && p.postType !== admPostsTypeFilter) return false;
+      if (search) {
+        var member = admMemberMap[p.memberId] || {};
+        var name   = (member.displayName || p.memberId).toLowerCase();
+        var text   = (p.reviewText || '').toLowerCase();
+        if (name.indexOf(search) === -1 && text.indexOf(search) === -1) return false;
+      }
+      return true;
+    });
+
+    // Newest first
+    filtered.sort(function (a, b) {
+      return (b.timestamp || '').localeCompare(a.timestamp || '');
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty">'
+        + '<i class="fa-solid fa-comment-slash"></i>'
+        + '<p>No posts match the current filter.</p></div></td></tr>';
+      if (showMore) showMore.style.display = 'none';
+      return;
+    }
+
+    var slice = filtered.slice(0, admPostsShown);
+    tbody.innerHTML = slice.map(function (p) {
+      var member  = admMemberMap[p.memberId] || {};
+      var name    = _esc(member.displayName || p.memberId);
+      var excerpt = (p.reviewText || '').length > 100
+        ? _esc((p.reviewText || '').substring(0, 100)) + '…'
+        : _esc(p.reviewText || '');
+      var datePart = (p.timestamp || '').substring(0, 10);
+      return '<tr>'
+        + '<td>' + name + '</td>'
+        + '<td><span class="adm-pill">' + _esc(p.postType) + '</span></td>'
+        + '<td style="max-width:260px;white-space:normal;font-size:0.82rem;color:var(--text-body)">' + excerpt + '</td>'
+        + '<td style="white-space:nowrap;font-size:0.82rem">' + _esc(datePart) + '</td>'
+        + '<td style="text-align:center">' + (p.likeCount || 0) + '</td>'
+        + '<td><button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenPostDeleteModal(\'' + _esc(p.postId) + '\')">'
+        + '<i class="fa-solid fa-trash"></i></button></td>'
+        + '</tr>';
+    }).join('');
+
+    if (showMore) showMore.style.display = filtered.length > admPostsShown ? 'block' : 'none';
+  }
+
+  function admOpenPostDeleteModal(postId) {
+    admPendingPostDeleteId = postId;
+    var p   = admPostsDB.filter(function (x) { return x.postId === postId; })[0] || {};
+    var m   = admMemberMap[p.memberId] || {};
+    var name    = m.displayName || p.memberId || postId;
+    var excerpt = (p.reviewText || '').length > 80
+      ? (p.reviewText || '').substring(0, 80) + '…'
+      : (p.reviewText || '');
+    var bodyEl = document.getElementById('admPostDeleteModalBody');
+    if (bodyEl) {
+      bodyEl.innerHTML = 'Delete this post by <strong>' + _esc(name) + '</strong>?'
+        + '<blockquote style="margin:12px 0 0;padding:8px 12px;border-left:3px solid var(--border-soft);'
+        + 'font-size:0.82rem;color:var(--text-faint);font-style:italic">' + _esc(excerpt) + '</blockquote>'
+        + '<p style="margin-top:10px;font-size:0.82rem;color:var(--adm-danger)">This action cannot be undone.</p>';
+    }
+    var btnEl = document.getElementById('admPostDeleteConfirmBtn');
+    if (btnEl) btnEl.disabled = false;
+    var overlay = document.getElementById('admPostDeleteModal');
+    if (overlay) overlay.classList.add('open');
+  }
+
+  function admClosePostDeleteModal() {
+    var overlay = document.getElementById('admPostDeleteModal');
+    if (overlay) overlay.classList.remove('open');
+    admPendingPostDeleteId = null;
+  }
+
+  function admConfirmDeletePost() {
+    if (!admPendingPostDeleteId) return;
+    var postId = admPendingPostDeleteId;
+    var btnEl  = document.getElementById('admPostDeleteConfirmBtn');
+    if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting…'; }
+
+    google.script.run
+      .withSuccessHandler(function (r) {
+        admClosePostDeleteModal();
+        if (r.status !== 'success') {
+          admShowToast('Error: ' + (r.message || 'Could not delete post.'), 'err');
+          return;
+        }
+        // Remove from local cache so re-render reflects deletion immediately
+        admPostsDB = admPostsDB.filter(function (p) { return p.postId !== postId; });
+        admShowToast('Post deleted.', 'ok');
+        admRenderContent();
+      })
+      .withFailureHandler(function (err) {
+        admClosePostDeleteModal();
+        admShowToast('Error: ' + ((err && err.message) || 'Server error.'), 'err');
+      })
+      .adminDeleteBookPost(postId);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
      REPORTS — lazy loader
      ══════════════════════════════════════════════════════════════════ */
 
@@ -660,7 +802,15 @@
       .withSuccessHandler(function (res) {
         rptApplyData_(res);
         admReportsDataLoaded = (res && res.status === 'success');
-        if (admReportsDataLoaded && refreshBtn) refreshBtn.style.display = '';
+        if (admReportsDataLoaded) {
+          if (refreshBtn) refreshBtn.style.display = '';
+          admPostsDB = res.bookPostsDB || [];
+          // Re-render content section if it is currently active
+          var contentSection = document.getElementById('admSectionContent');
+          if (contentSection && contentSection.classList.contains('active')) {
+            admRenderContent();
+          }
+        }
       })
       .withFailureHandler(function (err) {
         var errEl = document.getElementById('rptErrorMsg');
@@ -729,6 +879,12 @@
   window.admSetMembersActivity  = admSetMembersActivity;
   window.admShowToast           = admShowToast;
   window.admLoadReportsData     = admLoadReportsData;
+  window.admFilterPostsType     = admFilterPostsType;
+  window.admRenderContent       = admRenderContent;
+  window.admShowMorePosts       = admShowMorePosts;
+  window.admOpenPostDeleteModal = admOpenPostDeleteModal;
+  window.admClosePostDeleteModal= admClosePostDeleteModal;
+  window.admConfirmDeletePost   = admConfirmDeletePost;
 
   /* ── Bootstrap ─────────────────────────────────────────────────── */
   window.addEventListener('DOMContentLoaded', admInit);
