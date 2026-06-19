@@ -192,9 +192,7 @@
 **Top Improvement Opportunities:**
  
 1. ✅ **Comparison benchmarks** → `renderClubBenchmarks()` already implemented as Section 6 ("How do I compare to the club?") in `insightsView` (Reading Story). Percentile comparisons across four dimensions. Me tab kept uncluttered — deep-dive lives in Reading Story.
-2. **Goal tracking** → free-text `ReadingGoal` still unmeasurable (V1 Medium Effort, still open):
-   - Suggestion: Add a structured goal field alongside free text: `{ type: 'books'|'pages', target: N, period: 'year' }`. The `meStatPagesYear` / `meStatBooksYear` values are already displayed — rendering a small progress ring or "X / N" label next to them is a one-view addition. Store as JSON in a new MemberDB column.
-   - **Impact:** Medium Effort · **Effort:** 1–2 days
+2. ✅ **Goal tracking** → Structured goal tracking covered by the Challenges feature: "Page Reading Goal" and "Book Reading Goal" challenges provide the measurable `target / progress` experience. Free-text `ReadingGoal` profile field is complementary context, not a gap.
 3. **Persona rarity as peer signal** → `RaritySummary` computed but underused:
    - Suggestion: On the `insightsView` or the Personality panel, add one line: "You're 1 of only 3 Midnight Scholars in the club." The rarity count is in `PersonaProfileDB` and already loaded in Wave 2.
    - **Impact:** Quick Win · **Effort:** 1–2h
@@ -232,7 +230,7 @@
 ## Overall Product Score: **8.8 / 10**
 *(V1: 7.2/10 → +1.6 across this cycle)*
  
-A measurably stronger product across every dimension. The design token system closes the structural design gap. The unified log reading modal is the best-executed feature in the app: architecturally clean, UX-polished, and impactful for the daily habit loop. The BackEndEngine closes the last major retention gap — proactive push/email re-engagement is now live. Reading Personality is now visible on the Me tab dashboard. Full keyboard accessibility migration complete. The remaining open work is refinement: semantic color tokens (dark mode prerequisite), structured reading goals, and persona-shift celebration.
+A measurably stronger product across every dimension. The design token system closes the structural design gap. The unified log reading modal is the best-executed feature in the app: architecturally clean, UX-polished, and impactful for the daily habit loop. The BackEndEngine closes the last major retention gap — proactive push/email re-engagement is now live. Reading Personality is now visible on the Me tab dashboard. Full keyboard accessibility migration complete. The remaining open work is refinement: share nudge persistence, persona rarity signal, and the help article changelog.
  
 ---
  
@@ -251,7 +249,7 @@ A measurably stronger product across every dimension. The design token system cl
 2. ✅ **Semantic color tokens — Phase 6** — Done. 5 tokens in `:root`; 186 instances replaced. Dark mode prerequisite cleared.
 3. ✅ **Persona-shift celebration variant** — Done. `renderPersonaShiftCelebration()` implemented.
 4. ✅ **`data-action` migration** — Complete. All ~136 interactive `div onclick` targets across ArkaClubApp.html and app.js now carry `role="button" tabindex="0" data-action`. Coding rule in effect for new code.
-5. **Structured reading goal** — Add `{ type, target, period }` alongside free text. Render a "X / N" progress indicator in the Me stat pill row. Closes the last major data-clarity gap from V1. *(Medium Effort)*
+5. ✅ **Structured reading goal** — Covered by Page Reading Goal + Book Reading Goal challenges. Not a gap.
 ---
  
 ## Quick Wins  
@@ -272,7 +270,7 @@ A measurably stronger product across every dimension. The design token system cl
  
 - **Dark mode** — Token infrastructure now ready. Phase 6 semantic tokens are the prerequisite. A `@media (prefers-color-scheme: dark)` `:root` override + surface-color audit is the implementation path. Reading apps live at night.
 - ✅ **BackEndEngine (owner-run push/email)** — Done. Sheet-queue push/email live.
-- **Structured reading goals with progress rings** — Replace/augment free-text `ReadingGoal` with a measurable `{ type, target, period }` field. Render a progress ring in the Me stat area. Creates a durable daily motivation loop.
+- ✅ **Structured reading goals** — Covered by Challenges (Page Reading Goal + Book Reading Goal). Not a gap.
 - **Archetype distribution view** — "You're 1 of 3 Midnight Scholars in the club." `RaritySummary` computed in PersonaPass, stored per member. One new panel in the Personality view.
 - **Onboarding completion milestone** — Log `ARKA_ACTTYP_ONBOARD_COMPLETE`, trigger celebration card, surface in Hall of Fame. Creates a payoff moment for members who complete all 29 tasks.
 ---
@@ -293,7 +291,7 @@ A measurably stronger product across every dimension. The design token system cl
 | Archetype chip on Home header | Quick Win | ❌ Still open |
 | BackEndEngine (push/email) | Strategic Bet | ✅ Done — live |
 | Full token migration + dark mode | Strategic Bet | ⚠️ Token layer done; semantic colors and dark mode open |
-| Structured reading goals | Strategic Bet | ❌ Open |
+| Structured reading goals | Strategic Bet | ✅ Done — via Challenges |
 | Optimistic reward acknowledgment | Strategic Bet | ❌ Open |
 | Timezone-aware streak | Strategic Bet | ❌ Open |
  
