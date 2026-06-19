@@ -93,7 +93,7 @@ Individual axes gate independently. An axis gates when the underlying data for t
 
 Once enough axes are resolved (gated count drops below the PersonaPass threshold), the engine synthesises the dominant traits into a **named archetype** — a single headline label that captures the member's reading personality at a glance.
 
-Examples: *The Midnight Scholar*, *The Wanderer*, *The Deep Diver*
+Examples: *The Midnight Scholar*, *The Dawn Devourer*, *The Wanderer*, *The Steady Sipper*, *The Trend Chaser*, *The Mountaineer*
 
 ### Archetype key format
 
@@ -101,18 +101,18 @@ Each archetype has a stable programmatic key of the form `ARKA_PERSONA_ARCH_<NAM
 
 ### Archetype matrix (combination rules)
 
-The full matrix is defined in the PersonaPass GAS project (standalone — not in this repository). Each archetype maps to a combination of axis poles. Not every possible 6-axis combination is a distinct archetype — combinations that share the same distinguishing axes resolve to the same name.
+The matrix is evaluated **top-to-bottom; first full match wins.** Each entry lists only the axes that must match — unspecified axes (`—`) are neutral and not checked. All listed axes must match exactly for an archetype to be assigned.
 
-> ⚠️ **The complete matrix below must be filled in from the PersonaPass source.** The structure is shown here for reference:
+| # | Key | Name | Emoji | Tagline | Rhythm | Appetite | Cadence | Era | Scale | Breadth |
+|---|-----|------|-------|---------|--------|----------|---------|-----|-------|---------|
+| 1 | `ARKA_PERSONA_ARCH_MIDNIGHTSCHOLAR` | The Midnight Scholar | 🌙 | *You read deep, late, and to the last page — a quiet devourer of long, old books while the world sleeps.* | Night Owl | The Devourer | — | Time Traveler | — | — |
+| 2 | `ARKA_PERSONA_ARCH_DAWNDEVOURER` | The Dawn Devourer | 🌅 | *You meet the morning with a book already open — and you do not put it down lightly.* | Early Bird | The Devourer | — | — | — | — |
+| 3 | `ARKA_PERSONA_ARCH_STEADYSIPPER` | The Steady Sipper | ☕ | *A few pages, every day, like clockwork. Small and certain wins the race.* | — | The Nibbler | The Metronome | — | — | — |
+| 4 | `ARKA_PERSONA_ARCH_WANDERER` | The Wanderer | 🧭 | *You roam widely and travel light — many genres, rarely a heavy tome.* | — | — | — | — | Novella Lover | Genre Nomad |
+| 5 | `ARKA_PERSONA_ARCH_TRENDCHASER` | The Trend Chaser | ✨ | *You devour what is new in great bursts — first to the page, every time.* | — | — | The Binger | Trendsetter | — | — |
+| 6 | `ARKA_PERSONA_ARCH_MOUNTAINEER` | The Mountaineer | 🏔️ | *You go deep on heavy books in the genres you love. The summit is the point.* | — | — | — | — | Doorstop Lover | Devoted Specialist |
 
-| Archetype Key | Display Name | Emoji | Tagline | Rhythm | Appetite | Cadence | Era | Scale | Breadth |
-|---|---|---|---|---|---|---|---|---|---|
-| `ARKA_PERSONA_ARCH_MIDNIGHTSCHOLAR` | The Midnight Scholar | 🌙 | *(from PersonaPass)* | Night Owl | — | — | — | — | Devoted Specialist |
-| `ARKA_PERSONA_ARCH_WANDERER` | The Wanderer | 🌍 | *(from PersonaPass)* | — | — | — | — | — | Genre Nomad |
-| `ARKA_PERSONA_ARCH_DEEPDIVER` | The Deep Diver | 🤿 | *(from PersonaPass)* | — | The Devourer | — | — | Doorstop Lover | Devoted Specialist |
-| *(add remaining archetypes from PersonaPass)* | | | | | | | | | |
-
-> **Note:** A `—` in an axis column means that axis does not determine this archetype (other axes take precedence). The PersonaPass evaluates axes in weighted priority order; axes marked `—` for a given archetype are treated as neutral for that classification.
+> **No match:** If no entry's required axes all match the member's current verdicts, `archetypeName` is left blank and the profile stays in forming/unresolved state. This can happen when a member's axis combination doesn't satisfy any row — e.g. an Early Bird Nibbler with a Binger cadence has no matching archetype yet.
 
 ### Rarity
 
@@ -311,7 +311,7 @@ Members can hide their Reading Personality from other members via the **Reading 
 
 ## Known Gaps & Notes
 
-- **Archetype matrix not fully documented.** The complete lookup table (axis combination → archetype name/key/tagline) lives in the PersonaPass GAS project. The table skeleton above must be filled in from that source. Any new archetype or axis requires a PersonaPass deployment.
+- **Adding archetypes or axes** requires a PersonaPass deployment. The matrix is evaluated top-to-bottom — insertion order matters; more specific entries (more required axes) should come before less specific ones to avoid being shadowed.
 - **Axis count.** The system has **6 axes**. The Help article (`help-reading-personality`) incorrectly states "seven axes" — this is a documentation error; there are six.
 - **`ArkaPersonaPass.gs` in this repo is a misnomer.** The file is actually the ArkaAIPass (Gemini coaching script). The true PersonaPass is a separate, standalone GAS project not included in this repository.
 
