@@ -38,7 +38,7 @@ Stored at `member.stats.readingSpeed`:
 |---|---|---|
 | `v` | integer | Engine version. Currently `1`. Bump on any breaking change to computation logic. |
 | `computed` | string (dd-MMM-yyyy) | Date of last computation. |
-| `overallAvgPace` | number | Pages/day = total all-time pages (all real logs, including unlinked books) ÷ span from first to last real log. HISTORICAL_IMPORT timestamps and pages are excluded entirely. |
+| `overallAvgPace` | number | Pages/day = total all-time pages ÷ span from first to last log. Includes HISTORICAL_IMPORT entries (weekly summaries — pages and timestamps are both meaningful at this granularity). Excludes HISTORICAL_IMPORT only from per-book span calculations where a single bulk entry would produce a spurious 1-day span. |
 | `recentPace` | number | Pages/day over the last 30 days across all books, including unlinked pages. HISTORICAL_IMPORT timestamps excluded. |
 | `moodMultiplier` | number \| null | `recentPace ÷ overallAvgPace`, clamped to `[0.4, 2.0]`. Represents the user's current reading state relative to their baseline. Omitted (null) when `recentPace = 0` (no logs in 30 days) to avoid distorting estimates. |
 | `genrePace` | object | Map of canonical genre name → `{ pace, booksUsed }`. Only genres with **≥ 3 qualifying finished books** are included. |
@@ -145,15 +145,13 @@ The club historically logged pages weekly rather than daily. This does not disto
 
 ## HISTORICAL_IMPORT Handling
 
-Rows where `bookId === 'HISTORICAL_IMPORT'` have artificial midnight timestamps that do not reflect real reading behaviour.
+HISTORICAL_IMPORT entries are weekly reading summaries entered in bulk (one row ≈ 7 days of reading). Their timestamps are the entry date, not exact reading dates — but at a weekly cadence this is accurate enough for a span-based pace calculation.
 
 | Calculation | Treatment |
 |---|---|
-| `pagesDelta` inclusion | **Included** in total page counts for `overallAvgPace` |
-| Time-span / date-range calculations | **Excluded** |
-| `recentPace` 30-day window | **Excluded** from timestamp filtering |
-
-This is the same guard used by ArkaPersonaPass.
+| `overallAvgPace` (pages + span) | **Included** — pages and timestamps both used |
+| Per-book span (`genrePace` samples) | **Excluded** — a single bulk entry gives a 1-day span, not a real reading span |
+| `recentPace` 30-day window | **Excluded** — bulk entry date does not reflect actual recent activity |
 
 ---
 

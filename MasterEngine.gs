@@ -1733,14 +1733,15 @@ function computeMemberReadingSpeed_(memberId, pageLogData, shelfData, bookMetaMa
   var cleanSamples = bookPaceSamples.filter(function(s) { return s.pace <= ceiling; });
   if (cleanSamples.length === 0) cleanSamples = bookPaceSamples;
 
-  // 5. Overall average pace — all real logs (including unlinked books), total pages / total span.
-  // Mirrors recentPace logic: inclusive of any page logged, not restricted to finished books.
+  // 5. Overall average pace — totalPages / span(first log → last log).
+  // HISTORICAL_IMPORT entries are weekly summaries (one entry ≈ 7 days of reading) so their
+  // pages and timestamps are both valid inputs here. Only excluded from per-book span
+  // calculations (step 3) where a single bulk entry would produce a meaningless 1-day span.
   var allTimePages = 0, allFirstMs = Infinity, allLastMs = -Infinity;
   for (var ai = 1; ai < pageLogData.length; ai++) {
     if ((pageLogData[ai][2] || '').toString() !== memberId) continue;
     var aPages  = Number(pageLogData[ai][4]) || 0;
     if (aPages <= 0) continue;
-    if ((pageLogData[ai][3] || '').toString() === HIST_FLAG) continue;
     var aTs = parseArkaDateString_(pageLogData[ai][1]);
     if (!aTs) continue;
     var aMs = aTs.getTime();
