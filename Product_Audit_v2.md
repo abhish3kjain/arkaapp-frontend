@@ -218,9 +218,7 @@
  
 1. ✅ **Persona on Me tab dashboard** — Archetype chip injected in Me identity row via `applyWave2()`. Taps to `openMyPersonality()`. Forming profiles show nudge.
 2. ✅ **Persona-shift celebration** → `renderPersonaShiftCelebration()` detects `PERSONAUPDATE`, renders celebration into `#meCelebrationCard`, dismisses with seen-state persistence.
-3. **Onboarding completion as milestone** → 29 tasks completed goes unacknowledged:
-   - Suggestion: When all 29 tasks are confirmed (detectable in `renderOnboardingCard()` completion check), trigger a one-time celebration card ("You've completed the Arka Onboarding Journey 🎉") and log a `ARKA_ACTTYP_ONBOARD_COMPLETE` activity type. This creates a clear arc with a payoff moment.
-   - **Impact:** Medium Effort · **Effort:** 4–6h
+3. ✅ **Onboarding completion as milestone** → Each of the 5 chapters awards a permanent badge on completion. Badges are the recognition — no additional celebration needed.
 ---
  
 # FINAL DELIVERABLES
@@ -270,7 +268,7 @@ A measurably stronger product across every dimension. The design token system cl
 - ✅ **BackEndEngine (owner-run push/email)** — Done. Sheet-queue push/email live.
 - ✅ **Structured reading goals** — Covered by Challenges (Page Reading Goal + Book Reading Goal). Not a gap.
 - ✅ **Archetype rarity signal** — Done. "Only X members share this type" shown in Personality Card via `raritySummary`.
-- **Onboarding completion milestone** — Log `ARKA_ACTTYP_ONBOARD_COMPLETE`, trigger celebration card, surface in Hall of Fame. Creates a payoff moment for members who complete all 29 tasks.
+- ✅ **Onboarding completion milestone** — Done via per-chapter badges (5 badges, permanent recognition).
 ---
  
 ## V1 → V2 Resolution Tracker
