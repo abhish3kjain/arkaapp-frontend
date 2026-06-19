@@ -5245,15 +5245,14 @@ function setMemberApprovalStatus(memberId, newStatus) {
 
 
 /**
- * PUBLIC: Clears the MemberDB Col N celebration field for the calling member.
- * Called by the frontend immediately after the member dismisses the celebration card.
- * Sets the cell to '' so MasterEngine knows all pending items have been seen.
+ * PUBLIC: Clears the badge/level celebration fields in MemberDB Col N for the
+ * calling member. Only clears `badges` and `newLevel` — preserves `personaShiftSeen`
+ * so the persona card stays dismissed even after a badge/level card dismiss.
  *
  * Design:
  *   - memberId resolved from the session — never accepted from the caller.
- *   - Col N is the only column the app-side writes on this path. MasterEngine
- *     is the sole writer for populating badge IDs and newLevel.
- *   - Blanking the cell is idempotent; a second call (e.g. double-tap) is safe.
+ *   - Read-modify-write: removes badges/newLevel, keeps personaShiftSeen.
+ *   - Blanks the cell only when nothing remains (no personaShiftSeen to preserve).
  *
  * @returns {Object} { status: 'success' } | { status: 'error', message }
  */
@@ -5268,7 +5267,34 @@ function clearMemberCelebration() {
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][0].toString() !== memberId) continue;
-      memberSheet.getRange(i + 1, MEMBER_CELEBRATION_COL_NUMBER).setValue('');
+
+      // Read-modify-write: preserve personaShiftSeen while clearing badge/level fields.
+      const raw = (data[i][MEMBER_CELEBRATION_COL_INDEX] || '').toString().trim();
+      let existing = {};
+      try { if (raw) existing = JSON.parse(raw); } catch (e) { existing = {}; }
+
+      const personaShiftSeen   = existing.personaShiftSeen   || null;
+      const personaShiftSeenAt = Number(existing.personaShiftSeenAt) || 0;
+
+      // Only preserve the persona seen marker if it was stamped within the same
+      // 7-day window that renderPersonaCelebrationCard_() uses to surface the card.
+      // An older marker is useless (the card wouldn't show anyway) so we drop it,
+      // letting the cell go blank and keeping Col N tidy.
+      const PERSONA_CELEB_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+      const seenIsStillFresh = personaShiftSeen &&
+                               personaShiftSeenAt > 0 &&
+                               (Date.now() - personaShiftSeenAt) < PERSONA_CELEB_WINDOW_MS;
+
+      let newValue;
+      if (seenIsStillFresh) {
+        // Keep only the persona seen marker — drop badges and newLevel.
+        newValue = JSON.stringify({ personaShiftSeen, personaShiftSeenAt });
+      } else {
+        // Nothing to preserve (no marker, or marker is stale) — blank the cell.
+        newValue = '';
+      }
+
+      memberSheet.getRange(i + 1, MEMBER_CELEBRATION_COL_NUMBER).setValue(newValue);
       return { status: 'success' };
     }
 
@@ -5317,7 +5343,8 @@ function setPersonaCelebrationSeen(seenActivityId) {
       let existing = {};
       try { if (raw) existing = JSON.parse(raw); } catch (e) { existing = {}; }
 
-      existing.personaShiftSeen = seenActivityId;
+      existing.personaShiftSeen   = seenActivityId;
+      existing.personaShiftSeenAt = Date.now(); // epoch ms — used by clearMemberCelebration to expire stale markers
 
       memberSheet
         .getRange(i + 1, MEMBER_CELEBRATION_COL_NUMBER)

@@ -12416,6 +12416,18 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
 
       // ── Sort state ────────────────────────────────────────────────────────────
+      // ── Reading Speed Engine — frontend stub ─────────────────────────────────
+      // Full RSE V1 runs nightly in MasterEngine.gs and writes to member.stats.readingSpeed (Col O).
+      // rseEstimateDays_ reads that pre-computed pace first; when absent it falls back to raw
+      // page count so sort order degrades gracefully to a Pages sort (step 5 of fallback chain).
+      function rseEstimateDays_(pages) {
+        if (!pages || pages <= 0) return null;
+        var rse  = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed;
+        var pace = rse && rse.overallAvgPace > 0 ? rse.overallAvgPace : 0;
+        return pace > 0 ? pages / pace : pages; // fallback: raw page count as proxy
+      }
+      // ── End Reading Speed Engine stub ────────────────────────────────────────
+
       /** Current sort key. Values: 'recent' | 'az' | 'rated' | 'mostread' | 'pages' | 'year' | 'readtime' | 'activity' */
       var currentLibrarySort        = 'recent';
       /** true = ascending, false = descending. Each sort has its own sensible default. */
@@ -12572,31 +12584,18 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           label     : 'Reading Time',
           defaultAsc: true, // quickest first
           sort : function(books) {
-            // Use the same 90-day rolling pace already computed in Book Detail.
-            // If the user has no recent logs, pace = 0 and we fall back to page count.
-            var cutoff90Ms      = Date.now() - 90 * 86400000;
-            var pagesLast90     = 0;
-            globalMyPageLogDB.forEach(function(l) {
-              if (l.pagesDelta <= 0) return;
-              var ts = parseGoogleDate(l.timestamp);
-              if (!ts || isNaN(ts.getTime()) || ts.getTime() < cutoff90Ms) return;
-              pagesLast90 += l.pagesDelta;
-            });
-            var pacePerDay = Math.round(pagesLast90 / 90); // may be 0
-
             return books.slice().sort(function(a, b) {
               var pa = Number(a.pages) || 0;
               var pb = Number(b.pages) || 0;
-              // books with no page count go to the end
               if (!pa && !pb) return 0;
-              if (!pa) return 1;
+              if (!pa) return 1;  // no pages → end
               if (!pb) return -1;
-              if (pacePerDay > 0) {
-                // Sort by estimated days to finish (shortest first)
-                return (pa / pacePerDay) - (pb / pacePerDay);
-              }
-              // No pace data — fall back to raw page count ascending
-              return pa - pb;
+              var da = rseEstimateDays_(pa);
+              var db = rseEstimateDays_(pb);
+              if (da === null && db === null) return pa - pb; // fallback: page count
+              if (da === null) return 1;
+              if (db === null) return -1;
+              return da - db; // quickest read first
             });
           }
         },
@@ -19488,16 +19487,18 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   return pagesOnDay > 0 ? cumulative : null;
               });
               return {
-                  label           : nameLabel,
-                  data            : dataPoints,
-                  borderColor     : color,
-                  backgroundColor : color + '18',
-                  borderWidth     : 2,
-                  spanGaps        : true, // connect own logged points across null gaps
-                  pointRadius     : 3,
-                  pointHoverRadius: 5,
-                  fill            : false,
-                  tension         : 0.3
+                  label                : nameLabel,
+                  data                 : dataPoints,
+                  borderColor          : color,
+                  backgroundColor      : color + '18',
+                  pointBackgroundColor : color,
+                  pointBorderColor     : color,
+                  borderWidth          : 2,
+                  spanGaps             : true, // connect own logged points across null gaps
+                  pointRadius          : 3,
+                  pointHoverRadius     : 5,
+                  fill                 : false,
+                  tension              : 0.3
               };
           });
 

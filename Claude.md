@@ -407,7 +407,7 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 
 ## 12. Active / Upcoming Workstreams
 
-### Reading Speed Engine V1 (Active — from main)
+### Reading Speed Engine V1 (Active)
 - Design fully documented in `Arka_ReadingSpeedEngine_V1.md`.
 - Output stored in `member.stats.readingSpeed` (MemberDB Col O). MasterEngine is the sole writer.
 - Key parameters: genre threshold = 3 books, moodMultiplier clamp = [0.4, 2.0], adaptiveIQR clamp = [1.2, 3.0], time-weight full period = 12 months, floor = 0.5 at 36+ months.
@@ -419,6 +419,7 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 - P1 (critical) items: P1-1/2/3 (mobile drawer) and P1-4 (confirmation modals) shipped. P1-5 (post delete UI) next.
 - P2 items (Announcements section, Events, email queue monitor) queued after P1 complete.
 - See §11 Admin Panel tracking table for full status.
+
 
 ### Prediction Engine Phase 1 (Next Active Workstream)
 - Technical design is complete: **Finish Date**, **DNF Risk Score**, **Rating Prediction**, **Oracle Score** mechanic.
