@@ -5273,14 +5273,24 @@ function clearMemberCelebration() {
       let existing = {};
       try { if (raw) existing = JSON.parse(raw); } catch (e) { existing = {}; }
 
-      const personaShiftSeen = existing.personaShiftSeen || null;
+      const personaShiftSeen   = existing.personaShiftSeen   || null;
+      const personaShiftSeenAt = Number(existing.personaShiftSeenAt) || 0;
+
+      // Only preserve the persona seen marker if it was stamped within the same
+      // 7-day window that renderPersonaCelebrationCard_() uses to surface the card.
+      // An older marker is useless (the card wouldn't show anyway) so we drop it,
+      // letting the cell go blank and keeping Col N tidy.
+      const PERSONA_CELEB_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+      const seenIsStillFresh = personaShiftSeen &&
+                               personaShiftSeenAt > 0 &&
+                               (Date.now() - personaShiftSeenAt) < PERSONA_CELEB_WINDOW_MS;
 
       let newValue;
-      if (personaShiftSeen) {
+      if (seenIsStillFresh) {
         // Keep only the persona seen marker — drop badges and newLevel.
-        newValue = JSON.stringify({ personaShiftSeen });
+        newValue = JSON.stringify({ personaShiftSeen, personaShiftSeenAt });
       } else {
-        // Nothing to preserve — blank the cell so MasterEngine starts clean.
+        // Nothing to preserve (no marker, or marker is stale) — blank the cell.
         newValue = '';
       }
 
@@ -5333,7 +5343,8 @@ function setPersonaCelebrationSeen(seenActivityId) {
       let existing = {};
       try { if (raw) existing = JSON.parse(raw); } catch (e) { existing = {}; }
 
-      existing.personaShiftSeen = seenActivityId;
+      existing.personaShiftSeen   = seenActivityId;
+      existing.personaShiftSeenAt = Date.now(); // epoch ms — used by clearMemberCelebration to expire stale markers
 
       memberSheet
         .getRange(i + 1, MEMBER_CELEBRATION_COL_NUMBER)
