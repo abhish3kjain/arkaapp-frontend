@@ -193,9 +193,7 @@
  
 1. ✅ **Comparison benchmarks** → `renderClubBenchmarks()` already implemented as Section 6 ("How do I compare to the club?") in `insightsView` (Reading Story). Percentile comparisons across four dimensions. Me tab kept uncluttered — deep-dive lives in Reading Story.
 2. ✅ **Goal tracking** → Structured goal tracking covered by the Challenges feature: "Page Reading Goal" and "Book Reading Goal" challenges provide the measurable `target / progress` experience. Free-text `ReadingGoal` profile field is complementary context, not a gap.
-3. **Persona rarity as peer signal** → `RaritySummary` computed but underused:
-   - Suggestion: On the `insightsView` or the Personality panel, add one line: "You're 1 of only 3 Midnight Scholars in the club." The rarity count is in `PersonaProfileDB` and already loaded in Wave 2.
-   - **Impact:** Quick Win · **Effort:** 1–2h
+3. ✅ **Persona rarity as peer signal** → `raritySummary` parsed and displayed in the Personality Card as "Only X members share this type" (`archetypeShare` line, line 10223 in app.js).
 ---
  
 ## 7. COMMUNITY & IDENTITY
@@ -271,7 +269,7 @@ A measurably stronger product across every dimension. The design token system cl
 - **Dark mode** — Token infrastructure now ready. Phase 6 semantic tokens are the prerequisite. A `@media (prefers-color-scheme: dark)` `:root` override + surface-color audit is the implementation path. Reading apps live at night.
 - ✅ **BackEndEngine (owner-run push/email)** — Done. Sheet-queue push/email live.
 - ✅ **Structured reading goals** — Covered by Challenges (Page Reading Goal + Book Reading Goal). Not a gap.
-- **Archetype distribution view** — "You're 1 of 3 Midnight Scholars in the club." `RaritySummary` computed in PersonaPass, stored per member. One new panel in the Personality view.
+- ✅ **Archetype rarity signal** — Done. "Only X members share this type" shown in Personality Card via `raritySummary`.
 - **Onboarding completion milestone** — Log `ARKA_ACTTYP_ONBOARD_COMPLETE`, trigger celebration card, surface in Hall of Fame. Creates a payoff moment for members who complete all 29 tasks.
 ---
  
