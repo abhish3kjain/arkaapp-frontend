@@ -16,13 +16,14 @@
 | P1-2 | Mobile: Fix toast obscured by tab strip | ✅ Shipped (resolved by P1-1) |
 | P1-3 | Mobile: Fix content overlap with topbar | ✅ Shipped (resolved by P1-1) |
 | P1-4 | Approvals: Confirmation modal for Reject and Revoke Access | ✅ Shipped |
+| P1-5 | Content moderation: Book post feed + delete UI using new `adminDeleteBookPost()` backend function | ✅ Shipped |
 | CSS/JS extraction | Inline `<style>` → `arkaadmin_styles.css`; inline `<script>` → `arkaadmin_app.js`; both served via GitHub CDN — same pattern as member app | ✅ Shipped |
 
 ---
 
 ## Executive Summary
 
-*Scores reflect state **after** P1-1 through P1-4 implementation.*
+*Scores reflect state **after** P1-1 through P1-5 implementation.*
 
 | Dimension | Score (at audit) | Score (now) | Notes |
 |---|---|---|---|
@@ -30,8 +31,8 @@
 | Logic Correctness | 7.5 / 10 | 7.5 / 10 | Unchanged |
 | Layout & Visual Design | 5.5 / 10 | 5.5 / 10 | Unchanged — desktop gaps remain |
 | Mobile Usability | 3.0 / 10 | 6.5 / 10 | Drawer + toast + topbar fixes make mobile workable; wide tables and reports canvas still P2/P3 |
-| Operational Coverage | 4.5 / 10 | 4.5 / 10 | Unchanged — missing sections not yet built |
-| **Overall** | **5.4 / 10** | **6.3 / 10** | P1 items shipped; P2 sprint is next |
+| Operational Coverage | 4.5 / 10 | 5.5 / 10 | Content moderation section adds book post delete capability |
+| **Overall** | **5.4 / 10** | **6.6 / 10** | All P1 items shipped; P2 sprint is next |
 
 ---
 
@@ -317,7 +318,7 @@ Low risk to fix; low priority but creates brand inconsistency in version control
 | P1-2 | ✅ Done | Mobile: Fix toast obscured by tab strip | 30 min | Resolved by P1-1 (strip removed) |
 | P1-3 | ✅ Done | Mobile: Fix content padding / topbar overlap | 30 min | Resolved by P1-1 (strip removed) |
 | P1-4 | ✅ Done | Approvals: Confirmation modal for Reject and Revoke Access | 2 hrs | Prevents accidental member rejection |
-| P1-5 | ⬜ Next | Content moderation: Book post delete UI using existing `deleteBookPost()` | 4 hrs | Enables removal of problematic posts |
+| P1-5 | ✅ Done | Content moderation: Book post feed + delete UI; new `adminDeleteBookPost()` backend fn; "Posts" nav section | 4 hrs | Enables removal of problematic posts |
 
 ### Priority 2 — High (next development sprint)
 | # | Issue | Effort | Impact |

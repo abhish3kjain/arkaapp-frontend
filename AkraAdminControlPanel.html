@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=1.0">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=1.1">
 </head>
 <body>
 
@@ -68,6 +68,9 @@
       <div class="adm-nav-group-label">Content</div>
       <button class="adm-nav-item" data-section="badges" onclick="admSwitchSection('badges')">
         <i class="fa-solid fa-medal"></i><span>Badges</span>
+      </button>
+      <button class="adm-nav-item" data-section="content" onclick="admSwitchSection('content')">
+        <i class="fa-solid fa-comment-lines"></i><span>Posts</span>
       </button>
       <div class="adm-nav-group-label">Analytics</div>
       <button class="adm-nav-item" data-section="performance" onclick="admSwitchSection('performance')">
@@ -181,6 +184,33 @@
               </table>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- ── CONTENT MODERATION ──────────────────────────────── -->
+      <section id="admSectionContent" class="adm-section">
+        <div class="adm-section-header">
+          <h2><i class="fa-solid fa-comment-lines" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Book Posts</h2>
+        </div>
+        <p class="adm-section-subtitle">Review and delete book posts. Uses the same data as Club Reports — first load may take a few seconds.</p>
+        <div class="adm-filter-row">
+          <button class="adm-filter-tab active" data-posts-type="All"          onclick="admFilterPostsType('All')">All Types</button>
+          <button class="adm-filter-tab"        data-posts-type="General Note" onclick="admFilterPostsType('General Note')">General Note</button>
+          <button class="adm-filter-tab"        data-posts-type="Quote I Loved" onclick="admFilterPostsType('Quote I Loved')">Quote</button>
+          <button class="adm-filter-tab"        data-posts-type="Fan Cast"     onclick="admFilterPostsType('Fan Cast')">Fan Cast</button>
+          <div style="flex:1"></div>
+          <input type="text" class="adm-input" id="admPostsSearch" style="max-width:240px" placeholder="Search member or text…" oninput="admRenderContent()">
+        </div>
+        <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead><tr><th>Member</th><th>Type</th><th>Post Excerpt</th><th>Date</th><th>Likes</th><th>Action</th></tr></thead>
+              <tbody id="admContentTbody"><tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="admContentShowMore" style="text-align:center;padding:16px;display:none">
+          <button class="adm-btn adm-btn-light" onclick="admShowMorePosts()"><i class="fa-solid fa-chevron-down"></i> Show More</button>
         </div>
       </section>
 
@@ -360,6 +390,18 @@
   </div>
 </div>
 
+<!-- Post delete confirm modal -->
+<div class="adm-modal-overlay" id="admPostDeleteModal">
+  <div class="adm-modal">
+    <div class="adm-modal-title">Delete Post?</div>
+    <div class="adm-modal-body" id="admPostDeleteModalBody">This post will be permanently removed from the Reading Room.</div>
+    <div class="adm-modal-actions">
+      <button class="adm-btn adm-btn-light" onclick="admClosePostDeleteModal()">Cancel</button>
+      <button class="adm-btn adm-btn-danger" id="admPostDeleteConfirmBtn" onclick="admConfirmDeletePost()"><i class="fa-solid fa-trash"></i> Delete Post</button>
+    </div>
+  </div>
+</div>
+
 <!-- Revoke modal -->
 <div class="adm-modal-overlay" id="admRevokeModal">
   <div class="adm-modal">
@@ -374,6 +416,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=1.0"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=1.1"></script>
 </body>
 </html>

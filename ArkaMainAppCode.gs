@@ -5065,6 +5065,31 @@ function deleteBookPost(postId) {
 }
 
 /**
+ * ADMIN ONLY: Soft-deletes any book post by postId, bypassing the ownership
+ * check that the member-facing deleteBookPost() enforces. Sets status col G
+ * to "Deleted". Only callable by members in ADMIN_MEMBER_IDS_BACKEND.
+ */
+function adminDeleteBookPost(postId) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(BOOK_POST_SHEET);
+  if (!sheet) return { status: 'error', message: 'BookPostDB not found.' };
+
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId || !isAdminMember(currentMemberId)) {
+    return { status: 'error', message: 'Admin access required.' };
+  }
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0].toString() !== postId.toString()) continue;
+    sheet.getRange(i + 1, 7).setValue('Deleted');
+    return { status: 'success' };
+  }
+
+  return { status: 'error', message: 'Post not found.' };
+}
+
+/**
  * Helper: Gets the next sequential activity ID by reading only the last row's ID cell.
  * Saves reading the entire ActivityLogDB just to find the highest number.
  * @param {Sheet} logSheet - The ActivityLogDB sheet object.

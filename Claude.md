@@ -400,8 +400,8 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 | P1-1: Replace mobile bottom tab strip with hamburger + slide-out drawer | ✅ Done |
 | P1-2: Toast obscured by tab strip | ✅ Done (resolved by P1-1) |
 | P1-3: Mobile content overlap with topbar | ✅ Done (resolved by P1-1) |
-| P1-4: Confirmation modal for Reject and Revoke Access in Approvals | ⬜ Not started |
-| P1-5: Book post delete UI using existing `deleteBookPost()` backend | ⬜ Not started |
+| P1-4: Confirmation modal for Reject and Revoke Access in Approvals | ✅ Done |
+| P1-5: Book post delete UI using existing `deleteBookPost()` backend | ✅ Done |
 
 ---
 
@@ -416,8 +416,8 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 
 ### Admin Panel Improvement (Active)
 - Audit complete (`Product_Audit_Admin_v1.md`).
-- P1 (critical) items: P1-1/2/3 (mobile drawer) and P1-4 (confirmation modals) shipped. P1-5 (post delete UI) next.
-- P2 items (Announcements section, Events, email queue monitor) queued after P1 complete.
+- All P1 items shipped: P1-1/2/3 (mobile drawer), P1-4 (confirmation modals), P1-5 (Posts / content moderation section).
+- P2 items (Announcements section, Events, email queue monitor) queued next.
 - See §11 Admin Panel tracking table for full status.
 
 
