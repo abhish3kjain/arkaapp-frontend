@@ -34,7 +34,7 @@
 |---|---|---|
 | `styles.css` | core style css for the app|
 | `app.js` | Core Javascript of the app |  |
-| `ArkaAppBody` | Google App Script html file | Versioning done in styles.css and app.js link |
+| `ArkaClubApp.html` | Google App Script html file | Versioning done in styles.css and app.js link |
 | `ArkaMainAppCode.gs` | Backend GAS — all `google.script.run` handlers | version varibale to be maintained |
 | `MasterEngine.gs` | Nightly batch engine — stats, badges, email queue | current |
 | `ArkaAIPass.gs` | Gemini AI narrative generation via `UrlFetchApp` | (current) |
@@ -45,6 +45,8 @@
 | `Arka_Design_Tokens.md` | Design token definitions — single source of truth for colour/type | v1 |
 | `ArkaDatabase_Definitions.md` | Column-by-column schema for every sheet | v5 |
 | `Arka_Product_Audit_v2.md` | Product audit framework + open items | v2 |
+| `Arka_PersonaEngine_V1.md` | Formal design doc for ArkaPersonaPass — axes, archetypes, gating logic, frontend integration | v1 |
+| `Arka_ReadingSpeedEngine_V1.md` | Formal design doc for Reading Speed Engine — pace computation, outlier detection, genre fallback chain, frontend usage | v1 |
 
 **Version naming:** Frontend increments as `v111`, `v112`, …. Backend as `v55`, `v56`, …. MasterEngine as `v30`, `v31`, …. Never skip or reset version numbers.
 
@@ -376,6 +378,13 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 ---
 
 ## 12. Active / Upcoming Workstreams
+
+### Reading Speed Engine V1 (Active)
+- Design fully documented in `Arka_ReadingSpeedEngine_V1.md`.
+- Output stored in `member.stats.readingSpeed` (MemberDB Col O). MasterEngine is the sole writer.
+- Key parameters: genre threshold = 3 books, moodMultiplier clamp = [0.4, 2.0], adaptiveIQR clamp = [1.2, 3.0], time-weight full period = 12 months, floor = 0.5 at 36+ months.
+- Frontend: Library "Reading Time" sort chip uses RSE fallback chain. Book Detail finish estimate to be upgraded to RSE V1.
+- Any change to V1 parameters requires a version bump in the JSON (`v` field) and a new entry in the version history table in the MD file.
 
 ### Prediction Engine Phase 1 (Next Active Workstream)
 - Technical design is complete: **Finish Date**, **DNF Risk Score**, **Rating Prediction**, **Oracle Score** mechanic.

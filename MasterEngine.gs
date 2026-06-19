@@ -1649,6 +1649,158 @@ function _buildYearStatsMap_(year, activityData, shelfData, pageLogData,
 
 
 /**
+ * RSE V1 — computes a member's reading speed profile for storage in Col O Stats JSON.
+ * Full design in Arka_ReadingSpeedEngine_V1.md.
+ *
+ * @param {string} memberId
+ * @param {Array}  pageLogData  - Full PageLogDB values (row 0 = header)
+ * @param {Array}  shelfData    - Full MemberShelfDB values
+ * @param {Object} bookMetaMap  - bookId → { pages, genre } (from ArkaLibraryDB)
+ * @returns {Object|null} readingSpeed object, or null if insufficient data.
+ */
+function computeMemberReadingSpeed_(memberId, pageLogData, shelfData, bookMetaMap) {
+  var NOW_MS     = Date.now();
+  var MS_PER_DAY = 86400000;
+  var HIST_FLAG  = 'HISTORICAL_IMPORT';
+
+  // 1. Index this member's page logs by bookId
+  // HISTORICAL_IMPORT pages included in totals; their timestamps excluded from span.
+  var bookLogIndex = {}; // bookId → { total, earliestMs, latestMs, hasRealTs }
+  for (var pi = 1; pi < pageLogData.length; pi++) {
+    var pMid   = (pageLogData[pi][2] || '').toString();
+    if (pMid !== memberId) continue;
+    var pPages = Number(pageLogData[pi][4]) || 0;
+    if (pPages <= 0) continue;
+    var pBookId = (pageLogData[pi][3] || '').toString();
+    var pTs     = parseArkaDateString_(pageLogData[pi][1]);
+    if (!pTs) continue;
+    var pMs = pTs.getTime();
+    if (!bookLogIndex[pBookId]) {
+      bookLogIndex[pBookId] = { total: 0, earliestMs: pMs, latestMs: pMs, hasRealTs: false };
+    }
+    var rec = bookLogIndex[pBookId];
+    rec.total += pPages;
+    if (pBookId !== HIST_FLAG) {
+      rec.hasRealTs = true;
+      if (pMs < rec.earliestMs) rec.earliestMs = pMs;
+      if (pMs > rec.latestMs)   rec.latestMs   = pMs;
+    }
+  }
+
+  // 2. Recent pace — pages logged in last 30 days
+  var CUT30_MS    = NOW_MS - 30 * MS_PER_DAY;
+  var recentPages = 0;
+  for (var ri = 1; ri < pageLogData.length; ri++) {
+    var rMid = (pageLogData[ri][2] || '').toString();
+    if (rMid !== memberId) continue;
+    var rPages  = Number(pageLogData[ri][4]) || 0;
+    if (rPages <= 0) continue;
+    if ((pageLogData[ri][3] || '').toString() === HIST_FLAG) continue;
+    var rTs = parseArkaDateString_(pageLogData[ri][1]);
+    if (!rTs) continue;
+    if (rTs.getTime() >= CUT30_MS) recentPages += rPages;
+  }
+  var recentPace = recentPages / 30;
+
+  // 3. Per-book paces from finished books with real timestamps
+  var finishedBookIds = {};
+  for (var si = 1; si < shelfData.length; si++) {
+    if ((shelfData[si][1] || '').toString() !== memberId) continue;
+    if ((shelfData[si][3] || '').toString() !== 'Finished') continue;
+    var sBookId = (shelfData[si][2] || '').toString();
+    if (sBookId && sBookId !== HIST_FLAG) finishedBookIds[sBookId] = true;
+  }
+
+  var bookPaceSamples = [];
+  for (var bid in finishedBookIds) {
+    if (!finishedBookIds.hasOwnProperty(bid)) continue;
+    var rec2 = bookLogIndex[bid];
+    if (!rec2 || !rec2.hasRealTs || rec2.total <= 0) continue;
+    var spanDays = Math.max(1, (rec2.latestMs - rec2.earliestMs) / MS_PER_DAY);
+    var pace     = rec2.total / spanDays;
+    var meta     = bookMetaMap[bid] || {};
+    var genres   = resolveCanonicalGenres_(meta.genre || '');
+    var primaryGenre = genres.length > 0 ? genres[0] : '';
+    bookPaceSamples.push({ pace: pace, genre: primaryGenre, finishedMs: rec2.latestMs });
+  }
+
+  if (bookPaceSamples.length === 0) return null;
+
+  // 4. Personal IQR outlier detection with adaptive ceiling
+  var sortedPaces = bookPaceSamples.map(function(s) { return s.pace; })
+                                   .sort(function(a, b) { return a - b; });
+  function _pct_(arr, p) {
+    if (arr.length === 0) return 0;
+    var idx = (p / 100) * (arr.length - 1);
+    var lo = Math.floor(idx), hi = Math.ceil(idx);
+    return arr[lo] + (arr[hi] - arr[lo]) * (idx - lo);
+  }
+  var q1  = _pct_(sortedPaces, 25);
+  var q3  = _pct_(sortedPaces, 75);
+  var iqr = q3 - q1;
+
+  var prelimAvg  = sortedPaces.reduce(function(a, v) { return a + v; }, 0) / sortedPaces.length;
+  var prelimMood = (prelimAvg > 0 && recentPace > 0) ? recentPace / prelimAvg : 1.0;
+  var adaptiveK  = Math.min(3.0, Math.max(1.2, 2.0 * prelimMood));
+  var ceiling    = _pct_(sortedPaces, 50) + adaptiveK * iqr;
+
+  var cleanSamples = bookPaceSamples.filter(function(s) { return s.pace <= ceiling; });
+  if (cleanSamples.length === 0) cleanSamples = bookPaceSamples;
+
+  // 5. Overall average pace — totalPages / span(first log → last log).
+  // HISTORICAL_IMPORT entries are weekly summaries (one entry ≈ 7 days of reading) so their
+  // pages and timestamps are both valid inputs here. Only excluded from per-book span
+  // calculations (step 3) where a single bulk entry would produce a meaningless 1-day span.
+  var allTimePages = 0, allFirstMs = Infinity, allLastMs = -Infinity;
+  for (var ai = 1; ai < pageLogData.length; ai++) {
+    if ((pageLogData[ai][2] || '').toString() !== memberId) continue;
+    var aPages  = Number(pageLogData[ai][4]) || 0;
+    if (aPages <= 0) continue;
+    var aTs = parseArkaDateString_(pageLogData[ai][1]);
+    if (!aTs) continue;
+    var aMs = aTs.getTime();
+    allTimePages += aPages;
+    if (aMs < allFirstMs) allFirstMs = aMs;
+    if (aMs > allLastMs)  allLastMs  = aMs;
+  }
+  var allSpanDays    = allFirstMs < allLastMs ? Math.max(1, (allLastMs - allFirstMs) / MS_PER_DAY) : 1;
+  var overallAvgPace = allTimePages > 0 ? allTimePages / allSpanDays : 0;
+
+  // 6. Mood multiplier (null if no recent activity)
+  var moodMultiplier = null;
+  if (overallAvgPace > 0 && recentPace > 0) {
+    moodMultiplier = Math.min(2.0, Math.max(0.4, recentPace / overallAvgPace));
+  }
+
+  // 7. Per-genre pace — minimum 3 qualifying books per genre
+  var genreMap = {};
+  cleanSamples.forEach(function(s) {
+    if (!s.genre) return;
+    var monthsAgo = (NOW_MS - s.finishedMs) / (MS_PER_DAY * 30.44);
+    var w = monthsAgo <= 12 ? 1.0 : Math.max(0.5, 1.0 - (monthsAgo - 12) / 48);
+    if (!genreMap[s.genre]) genreMap[s.genre] = [];
+    genreMap[s.genre].push({ pace: s.pace, weight: w });
+  });
+  var genrePace = {};
+  for (var g in genreMap) {
+    if (!genreMap.hasOwnProperty(g)) continue;
+    var entries = genreMap[g];
+    if (entries.length < 3) continue;
+    var gs = 0, gw = 0;
+    entries.forEach(function(e) { gs += e.pace * e.weight; gw += e.weight; });
+    genrePace[g] = { pace: Math.round((gw > 0 ? gs / gw : 0) * 10) / 10, booksUsed: entries.length };
+  }
+
+  return {
+    v             : 1,
+    overallAvgPace: Math.round(overallAvgPace * 10) / 10,
+    recentPace    : Math.round(recentPace * 10) / 10,
+    moodMultiplier: moodMultiplier !== null ? Math.round(moodMultiplier * 100) / 100 : null,
+    genrePace     : genrePace
+  };
+}
+
+/**
  * Core execution engine. Locks the database, loads all sheet data, runs the audit,
  * applies corrections, calculates true totals, and batch-writes back to Google Sheets.
  */
@@ -2435,6 +2587,10 @@ function syncAllMemberStats() {
       var _newStatsObj   = Object.assign({}, _existingStats);
       _newStatsObj.allTime   = _allTimeStats;
       _newStatsObj[_yearKey] = _yearStats;
+
+      // RSE V1 — compute reading speed profile and merge into stats JSON.
+      var _rseResult = computeMemberReadingSpeed_(memberId, pageLogData, shelfData, bookMetaMap);
+      if (_rseResult) _newStatsObj.readingSpeed = _rseResult;
 
       var _newStatsJson = JSON.stringify(_newStatsObj);
 

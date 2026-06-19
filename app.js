@@ -330,7 +330,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       const BOOKPOST_TYPE_CONFIG = {
         "General Note":  { emoji: "📌", bgColor: "var(--border-soft)", textColor: "#34495e" },
         "Quote I Loved": { emoji: "🏷️",  bgColor: "#fffcf5", textColor: "#b7770d" },
-        "Fan Cast":      { emoji: "🎬", bgColor: "#eae8f7", textColor: "#534AB7" }
+        "Fan Cast":      { emoji: "🎬", bgColor: "#eae8f7", textColor: "var(--color-challenge)" }
       };
 
       /**
@@ -448,7 +448,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // ── Featured card: first article in a category view that has order:1 ──
           if (isCategoryView && idx === 0 && article.order === 1) {
             listContainer.innerHTML += `
-              <div class="help-featured-card" onclick="openHelpArticle('${article.id}')">
+              <div class="help-featured-card" role="button" tabindex="0" data-action onclick="openHelpArticle('${article.id}')">
                 <div style="flex-grow:1;">
                   <div class="help-featured-badge-pill">✨ Start Here</div>
                   <div class="help-featured-title">${article.title}</div>
@@ -469,7 +469,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             : '';
 
           listContainer.innerHTML += `
-            <div class="help-result-card" onclick="openHelpArticle('${article.id}')">
+            <div class="help-result-card" role="button" tabindex="0" data-action onclick="openHelpArticle('${article.id}')">
               <div style="flex-grow:1;">
                 <div style="font-size:0.75rem;color:var(--arka-accent);font-weight:bold;text-transform:uppercase;margin-bottom:2px;">${article.category}</div>
                 <div style="font-weight:bold;color:var(--text-strong);font-size:1.05rem;margin-bottom:4px;">${article.title}</div>
@@ -1693,7 +1693,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             <option value="C2" ${level === 'C2' ? 'selected' : ''}>C2</option>
             <option value="Native" ${level === 'Native' ? 'selected' : ''}>Native</option>
           </select>
-          <button onclick="this.parentElement.remove()" style="margin:0; flex: 0.5; background-color: #e74c3c; padding: 0;">✖</button>
+          <button onclick="this.parentElement.remove()" style="margin:0; flex: 0.5; background-color: var(--color-danger); padding: 0;">✖</button>
         `;
         container.appendChild(row);
       }
@@ -2971,7 +2971,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             var soloBadgeName = soloBadge ? soloBadge.caption     : 'New Badge';
             var soloBadgeDesc = soloBadge ? soloBadge.description : '';
             var soloBadgeImg  = soloBadge ? soloBadge.imgUrl      : '';
-            html += '<div style="display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:4px;" onclick="openBadgeDetailSheet(\'' + awardedBadgeIds[0] + '\')">';
+            html += '<div style="display:flex;align-items:center;gap:13px;cursor:pointer;margin-bottom:4px;" role="button" tabindex="0" data-action onclick="openBadgeDetailSheet(\'' + awardedBadgeIds[0] + '\')">';
             html +=   '<div class="celebration-hero-medal">';
             html +=     (soloBadgeImg
                           ? '<img src="' + soloBadgeImg + '" data-badge-id="' + awardedBadgeIds[0] + '" alt="' + soloBadgeName + '">'
@@ -2996,7 +2996,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               var badge     = badgesMap.get(badgeId);
               var badgeName = badge ? badge.caption : 'Badge';
               var badgeImg  = badge ? badge.imgUrl  : '';
-              html += '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:66px;max-width:74px;" onclick="openBadgeDetailSheet(\'' + badgeId + '\')">';
+              html += '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:66px;max-width:74px;" role="button" tabindex="0" data-action onclick="openBadgeDetailSheet(\'' + badgeId + '\')">';
               html +=   (badgeImg
                           ? '<img src="' + badgeImg + '" data-badge-id="' + badgeId + '" style="width:48px;height:48px;border-radius:11px;object-fit:cover;border:0.5px solid rgba(169,132,186,0.4);" alt="' + badgeName + '">'
                           : '<div style="width:48px;height:48px;border-radius:11px;background:#e8dff4;display:flex;align-items:center;justify-content:center;font-size:22px;">🏅</div>');
@@ -3202,7 +3202,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             + '<span style="font-size:0.67rem;color:var(--text-faint);min-width:58px;">' + axisLbl + '</span>'
             + '<span style="font-size:0.75rem;color:#c8b8d8;text-decoration:line-through;">' + fromLbl + '</span>'
             + '<span style="font-size:0.7rem;color:var(--text-faint);margin:0 2px;">→</span>'
-            + '<span style="font-size:0.75rem;font-weight:700;color:#534AB7;">' + toLbl + '</span>'
+            + '<span style="font-size:0.75rem;font-weight:700;color:var(--color-challenge);">' + toLbl + '</span>'
             + '</div>';
         });
 
@@ -3407,9 +3407,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (n.startsWith('luminary'))    return { hex: '#7F77DD', bg: 'rgba(127,119,221,0.18)' };
         if (n.startsWith('sage'))        return { hex: '#0F6E56', bg: 'rgba(15,110,86,0.22)'   };
         if (n.startsWith('scribe'))      return { hex: '#639922', bg: 'rgba(99,153,34,0.18)'   };
-        if (n.startsWith('bibliophile')) return { hex: '#1D9E75', bg: 'rgba(29,158,117,0.18)'  };
+        if (n.startsWith('bibliophile')) return { hex: 'var(--color-success)', bg: 'rgba(29,158,117,0.18)'  };
         if (n.startsWith('scholar'))     return { hex: '#378ADD', bg: 'rgba(55,138,221,0.18)'  };
-        if (n.startsWith('bookworm'))    return { hex: '#EF9F27', bg: 'rgba(239,159,39,0.18)'  };
+        if (n.startsWith('bookworm'))    return { hex: 'var(--color-gamification)', bg: 'rgba(239,159,39,0.18)'  };
         return { hex: 'var(--arka-accent)', bg: 'rgba(169,132,186,0.18)' };
       }
 
@@ -3559,7 +3559,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
           // ── Grid row 2: Streak | AP ───────────────────────────────────────
           + '<div style="display:flex;gap:16px;flex:1;margin-bottom:26px;">'
-          + _cell(streak,    'Week Streak', '#EF9F27')
+          + _cell(streak,    'Week Streak', 'var(--color-gamification)')
           + _cell(memberAP,  'Arka Points', 'var(--arka-accent)')
           + '</div>'
 
@@ -3662,7 +3662,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         // ── Stars ──────────────────────────────────────────────────────────────
         var starsHtml = rating > 0
-          ? '<div style="font-size:44px;color:#EF9F27;letter-spacing:4px;">' + starsStr + '</div>'
+          ? '<div style="font-size:44px;color:var(--color-gamification);letter-spacing:4px;">' + starsStr + '</div>'
           : '<div style="font-size:44px;color:rgba(255,255,255,0.1);letter-spacing:4px;">'
             + '\u2606\u2606\u2606\u2606\u2606</div>';
 
@@ -3991,15 +3991,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       function getTierStyle(levelName) {
         const name = (levelName || "").toLowerCase();
 
-        if (name.startsWith('oracle'))      return { ring: '#BA7517', pillBg: '#faeeda', pillText: '#412402', cardBorder: '1px solid #EF9F27' };
+        if (name.startsWith('oracle'))      return { ring: '#BA7517', pillBg: '#faeeda', pillText: '#412402', cardBorder: '1px solid var(--color-gamification)' };
         if (name.startsWith('virtuoso'))   return { ring: '#D4537E', pillBg: '#fbeaf0', pillText: '#4B1528', cardBorder: '0.5px solid var(--border-soft)' };
         if (name.startsWith('maven'))      return { ring: '#D85A30', pillBg: '#faece7', pillText: '#4A1B0C', cardBorder: '0.5px solid var(--border-soft)' };
         if (name.startsWith('luminary'))   return { ring: '#7F77DD', pillBg: '#EEEDFE', pillText: '#26215C', cardBorder: '0.5px solid var(--border-soft)' };
         if (name.startsWith('sage'))       return { ring: '#0F6E56', pillBg: '#e1f5ee', pillText: '#04342C', cardBorder: '0.5px solid var(--border-soft)' };
         if (name.startsWith('scribe'))     return { ring: '#639922', pillBg: '#eaf3de', pillText: '#27500A', cardBorder: '0.5px solid var(--border-soft)' };
-        if (name.startsWith('bibliophile'))return { ring: '#1D9E75', pillBg: '#e1f5ee', pillText: '#085041', cardBorder: '0.5px solid var(--border-soft)' };
+        if (name.startsWith('bibliophile'))return { ring: 'var(--color-success)', pillBg: '#e1f5ee', pillText: '#085041', cardBorder: '0.5px solid var(--border-soft)' };
         if (name.startsWith('scholar'))    return { ring: '#378ADD', pillBg: '#e6f1fb', pillText: '#0C447C', cardBorder: '0.5px solid var(--border-soft)' };
-        if (name.startsWith('bookworm'))   return { ring: '#EF9F27', pillBg: '#faeeda', pillText: '#633806', cardBorder: '0.5px solid var(--border-soft)' };
+        if (name.startsWith('bookworm'))   return { ring: 'var(--color-gamification)', pillBg: '#faeeda', pillText: '#633806', cardBorder: '0.5px solid var(--border-soft)' };
         // Page Turner (default)            return gray
         return { ring: '#888780', pillBg: '#f1efe8', pillText: '#444441', cardBorder: '0.5px solid var(--border-soft)' };
       }      
@@ -4015,7 +4015,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        *   Green  #27ae60 — within 7 days    → active this week
        *   Amber  #f39c12 — within 28 days   → active within 4 weeks
        *   Gray   #bdc3c7 — within 180 days  → not active > 4 weeks
-       *   Red    #e74c3c — 180+ days        → dormant > 6 months
+       *   Red    var(--color-danger) — 180+ days        → dormant > 6 months
        *
        * Returns null when lastAccessed is blank or unparseable — no dot rendered.
        *
@@ -4033,7 +4033,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (daysSince < 7)   return { color: '#27ae60', title: 'Active this week' };
         if (daysSince < 28)  return { color: '#f39c12', title: 'Active within 4 weeks' };
         if (daysSince < 180) return { color: '#bdc3c7', title: 'Not active for over 4 weeks' };
-        return                      { color: '#e74c3c', title: 'Not active for 6+ months' };
+        return                      { color: 'var(--color-danger)', title: 'Not active for 6+ months' };
       }
 
       /**
@@ -4503,7 +4503,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // Short type label (strip emoji for compactness inside the pill)
           var shortLabel = typeCfg.label.replace(/^[\u{1F000}-\u{1FFFF}\u2600-\u27BF]\s*/u, '');
 
-          return '<div class="ez-row" onclick="openEventDetailView(\'' + evt.eventId + '\')">'
+          return '<div class="ez-row" role="button" tabindex="0" data-action onclick="openEventDetailView(\'' + evt.eventId + '\')">'
             + '<div class="ez-date-col">'
             +   '<span class="ez-date-day">' + dayNum + '</span>'
             +   '<span class="ez-date-mon">' + monStr + '</span>'
@@ -4790,7 +4790,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             + '    <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-strong);'
             + '         margin-top: 1px;">'
             + escapeHtml(record.valueDisplay) + '</div>'
-            + '    <div onclick="showMemberProfile(\'' + record.holderId + '\')"'
+            + '    <div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + record.holderId + '\')"'
             + '         style="font-size: 0.68rem; color: var(--arka-accent); font-weight: 600;'
             + '                margin-top: 2px; cursor: pointer;">'
             + escapeHtml(record.holderName) + '</div>'
@@ -4824,12 +4824,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         'PLOGGER_OF_YEAR'       : { label: 'Plogger of the Year',           icon: '&#128214;', color: '#2980b9' },
         'MASTER_RATER'          : { label: 'Master Rater',                  icon: '&#11088;',  color: '#f39c12' },
         'MARATHON_READER'       : { label: 'Marathon Reader',               icon: '&#127939;', color: '#27ae60' },
-        'THE_HOST'              : { label: 'The Host',                      icon: '&#127970;', color: '#e67e22' },
+        'THE_HOST'              : { label: 'The Host',                      icon: '&#127970;', color: 'var(--color-warning)' },
         'CONSTANT_COMPANION'    : { label: 'Constant Companion',            icon: '&#129309;', color: '#16a085' },
         'BOOKBINGO_CHALLENGER'  : { label: 'Bingo Challenger',              icon: '&#127921;', color: 'var(--text-muted)' },
         'BOOKBINGO_FINISHER'    : { label: 'Bingo Finisher',                icon: '&#127881;', color: '#2ecc71' },
         'BOOKBINGO_WINNER'      : { label: 'Bingo Winner',                  icon: '&#127942;', color: '#f1c40f' },
-        '10PAGESADAY_CHALLENGER': { label: '10 Pages a Day Challenger',     icon: '&#128293;', color: '#e74c3c' },
+        '10PAGESADAY_CHALLENGER': { label: '10 Pages a Day Challenger',     icon: '&#128293;', color: 'var(--color-danger)' },
         '10PAGESADAY_FINISHER'  : { label: '10 Pages a Day Finisher',       icon: '&#128293;', color: '#c0392b' }
       };
 
@@ -4871,7 +4871,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         }
         // Graceful fallback — styled emoji circle, still opens badge detail on tap
         var fallback = fallbackIcon || '&#127942;';
-        return '<div onclick="openBadgeDetailSheet(\'' + badgeId + '\')"'
+        return '<div role="button" tabindex="0" data-action onclick="openBadgeDetailSheet(\'' + badgeId + '\')"'
           + ' style="width:' + sizePx + 'px;height:' + sizePx + 'px;border-radius:50%;'
           + 'border:3px solid ' + accentClr + ';background:#f0e8f5;'
           + 'display:flex;align-items:center;justify-content:center;'
@@ -4982,7 +4982,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             + label + '</div>'
 
             // Winner row — avatar + name, tappable
-            + '  <div onclick="showMemberProfile(\'' + award.memberId + '\')"'
+            + '  <div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + award.memberId + '\')"'
             + '       style="display: flex; align-items: center; gap: 6px;'
             + '              cursor: pointer; justify-content: center;">'
             + avatarHtml
@@ -5070,7 +5070,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         // Name grid cells — each name truncated and tappable
         var nameCells = awardsForYear.map(function(award) {
-          return '<div onclick="showMemberProfile(\'' + award.memberId + '\')"'
+          return '<div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + award.memberId + '\')"'
             + ' style="font-size:0.72rem;font-weight:700;color:var(--text-strong);cursor:pointer;'
             + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 2px;">'
             + escapeHtml(award.memberDisplayName)
@@ -5241,7 +5241,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 + '<div style="display:flex;justify-content:center;margin-bottom:5px;">'
                 +   chipBadgeHtml
                 + '</div>'
-                + '<div onclick="showMemberProfile(\'' + award.memberId + '\')"'
+                + '<div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + award.memberId + '\')"'
                 +      ' style="font-size:0.65rem;font-weight:700;color:var(--text-strong);cursor:pointer;'
                 +             'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
                 +   firstName
@@ -5367,7 +5367,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             badgeLabel += ' (' + leader.badgeMeta + ')';
           }
 
-          html += '<div onclick="showMemberProfile(\'' + leader.memberId + '\')"'
+          html += '<div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + leader.memberId + '\')"'
             + '  style="flex-shrink: 0; width: 108px; background: #fff;'
             + '         border: 1px solid var(--border-soft);'
             + '         border-top: 3px solid ' + accent + ';'
@@ -5922,7 +5922,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             + escapeHtml(award.badgeName) + '</div>'
 
             // ── Member row — avatar + name, tappable ────────────────────
-            + '<div onclick="showMemberProfile(\'' + award.memberId + '\')"'
+            + '<div role="button" tabindex="0" data-action onclick="showMemberProfile(\'' + award.memberId + '\')"'
             + '     style="display: flex; align-items: center; gap: 8px;'
             + '            cursor: pointer;'
             + '            margin-bottom: ' + (award.notes ? '10px' : '0') + ';">'
@@ -6200,9 +6200,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       const BADGE_CATEGORY_DISPLAY = [
         { category: 'PAGE_MILESTONE',   label: 'Page Milestones',    icon: '📖', accent: '#3498db', metricKey: 'pageCount',        unit: 'pages'       },
         { category: 'BOOK_MILESTONE',   label: 'Book Milestones',    icon: '📚', accent: '#27ae60', metricKey: 'bookCount',        unit: 'books'       },
-        { category: 'STREAK_MILESTONE', label: 'Reading Streak',     icon: '🔥', accent: '#e67e22', metricKey: 'bestStreak',       unit: 'weeks'       },
+        { category: 'STREAK_MILESTONE', label: 'Reading Streak',     icon: '🔥', accent: 'var(--color-warning)', metricKey: 'bestStreak',       unit: 'weeks'       },
         { category: 'PLOGGER',          label: 'PLogger',            icon: '📅', accent: '#9b59b6', metricKey: 'totalWeeks',       unit: 'weeks'       },
-        { category: 'REVIEW_MILESTONE', label: 'Review Milestones',  icon: '✍️', accent: '#e74c3c', metricKey: 'reviewCount',      unit: 'reviews'     },
+        { category: 'REVIEW_MILESTONE', label: 'Review Milestones',  icon: '✍️', accent: 'var(--color-danger)', metricKey: 'reviewCount',      unit: 'reviews'     },
         { category: 'FAT_READ',         label: 'Fat Reads',          icon: '🧱', accent: '#795548', metricKey: 'fatReadMax',       unit: 'page book'   },
         { category: 'GENRE_EXPLORER',   label: 'Genre Explorer',     icon: '🗺️', accent: '#00897b', metricKey: null,               unit: 'books'       },
         { category: 'GENRE_COLLECTOR',  label: 'Genre Collector',    icon: '🎭', accent: '#5c6bc0', metricKey: 'uniqueGenreCount', unit: 'genres'      },
@@ -6211,7 +6211,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         { category: 'LIBRARIAN',        label: 'Librarian',          icon: '🏛️', accent: '#8e44ad', metricKey: 'libraryCount',     unit: 'books added' },
         { category: 'YEARLY',           label: 'Annual Awards',      icon: '🏆', accent: '#f1c40f', metricKey: null,               unit: null          },
         { category: 'SPECIAL',          label: 'Special Badges',     icon: '⭐', accent: 'var(--arka-accent)', metricKey: null,               unit: null          },
-        { category: 'ONBOARDING',       label: 'Onboarding Journey', icon: '🎓', accent: '#534AB7',           metricKey: null,               unit: null          }
+        { category: 'ONBOARDING',       label: 'Onboarding Journey', icon: '🎓', accent: 'var(--color-challenge)',           metricKey: null,               unit: null          }
       ];
 
 
@@ -6628,7 +6628,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         return `
           <div style="margin-top:5px;">
             <div style="background:var(--border-soft);border-radius:4px;height:5px;overflow:hidden;">
-              <div style="width:${pct}%;background:#EF9F27;height:100%;border-radius:4px;
+              <div style="width:${pct}%;background:var(--color-gamification);height:100%;border-radius:4px;
                           transition:width 0.4s ease;"></div>
             </div>
             <div style="font-size:0.66rem;color:var(--text-faint);margin-top:2px;">
@@ -6712,16 +6712,16 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // bg = band background (50-level tint), dot = trail dots (200-level),
         // bdr = separator border (100-level), btn = circle arrow fill (600-level).
         const BAND_PALETTE = {
-          PAGE_MILESTONE   : { bg: '#EEEDFE', dot: '#AFA9EC', bdr: '#CECBF6', btn: '#534AB7' },
+          PAGE_MILESTONE   : { bg: '#EEEDFE', dot: '#AFA9EC', bdr: '#CECBF6', btn: 'var(--color-challenge)' },
           BOOK_MILESTONE   : { bg: '#E1F5EE', dot: '#5DCAA5', bdr: '#9FE1CB', btn: '#0F6E56' },
           STREAK_MILESTONE : { bg: '#FAEEDA', dot: '#FAC775', bdr: '#FAC775', btn: '#BA7517' },
-          PLOGGER          : { bg: '#EEEDFE', dot: '#AFA9EC', bdr: '#CECBF6', btn: '#534AB7' },
+          PLOGGER          : { bg: '#EEEDFE', dot: '#AFA9EC', bdr: '#CECBF6', btn: 'var(--color-challenge)' },
           REVIEW_MILESTONE : { bg: '#FAECE7', dot: '#F0997B', bdr: '#F5C4B3', btn: '#993C1D' },
           FAT_READ         : { bg: '#F1EFE8', dot: '#B4B2A9', bdr: '#D3D1C7', btn: '#5F5E5A' },
-          GENRE_COLLECTOR  : { bg: '#EEEDFE', dot: '#AFA9EC', bdr: '#CECBF6', btn: '#534AB7' },
+          GENRE_COLLECTOR  : { bg: '#EEEDFE', dot: '#AFA9EC', bdr: '#CECBF6', btn: 'var(--color-challenge)' },
           ANNIVERSARY      : { bg: '#FAEEDA', dot: '#FAC775', bdr: '#FAC775', btn: '#BA7517' },
           SOCIAL_BUTTERFLY : { bg: '#E1F5EE', dot: '#5DCAA5', bdr: '#9FE1CB', btn: '#0F6E56' },
-          LIBRARIAN        : { bg: '#EEEDFE', dot: '#AFA9EC', bdr: '#CECBF6', btn: '#534AB7' },
+          LIBRARIAN        : { bg: '#EEEDFE', dot: '#AFA9EC', bdr: '#CECBF6', btn: 'var(--color-challenge)' },
         };
 
         const JOURNEY_SUPPORTED = ['PAGE_MILESTONE','BOOK_MILESTONE','STREAK_MILESTONE',
@@ -6826,7 +6826,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 </div>
                 <div style="height:6px;background:var(--border-soft);border-radius:3px;
                             overflow:hidden;">
-                  <div style="width:${pct}%;height:100%;background:#EF9F27;border-radius:3px;
+                  <div style="width:${pct}%;height:100%;background:var(--color-gamification);border-radius:3px;
                               transition:width 0.4s ease;"></div>
                 </div>
               </div>`;
@@ -6876,7 +6876,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 </div>
                 <div style="height:6px;background:var(--border-soft);border-radius:3px;
                             overflow:hidden;">
-                  <div style="width:${pct}%;height:100%;background:#EF9F27;border-radius:3px;
+                  <div style="width:${pct}%;height:100%;background:var(--color-gamification);border-radius:3px;
                               transition:width 0.4s ease;"></div>
                 </div>
               </div>` : ''}`;
@@ -6998,7 +6998,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        *                 visible with a "+N more" overflow chip. Keeps aspiration alive
        *                 without drowning earned content.
        *
-       * All progress bars use unified amber (#EF9F27) regardless of category.
+       * All progress bars use unified amber (var(--color-gamification)) regardless of category.
        *
        * @param {Object} geByGenre    - { [genre]: [badge...] } from buildBadgesByCategory_()
        * @param {Set}    earnedBadgeIds
@@ -7127,7 +7127,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 </div>
                 <div style="flex:1;height:5px;background:var(--border-soft);
                             border-radius:3px;overflow:hidden;">
-                  <div style="width:${g.pct}%;height:100%;background:#EF9F27;
+                  <div style="width:${g.pct}%;height:100%;background:var(--color-gamification);
                               border-radius:3px;"></div>
                 </div>
                 <div style="font-size:0.58rem;color:#BA7517;font-weight:500;
@@ -7601,7 +7601,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   </div>
                   <div style="height:5px;background:var(--border-soft);border-radius:3px;
                               overflow:hidden;">
-                    <div style="width:${c.pct}%;height:100%;background:#EF9F27;
+                    <div style="width:${c.pct}%;height:100%;background:var(--color-gamification);
                                 border-radius:3px;"></div>
                   </div>
                 </div>
@@ -7694,7 +7694,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             </div>
             <div style="text-align:center;border-left:1px solid rgba(255,255,255,0.15);
                         border-right:1px solid rgba(255,255,255,0.15);padding:0 14px;">
-              <div style="font-size:0.95rem;font-weight:700;color:#EF9F27;">${maxedCount}</div>
+              <div style="font-size:0.95rem;font-weight:700;color:var(--color-gamification);">${maxedCount}</div>
               <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);margin-top:2px;">
                 Series max'd
               </div>
@@ -7916,7 +7916,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const JRNY_PURPLE         = 'var(--arka-accent)'; // Arka Purple — earned path colour
         const JRNY_PURPLE_DARK    = 'var(--arka-accent-hover)'; // earned image border colour
         const JRNY_AMBER_SOLID    = '#BA7517'; // in-progress filled path portion
-        const JRNY_AMBER_DASH     = '#EF9F27'; // in-progress remaining dashed gap
+        const JRNY_AMBER_DASH     = 'var(--color-gamification)'; // in-progress remaining dashed gap
         const JRNY_GRAY_PATH      = '#D3D1C7'; // locked path background
 
         // Image diameter matches node circle diameter exactly so badge fills the node
@@ -8490,7 +8490,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                         justify-content:center; font-size:1.8rem; margin-bottom:8px;">🏅</div>`;
       
         const awardDateHtml = award
-          ? `<div style="font-size:0.68rem; color:#e67e22; margin-top:2px;">${award.awardedDate}</div>`
+          ? `<div style="font-size:0.68rem; color:var(--color-warning); margin-top:2px;">${award.awardedDate}</div>`
           : '';
       
         return `
@@ -8850,7 +8850,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (allComplete) {
           var totalPts = chapters.reduce(function(s, c) { return s + c.badgePts; }, 0);
           html += '<div class="ob-complete-banner">'
-                +   '<i class="fa-solid fa-trophy" style="font-size:24px;color:#1D9E75;display:block;margin-bottom:6px;"></i>'
+                +   '<i class="fa-solid fa-trophy" style="font-size:24px;color:var(--color-success);display:block;margin-bottom:6px;"></i>'
                 +   '<div style="font-size:13px;font-weight:700;color:#085041;">Onboarding complete!</div>'
                 +   '<div style="font-size:10px;color:#0F6E56;margin-top:2px;">'
                 +     chapters.length + ' badges earned &middot; ' + totalPts + ' club points'
@@ -8916,7 +8916,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           if (doneChapters.length > 0) {
             var earnedPts = doneChapters.reduce(function(s, c) { return s + c.badgePts; }, 0);
             html += '<div class="ob-done-strip">'
-                  +   '<i class="fa-solid fa-circle-check" style="color:#1D9E75;font-size:12px;"></i>'
+                  +   '<i class="fa-solid fa-circle-check" style="color:var(--color-success);font-size:12px;"></i>'
                   +   '<span class="ob-done-pill">'
                   +     '<i class="fa-solid fa-award" style="font-size:9px;"></i>'
                   +     ' ' + doneChapters.length
@@ -8943,7 +8943,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                     +        'onclick="toggleOnboardingChapter(\'' + ch.id + '\')">'
                     +     '<div class="ob-chapter-left">'
                     +       '<div class="ob-chapter-ico ob-chapter-ico-done">'
-                    +         '<i class="' + icon + '" style="color:#1D9E75;"></i>'
+                    +         '<i class="' + icon + '" style="color:var(--color-success);"></i>'
                     +       '</div>'
                     +       '<div>'
                     +         '<div class="ob-chapter-title-muted">' + escapeHtml(ch.title) + '</div>'
@@ -8982,7 +8982,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                     +        'onclick="toggleOnboardingChapter(\'' + ch.id + '\')">'
                     +     '<div class="ob-chapter-left">'
                     +       '<div class="ob-chapter-ico ob-chapter-ico-active">'
-                    +         '<i class="' + icon + '" style="color:#534AB7;"></i>'
+                    +         '<i class="' + icon + '" style="color:var(--color-challenge);"></i>'
                     +       '</div>'
                     +       '<div>'
                     +         '<div class="ob-chapter-title">' + escapeHtml(ch.title) + '</div>'
@@ -9054,7 +9054,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                       +     '<div style="font-size:10px;font-weight:600;color:#3C3489;">'
                       +       escapeHtml(ch.badgeLabel)
                       +     '</div>'
-                      +     '<div style="font-size:9px;color:#534AB7;margin-top:1px;">'
+                      +     '<div style="font-size:9px;color:var(--color-challenge);margin-top:1px;">'
                       +       ch.badgePts + ' pts when complete'
                       +     '</div>'
                       +   '</div>'
@@ -9105,8 +9105,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                        +       '<strong>?</strong> icon on this card.'
                        +     '</div>'
                        +     '<div class="ob-warn-btns">'
-                       +       '<div class="ob-warn-btn-keep" onclick="_onboardKeepIt()">Keep it</div>'
-                       +       '<div class="ob-warn-btn-remove" onclick="confirmOnboardingDismiss()">Remove it</div>'
+                       +       '<div class="ob-warn-btn-keep" role="button" tabindex="0" data-action onclick="_onboardKeepIt()">Keep it</div>'
+                       +       '<div class="ob-warn-btn-remove" role="button" tabindex="0" data-action onclick="confirmOnboardingDismiss()">Remove it</div>'
                        +     '</div>'
                        +   '</div>'
                        + '</div>';
@@ -9344,8 +9344,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // ── Theme palette — tint + accent + dot colour ───────────────────────
         // Mirrors the computeBookInsight_ palette for visual consistency.
         var COACH_THEME_PALETTE = {
-          amber  : { bg: '#fff8ee', accent: '#EF9F27', dot: '#EF9F27', label: '#854f0b'  },
-          teal   : { bg: '#edfaf4', accent: '#1D9E75', dot: '#1D9E75', label: '#0f6e56'  },
+          amber  : { bg: '#fff8ee', accent: 'var(--color-gamification)', dot: 'var(--color-gamification)', label: '#854f0b'  },
+          teal   : { bg: '#edfaf4', accent: 'var(--color-success)', dot: 'var(--color-success)', label: '#0f6e56'  },
           purple : { bg: '#f5f0ff', accent: 'var(--arka-accent)', dot: 'var(--arka-accent)', label: '#3c3489'  },
           blue   : { bg: '#eef6fd', accent: '#378add', dot: '#378add', label: '#185fa5'  },
           neutral: { bg: 'var(--surface-alt)', accent: 'var(--neutral-mid)', dot: 'var(--neutral-mid)', label: '#5f5e5a'  }
@@ -9356,19 +9356,19 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         var COACH_TASK_CONFIG = {
           // Shelf tasks — CTA opens openShelfModal()
           RATE_BOOK:           { iconBg: '#f5f0ff', iconColor: '#3c3489', iconClass: 'fa-star',          ctaBg: '#f5f0ff', ctaColor: '#3c3489', ctaBorder: 'var(--arka-accent)' },
-          WRITE_REVIEW:        { iconBg: '#fff8ee', iconColor: '#854f0b', iconClass: 'fa-comment-dots',  ctaBg: '#fff8ee', ctaColor: '#854f0b', ctaBorder: '#EF9F27' },
-          SHELF_STALE_READING: { iconBg: '#edfaf4', iconColor: '#0f6e56', iconClass: 'fa-book-open',     ctaBg: '#edfaf4', ctaColor: '#0f6e56', ctaBorder: '#1D9E75' },
+          WRITE_REVIEW:        { iconBg: '#fff8ee', iconColor: '#854f0b', iconClass: 'fa-comment-dots',  ctaBg: '#fff8ee', ctaColor: '#854f0b', ctaBorder: 'var(--color-gamification)' },
+          SHELF_STALE_READING: { iconBg: '#edfaf4', iconColor: '#0f6e56', iconClass: 'fa-book-open',     ctaBg: '#edfaf4', ctaColor: '#0f6e56', ctaBorder: 'var(--color-success)' },
           // Book metadata tasks — CTA opens openBookDetailView()
-          BOOK_MISSING_PAGES:  { iconBg: '#fff3e0', iconColor: '#854f0b', iconClass: 'fa-hashtag',       ctaBg: '#fff3e0', ctaColor: '#854f0b', ctaBorder: '#EF9F27' },
+          BOOK_MISSING_PAGES:  { iconBg: '#fff3e0', iconColor: '#854f0b', iconClass: 'fa-hashtag',       ctaBg: '#fff3e0', ctaColor: '#854f0b', ctaBorder: 'var(--color-gamification)' },
           BOOK_MISSING_GENRE:  { iconBg: '#f0f4ff', iconColor: '#185fa5', iconClass: 'fa-tag',           ctaBg: '#f0f4ff', ctaColor: '#185fa5', ctaBorder: '#378add' },
           BOOK_MISSING_COVER:  { iconBg: '#f9f0ff', iconColor: '#6d3fa0', iconClass: 'fa-image',         ctaBg: '#f9f0ff', ctaColor: '#6d3fa0', ctaBorder: '#9b59b6' },
           // Momentum tasks — CTA opens the progress log modal
-          STREAK_AT_RISK:      { iconBg: '#fff0f0', iconColor: '#c0392b', iconClass: 'fa-fire',          ctaBg: '#fff0f0', ctaColor: '#c0392b', ctaBorder: '#e74c3c' },
-          FIRST_LOG_THIS_WEEK: { iconBg: '#edfaf4', iconColor: '#0f6e56', iconClass: 'fa-book-open',     ctaBg: '#edfaf4', ctaColor: '#0f6e56', ctaBorder: '#1D9E75' },
+          STREAK_AT_RISK:      { iconBg: '#fff0f0', iconColor: '#c0392b', iconClass: 'fa-fire',          ctaBg: '#fff0f0', ctaColor: '#c0392b', ctaBorder: 'var(--color-danger)' },
+          FIRST_LOG_THIS_WEEK: { iconBg: '#edfaf4', iconColor: '#0f6e56', iconClass: 'fa-book-open',     ctaBg: '#edfaf4', ctaColor: '#0f6e56', ctaBorder: 'var(--color-success)' },
           // Hygiene — To Read stale, CTA opens openShelfModal()
-          TO_READ_STALE:       { iconBg: '#edfaf4', iconColor: '#0f6e56', iconClass: 'fa-bookmark',      ctaBg: '#edfaf4', ctaColor: '#0f6e56', ctaBorder: '#1D9E75' },
+          TO_READ_STALE:       { iconBg: '#edfaf4', iconColor: '#0f6e56', iconClass: 'fa-bookmark',      ctaBg: '#edfaf4', ctaColor: '#0f6e56', ctaBorder: 'var(--color-success)' },
           // Social — CTA opens the challenges tab
-          JOIN_CHALLENGE:      { iconBg: '#fff8ee', iconColor: '#854f0b', iconClass: 'fa-trophy',        ctaBg: '#fff8ee', ctaColor: '#854f0b', ctaBorder: '#EF9F27' },
+          JOIN_CHALLENGE:      { iconBg: '#fff8ee', iconColor: '#854f0b', iconClass: 'fa-trophy',        ctaBg: '#fff8ee', ctaColor: '#854f0b', ctaBorder: 'var(--color-gamification)' },
           // Nudge to link pages to a book after repeated unlinked sessions
           UNLINKED_HABIT:      { iconBg: '#f0f4ff', iconColor: '#185fa5', iconClass: 'fa-book-medical',  ctaBg: '#f0f4ff', ctaColor: '#185fa5', ctaBorder: '#378add' }
         };
@@ -9629,7 +9629,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(crBook.title) + '</div>'
             + '<div style="height:5px;background:var(--border-soft);border-radius:3px;'
             + 'margin:5px 0 3px;overflow:hidden;">'
-            + '<div style="height:100%;width:' + crPct + '%;background:#1D9E75;border-radius:3px;"></div>'
+            + '<div style="height:100%;width:' + crPct + '%;background:var(--color-success);border-radius:3px;"></div>'
             + '</div>'
             + '<div style="font-size:10px;color:var(--text-muted);">'
             + 'p.' + crCurrent + (crTotal > 0 ? ' of ' + crTotal : '') + ' · last read ' + crLastLbl
@@ -9748,12 +9748,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         // Background + border → completion green
         cardEl.style.background   = '#edfaf4';
-        cardEl.style.borderColor  = '#1D9E75';
+        cardEl.style.borderColor  = 'var(--color-success)';
 
         // Icon wrapper → solid teal with white checkmark
         var iconWrap = cardEl.querySelector('.coach-task-icon');
         if (iconWrap) {
-          iconWrap.style.background = '#1D9E75';
+          iconWrap.style.background = 'var(--color-success)';
           iconWrap.innerHTML = '<i class="fa-solid fa-check" style="color:white; font-size:13px;"></i>';
         }
 
@@ -9851,7 +9851,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                                  text-transform:uppercase;letter-spacing:0.5px;">Badges</span>
                     ${earnedCountLabel}
                   </div>
-                  <div onclick="openBadgeGallery()"
+                  <div role="button" tabindex="0" data-action onclick="openBadgeGallery()"
                        style="font-size:0.78rem;color:var(--arka-accent);font-weight:500;cursor:pointer;
                               background:#f5f0ff;padding:4px 10px;border-radius:12px;">
                     See all →
@@ -9957,7 +9957,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             ? 'Auto-awarded by system'
             : ((membersMap.get(myAward.awardedBy) || {}).displayName || 'Club Admin');
           awardedByHtml = `
-            <div style="font-size:0.78rem; color:#e67e22; font-weight:500; margin:4px 0 8px;">
+            <div style="font-size:0.78rem; color:var(--color-warning); font-weight:500; margin:4px 0 8px;">
               ${escapeHtml(awarderName)} · ${myAward.awardedDate}
             </div>
           `;
@@ -10483,7 +10483,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 <span style="font-size:0.64rem; letter-spacing:1.5px; text-transform:uppercase;
                              color:var(--text-faint);">${v.axis}</span>
                 <span style="margin-left:auto; font-family:var(--font-display); font-weight:700;
-                             font-size:0.85rem; color:#534AB7;">${v.side}</span>
+                             font-size:0.85rem; color:var(--color-challenge);">${v.side}</span>
               </div>
               <!-- Axis description — what it measures -->
               <div style="font-size:0.72rem; color:var(--text-faint); margin-bottom:10px;
@@ -10510,7 +10510,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         }).join('');
 
         // ── Insight cards ──────────────────────────────────────────────────
-        const accentColors = { gold: '#EF9F27', purple: '#534AB7', green: '#1D9E75' };
+        const accentColors = { gold: 'var(--color-gamification)', purple: 'var(--color-challenge)', green: 'var(--color-success)' };
         const insightCards = insights.map(function(ins) {
           const borderColor = accentColors[ins.accent] || 'var(--arka-accent)';
           return `
@@ -10572,8 +10572,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             const toLabel   = shiftM ? shiftM[2].trim() : '';
             let dateLabel = '';
             try {
-              const d = parseArkaDateString_(shift.activityDate);
-              if (d && !isNaN(d)) dateLabel = d.toLocaleDateString('en-GB', { month:'short', year:'numeric' });
+              // activityDate format: "dd-MM-yyyy HH:mm:ss +ZZZZ"
+              // new Date() mis-parses this, so split manually.
+              const parts = (shift.activityDate || '').split(/[\s\-:+]/);
+              const d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+              if (!isNaN(d)) dateLabel = d.toLocaleDateString('en-GB', { month:'short', year:'numeric' });
             } catch(e) {}
             return `
               <div style="display:flex;align-items:flex-start;gap:10px;
@@ -10590,7 +10593,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                        <span style="text-decoration:line-through;color:#c8b8d8;
                                     font-size:0.8rem;margin:0 5px;">${fromLabel}</span>→
                        <span style="font-family:var(--font-display);font-weight:700;
-                                    color:#534AB7;margin-left:5px;">${toLabel}</span>`
+                                    color:var(--color-challenge);margin-left:5px;">${toLabel}</span>`
                     : `<span style="color:var(--text-faint);">${desc}</span>`}
                 </div>
               </div>`;
@@ -10617,7 +10620,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                       align-items:flex-start;">
             <span style="font-size:1.1rem;flex-shrink:0;">🔓</span>
             <div style="font-size:0.76rem;color:var(--arka-accent-hover);line-height:1.5;">
-              <b style="color:#534AB7;">${formingCount} ${formingCount === 1 ? 'axis is' : 'axes are'} still forming.</b>
+              <b style="color:var(--color-challenge);">${formingCount} ${formingCount === 1 ? 'axis is' : 'axes are'} still forming.</b>
               Keep logging pages to reveal ${formingCount === 1 ? 'it' : 'them'} — each one adds
               a new dimension to your personality.
             </div>
@@ -10676,7 +10679,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           <!-- ── About intro ── -->
           <div style="background:#f9f5ff;border-radius:12px;padding:13px 16px;
                       margin-bottom:20px;border-left:4px solid var(--arka-accent);">
-            <div style="font-size:0.78rem;color:#534AB7;font-weight:600;margin-bottom:4px;">
+            <div style="font-size:0.78rem;color:var(--color-challenge);font-weight:600;margin-bottom:4px;">
               About this profile
             </div>
             <div style="font-size:0.76rem;color:var(--text-muted);line-height:1.6;">
@@ -10973,7 +10976,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                     </div>
                   </div>
                   <button onclick="submitRevokeAward('${award.awardId}')"
-                          style="background:none; border:1px solid #e74c3c; color:#e74c3c;
+                          style="background:none; border:1px solid var(--color-danger); color:var(--color-danger);
                                 padding:4px 10px; border-radius:6px; font-size:0.72rem;
                                 width:auto; font-weight:500; cursor:pointer;">
                     Revoke
@@ -10983,11 +10986,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             }).join('');
       
         return `
-          <div style="border-top:2px solid #e67e22; padding-top:22px; margin-top:8px;">
+          <div style="border-top:2px solid var(--color-warning); padding-top:22px; margin-top:8px;">
       
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:18px;">
-              <div style="width:10px; height:10px; border-radius:50%; background:#e67e22;"></div>
-              <span style="font-size:0.68rem; color:#e67e22; font-weight:bold;
+              <div style="width:10px; height:10px; border-radius:50%; background:var(--color-warning);"></div>
+              <span style="font-size:0.68rem; color:var(--color-warning); font-weight:bold;
                           text-transform:uppercase; letter-spacing:0.5px;">Admin Panel</span>
             </div>
       
@@ -11024,7 +11027,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               <input type="hidden" id="adminBadgeImageBase64">
       
               <button onclick="submitNewBadge()" id="createBadgeBtn"
-                      style="background:#e67e22; color:white; border:none; padding:10px 20px;
+                      style="background:var(--color-warning); color:white; border:none; padding:10px 20px;
                             border-radius:6px; font-size:0.9rem; font-weight:bold;
                             cursor:pointer; width:100%;">
                 Create Badge
@@ -11877,7 +11880,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const toggleHtml = `
           <div style="display:flex; background:var(--surface-alt); border-radius:8px;
                       padding:3px; margin-bottom:10px; gap:0;">
-            <div onclick="setRankingsTimeframe('alltime')"
+            <div role="button" tabindex="0" data-action onclick="setRankingsTimeframe('alltime')"
                  style="flex:1; text-align:center; padding:7px 0; border-radius:6px;
                         font-size:0.88rem; font-weight:500; cursor:pointer;
                         ${!isYear
@@ -11885,7 +11888,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                           : 'color:var(--text-muted);'}">
               All–Time
             </div>
-            <div onclick="setRankingsTimeframe('year')"
+            <div role="button" tabindex="0" data-action onclick="setRankingsTimeframe('year')"
                  style="flex:1; text-align:center; padding:7px 0; border-radius:6px;
                         font-size:0.88rem; font-weight:500; cursor:pointer;
                         ${isYear
@@ -11991,7 +11994,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 ${escapeHtml(cfg.yearDescription || cfg.description)}
               </div>
             </div>
-            <div onclick="_goToBadgeByMeta_('${badgeMeta}')"
+            <div role="button" tabindex="0" data-action onclick="_goToBadgeByMeta_('${badgeMeta}')"
                  style="font-size:0.72rem; padding:4px 10px; border-radius:20px;
                         background:white; color:var(--arka-accent); font-weight:600;
                         border:0.5px solid #d8c8f0; cursor:pointer;
@@ -12040,7 +12043,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                         padding:30px 20px; text-align:center; margin-bottom:20px;">
               <div style="font-size:0.65rem; color:rgba(255,255,255,0.5); text-transform:uppercase;
                           letter-spacing:1px; margin-bottom:20px;">${cfg.description}</div>
-              ${buildPodiumAvatar(member, 72, '#EF9F27')}
+              ${buildPodiumAvatar(member, 72, 'var(--color-gamification)')}
               <div style="color:white; font-size:1.05rem; font-weight:bold; margin-bottom:4px;
                           cursor:pointer;" onclick="showMemberProfile('${member.id}')">
                 ${member.displayName}
@@ -12113,7 +12116,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             </div>
             <div style="display:flex; align-items:flex-end; justify-content:center; gap:8px;">
               ${buildPodiumColumn(secondPlace, 2, 40, 45, '#B4B2A9', '#888780', '0.72rem')}
-              ${buildPodiumColumn(firstPlace,  1, 52, 68, '#FAC775', '#EF9F27', '0.80rem')}
+              ${buildPodiumColumn(firstPlace,  1, 52, 68, '#FAC775', 'var(--color-gamification)', '0.80rem')}
               ${buildPodiumColumn(thirdPlace,  3, 36, 30, '#F0997B', '#D85A30', '0.68rem')}
             </div>
           </div>
@@ -12134,8 +12137,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const initLetter = member.displayName ? member.displayName.charAt(0).toUpperCase() : '?';
       
         // Map border/ring colour → matching fill and text colours (matching the medal palette)
-        const fillColorByBorder = { '#EF9F27': '#FAC775', '#888780': '#B4B2A9', '#D85A30': '#F0997B' };
-        const textColorByBorder = { '#EF9F27': '#412402', '#888780': '#2C2C2A', '#D85A30': '#4A1B0C' };
+        const fillColorByBorder = { 'var(--color-gamification)': '#FAC775', '#888780': '#B4B2A9', '#D85A30': '#F0997B' };
+        const textColorByBorder = { 'var(--color-gamification)': '#412402', '#888780': '#2C2C2A', '#D85A30': '#4A1B0C' };
         const fillColor = fillColorByBorder[borderColor] || 'var(--border-soft)';
         const textColor = textColorByBorder[borderColor] || '#444';
       
@@ -12398,7 +12401,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         var okBtn = document.getElementById('confirmModalOkBtn');
         okBtn.textContent         = label;
-        okBtn.style.backgroundColor = isDanger ? '#e74c3c' : '#3498db';
+        okBtn.style.backgroundColor = isDanger ? 'var(--color-danger)' : '#3498db';
 
         /* Wire the confirm action — replace any previous listener */
         okBtn.onclick = function() {
@@ -12413,10 +12416,22 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
 
       // ── Sort state ────────────────────────────────────────────────────────────
-      // Tracks which sort is currently active in the All Books tab.
-      // Values: 'recent' | 'az' | 'rated' | 'mostread'
-      /** Current sort key. Values: 'recent' | 'az' | 'rated' | 'mostread' */
+      // ── Reading Speed Engine — frontend stub ─────────────────────────────────
+      // Full RSE V1 runs nightly in MasterEngine.gs and writes to member.stats.readingSpeed (Col O).
+      // rseEstimateDays_ reads that pre-computed pace first; when absent it falls back to raw
+      // page count so sort order degrades gracefully to a Pages sort (step 5 of fallback chain).
+      function rseEstimateDays_(pages) {
+        if (!pages || pages <= 0) return null;
+        var rse  = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed;
+        var pace = rse && rse.overallAvgPace > 0 ? rse.overallAvgPace : 0;
+        return pace > 0 ? pages / pace : pages; // fallback: raw page count as proxy
+      }
+      // ── End Reading Speed Engine stub ────────────────────────────────────────
+
+      /** Current sort key. Values: 'recent' | 'az' | 'rated' | 'mostread' | 'pages' | 'year' | 'readtime' | 'activity' */
       var currentLibrarySort        = 'recent';
+      /** true = ascending, false = descending. Each sort has its own sensible default. */
+      var currentLibrarySortAsc     = false; // 'recent' defaults descending (newest first)
 
       /** Active genre filter — canonical name from GENRE_ALIAS_MAP_FRONTEND, or null. */
       var currentLibraryGenreFilter = null;
@@ -12440,7 +12455,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         { key: 'unread',   label: 'Unread',   activeBg: 'var(--text-strong)', chipBg: null,      chipBorder: null,      statusMatch: null },
         { key: 'toread',   label: 'To Read',  activeBg: '#185FA5', chipBg: '#E6F1FB', chipBorder: '#85B7EB', // Blue
           statusMatch: function(s) { return s === 'To Read'; } },
-        { key: 'reading',  label: 'Reading',  activeBg: '#BA7517', chipBg: '#FAEEDA', chipBorder: '#EF9F27', // Amber
+        { key: 'reading',  label: 'Reading',  activeBg: '#BA7517', chipBg: '#FAEEDA', chipBorder: 'var(--color-gamification)', // Amber
           statusMatch: function(s) { return s === 'Reading'; } },
         { key: 'finished', label: 'Finished', activeBg: '#3B6D11', chipBg: '#EAF3DE', chipBorder: '#97C459', // Green
           statusMatch: function(s) { return s === 'Finished' || s === 'Did Not Finish'; } },
@@ -12469,16 +12484,17 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        */
       var LIBRARY_SORT_OPTIONS = [
         {
-          key  : 'recent',
-          label: 'Recently Added',
-          // globalBooksDB is in insertion order (oldest first) — reverse for newest first
+          key       : 'recent',
+          label     : 'Recently Added',
+          defaultAsc: false, // newest first
           sort : function(books) {
             return books.slice().reverse();
           }
         },
         {
-          key  : 'az',
-          label: 'A – Z',
+          key       : 'az',
+          label     : 'A – Z',
+          defaultAsc: true, // A→Z
           sort : function(books) {
             return books.slice().sort(function(a, b) {
               return a.title.localeCompare(b.title);
@@ -12486,8 +12502,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         },
         {
-          key  : 'rated',
-          label: 'Top Rated',
+          key       : 'rated',
+          label     : 'Top Rated',
+          defaultAsc: false, // highest first
           sort : function(books) {
             // Build avg rating from globalShelvesDB — O(n) once per sort
             var ratingMap = new Map(); // bookId → { sum, count }
@@ -12513,8 +12530,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         },
         {
-          key  : 'mostread',
-          label: 'Most Read',
+          key       : 'mostread',
+          label     : 'Most Read',
+          defaultAsc: false, // most readers first
           sort : function(books) {
             // Count unique members who have this book on their shelf (any status)
             var readerMap = new Map(); // bookId → Set of memberIds
@@ -12532,6 +12550,124 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               return countB - countA;
             });
           }
+        },
+        {
+          key       : 'pages',
+          label     : 'Pages',
+          defaultAsc: true, // shortest first
+          sort : function(books) {
+            return books.slice().sort(function(a, b) {
+              var pa = Number(a.pages) || 0;
+              var pb = Number(b.pages) || 0;
+              // books with no page count go to the end
+              if (!pa && !pb) return 0;
+              if (!pa) return 1;
+              if (!pb) return -1;
+              return pa - pb; // shortest first
+            });
+          }
+        },
+        {
+          key       : 'year',
+          label     : 'Year Published',
+          defaultAsc: false, // newest first
+          sort : function(books) {
+            return books.slice().sort(function(a, b) {
+              var ya = parseInt((a.publishedDate || '').toString().trim().slice(0, 4)) || 0;
+              var yb = parseInt((b.publishedDate || '').toString().trim().slice(0, 4)) || 0;
+              return yb - ya; // newest first; books with no year go to the end
+            });
+          }
+        },
+        {
+          key       : 'readtime',
+          label     : 'Reading Time',
+          defaultAsc: true, // quickest first
+          sort : function(books) {
+            return books.slice().sort(function(a, b) {
+              var pa = Number(a.pages) || 0;
+              var pb = Number(b.pages) || 0;
+              if (!pa && !pb) return 0;
+              if (!pa) return 1;  // no pages → end
+              if (!pb) return -1;
+              var da = rseEstimateDays_(pa);
+              var db = rseEstimateDays_(pb);
+              if (da === null && db === null) return pa - pb; // fallback: page count
+              if (da === null) return 1;
+              if (db === null) return -1;
+              return da - db; // quickest read first
+            });
+          }
+        },
+        {
+          key       : 'activity',
+          label     : 'Club Activity',
+          defaultAsc: false, // most active first
+          sort : function(books) {
+            // Composite score per book (all from in-memory DBs, no fetch):
+            //   - recency:   ms timestamp of most recent page log or post (last 90 days)
+            //   - volume:    count of page logs in last 30 days
+            //   - posts:     count of book posts in last 30 days
+            //   - readers:   count of members with status = Reading right now
+            var NOW_MS    = Date.now();
+            var CUT90     = NOW_MS - 90  * 86400000;
+            var CUT30     = NOW_MS - 30  * 86400000;
+
+            // Page log signals
+            var logRecency = new Map(); // bookId → latest log ms within 90 days
+            var logCount30 = new Map(); // bookId → log count in last 30 days
+            globalPageLogDB.forEach(function(l) {
+              if (!l.bookId || l.pagesDelta <= 0) return;
+              var ts = parseGoogleDate(l.timestamp);
+              if (!ts || isNaN(ts.getTime())) return;
+              var ms = ts.getTime();
+              if (ms < CUT90) return;
+              if (!logRecency.has(l.bookId) || ms > logRecency.get(l.bookId)) {
+                logRecency.set(l.bookId, ms);
+              }
+              if (ms >= CUT30) {
+                logCount30.set(l.bookId, (logCount30.get(l.bookId) || 0) + 1);
+              }
+            });
+
+            // Post signals
+            var postRecency = new Map(); // bookId → latest post ms within 90 days
+            var postCount30 = new Map(); // bookId → post count in last 30 days
+            globalBookPostsDB.forEach(function(p) {
+              if (!p.bookId) return;
+              var ts = parseGoogleDate(p.timestamp);
+              if (!ts || isNaN(ts.getTime())) return;
+              var ms = ts.getTime();
+              if (ms < CUT90) return;
+              if (!postRecency.has(p.bookId) || ms > postRecency.get(p.bookId)) {
+                postRecency.set(p.bookId, ms);
+              }
+              if (ms >= CUT30) {
+                postCount30.set(p.bookId, (postCount30.get(p.bookId) || 0) + 1);
+              }
+            });
+
+            // Active readers count
+            var activeReaders = new Map(); // bookId → count of members with status=Reading
+            globalShelvesDB.forEach(function(s) {
+              if (s.status !== 'Reading') return;
+              activeReaders.set(s.bookId, (activeReaders.get(s.bookId) || 0) + 1);
+            });
+
+            function score(bookId) {
+              var latestMs   = Math.max(logRecency.get(bookId) || 0, postRecency.get(bookId) || 0);
+              var recency    = latestMs > 0 ? latestMs / 1000 : 0; // seconds, large number = recent
+              var logVol     = logCount30.get(bookId)   || 0;
+              var postVol    = postCount30.get(bookId)  || 0;
+              var liveReaders = activeReaders.get(bookId) || 0;
+              // Weights: recency dominates, then volume signals, live readers as tiebreaker
+              return recency + (logVol * 3600) + (postVol * 7200) + (liveReaders * 86400);
+            }
+
+            return books.slice().sort(function(a, b) {
+              return score(b.id) - score(a.id); // highest activity first
+            });
+          }
         }
       ];
     
@@ -12544,15 +12680,16 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       function renderSortChips() {
         var container = document.getElementById('libSortChips');
         if (!container) return;
-    
+
         container.innerHTML = LIBRARY_SORT_OPTIONS.map(function(opt) {
-          var isActive = opt.key === currentLibrarySort;
+          var isActive  = opt.key === currentLibrarySort;
+          var arrow     = isActive ? ' ' + (currentLibrarySortAsc ? '↑' : '↓') : '';
           return '<div class="genre-chip"' +
                 ' style="' + (isActive
                   ? 'background:var(--text-strong);color:white;border-color:var(--text-strong);'
                   : '') + '"' +
                 ' onclick="switchLibrarySort(\'' + opt.key + '\')">' +
-                  opt.label +
+                  opt.label + arrow +
                 '</div>';
         }).join('');
       }
@@ -12565,9 +12702,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        * @param {string} sortKey - One of the keys in LIBRARY_SORT_OPTIONS
        */
       function switchLibrarySort(sortKey) {
-        currentLibrarySort = sortKey;
+        if (sortKey === currentLibrarySort) {
+          currentLibrarySortAsc = !currentLibrarySortAsc; // same chip — flip direction
+        } else {
+          var opt = LIBRARY_SORT_OPTIONS.find(function(o) { return o.key === sortKey; });
+          currentLibrarySort    = sortKey;
+          currentLibrarySortAsc = opt ? opt.defaultAsc : false;
+        }
         renderSortChips();
-        filterLibrary(); // Re-apply current search with new sort
+        filterLibrary();
       }
 
       /**
@@ -12723,9 +12866,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           });
         }
 
-        // ── Step 4: Apply active sort ──────────────────────────────────────────────
+        // ── Step 4: Apply active sort + direction ─────────────────────────────────
         var sortOpt = LIBRARY_SORT_OPTIONS.find(function(o) { return o.key === currentLibrarySort; });
         var sorted  = sortOpt ? sortOpt.sort(shelfFiltered) : shelfFiltered;
+        // Each sort function always produces its "default" order; flip when needed.
+        if (sortOpt && currentLibrarySortAsc !== sortOpt.defaultAsc) sorted = sorted.slice().reverse();
 
         // ── Step 5: Update the active genre filter chip row ────────────────────────
         // Shows a dismissible pill so members can see the active filter and understand
@@ -12865,7 +13010,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             if (avgRating > 0) {
               // ★ character (U+2605) — no emoji, no external icon dependency
               statParts.push(
-                '<span style="color:#e67e22;">&#9733; ' + avgRating.toFixed(1) + '</span>'
+                '<span style="color:var(--color-warning);">&#9733; ' + avgRating.toFixed(1) + '</span>'
               );
             }
             if (readerCount > 0) {
@@ -12941,8 +13086,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         var searchEl = document.getElementById('librarySearch');
         if (searchEl) searchEl.value = '';
         currentLibrarySort        = 'recent';
-        currentLibraryGenreFilter = null;  // Clears any genre chip filter from a previous session
-        currentLibraryShelfFilter = 'all'; // Resets personal shelf filter to show all books
+        currentLibrarySortAsc     = false; // 'recent' defaults descending (newest first)
+        currentLibraryGenreFilter = null;
+        currentLibraryShelfFilter = 'all';
 
         renderShelfFilterChips();
         renderSortChips();
@@ -13608,7 +13754,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           + '-webkit-box-orient:vertical;color:var(--text-strong);">'
           + escapeHtml(opts.label) + '</div>';
 
-        return '<div onclick="' + opts.onclick + '" '
+        return '<div role="button" tabindex="0" data-action onclick="' + opts.onclick + '" '
           + 'style="display:flex;flex-direction:column;align-items:center;'
           + 'cursor:pointer;flex:0 0 auto;user-select:none;">'
           + coverHtml + labelHtml + '</div>';
@@ -13794,7 +13940,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
           if (summaryLine) {
             const deltaStr   = delta > 0 ? ('+' + delta) : String(delta);
-            const deltaColor = delta >= 0 ? '#27ae60' : '#e67e22';
+            const deltaColor = delta >= 0 ? '#27ae60' : 'var(--color-warning)';
             const deltaHtml  = (delta !== 0)
               ? ' · <span style="color:' + deltaColor + ';">' + deltaStr + ' today</span>' : '';
             if (total > 0 && entered > 0) {
@@ -13862,9 +14008,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // ── 10 Pages a Day surfaces — dual members only. TEMPORARY. ──────────────
         const isDual   = TEN_PAGES_DUAL_MEMBER_IDS.indexOf(currentUser) !== -1;
         const syncNote = document.getElementById('logReadingSyncNote');
-        const tempDot  = document.getElementById('logReadingNoteTempDot');
         if (syncNote) syncNote.style.display = isDual ? 'flex' : 'none';
-        if (tempDot)  tempDot.style.display  = isDual ? 'inline-block' : 'none';
         if (isDual) logReadingLoadTenPagesNote();
 
         const saveBtn = document.getElementById('logReadingSaveBtn');
@@ -14656,7 +14800,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        *   var(--text-strong)  Primary header / btn-primary
        *   #1a252f  Header logo bg / hover state
        *   var(--arka-accent-hover)  Arka Purple dark (btn-accent hover)
-       *   #534AB7  Luminary tier ring
+       *   var(--color-challenge)  Luminary tier ring
        *   #0F6E56  Sage tier ring
        *   #085041  Bibliophile tier text
        *   #185FA5  Scholar tier ring (darkened)
@@ -14674,7 +14818,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           'var(--text-strong)', // Midnight Blue
           '#1a252f', // Deep Navy
           'var(--arka-accent-hover)', // Arka Purple Dark
-          '#534AB7', // Luminary Blue
+          'var(--color-challenge)', // Luminary Blue
           '#0F6E56', // Sage Teal
           '#085041', // Deep Teal
           '#185FA5', // Scholar Blue
@@ -14963,7 +15107,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // Status config with dot colour, label, avatar bg/text for each status
         const SHELF_STATUS_CFG = [
           { key:'Reading',        dot:'#378ADD', label:'Reading now',    bg:'#E6F1FB', fg:'#0C447C' },
-          { key:'Finished',       dot:'#1D9E75', label:'Finished',       bg:'#E1F5EE', fg:'#085041' },
+          { key:'Finished',       dot:'var(--color-success)', label:'Finished',       bg:'#E1F5EE', fg:'#085041' },
           { key:'To Read',        dot:'#888780', label:'To read',        bg:'#F1EFE8', fg:'#444441' },
           { key:'Did Not Finish', dot:'#E24B4A', label:'Did not finish', bg:'#FCEBEB', fg:'#A32D2D' }
         ];
@@ -14986,27 +15130,50 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               subText = u.pages > 0
                 ? 'p.&nbsp;' + u.pages
                 : getSmartTimeAgo(parseGoogleDate(u.date));
-            } else if (cfg.key === 'Finished') {
-              const stars = u.rating > 0 ? '★ ' + u.rating : '';
-              subText = stars || formatShelfDate(u.dateFinished) || getSmartTimeAgo(parseGoogleDate(u.date));
-            } else {
+            } else if (cfg.key !== 'Finished') {
               subText = getSmartTimeAgo(parseGoogleDate(u.date));
             }
 
             // Truncate long display names for the avatar label
             const shortName = u.name.length > 8 ? u.name.slice(0, 7) + '…' : u.name;
 
-            avItems +=
-              `<div class="detail-shelf-av-item"
-                    onclick="showMemberProfile('${u.memberId}')"
-                    style="cursor:pointer;">
-                 ${buildShelfAvHtml(u, cfg.bg, cfg.fg)}
-                 <div style="font-size:0.68rem;color:#34495e;margin-top:4px;
-                             white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                   ${escapeHtml(shortName)}
-                 </div>
-                 <div style="font-size:0.62rem;color:var(--text-faint);">${subText}</div>
-               </div>`;
+            if (cfg.key === 'Finished') {
+              const ratingBadge = u.rating > 0
+                ? `<div style="position:absolute;top:-6px;right:-10px;
+                               background:var(--color-warning);color:#fff;
+                               font-size:0.6rem;font-weight:700;
+                               padding:3px 5px;border-radius:12px;
+                               box-shadow:0 2px 4px rgba(0,0,0,0.2);
+                               white-space:nowrap;z-index:10;line-height:1.2;">★ ${u.rating}</div>`
+                : '';
+              const dateLabel = formatShelfDate(u.dateFinished) || getSmartTimeAgo(parseGoogleDate(u.date));
+              avItems +=
+                `<div class="detail-shelf-av-item"
+                      onclick="showMemberProfile('${u.memberId}')"
+                      style="cursor:pointer;">
+                   <div style="position:relative;display:inline-block;padding:6px 8px 0 0;">
+                     ${buildShelfAvHtml(u, cfg.bg, cfg.fg)}
+                     ${ratingBadge}
+                   </div>
+                   <div style="font-size:0.68rem;color:#34495e;margin-top:4px;
+                               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                     ${escapeHtml(shortName)}
+                   </div>
+                   <div style="font-size:0.6rem;color:var(--text-faint);">${escapeHtml(dateLabel)}</div>
+                 </div>`;
+            } else {
+              avItems +=
+                `<div class="detail-shelf-av-item"
+                      onclick="showMemberProfile('${u.memberId}')"
+                      style="cursor:pointer;">
+                   ${buildShelfAvHtml(u, cfg.bg, cfg.fg)}
+                   <div style="font-size:0.68rem;color:#34495e;margin-top:4px;
+                               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                     ${escapeHtml(shortName)}
+                   </div>
+                   <div style="font-size:0.62rem;color:var(--text-faint);">${subText}</div>
+                 </div>`;
+            }
           });
 
           shelvesHtml +=
@@ -15075,7 +15242,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // DNF badge — shown inline after member name so readers know the review
           // context is a partial read, not a finished opinion.
           const dnfBadgeHtml = shelf.status === 'Did Not Finish'
-            ? `<span style="font-size:0.68rem;font-weight:700;color:#e67e22;
+            ? `<span style="font-size:0.68rem;font-weight:700;color:var(--color-warning);
                             background:#fef5ec;border:1px solid #f0a060;
                             border-radius:4px;padding:1px 6px;margin-left:6px;
                             vertical-align:middle;white-space:nowrap;">Did Not Finish</span>`
@@ -15097,7 +15264,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                </div>`;
 
           const starsHtml = shelf.rating > 0
-            ? `<div style="font-size:0.82rem;color:#EF9F27;margin-bottom:5px;letter-spacing:1px;">
+            ? `<div style="font-size:0.82rem;color:var(--color-gamification);margin-bottom:5px;letter-spacing:1px;">
                  ${'★'.repeat(shelf.rating)}${'☆'.repeat(5 - shelf.rating)}
                </div>`
             : '';
@@ -15127,7 +15294,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             reviewsHtml +=
               `<div style="padding:10px 0;border-bottom:0.5px solid var(--border-soft);">
                  <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px;">
-                   <div onclick="showMemberProfile('${member.id}')"
+                   <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')"
                         style="cursor:pointer;flex-shrink:0;">
                      ${avHtml}
                    </div>
@@ -15181,7 +15348,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             reviewsHtml +=
               `<div style="padding:10px 0;border-bottom:0.5px solid var(--border-soft);">
                  <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px;">
-                   <div onclick="showMemberProfile('${member.id}')"
+                   <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')"
                         style="cursor:pointer;flex-shrink:0;">
                      ${avHtml}
                    </div>
@@ -15230,7 +15397,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       /**
        * Builds the interactive 5-star row for the inline editor. Each star is a
        * clickable span; clicking star N sets the draft rating to N. Filled stars
-       * use the Arka gold (#EF9F27); empty stars are muted grey.
+       * use the Arka gold (var(--color-gamification)); empty stars are muted grey.
        *
        * @param {string} shelfId        - ShelfID of the record being edited.
        * @param {number} selectedRating - Currently selected star count (0–5).
@@ -15243,7 +15410,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           starRowHtml +=
             `<span onclick="setInlineReviewRating('${shelfId}', ${starValue})"
                    style="cursor:pointer;font-size:2.3rem;line-height:1;padding:0 4px;
-                          color:${isFilled ? '#EF9F27' : '#d8dde0'};">${isFilled ? '★' : '☆'}</span>`;
+                          color:${isFilled ? 'var(--color-gamification)' : '#d8dde0'};">${isFilled ? '★' : '☆'}</span>`;
         }
         return starRowHtml;
       }
@@ -16747,7 +16914,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               ? '<img src="' + currentMember.imageURL + '" style="width:48px;height:48px;border-radius:50%;object-fit:cover;" onerror="this.style.display=\'none\'">'
               : '<div class="feed-z1-avatar" style="width:48px;height:48px;font-size:16px;">' + youInit + '</div>';
 
-          var youTileHtml = '<div class="feed-z1-item" onclick="' + youOnclick + '">'
+          var youTileHtml = '<div class="feed-z1-item" role="button" tabindex="0" data-action onclick="' + youOnclick + '">'
               + '<div class="feed-z1-ring feed-z1-ring--you" style="width:56px;height:56px;">'
               + '<div class="feed-z1-ring-inner">' + youAvHtml + '</div>'
               + youSpineHtml
@@ -16778,7 +16945,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   : 'showMemberProfile(\'' + mid + '\')';
               var shortName = member.displayName.split(' ')[0];
 
-              return '<div class="feed-z1-item" onclick="' + clickTarget + '">'
+              return '<div class="feed-z1-item" role="button" tabindex="0" data-action onclick="' + clickTarget + '">'
                   + '<div class="feed-z1-ring feed-z1-ring--active" style="width:52px;height:52px;">'
                   + '<div class="feed-z1-ring-inner">' + avHtml + '</div>'
                   + spineHtml
@@ -16790,7 +16957,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // ── Build overflow pill ──────────────────────────────────────────────
           var overflowHtml = '';
           if (overflowN > 0) {
-              overflowHtml = '<div class="feed-z1-item" onclick="goToActiveReaders()">'
+              overflowHtml = '<div class="feed-z1-item" role="button" tabindex="0" data-action onclick="goToActiveReaders()">'
                   + '<div class="feed-z1-overflow">'
                   + '<span style="font-size:14px;font-weight:700;color:var(--text-muted);line-height:1;">+' + overflowN + '</span>'
                   + '<span style="font-size:9px;color:var(--text-faint);margin-top:1px;">more</span>'
@@ -16965,7 +17132,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             </div>
             <div class="feed-sc-body">
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" onclick="showMemberProfile('${member.id}')" style="cursor:pointer;" title="View ${escapeHtml(member.displayName.split(' ')[0])}'s profile">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')" style="cursor:pointer;" title="View ${escapeHtml(member.displayName.split(' ')[0])}'s profile">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div>
                     <span class="feed-sc-name" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</span>
@@ -17010,7 +17177,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           const isWin      = resultType === 'WIN';
           const headBg     = isWin ? '#1a1a2e' : '#04342C';
           const icon       = isWin ? '🏆' : '🎯';
-          const iconBg     = isWin ? '#c8960c' : '#1D9E75';
+          const iconBg     = isWin ? '#c8960c' : 'var(--color-success)';
           const tagBg      = isWin ? '#c8960c' : '#0F6E56';
           const tagColor   = isWin ? '#ffffff' : '#9FE1CB';
           const tagText    = isWin ? 'Challenge winner' : 'Challenge completed';
@@ -17066,7 +17233,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             </div>
             <div class="feed-sc-body">
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <span class="feed-sc-name" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</span>
                   <div class="feed-sc-time" style="margin-top:2px;">${timeAgo}</div>
@@ -17138,7 +17305,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             </div>
             <div class="feed-sc-body">
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div>
                     <span class="feed-sc-name" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</span>
@@ -17237,7 +17404,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
                   return `
                   <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #f0f0f0;">
-                    <div class="feed-sc-av" style="width:32px;height:32px;font-size:12px;background:${tierStyle.ring};flex-shrink:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${avHtml}</div>
+                    <div class="feed-sc-av" role="button" tabindex="0" data-action style="width:32px;height:32px;font-size:12px;background:${tierStyle.ring};flex-shrink:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${avHtml}</div>
                     <span style="font-size:13px;font-weight:700;color:var(--text-strong);flex:1;min-width:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${escapeHtml(entry.member.displayName)}</span>
                     <div style="text-align:right;flex-shrink:0;">
                       <div style="font-size:11px;color:var(--text-faint);margin-bottom:3px;white-space:nowrap;">${escapeHtml(entry.oldLevel)} &rsaquo;&rsaquo;</div>
@@ -17264,7 +17431,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                           : init;
                       return `
                       <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #f0f0f0;">
-                        <div class="feed-sc-av" style="width:32px;height:32px;font-size:12px;background:${ts.ring};flex-shrink:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${av}</div>
+                        <div class="feed-sc-av" role="button" tabindex="0" data-action style="width:32px;height:32px;font-size:12px;background:${ts.ring};flex-shrink:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${av}</div>
                         <span style="font-size:13px;font-weight:700;color:var(--text-strong);flex:1;min-width:0;cursor:pointer;" onclick="showMemberProfile('${entry.member.id}')">${escapeHtml(entry.member.displayName)}</span>
                         <div style="text-align:right;flex-shrink:0;">
                           <div style="font-size:11px;color:var(--text-faint);margin-bottom:3px;white-space:nowrap;">${escapeHtml(entry.oldLevel)} &rsaquo;&rsaquo;</div>
@@ -17320,9 +17487,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 <span style="font-size:11px;color:rgba(255,255,255,0.45);">${timeAgo}</span>
               </div>
               <div style="display:flex;align-items:center;gap:10px;">
-                <div class="feed-sc-av" style="width:40px;height:40px;font-size:15px;background:${soloTierStyle.ring};" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action style="width:40px;height:40px;font-size:15px;background:${soloTierStyle.ring};" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div>
-                  <div style="font-size:14px;font-weight:700;color:#fff;cursor:pointer;" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</div>
+                  <div style="font-size:14px;font-weight:700;color:#fff;cursor:pointer;" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
                     <span style="font-size:11px;color:rgba(255,255,255,0.6);">${escapeHtml(oldLvl)}</span>
                     <i class="fa-solid fa-angles-right" style="color:${soloTierStyle.ring};font-size:10px;"></i>
@@ -17383,7 +17550,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           <div class="feed-sc feed-sc--gold">
             <div class="feed-sc-body">
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" style="background:#c8960c;" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action style="background:#c8960c;" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div>
                     <span class="feed-sc-name" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</span>
@@ -17395,7 +17562,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               <div style="display:flex;justify-content:center;margin:14px 0 10px;">
                 <div style="width:130px;height:85px;border-radius:50%;background:#c8960c;
                             display:flex;flex-direction:column;align-items:center;
-                            justify-content:center;border:3px solid #EF9F27;
+                            justify-content:center;border:3px solid var(--color-gamification);
                             box-shadow:0 4px 12px rgba(0,0,0,0.15);">
                   <div style="font-size:1.7rem;font-weight:900;color:#412402;
                               font-family:var(--font-display);line-height:1;">${displayNum}</div>
@@ -17451,10 +17618,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   : `<div style="width:38px;height:56px;border-radius:3px 5px 5px 3px;background:${spineColor};display:flex;align-items:center;justify-content:center;"></div>`;
               firstBookHtml = `
               <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #f0f0f0;margin-top:6px;">
-                <div onclick="openBookDetailView('${b.id}','home')" style="cursor:pointer;">${coverHtml}</div>
+                <div role="button" tabindex="0" data-action onclick="openBookDetailView('${b.id}','home')" style="cursor:pointer;">${coverHtml}</div>
                 <div>
                   <div style="font-size:11px;color:var(--text-faint);margin-bottom:2px;">First book</div>
-                  <div style="font-size:13px;font-weight:700;color:var(--text-strong);cursor:pointer;" onclick="openBookDetailView('${b.id}','home')">${escapeHtml(b.title)}</div>
+                  <div style="font-size:13px;font-weight:700;color:var(--text-strong);cursor:pointer;" role="button" tabindex="0" data-action onclick="openBookDetailView('${b.id}','home')">${escapeHtml(b.title)}</div>
                   <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(b.author)}</div>
                 </div>
               </div>`;
@@ -18365,11 +18532,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           +            'cursor:pointer;flex-shrink:0;margin-left:8px;"></i>'
           + '</div>'
           + '<div class="feed-z175-body">'
-          +   '<div class="feed-z175-cover" onclick="openBookDetailView(\'' + safeBookId + '\', \'home\')">'
+          +   '<div class="feed-z175-cover" role="button" tabindex="0" data-action onclick="openBookDetailView(\'' + safeBookId + '\', \'home\')">'
           +     coverHtml
           +   '</div>'
           +   '<div class="feed-z175-meta">'
-          +     '<div class="feed-z175-title" onclick="openBookDetailView(\'' + safeBookId + '\', \'home\')">'
+          +     '<div class="feed-z175-title" role="button" tabindex="0" data-action onclick="openBookDetailView(\'' + safeBookId + '\', \'home\')">'
           +       escapeHtml(book.title)
           +     '</div>'
           +     '<div class="feed-z175-author">by ' + escapeHtml(book.author) + '</div>'
@@ -18696,7 +18863,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // Library tab, which renders only books finished during this week.
           // Block display forces the link onto its own line below the delta badge.
           var booksLinkHtml = booksFinished > 0
-              ? '<div onclick="showThisWeekBooks()"'
+              ? '<div role="button" tabindex="0" data-action onclick="showThisWeekBooks()"'
                 + ' style="margin-top:10px; cursor:pointer; display:block;'
                 + ' font-size:10px; font-weight:600; color:rgba(255,255,255,0.72);'
                 + ' border-bottom:1px dashed rgba(255,255,255,0.35);'
@@ -18934,7 +19101,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
           // Max cards to show — guards against an unlikely but possible many-book edge case.
           var RT_NUDGE_MAX_CARDS    = 3;
-          var RT_AVATAR_COLORS      = ['#534AB7', '#1D9E75', '#EF9F27', '#D4537E', '#378ADD'];
+          var RT_AVATAR_COLORS      = ['var(--color-challenge)', 'var(--color-success)', 'var(--color-gamification)', '#D4537E', '#378ADD'];
           var MAX_NAMED             = 2;   // max names to spell out before "+N more"
           var MAX_VISIBLE_AVATARS   = 3;
 
@@ -19096,8 +19263,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        *
        * @type {string[]}
        */
-      var RT_MEMBER_COLORS = ['#534AB7', '#1D9E75', '#EF9F27', '#D4537E', '#378ADD',
-                              '#8e44ad', '#16a085', '#e67e22'];
+      var RT_MEMBER_COLORS = ['var(--color-challenge)', 'var(--color-success)', 'var(--color-gamification)', '#D4537E', '#378ADD',
+                              '#8e44ad', '#16a085', 'var(--color-warning)'];
 
       /**
        * _rtChartInstance_
@@ -19202,7 +19369,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           var bookAuthor = book ? escapeHtml(book.author) : '';
           var bookPages  = book ? (Number(book.pages) || 0) : 0;
           var bookGenre  = book ? (book.genre || '') : '';
-          var bookColor  = book ? getBookColor(book.title) : '#534AB7';
+          var bookColor  = book ? getBookColor(book.title) : 'var(--color-challenge)';
 
           // ── 1. Book hero ────────────────────────────────────────────────────
           var heroEl = document.getElementById('rtBookHero');
@@ -19312,17 +19479,20 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               var nameLabel   = reader.isCurrentUser ? 'You' : reader.displayName.split(' ')[0];
               var cumulative  = 0;
               var dataPoints  = sortedDateLabels.map(function(dateLabel) {
-                  var dayMap    = dailyPagesByDateAndMember.get(dateLabel);
+                  var dayMap     = dailyPagesByDateAndMember.get(dateLabel);
                   var pagesOnDay = (dayMap && dayMap.get(reader.memberId)) || 0;
-                  cumulative   += pagesOnDay;
-                  return cumulative;
+                  cumulative    += pagesOnDay;
+                  // null on dates this member didn't log — keeps their line from
+                  // passing through positions that belong to other members only
+                  return pagesOnDay > 0 ? cumulative : null;
               });
               return {
                   label           : nameLabel,
                   data            : dataPoints,
                   borderColor     : color,
-                  backgroundColor : color + '18', // very light fill under the line
+                  backgroundColor : color + '18',
                   borderWidth     : 2,
+                  spanGaps        : true, // connect own logged points across null gaps
                   pointRadius     : 3,
                   pointHoverRadius: 5,
                   fill            : false,
@@ -19602,7 +19772,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
               <!-- Attribution row -->
               <div class="feed-sc-meta" style="align-items:flex-start;margin-bottom:10px;">
-                <div onclick="showMemberProfile('${member.id}')"
+                <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')"
                      style="cursor:pointer;flex-shrink:0;">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div style="font-size:13px;line-height:1.4;">
@@ -19749,7 +19919,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             <div class="feed-sc-body">
               <!-- Attribution row -->
               <div class="feed-sc-meta" style="align-items:flex-start;margin-bottom:8px;">
-                <div onclick="showMemberProfile('${member.id}')"
+                <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')"
                      style="cursor:pointer;flex-shrink:0;">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div style="font-size:13px;line-height:1.4;">
@@ -19793,7 +19963,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           const BOOKPOST_CONFIG = {
               'General Note' : { label: 'General note',  emoji: '📌', tagBg: 'var(--border-soft)', tagColor: '#34495e', borderColor: '#dee2e6' },
               'Quote I Loved': { label: 'Quote I loved', emoji: '💬', tagBg: '#fffcf5', tagColor: '#b7770d', borderColor: 'var(--arka-accent)' },
-              'Fan Cast'     : { label: 'Fan cast',      emoji: '🎬', tagBg: '#eae8f7', tagColor: '#534AB7', borderColor: '#7F77DD' }
+              'Fan Cast'     : { label: 'Fan cast',      emoji: '🎬', tagBg: '#eae8f7', tagColor: 'var(--color-challenge)', borderColor: '#7F77DD' }
           };
 
           // Resolve post record from globalBookPostsDB if loaded this session.
@@ -19855,7 +20025,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           <div class="feed-sc" style="border-left:3px solid ${cfg.borderColor};border-radius:10px;">
             <div class="feed-sc-body">
               <div style="display:flex;align-items:flex-start;gap:9px;">
-                <div onclick="showMemberProfile('${member.id}')" style="cursor:pointer;flex-shrink:0;">
+                <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')" style="cursor:pointer;flex-shrink:0;">
                   ${avHtml}
                 </div>
                 <div style="flex:1;min-width:0;">
@@ -20052,7 +20222,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                                     onclick="openEventDetailView('${evt.eventId}')">See details</button>`;
               } else {
                   const statusLabel = myRsvp.rsvpStatus === 'Yes' ? 'You\'re going ✓' : 'You\'re interested ✓';
-                  ctaHtml = `<span style="font-size:12px;font-weight:700;color:#1D9E75;">${statusLabel}</span>
+                  ctaHtml = `<span style="font-size:12px;font-weight:700;color:var(--color-success);">${statusLabel}</span>
                             <button class="feed-sc-btn feed-sc-btn--ghost"
                                     onclick="openEventDetailView('${evt.eventId}')">See event</button>`;
               }
@@ -20091,7 +20261,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             ${darkHeader}
             <div class="feed-sc-body">
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div>
                     <span class="feed-sc-name"
@@ -20192,7 +20362,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   <div class="feed-sc-stat-lbl">total enrolled</div>
                 </div>
                 <div class="feed-sc-stat-cell">
-                  <div class="feed-sc-stat-num" style="color:#1D9E75;">${finisherCount}</div>
+                  <div class="feed-sc-stat-num" style="color:var(--color-success);">${finisherCount}</div>
                   <div class="feed-sc-stat-lbl">finished</div>
                 </div>
                 <div class="feed-sc-stat-cell"
@@ -20244,7 +20414,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           const viewerIsEnrolled = !!viewerEnrollment;
 
           // ── Colour palette — amber (not enrolled) / teal (enrolled) ─────────
-          const borderColor = viewerIsEnrolled ? '#1D9E75' : '#EF9F27';
+          const borderColor = viewerIsEnrolled ? 'var(--color-success)' : 'var(--color-gamification)';
           const nameColor   = viewerIsEnrolled ? '#0F6E56' : '#854F0B';
 
           // ── Avatar ───────────────────────────────────────────────────────────
@@ -20275,7 +20445,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           <div class="feed-sc" style="border-left:3px solid ${borderColor};border-radius:10px;">
             <div class="feed-sc-body">
               <div style="display:flex;align-items:flex-start;gap:9px;">
-                <div onclick="showMemberProfile('${member.id}')" style="cursor:pointer;flex-shrink:0;">
+                <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')" style="cursor:pointer;flex-shrink:0;">
                   ${avHtml}
                 </div>
                 <div style="flex:1;min-width:0;">
@@ -20345,7 +20515,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               : '';
 
           return `
-          <div class="feed-sc" style="border-left:3px solid #e74c3c;border-radius:0 14px 14px 0;">
+          <div class="feed-sc" style="border-left:3px solid var(--color-danger);border-radius:0 14px 14px 0;">
             <div class="feed-sc-body">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                 <span style="font-size:10px;font-weight:700;text-transform:uppercase;
@@ -20420,7 +20590,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 <span class="feed-sc-time">${timeAgo}</span>
               </div>
               <div class="feed-sc-meta" style="align-items:flex-start;">
-                <div class="feed-sc-av" onclick="showMemberProfile('${member.id}')">${avHtml}</div>
+                <div class="feed-sc-av" role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')">${avHtml}</div>
                 <div style="flex:1;min-width:0;">
                   <div>
                     <span class="feed-sc-name" onclick="showMemberProfile('${member.id}')">${escapeHtml(member.displayName)}</span>
@@ -20625,7 +20795,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             <div class="feed-sc-body">
               <div class="feed-sc-stat-grid">
                 <div class="feed-sc-stat-cell">
-                  <div class="feed-sc-stat-num" style="color:#1D9E75;">${trendingFinishers.length}</div>
+                  <div class="feed-sc-stat-num" style="color:var(--color-success);">${trendingFinishers.length}</div>
                   <div class="feed-sc-stat-lbl">finished</div>
                 </div>
                 <div class="feed-sc-stat-cell">
@@ -20739,7 +20909,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   ${escapeHtml(m.displayName)}${isMe ? ' (you)' : ''}
                 </span>
                 ${isDone
-                    ? `<span style="font-size:10px;font-weight:700;color:#1D9E75;background:#e1f5ee;padding:2px 7px;border-radius:10px;">Done!</span>`
+                    ? `<span style="font-size:10px;font-weight:700;color:var(--color-success);background:#e1f5ee;padding:2px 7px;border-radius:10px;">Done!</span>`
                     : `<span style="font-size:10px;color:var(--text-faint);">${escapeHtml(enrl.enrollmentStatus)}</span>`}
               </div>`;
           }).join('');
@@ -20756,7 +20926,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                         justify-content:space-between;">
               <div>
                 <span style="font-size:10px;font-weight:700;text-transform:uppercase;
-                             letter-spacing:.8px;color:#EF9F27;">Challenge sprint</span>
+                             letter-spacing:.8px;color:var(--color-gamification);">Challenge sprint</span>
                 <p style="font-size:16px;font-weight:700;color:#fff;margin:3px 0 0;">${escapeHtml(pinnedChal.title)}</p>
               </div>
               <div style="text-align:center;flex-shrink:0;margin-left:10px;">
@@ -21116,7 +21286,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 const finChallenge = finEnrollment ? challengesMap.get(finEnrollment.challengeId) : null;
                 const finChalTitle = finChallenge ? escapeHtml(finChallenge.title) : 'a challenge';
                 actionHtml = 'completed <b>' + finChalTitle + '</b>! 🎯';
-                supplementalHtml += '<div style="margin-top:8px;background:#e1f5ee;border-left:3px solid #1D9E75;'
+                supplementalHtml += '<div style="margin-top:8px;background:#e1f5ee;border-left:3px solid var(--color-success);'
                     + 'border-radius:0 8px 8px 0;padding:8px 12px;">'
                     + '<div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;'
                     + 'color:#0F6E56;margin-bottom:3px;">Challenge completed</div>'
@@ -21245,7 +21415,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   : buildFeedAutoCover(book);
                 
                 embeddedTileHtml = `
-                <div class="feed-embedded-tile" onclick="openBookDetailView('${book.id}', 'home')">
+                <div class="feed-embedded-tile" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', 'home')">
                   ${feedCoverHtml}
                   <div class="feed-tile-info">
                     <div class="feed-tile-title">${book.title}</div>
@@ -21448,7 +21618,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // At 24px the photo and initials are visually equivalent, so we skip
           // the broken onerror fallback entirely — the initials div is always shown.
           var init  = member.displayName ? member.displayName.charAt(0).toUpperCase() : '?';
-          var avEl  = '<div class="feed-z3-av" onclick="showMemberProfile(\''
+          var avEl  = '<div class="feed-z3-av" role="button" tabindex="0" data-action onclick="showMemberProfile(\''
               + member.id + '\')" style="cursor:pointer;">' + init + '</div>';
 
           // ── Book spine ─────────────────────────────────────────────────────
@@ -22363,7 +22533,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           fullHtml += `<div class="genre-chips-container">`;
           topCanonicalGenres.forEach(function(canonicalGenre) {
             const safeGenre = canonicalGenre.replace(/'/g, "\\'");
-            fullHtml += `<div class="genre-chip" onclick="applyGenreFilter('${safeGenre}')">`
+            fullHtml += `<div class="genre-chip" role="button" tabindex="0" data-action onclick="applyGenreFilter('${safeGenre}')">`
               + escapeHtml(canonicalGenre)
               + `</div>`;
           });
@@ -22384,7 +22554,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             const adderName = adder ? adder.displayName : "Unknown";
             
             fullHtml += `
-              <div class="trending-card" onclick="openBookDetailView('${book.id}', 'library')">
+              <div class="trending-card" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', 'library')">
                 ${getCoverHtml(book)}
                 <div style="font-size: 0.7rem; color: var(--text-faint); margin-top: 4px;">Added by</div>
                 <div style="font-size: 0.85rem; font-weight: bold; color: var(--text-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${adderName}</div>
@@ -22400,7 +22570,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           fullHtml += `
             <div class="trending-section" id="arkaReadingSection">
               <div class="trending-header">
-                <i class="fa-solid fa-book-open-reader" id="arkaReadingIcon" style="color: #e67e22;"></i> Arka Reading
+                <i class="fa-solid fa-book-open-reader" id="arkaReadingIcon" style="color: var(--color-warning);"></i> Arka Reading
               </div>
               <div class="trending-carousel">
           `;
@@ -22409,10 +22579,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             if (!book) return;
 
             fullHtml += `
-              <div class="trending-card" onclick="openBookDetailView('${book.id}', 'library')">
+              <div class="trending-card" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', 'library')">
                 ${getCoverHtml(book)}
                 <div class="trending-title" title="${book.title}">${book.title}</div>
-                <div class="trending-stat" style="display: flex; align-items: center; margin-top: 6px; color: #e67e22;">
+                <div class="trending-stat" style="display: flex; align-items: center; margin-top: 6px; color: var(--color-warning);">
                   <i class="fa-solid fa-fire" style="margin-right: 4px;"></i> ${tb.count} reading
                 </div>
               </div>
@@ -22430,7 +22600,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           `;
           hiddenGems.forEach(book => {
             fullHtml += `
-              <div class="trending-card" onclick="openBookDetailView('${book.id}', 'library')">
+              <div class="trending-card" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', 'library')">
                 ${getCoverHtml(book)}
                 <div class="trending-title" title="${book.title}">${book.title}</div>
                 <div style="font-size: 0.85rem; font-weight: bold; color: #f39c12; margin-top: 4px;">
@@ -22477,10 +22647,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               : `<div style="width: 75px; height: 75px; border-radius: 50%; background-color: var(--border-soft); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--text-faint); margin: 0 auto 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #ffffff;">${initLetter}</div>`;
 
             fullHtml += `
-              <div class="trending-card" style="text-align: center; flex: 0 0 100px;" onclick="showMemberProfile('${member.id}')">
+              <div class="trending-card" role="button" tabindex="0" data-action style="text-align: center; flex: 0 0 100px;" onclick="showMemberProfile('${member.id}')">
                 ${avatarHtml}
                 <div style="font-weight: bold; font-size: 0.85rem; color: var(--text-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${member.displayName}">${member.displayName}</div>
-                <div style="font-size: 0.75rem; color: #e67e22; font-weight: bold; margin-top: 4px;">${reader.count} ${reader.count === 1 ? 'Book' : 'Books'}</div>
+                <div style="font-size: 0.75rem; color: var(--color-warning); font-weight: bold; margin-top: 4px;">${reader.count} ${reader.count === 1 ? 'Book' : 'Books'}</div>
               </div>
             `;
           });
@@ -22745,7 +22915,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               + '<span class="genre-suggestion-highlight">' + escapeHtml(g.slice(idx, idx + q.length)) + '</span>'
               + escapeHtml(g.slice(idx + q.length));
           /* onSelect is serialized as a string for inline onclick */
-          return '<div class="genre-suggestion-option" onmousedown="event.preventDefault()" onclick="' + onSelect + '(\'' + escapeHtml(g).replace(/'/g, "\\'") + '\')">'
+          return '<div class="genre-suggestion-option" role="button" tabindex="0" data-action onmousedown="event.preventDefault()" onclick="' + onSelect + '(\'' + escapeHtml(g).replace(/'/g, "\\'") + '\')">'
             + highlighted
             + '</div>';
         }).join('');
@@ -22875,7 +23045,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     
         container.innerHTML = bookFormGenreTags.map(function(genre, idx) {
           return '<span style="display:inline-flex;align-items:center;gap:4px;' +
-                'background:#EEEDFE;color:#534AB7;font-size:0.78rem;' +
+                'background:#EEEDFE;color:var(--color-challenge);font-size:0.78rem;' +
                 'padding:3px 10px 3px 12px;border-radius:20px;' +
                 'border:0.5px solid #AFA9EC;">' +
                   escapeHtml(genre) +
@@ -22999,7 +23169,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         container.innerHTML = editFormGenreTags.map(function(genre, idx) {
           return '<span style="display:inline-flex;align-items:center;gap:4px;' +
-                 'background:#EEEDFE;color:#534AB7;font-size:0.78rem;' +
+                 'background:#EEEDFE;color:var(--color-challenge);font-size:0.78rem;' +
                  'padding:3px 10px 3px 12px;border-radius:20px;' +
                  'border:0.5px solid #AFA9EC;">' +
                    escapeHtml(genre) +
@@ -23195,15 +23365,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // ── Validate ISBN-13 ──────────────────────────────────────────────────
         if (isbn.length !== 13) {
           status.innerText          = 'Please enter a 13-digit ISBN.';
-          status.style.color        = '#e74c3c';
-          inputEl.style.borderColor = '#e74c3c';
+          status.style.color        = 'var(--color-danger)';
+          inputEl.style.borderColor = 'var(--color-danger)';
           return;
         }
 
         if (!validateIsbn13Checksum(isbn)) {
           status.innerText          = 'ISBN-13 checksum invalid — please double-check the number.';
-          status.style.color        = '#e74c3c';
-          inputEl.style.borderColor = '#e74c3c';
+          status.style.color        = 'var(--color-danger)';
+          inputEl.style.borderColor = 'var(--color-danger)';
           return;
         }
 
@@ -23228,7 +23398,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     
             if (!book || !book.details) {
               status.innerText   = 'Book not found on Open Library. Fill in manually.';
-              status.style.color = '#e67e22';
+              status.style.color = 'var(--color-warning)';
               return;
             }
     
@@ -23362,13 +23532,13 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             status.innerText   = authorFilled
               ? 'Found! Review and confirm the details below.'
               : 'Partially found — please verify and fill in any missing fields.';
-            status.style.color = authorFilled ? '#27ae60' : '#e67e22';
+            status.style.color = authorFilled ? '#27ae60' : 'var(--color-warning)';
           })
           .catch(function(err) {
             btn.disabled  = false;
             btn.innerText = 'Search';
             status.innerText   = 'Search failed. Check your connection and try again.';
-            status.style.color = '#e74c3c';
+            status.style.color = 'var(--color-danger)';
             console.error('ISBN search error:', err);
           });
       }
@@ -23495,7 +23665,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         var el = document.getElementById(elementId);
         if (!el) return;
 
-        el.style.borderColor = '#e74c3c';
+        el.style.borderColor = 'var(--color-danger)';
         el.style.boxShadow   = '0 0 0 3px rgba(231, 76, 60, 0.15)';
         el.focus();
 
@@ -23563,7 +23733,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           if (isbn13.length !== 13 || !validateIsbn13Checksum(isbn13)) {
             showToast({ type: 'error', icon: 'fa-solid fa-barcode', title: 'Invalid ISBN-13.', sub: 'Must be exactly 13 digits and pass the checksum.' });
             var isbnFieldEl = document.getElementById('newBookIsbn13');
-            isbnFieldEl.style.borderColor = '#e74c3c';
+            isbnFieldEl.style.borderColor = 'var(--color-danger)';
             isbnFieldEl.focus();
             /* Reset the red border once the user starts correcting the value */
             isbnFieldEl.addEventListener('input', function _clearIsbnBorder() {
@@ -23836,8 +24006,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (!counterEl) return;
 
         counterEl.textContent = remaining + ' chars remaining';
-        counterEl.style.color = remaining < 20  ? '#e74c3c'   // red — nearly full
-                              : remaining < 60  ? '#e67e22'   // amber — getting close
+        counterEl.style.color = remaining < 20  ? 'var(--color-danger)'   // red — nearly full
+                              : remaining < 60  ? 'var(--color-warning)'   // amber — getting close
                               : 'var(--neutral-mid)';                    // default grey
       }
     
@@ -24493,7 +24663,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               cardStyle += "background: linear-gradient(145deg, #ffffff, #fffcf5); border: 1px solid #f1e4c3;";
               
               if (shelfRecord.rating && shelfRecord.rating > 0) {
-                  topBadge = `<div style="position: absolute; top: -6px; right: -6px; background: #e67e22; color: #fff; font-size: 0.7rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10;">⭐ ${shelfRecord.rating}</div>`;
+                  topBadge = `<div style="position: absolute; top: -6px; right: -6px; background: var(--color-warning); color: #fff; font-size: 0.7rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10;">⭐ ${shelfRecord.rating}</div>`;
               }
             } else {
               cardStyle += "background: #ffffff; border: 1px dashed var(--neutral-mid);";
@@ -24524,8 +24694,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
               // Theme palette: background tint + accent color for thread/hook/notch/label
               const insightThemePalette = {
-                amber   : { bg: '#fff8ee', accent: '#EF9F27', labelColor: '#854f0b'  },
-                teal    : { bg: '#edfaf4', accent: '#1D9E75', labelColor: '#0f6e56'  },
+                amber   : { bg: '#fff8ee', accent: 'var(--color-gamification)', labelColor: '#854f0b'  },
+                teal    : { bg: '#edfaf4', accent: 'var(--color-success)', labelColor: '#0f6e56'  },
                 purple  : { bg: '#f5f0ff', accent: 'var(--arka-accent)', labelColor: '#3c3489'  },
                 blue    : { bg: '#eef6fd', accent: '#378add', labelColor: '#185fa5'  },
                 neutral : { bg: 'var(--surface-alt)', accent: 'var(--neutral-mid)', labelColor: '#5f5e5a'  }
@@ -24570,7 +24740,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             }
 
             html += `
-              <div style="${cardStyle}" onclick="openBookDetailView('${book.id}', '${routeFrom}', '${shelfRecord.shelfId}')" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+              <div style="${cardStyle}" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', '${routeFrom}', '${shelfRecord.shelfId}')" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
                 ${topBadge}
                 ${coverHtml}
                 ${extraVisuals}
@@ -24658,7 +24828,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        * @type {Object.<string, {emoji:string, label:string, borderColor:string, bgColor:string, textColor:string, dateNote:string}>}
        */
       var GR_EXPORT_SHELF_CONFIG = {
-        'Finished'       : { emoji:'🏆', label:'Finished', borderColor:'#1d9e75', bgColor:'#f0faf6', textColor:'#0f6e56', dateNote:'by date finished' },
+        'Finished'       : { emoji:'🏆', label:'Finished', borderColor:'var(--color-success)', bgColor:'#f0faf6', textColor:'#0f6e56', dateNote:'by date finished' },
         'Reading'        : { emoji:'📖', label:'Reading',  borderColor:'#2980b9', bgColor:'#edf5fc', textColor:'#1a5c8a', dateNote:'by date added'    },
         'To Read'        : { emoji:'📌', label:'To Read',  borderColor:'#A984BA', bgColor:'#f4f0f8', textColor:'#6a4482', dateNote:'by date added'    },
         'Did Not Finish' : { emoji:'🛑', label:'DNF',      borderColor:'#c0392b', bgColor:'#fdf0ef', textColor:'#8e1c11', dateNote:'by date added'    },
@@ -24947,7 +25117,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           var cfg   = GR_EXPORT_SHELF_CONFIG[shelf.status] || GR_EXPORT_SHELF_CONFIG['To Read'];
           var title = book.title  || shelf.bookId;
           var author= book.author || '—';
-          return '<div class="gr-export-add-result" onclick="grExport_addBook_(\'' + shelf.shelfId + '\')" ' +
+          return '<div class="gr-export-add-result" role="button" tabindex="0" data-action onclick="grExport_addBook_(\'' + shelf.shelfId + '\')" ' +
             'style="display:flex;align-items:center;gap:8px;padding:8px 12px;' +
             'border-bottom:1px solid var(--border-soft);' +
             'border-left:3px solid ' + cfg.borderColor + ';border-radius:0;background:#fff;">' +
@@ -25165,7 +25335,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         //   Reading  = Amber  | To Read = Blue | Finished = Green | DNF = Red
         // bg = ramp-50 fill | border = ramp-200 stroke | numColor = ramp-600 text
         const tiles = [
-          { status: 'Reading',        label: 'reading',  count: counts['Reading'],        bg: '#FAEEDA', border: '0.5px solid #EF9F27', numColor: '#BA7517' },
+          { status: 'Reading',        label: 'reading',  count: counts['Reading'],        bg: '#FAEEDA', border: '0.5px solid var(--color-gamification)', numColor: '#BA7517' },
           { status: 'To Read',        label: 'to read',  count: counts['To Read'],        bg: '#E6F1FB', border: '0.5px solid #85B7EB', numColor: '#185FA5' },
           { status: 'Finished',       label: 'finished', count: counts['Finished'],       bg: '#EAF3DE', border: '0.5px solid #97C459', numColor: '#3B6D11' },
           { status: 'Did Not Finish', label: 'dnf',      count: counts['Did Not Finish'], bg: '#FCEBEB', border: '0.5px solid #F09595', numColor: '#A32D2D' }
@@ -25369,8 +25539,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               : "Unrated";
 
           card.innerHTML = `
-            <div style="display: flex; width: 100%; align-items: center; cursor: pointer; position: relative; overflow: hidden;" onclick="openBookDetailView('${book.id}', 'fullShelf', '${shelfRecord.shelfId}')">
-              
+            <div style="display: flex; width: 100%; align-items: center; cursor: pointer; position: relative; overflow: hidden;" role="button" tabindex="0" data-action onclick="openBookDetailView('${book.id}', 'fullShelf', '${shelfRecord.shelfId}')">
+
               ${coverHtml}
               
               <div class="book-info" style="flex: 1; min-width: 0; padding-right: 5px;"> 
@@ -25710,7 +25880,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // Validation — must have meaningful content
         if (!desc || desc.length < 5) {
           showToast({ type: 'error', icon: 'fa-solid fa-comment', title: 'Please provide a more detailed description.' });
-          descElement.style.borderColor = '#e74c3c';
+          descElement.style.borderColor = 'var(--color-danger)';
           return;
         }
 
@@ -25812,7 +25982,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             container.innerHTML = `
               <div class="reading-room-section">
                 <h3 class="reading-room-title" style="text-align:left;">💬 The Reading Room</h3>
-                <p style="text-align:left;color:#e74c3c;padding:20px 0;">
+                <p style="text-align:left;color:var(--color-danger);padding:20px 0;">
                   Could not load discussions.
                 </p>
               </div>
@@ -25841,12 +26011,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   style="width:32px;height:32px;border-radius:50%;object-fit:cover;display:block;"
                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
              <div style="display:none;width:32px;height:32px;border-radius:50%;
-                         background:#EEEDFE;color:#534AB7;align-items:center;
+                         background:#EEEDFE;color:var(--color-challenge);align-items:center;
                          justify-content:center;font-size:0.78rem;font-weight:bold;">
                ${meInit}
              </div>`
           : `<div style="width:32px;height:32px;border-radius:50%;
-                         background:#EEEDFE;color:#534AB7;display:flex;
+                         background:#EEEDFE;color:var(--color-challenge);display:flex;
                          align-items:center;justify-content:center;
                          font-size:0.78rem;font-weight:bold;">${meInit}</div>`;
 
@@ -25993,7 +26163,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 : '')
             : `<button class="post-action-btn post-like-btn ${isLiked ? 'liked' : ''}"
                        id="likeBtn_${post.postId}"
-                       style="color:${isLiked ? '#e74c3c' : 'var(--text-faint)'};"
+                       style="color:${isLiked ? 'var(--color-danger)' : 'var(--text-faint)'};"
                        onclick="handlePostLike('${post.postId}')">
                  ${isLiked ? '❤️' : '🤍'} ${likeCount}
                </button>`;
@@ -26003,7 +26173,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                <button class="post-action-btn" style="color:var(--text-muted);"
                        onclick="openEditPost('${post.postId}')">Edit</button>
                <span style="color:#e0d5ea;font-size:0.7rem;padding:0 4px;">·</span>
-               <button class="post-action-btn" style="color:#e74c3c;"
+               <button class="post-action-btn" style="color:var(--color-danger);"
                        onclick="handleDeletePost('${post.postId}')">Delete</button>`
             : '';
 
@@ -26477,10 +26647,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // Color palette — cycles through 5 color families for top 3 slots
         // Each entry: [pillBg, borderColor, labelColor, countColor]
         var colorPalette = [
-          ['#EEEDFE', '#AFA9EC', '#26215C', '#534AB7'],  // purple
+          ['#EEEDFE', '#AFA9EC', '#26215C', 'var(--color-challenge)'],  // purple
           ['#FBEAF0', '#ED93B1', '#4B1528', '#993556'],  // pink
           ['#E1F5EE', '#5DCAA5', '#04342C', '#0F6E56'],  // teal
-          ['#FAEEDA', '#EF9F27', '#412402', '#BA7517'],  // amber
+          ['#FAEEDA', 'var(--color-gamification)', '#412402', '#BA7517'],  // amber
           ['#FAECE7', '#F0997B', '#4A1B0C', '#993C1D'],  // coral
         ];
 
@@ -27137,7 +27307,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           return i === peakDowIdx ? 'rgba(83,74,183,0.85)' : 'rgba(169,132,186,0.50)';
         });
         var dowBorderColors = DOW_LABELS.map(function(_, i) {
-          return i === peakDowIdx ? '#534AB7' : 'rgba(169,132,186,0.75)';
+          return i === peakDowIdx ? 'var(--color-challenge)' : 'rgba(169,132,186,0.75)';
         });
 
         // ── Bar colours: peak bar solid accent; hour-of-day tonal gradient ────
@@ -27168,7 +27338,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               var ly        = arc.y + Math.sin(midAngle) * labelR;
               ctx.save();
               ctx.font         = (i === peakDowIdx ? 'bold ' : '') + '11px sans-serif';
-              ctx.fillStyle    = i === peakDowIdx ? '#534AB7' : '#7f8c8d';
+              ctx.fillStyle    = i === peakDowIdx ? 'var(--color-challenge)' : '#7f8c8d';
               ctx.textAlign    = 'center';
               ctx.textBaseline = 'middle';
               ctx.fillText(label, lx, ly);
@@ -27272,7 +27442,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // ── Insight line ──────────────────────────────────────────────────────
         if (insightEl) {
           insightEl.innerHTML =
-            '<i class="fa-solid fa-lightbulb" style="color:#EF9F27;margin-right:5px;"></i>' +
+            '<i class="fa-solid fa-lightbulb" style="color:var(--color-gamification);margin-right:5px;"></i>' +
             'You read most on <strong>' + peakDayName + 's</strong>' +
             ' &nbsp;·&nbsp; Peak hour: <strong>' + peakHourStr + '</strong>';
           insightEl.style.display = 'block';
@@ -27515,7 +27685,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (currentStreak > 0 && streakPillTileEl) {
           streakPillTileEl.style.background  = '#fff8f0';
           streakPillTileEl.style.borderColor = '#f0c070';
-          if (streakPillValEl) streakPillValEl.style.color = '#e67e22';
+          if (streakPillValEl) streakPillValEl.style.color = 'var(--color-warning)';
           if (streakPillLblEl) streakPillLblEl.style.color = '#854F0B';
         }
 
@@ -27526,7 +27696,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         }
         if (weeksLabelEl) {
           weeksLabelEl.innerText = 'wks logged';   // removed year suffix — this is now all-time
-          if (currentStreak > 0) weeksLabelEl.style.color = '#e67e22';
+          if (currentStreak > 0) weeksLabelEl.style.color = 'var(--color-warning)';
         }
 
         // ── Build the best-streak badge (right side of card) ─────────────────────
@@ -27575,7 +27745,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             <div style="display:flex; align-items:center; gap:10px;">
               <div style="font-size:1.5rem; line-height:1; flex-shrink:0;">🔥</div>
               <div>
-                <div style="font-size:1.2rem; font-weight:bold; color:#e67e22; line-height:1;">
+                <div style="font-size:1.2rem; font-weight:bold; color:var(--color-warning); line-height:1;">
                   ${currentStreak} week${currentStreak !== 1 ? 's' : ''}
                 </div>
                 <div style="font-size:0.68rem; color:#854F0B; text-transform:uppercase;
@@ -27732,7 +27902,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               ✏️ Edit
             </button>
             <button onclick="handleDeletePost('${postId}')"
-              style="background:none;border:none;color:#e74c3c;font-size:0.8rem;
+              style="background:none;border:none;color:var(--color-danger);font-size:0.8rem;
                      cursor:pointer;padding:4px 0 4px 8px;width:auto;font-weight:bold;">
               🗑️ Delete
             </button>` : ''}
@@ -28483,7 +28653,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           dropdown.innerHTML = matches.map(function(m) {
             const initial  = (m.displayName || '?').charAt(0).toUpperCase();
             const avatarHtml = buildAvatarHtml(m, 22);
-            return '<div class="ann-member-option" onclick="selectAnnMember(\'' + m.id + '\')">'
+            return '<div class="ann-member-option" role="button" tabindex="0" data-action onclick="selectAnnMember(\'' + m.id + '\')">'
               + avatarHtml
               + '<span>' + escapeHtml(m.displayName) + '</span>'
               + '</div>';
@@ -28993,7 +29163,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       function buildEventCardHtml(evt) {
         const typeCfg    = EVENT_TYPE_CONFIG[evt.eventType] || EVENT_TYPE_CONFIG['Other'];
         const pinnedBadge = evt.isPinned
-          ? '<span style="font-size:0.65rem;background:#EEEDFE;color:#534AB7;padding:1px 5px;border-radius:6px;margin-left:4px;">📌</span>'
+          ? '<span style="font-size:0.65rem;background:#EEEDFE;color:var(--color-challenge);padding:1px 5px;border-radius:6px;margin-left:4px;">📌</span>'
           : '';
         const statusChip  = evt.status !== 'Active'
           ? `<span class="evt-status-chip evt-status--${evt.status.toLowerCase()}">${evt.status}</span>`
@@ -29040,7 +29210,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const cardClass = evt.isPinned ? 'evt-card evt-card--pinned' : 'evt-card';
     
         return `
-          <div class="${cardClass}" onclick="openEventDetailView('${evt.eventId}')">
+          <div class="${cardClass}" role="button" tabindex="0" data-action onclick="openEventDetailView('${evt.eventId}')">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
               <span class="evt-type-badge ${typeCfg.badgeClass}">${typeCfg.label}</span>
               ${pinnedBadge} ${statusChip}
@@ -29271,7 +29441,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // Manager toolbar
         if (canManage) {
           const statusOptions = evt.status === 'Active'
-            ? `<button class="ann-admin-btn ann-admin-btn--archive" style="border-color:#e67e22;color:#e67e22;"
+            ? `<button class="ann-admin-btn ann-admin-btn--archive" style="border-color:var(--color-warning);color:var(--color-warning);"
                   onclick="changeEventStatus('${evt.eventId}','Completed',this)">✓ Mark Completed</button>
               <button class="ann-admin-btn ann-admin-btn--archive"
                   onclick="changeEventStatus('${evt.eventId}','Cancelled',this)">✗ Cancel Event</button>`
@@ -29522,7 +29692,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               || (m.fullName || '').toLowerCase().includes(query);
         }).slice(0, 8);
 
-        var noneOption = '<div class="evt-member-option" onclick="clearEvtHost();closeEvtHostDropdown();">'
+        var noneOption = '<div class="evt-member-option" role="button" tabindex="0" data-action onclick="clearEvtHost();closeEvtHostDropdown();">'
           + '<span style="color:var(--text-muted);font-style:italic;">— No host assigned —</span>'
           + '</div>';
 
@@ -29532,7 +29702,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         } else {
           dropdown.innerHTML = noneOption
             + matches.map(function(m) {
-                return '<div class="evt-member-option" onclick="selectEvtHost(\'' + m.id + '\')">'
+                return '<div class="evt-member-option" role="button" tabindex="0" data-action onclick="selectEvtHost(\'' + m.id + '\')">'
                   + _buildPickerAvatarHtml(m)
                   + '<span>' + escapeHtml(m.displayName) + '</span>'
                   + '</div>';
@@ -29859,7 +30029,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           dropdown.innerHTML = '<div class="evt-member-option-none">No more members to add</div>';
         } else {
           dropdown.innerHTML = matches.map(function(m) {
-            return '<div class="evt-member-option" onclick="selectEvtParticipant(\'' + m.id + '\')">'
+            return '<div class="evt-member-option" role="button" tabindex="0" data-action onclick="selectEvtParticipant(\'' + m.id + '\')">'
               + _buildPickerAvatarHtml(m)
               + '<span>' + escapeHtml(m.displayName) + '</span>'
               + '</div>';
@@ -30565,7 +30735,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
     
           html += `
-            <div class="chal-card${pinnedClass}" onclick="openChallengeDetailView('${c.challengeId}')">
+            <div class="chal-card${pinnedClass}" role="button" tabindex="0" data-action onclick="openChallengeDetailView('${c.challengeId}')">
 
               <div class="chal-card-header">
                 <div style="flex:1;">
@@ -32023,7 +32193,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         return `
           <div class="chal-stat-strip">
             <div class="chal-stat-tile">
-              <div class="chal-stat-num" style="color:#EF9F27;">${currentStreak}</div>
+              <div class="chal-stat-num" style="color:var(--color-gamification);">${currentStreak}</div>
               <div class="chal-stat-label">Current streak</div>
             </div>
             <div class="chal-stat-tile">
@@ -32041,8 +32211,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                         letter-spacing:0.5px;margin-bottom:8px;">Last 28 days</div>
             <div class="streak-heatmap">${heatCells}</div>
             <div style="display:flex;gap:12px;margin-top:6px;font-size:0.7rem;color:var(--text-faint);">
-              <span><span style="display:inline-block;width:10px;height:10px;background:#1D9E75;border-radius:2px;margin-right:3px;"></span>Logged</span>
-              <span><span style="display:inline-block;width:10px;height:10px;background:#e74c3c;border-radius:2px;margin-right:3px;opacity:0.7;"></span>Missed</span>
+              <span><span style="display:inline-block;width:10px;height:10px;background:var(--color-success);border-radius:2px;margin-right:3px;"></span>Logged</span>
+              <span><span style="display:inline-block;width:10px;height:10px;background:var(--color-danger);border-radius:2px;margin-right:3px;opacity:0.7;"></span>Missed</span>
               <span style="margin-left:auto;">${totalPages.toLocaleString()} total pages</span>
             </div>
           </div>
@@ -32127,7 +32297,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         });
     
         const donePct = totalCells > 0 ? Math.round((cellsDone.size / totalCells) * 100) : 0;
-        const bingoNote = state.hasBingo ? '<span style="color:#1D9E75;font-weight:600;">🎉 BINGO achieved!</span>' : '';
+        const bingoNote = state.hasBingo ? '<span style="color:var(--color-success);font-weight:600;">🎉 BINGO achieved!</span>' : '';
     
         return `
           <div class="chal-stat-strip">
@@ -32182,8 +32352,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const endDate    = challenge.endDate  || '';
     
         let finishedNote = '';
-        if (state.finishedBeforeDeadline === true)  finishedNote = '<p style="color:#1D9E75;font-weight:600;text-align:center;margin-top:12px;">✓ Finished on time!</p>';
-        if (state.finishedBeforeDeadline === false) finishedNote = '<p style="color:#e67e22;font-weight:600;text-align:center;margin-top:12px;">Finished (after deadline)</p>';
+        if (state.finishedBeforeDeadline === true)  finishedNote = '<p style="color:var(--color-success);font-weight:600;text-align:center;margin-top:12px;">✓ Finished on time!</p>';
+        if (state.finishedBeforeDeadline === false) finishedNote = '<p style="color:var(--color-warning);font-weight:600;text-align:center;margin-top:12px;">Finished (after deadline)</p>';
     
         return `
           <div class="card" style="padding:16px;margin-bottom:14px;">
@@ -32235,7 +32405,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         return `
           <div class="chal-stat-strip" style="grid-template-columns:1fr 1fr;">
             <div class="chal-stat-tile">
-              <div class="chal-stat-num" style="color:#1D9E75;">${total}</div>
+              <div class="chal-stat-num" style="color:var(--color-success);">${total}</div>
               <div class="chal-stat-label">Countries</div>
             </div>
             <div class="chal-stat-tile">
@@ -32244,7 +32414,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             </div>
           </div>
           <div style="height:8px;background:var(--border-soft);border-radius:4px;overflow:hidden;margin-bottom:16px;">
-            <div style="height:100%;width:${Math.min(100,pct)}%;background:#1D9E75;border-radius:4px;transition:width 0.4s;"></div>
+            <div style="height:100%;width:${Math.min(100,pct)}%;background:var(--color-success);border-radius:4px;transition:width 0.4s;"></div>
           </div>
           <div class="card" style="padding:14px;">
             ${listHtml}
@@ -32297,7 +32467,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           </div>
           <div class="alpha-grid">${cellsHtml}</div>
           <div style="display:flex;gap:12px;margin-top:8px;font-size:0.72rem;color:var(--text-faint);flex-wrap:wrap;">
-            <span><span style="display:inline-block;width:10px;height:10px;background:#EAF3DE;border:1px solid #1D9E75;border-radius:2px;margin-right:3px;"></span>Claimed</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#EAF3DE;border:1px solid var(--color-success);border-radius:2px;margin-right:3px;"></span>Claimed</span>
             <span><span style="display:inline-block;width:10px;height:10px;background:var(--surface-alt);border:1px dashed var(--text-faint);border-radius:2px;margin-right:3px;"></span>Optional</span>
           </div>
           <p style="font-size:0.78rem;color:var(--text-faint);text-align:center;margin-top:12px;">
@@ -32317,7 +32487,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       function renderCountProgress(challenge, enrollment, state) {
         const isPages    = challenge.challengeType === 'PAGE_COUNT';
         const unit       = isPages ? 'pages' : 'books';
-        const colour     = isPages ? '#378ADD' : '#EF9F27';
+        const colour     = isPages ? '#378ADD' : 'var(--color-gamification)';
         const total      = isPages ? (state.totalPages || 0) : (state.totalBooks || 0);
         const goal       = state.personalGoal || challenge.goalValue || 1;
         const projection = state.pacingProjection || 0;
@@ -32350,7 +32520,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               <div class="chal-stat-num">${isPages ? goal.toLocaleString() : goal}</div>
               <div class="chal-stat-label">your goal</div>
             </div>
-            <div class="chal-stat-tile" onclick="showPaceInfo()" style="cursor:pointer;">
+            <div class="chal-stat-tile" role="button" tabindex="0" data-action onclick="showPaceInfo()" style="cursor:pointer;">
               <div class="chal-stat-num">
                 ${projection > 0 ? (isPages ? projection.toLocaleString() : projection) : '—'}
               </div>
@@ -32469,6 +32639,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     
               return `
                 <div onclick="${bookId ? 'openBookDetailView(\'' + bookId + '\', \'challengeDetail\')' : ''}"
+                    ${bookId ? 'role="button" tabindex="0" data-action' : ''}
                     style="display:flex;align-items:center;gap:12px;padding:10px 0;
                             border-bottom:1px solid #f4f4f4;cursor:${bookId ? 'pointer' : 'default'};">
                   <div style="flex-shrink:0;">${coverHtml}</div>
@@ -32598,9 +32769,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        */
       function renderCompetitiveLeaderboard(challenge, enrollments) {
         const typeColours = {
-          HABIT_STREAK: '#EF9F27', BINGO_GRID: '#7F77DD',
-          BUDDY_READ: '#D4537E', COUNTRY_SPREAD: '#1D9E75',
-          ALPHABET: '#378ADD', BOOK_COUNT: '#EF9F27', PAGE_COUNT: '#378ADD'
+          HABIT_STREAK: 'var(--color-gamification)', BINGO_GRID: '#7F77DD',
+          BUDDY_READ: '#D4537E', COUNTRY_SPREAD: 'var(--color-success)',
+          ALPHABET: '#378ADD', BOOK_COUNT: 'var(--color-gamification)', PAGE_COUNT: '#378ADD'
         };
         const barColour = typeColours[challenge.challengeType] || 'var(--arka-accent)';
         const maxVal    = Math.max(1, enrollments[0].currentProgressValue);
@@ -32660,7 +32831,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           </div>
           ${myRank > 5 ? `
             <div style="margin-top:10px;padding:8px;background:#EEEDFE;border-radius:8px;
-                        font-size:0.82rem;color:#534AB7;text-align:center;">
+                        font-size:0.82rem;color:var(--color-challenge);text-align:center;">
               Your rank: #${myRank} of ${count}
             </div>` : ''}`;
       }
@@ -32678,7 +32849,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       function renderPaceTable(challenge, enrollments) {
         const isPages = challenge.challengeType === 'PAGE_COUNT';
         const unit    = isPages ? 'pages' : 'books';
-        const colour  = isPages ? '#378ADD' : '#EF9F27';
+        const colour  = isPages ? '#378ADD' : 'var(--color-gamification)';
 
         const rows = enrollments.map(function(enrollment) {
           const member  = membersMap.get(enrollment.memberId);
@@ -32698,9 +32869,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           let paceIcon = '→'; let paceColor = 'var(--text-faint)';
           if (projection > 0) {
             const ratio = projection / personalGoal;
-            if (ratio >= 1.05)    { paceIcon = '↑'; paceColor = '#1D9E75'; }
-            else if (ratio < 0.9) { paceIcon = '↓'; paceColor = '#e74c3c'; }
-            else                  { paceIcon = '→'; paceColor = '#EF9F27'; }
+            if (ratio >= 1.05)    { paceIcon = '↑'; paceColor = 'var(--color-success)'; }
+            else if (ratio < 0.9) { paceIcon = '↓'; paceColor = 'var(--color-danger)'; }
+            else                  { paceIcon = '→'; paceColor = 'var(--color-gamification)'; }
           }
 
           const avatarHtml = buildAvatarHtml(member, 28);
@@ -32726,6 +32897,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
           return `
             <div onclick="${r.member ? 'showMemberProfile(\'' + r.memberId + '\')' : ''}"
+                ${r.member ? 'role="button" tabindex="0" data-action' : ''}
                 style="display:flex;align-items:center;gap:8px;padding:9px 10px;
                         border-bottom:1px solid #f4f4f4;cursor:${r.member ? 'pointer' : 'default'};
                         ${r.isMe ? 'background:#EEEDFE;border-radius:8px;margin:2px 0;' : ''}">
@@ -32797,9 +32969,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           </div>
           <div style="display:flex;justify-content:center;gap:16px;margin-top:8px;
                       font-size:0.7rem;color:var(--text-faint);">
-            <span style="color:#1D9E75;">↑ ahead</span>
-            <span style="color:#EF9F27;">→ on track</span>
-            <span style="color:#e74c3c;">↓ behind</span>
+            <span style="color:var(--color-success);">↑ ahead</span>
+            <span style="color:var(--color-gamification);">→ on track</span>
+            <span style="color:var(--color-danger);">↓ behind</span>
           </div>
           <div style="font-size:0.7rem;color:var(--text-faint);text-align:center;margin-top:4px;">
             Pace = projected year-end total at your current reading speed.
