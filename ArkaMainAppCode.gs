@@ -9075,8 +9075,8 @@ function getCachedDb(key) {
                             .getSheetByName(APP_CONFIG_SHEET);
       if (configSheet) {
         const flagVal = configSheet.getRange(BADGE_DIRTY_ROW, 2).getValue();
-        if (String(flagVal).toLowerCase() === 'true') {
-          configSheet.getRange(BADGE_DIRTY_ROW, 2).setValue('false');
+        if (flagVal === true) {
+          configSheet.getRange(BADGE_DIRTY_ROW, 2).setValue(false);
           CacheService.getScriptCache().remove(key);
           console.log('Cache BYPASSED (badge dirty flag): ' + key);
           return null;
