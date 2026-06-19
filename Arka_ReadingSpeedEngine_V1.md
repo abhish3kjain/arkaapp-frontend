@@ -38,7 +38,7 @@ Stored at `member.stats.readingSpeed`:
 |---|---|---|
 | `v` | integer | Engine version. Currently `1`. Bump on any breaking change to computation logic. |
 | `computed` | string (dd-MMM-yyyy) | Date of last computation. |
-| `overallAvgPace` | number | Pages/day averaged across all finished books with valid logs. HISTORICAL_IMPORT rows are excluded from time-span calculations but their `pagesDelta` values are included in total page counts. |
+| `overallAvgPace` | number | Pages/day = total all-time pages (all real logs, including unlinked books) ÷ span from first to last real log. HISTORICAL_IMPORT timestamps and pages are excluded entirely. |
 | `recentPace` | number | Pages/day over the last 30 days across all books, including unlinked pages. HISTORICAL_IMPORT timestamps excluded. |
 | `moodMultiplier` | number \| null | `recentPace ÷ overallAvgPace`, clamped to `[0.4, 2.0]`. Represents the user's current reading state relative to their baseline. Omitted (null) when `recentPace = 0` (no logs in 30 days) to avoid distorting estimates. |
 | `genrePace` | object | Map of canonical genre name → `{ pace, booksUsed }`. Only genres with **≥ 3 qualifying finished books** are included. |
@@ -70,7 +70,7 @@ bookPace = totalPagesLogged ÷ max(1, daysBetweenFirstAndLastLog)
 ```
 
 - **Single-day span guard:** If the first and last log fall on the same day, the span is treated as 1 day (no division by zero, no inflated pace).
-- **Unlinked pages** (logs with no `bookId`) are counted toward `overallAvgPace` and `recentPace` totals but are excluded from `genrePace` — there is no genre to assign them to.
+- **Unlinked pages** (logs with no `bookId`, or a `bookId` not in LibraryDB) count toward `overallAvgPace` and `recentPace` — they are excluded only from `genrePace` because there is no genre to assign.
 
 ---
 
@@ -98,7 +98,7 @@ Outlier detection is performed per-user using the user's own pace distribution r
    ```
    median + adaptiveIQRMultiplier × IQR
    ```
-6. Recompute `genrePace` and `overallAvgPace` from the clean sample.
+6. Recompute `genrePace` from the clean sample. (`overallAvgPace` is computed independently from all logs — see field reference — and is not affected by IQR filtering.)
 
 ### Rationale
 
