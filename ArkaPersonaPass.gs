@@ -1,783 +1,1362 @@
 /**
- * ARKA AI PASS — Standalone Gemini Coach Script
+ * ARKA PERSONA PASS — Standalone Reading Personality Engine
  *
- * Responsibility: generate personalised AI reading advice for every active
- * Arka member by calling the Gemini API, then writing the result back into
- * each member's CoachInsights JSON in MemberDB Col S.
+ * Responsibility: compute each active member's Reading Personality — their
+ * spectrum-axis verdicts, synthesized archetype, "things you didn't know"
+ * insights, a blind-spot, and club-wide rarity — then upsert one row per
+ * member into PersonaProfileDB. When a member's verdict on any axis changes
+ * (including first-time resolution from a gated/forming state), it logs one
+ * ARKA_ACTTYP_PERSONAUPDATE activity per changed axis. Those activity rows are
+ * the sole history source for the "How You've Changed" timeline.
  *
  * Separation of concerns
  * ──────────────────────
- * MasterEngine  →  stats, badges, insight chips, tasks  (fast, no API calls)
- * ArkaAIPass    →  Gemini AI advice only                (rate-limited, chained)
+ *   MasterEngine    →  stats, badges, CP ledger, insight chips, tasks
+ *   ArkaAIPass      →  Gemini AI advice (rate-limited, chained)
+ *   ArkaPersonaPass →  Reading Personality computation (this file)
  *
- * Execution model
- * ───────────────
- * 1. A time-based trigger fires runArkaAIPass() ~5 min after MasterEngine.
- * 2. runArkaAIPass() checks the ARKAAIPASS_READY flag (set by MasterEngine).
- * 3. It reads a cursor from PropertiesService (AIPASS_MEMBER_CURSOR).
- *    - First run of the night: cursor = 0 (start from member 1).
- *    - Chained run: cursor = last processed member index + 1.
- * 4. It processes up to AIPASS_MEMBERS_PER_RUN members, sleeping
- *    AIPASS_INTER_CALL_SLEEP ms between Gemini calls to respect 15 RPM.
- * 5. Before the 6-minute GAS wall, it saves the cursor and schedules the
- *    next trigger via ScriptApp for AIPASS_CHAIN_DELAY_MINUTES minutes later.
- * 6. When all members are processed, cursor is cleared, the ready flag is
- *    cleared, and no further trigger is scheduled.
+ * Why a separate chained pass (not inside MasterEngine)
+ * ─────────────────────────────────────────────────────
+ * The persona computation needs the three heaviest reads in the system in one
+ * place — the FULL PageLogDB, MemberShelfDB, and ArkaLibraryDB — to derive
+ * time-of-day rhythm, session shape, finish/DNF behaviour, era and length.
+ * Doing that for the whole club inside MasterEngine's existing 6-minute budget
+ * risks a timeout. So, exactly like ArkaAIPass, this runs as its own daily
+ * trigger ~7 min after midnight, processes members in cursor-tracked batches,
+ * and chains itself if it nears the GAS wall. Unlike ArkaAIPass it makes NO
+ * external API calls, so there is no rate-limit sleep — batching here is sized
+ * purely by per-member compute, and batches can be large.
+ *
+ * Execution model (identical shape to ArkaAIPass)
+ * ───────────────────────────────────────────────
+ *   1. Daily trigger fires runArkaPersonaPass() at ~00:07.
+ *   2. It checks the ARKAPERSONAPASS_READY flag (set by MasterEngine on
+ *      successful completion) so it never reads a half-written club state.
+ *   3. It reads a member cursor from PropertiesService.
+ *   4. On the FIRST batch of the night it loads the three source sheets ONCE,
+ *      pre-indexes them per member, and caches the heavy indexes plus the
+ *      club-wide rarity tallies in PropertiesService so chained batches do not
+ *      re-read or re-tally. (Indexes are compact per-member aggregates, not raw
+ *      rows, so they fit comfortably in Script Properties.)
+ *   5. Each batch computes personalities for up to PERSONA_MEMBERS_PER_RUN
+ *      members and writes their PersonaProfileDB rows + any PERSONAUPDATE logs.
+ *   6. If members remain, it saves the cursor and schedules the next run.
+ *   7. When all are processed it clears state and triggers and finishes.
  *
  * Staleness gate
  * ──────────────
- * If a member's statSnapshot fingerprint matches the one stored last night,
- * their aiAdvice has not changed — no Gemini call is made and the stored
- * advice is kept as-is. This typically reduces nightly Gemini calls by 50–70%.
+ * Each member's source data is fingerprinted (page-log count + last-log ms +
+ * finished-book count). If tonight's fingerprint equals the one stored on the
+ * member's PersonaProfileDB row, nothing material changed — the row is left
+ * untouched and no PERSONAUPDATE is logged. This skips the bulk of the club on
+ * a typical night.
  *
  * Trigger setup (one-time manual step)
  * ─────────────────────────────────────
- * Run installArkaAIPassTrigger() once from the Apps Script editor.
- * This installs a daily trigger at 00:10 (10 min after midnight, giving
- * MasterEngine time to complete). The chain trigger is managed dynamically
- * by the script itself — do not install multiple triggers manually.
+ * Run installArkaPersonaPassTrigger() once from the Apps Script editor.
  *
  * Kill switch
  * ───────────
- * Set Script Property  GEMINI_COACH_ENABLED = 'false'  to disable all AI
- * calls without touching any code. runArkaAIPass() exits immediately if set.
+ * Set Script Property  PERSONA_PASS_ENABLED = 'false'  to disable without
+ * touching code. runArkaPersonaPass() exits immediately if set.
+ *
+ * Silent deploy
+ * ─────────────
+ * ARKA_ACTTYP_PERSONAUPDATE must be present in HIDDEN_TYPES (buildFeedAggregator)
+ * and in VARIABLE_POINT_TYPES (MasterEngine Rule 5) before enabling this pass —
+ * see the Database Definitions surgical update accompanying this file.
  */
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
-/** Google Spreadsheet that backs the Arka Club app. */
-const AIPASS_SPREADSHEET_ID = '1qXsAAO_9aIEJuTTQ1ziX9s5plvm6WHaVI_zaKcSXF-4';
+/** Google Spreadsheet that backs the Arka Club app. Must match MasterEngine. */
+const PERSONA_SPREADSHEET_ID = '1qXsAAO_9aIEJuTTQ1ziX9s5plvm6WHaVI_zaKcSXF-4';
 
-/** MemberDB sheet name — must match MasterEngine constant. */
-const AIPASS_MEMBERS_SHEET = 'MemberDB';
+/** Sheet names. */
+const PERSONA_MEMBERS_SHEET   = 'MemberDB';
+const PERSONA_PROFILE_SHEET   = 'PersonaProfileDB';
+const PERSONA_PAGELOG_SHEET   = 'PageLogDB';
+const PERSONA_SHELF_SHEET     = 'MemberShelfDB';
+const PERSONA_LIBRARY_SHEET   = 'ArkaLibraryDB';
+const PERSONA_ACTIVITY_SHEET  = 'ActivityLogDB';
 
-/** Gemini model — free tier: 15 RPM, 1000 RPD. */
-const AIPASS_GEMINI_MODEL = 'gemini-2.5-flash-lite';
+/** Engine version stamp — bump to force-recompute all rows after a logic change. */
+const PERSONA_ENGINE_VERSION = 'PersonaEngine v1';
 
-/** Gemini endpoint built from model name. */
-const AIPASS_GEMINI_ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/' +
-  AIPASS_GEMINI_MODEL + ':generateContent';
+/** Activity type for persona shifts. CP always 0. Must be in HIDDEN_TYPES + VARIABLE_POINT_TYPES. */
+const PERSONA_ACTIVITY_TYPE_ID = 'ARKA_ACTTYP_PERSONAUPDATE';
 
-/** Max output tokens per call (~275 words of advice). */
-const AIPASS_MAX_OUTPUT_TOKENS = 400;
-
-/**
- * Members processed per trigger run.
- * At 4200ms sleep between calls: 40 members × 4.2s = 168s ≈ 2.8 min.
- * Well under the 6-minute GAS limit with comfortable headroom for sheet I/O.
- * Increase toward 70 only if sheet reads are consistently fast.
- */
-const AIPASS_MEMBERS_PER_RUN = 40;
+/** Source sentinel written into ActivityLogDB Col F for persona shift rows. */
+const PERSONA_ACTIVITY_SOURCE = 'MasterSync Engine';
 
 /**
- * Sleep between Gemini calls in milliseconds.
- * 15 RPM limit = minimum 4000ms. 4200ms gives a safe margin.
+ * Members processed per trigger run. No API calls here, so this is bounded by
+ * compute + sheet-write time, not a rate limit. 120 is conservative for ~50
+ * members but keeps headroom if the club grows 10×.
  */
-const AIPASS_INTER_CALL_SLEEP = 4200;
+const PERSONA_MEMBERS_PER_RUN = 120;
+
+/** Minutes between chained runs. Short — no external dependency to wait on. */
+const PERSONA_CHAIN_DELAY_MINUTES = 2;
 
 /**
- * Minutes between chained trigger runs.
- * Set to 3 so the next batch starts before the previous one's output is stale,
- * but late enough that GAS trigger scheduling is reliable.
+ * Activity gate: members whose most recent page log is older than this many
+ * days are skipped — their existing PersonaProfileDB row (if any) is preserved.
+ * Matches the AI pass / MasterEngine 7-day convention.
  */
-const AIPASS_CHAIN_DELAY_MINUTES = 3;
+const PERSONA_INACTIVE_DAYS_THRESHOLD = 7;
 
-/**
- * Activity gate: members whose last page log is older than this many days
- * get no new AI advice. Their stored advice from a prior night is preserved.
- * Extended to 14 days so weekend-only readers (who may log every 7–10 days)
- * do not miss their nightly AI refresh.
- */
-const AIPASS_INACTIVE_DAYS_THRESHOLD = 14;
+/** Minimum data gates per axis. Below these, an axis renders as "forming". */
+const PERSONA_MIN_SESSIONS_FOR_RHYTHM   = 20; // Rhythm, Appetite, Cadence
+const PERSONA_MIN_FINISHED_FOR_TASTE    = 5;  // Persistence, Era, Scale, Breadth
 
-/** PropertiesService key written by MasterEngine on successful completion. */
-const AIPASS_READY_FLAG_KEY = 'ARKAAIPASS_READY';
-
-/** PropertiesService key storing the inter-run member cursor (row index). */
-const AIPASS_CURSOR_KEY = 'AIPASS_MEMBER_CURSOR';
-
-/** PropertiesService key tracking the total members eligible this run (for logging). */
-const AIPASS_TOTAL_KEY = 'AIPASS_TOTAL_ELIGIBLE';
+/** PropertiesService keys. */
+const PERSONA_READY_FLAG_KEY = 'ARKAPERSONAPASS_READY';
+const PERSONA_CURSOR_KEY     = 'PERSONA_MEMBER_CURSOR';
+const PERSONA_INDEX_KEY      = 'PERSONA_SOURCE_INDEX';   // cached per-member aggregates (JSON)
+const PERSONA_RARITY_KEY     = 'PERSONA_RARITY_TALLY';   // cached club-wide tallies (JSON)
 
 /** Function name used when scheduling the chain trigger — must match exactly. */
-const AIPASS_FUNCTION_NAME = 'runArkaAIPass';
+const PERSONA_FUNCTION_NAME = 'runArkaPersonaPass';
+
+/** PersonaProfileDB column count (A–L = 12). Used for row assembly. */
+const PERSONA_PROFILE_COL_COUNT = 12;
 
 
 // ── Entry point ────────────────────────────────────────────────────────────
 
 /**
- * runArkaAIPass()
+ * runArkaPersonaPass()
  *
- * Main entry point, called by the time-based trigger and by chain triggers.
+ * Main entry point, called by the daily trigger and by chain triggers.
  * Processes one batch of members, then either chains itself or finalises.
  */
-function runArkaAIPass() {
+function runArkaPersonaPass() {
   var props = PropertiesService.getScriptProperties();
 
-  // ── Kill switch — checked first, before any sheet I/O ──────────────────
-  var killSwitch = props.getProperty('GEMINI_COACH_ENABLED');
-  if (killSwitch === 'false') {
-    console.log('ArkaAIPass: GEMINI_COACH_ENABLED=false — exiting.');
-    _aiPassCleanup_(props);
+  // ── Kill switch ─────────────────────────────────────────────────────────
+  if (props.getProperty('PERSONA_PASS_ENABLED') === 'false') {
+    console.log('PersonaPass: PERSONA_PASS_ENABLED=false — exiting.');
+    _personaCleanup_(props);
     return;
   }
 
-  // ── Readiness gate — MasterEngine must have completed first ────────────
-  var isReady = props.getProperty(AIPASS_READY_FLAG_KEY);
-  if (isReady !== 'true') {
-    console.warn('ArkaAIPass: ARKAAIPASS_READY flag not set — MasterEngine may not have completed yet. Will retry next scheduled run.');
+  // ── Readiness gate — MasterEngine must have completed first ───────────────
+  if (props.getProperty(PERSONA_READY_FLAG_KEY) !== 'true') {
+    console.warn('PersonaPass: ARKAPERSONAPASS_READY not set — MasterEngine may not have finished. Will retry next scheduled run.');
     return;
   }
 
-  // ── API key check ───────────────────────────────────────────────────────
-  var apiKey = props.getProperty('GEMINI_API_KEY');
-  if (!apiKey) {
-    console.error('ArkaAIPass: GEMINI_API_KEY not set in Script Properties — exiting.');
-    _aiPassCleanup_(props);
+  var ss = SpreadsheetApp.openById(PERSONA_SPREADSHEET_ID);
+
+  var memberSheet = ss.getSheetByName(PERSONA_MEMBERS_SHEET);
+  if (!memberSheet) {
+    console.error('PersonaPass: MemberDB not found.');
+    _personaCleanup_(props);
     return;
   }
 
-  // ── Load MemberDB ───────────────────────────────────────────────────────
-  var ss      = SpreadsheetApp.openById(AIPASS_SPREADSHEET_ID);
-  var memSheet = ss.getSheetByName(AIPASS_MEMBERS_SHEET);
-  if (!memSheet) {
-    console.error('ArkaAIPass: MemberDB sheet not found.');
-    _aiPassCleanup_(props);
-    return;
-  }
-
-  var memData = memSheet.getDataRange().getValues();
-  // Row 0 is the header — data rows start at index 1.
-  var totalDataRows = memData.length - 1;
-
+  var memberData    = memberSheet.getDataRange().getValues();
+  var totalDataRows = memberData.length - 1; // row 0 = header
   if (totalDataRows <= 0) {
-    console.log('ArkaAIPass: MemberDB is empty — nothing to process.');
-    _aiPassCleanup_(props);
+    console.log('PersonaPass: MemberDB empty — nothing to do.');
+    _personaCleanup_(props);
     return;
   }
 
-  // ── Read cursor ─────────────────────────────────────────────────────────
-  // Cursor is the memData row index (1-based) to start from this run.
-  // First run of the night: cursor = 1. Chained run: cursor > 1.
-  var cursor = parseInt(props.getProperty(AIPASS_CURSOR_KEY) || '1', 10);
+  // ── Cursor ────────────────────────────────────────────────────────────────
+  var cursor = parseInt(props.getProperty(PERSONA_CURSOR_KEY) || '1', 10);
   if (isNaN(cursor) || cursor < 1) cursor = 1;
+  var isFirstBatch = (cursor === 1);
 
-  // Also load PageLogDB for the activity gate check.
-  var pageLogData = ss.getSheetByName('PageLogDB').getDataRange().getValues();
+  // ── Source indexes + rarity tally ────────────────────────────────────────
+  // On the first batch only, build the heavy per-member aggregates and the
+  // club-wide rarity tallies, then cache them so chained batches skip the read.
+  var sourceIndex; // { memberId: { sessions, lastLogMs, finished:[...], ... } }
+  var rarityTally; // { totalResolved, archetypes:{key:count}, axes:{axis:{side:count}} }
 
-  // Pre-index page logs by memberId → most recent log timestamp ms.
-  // O(n) scan done once here rather than per-member inside the loop.
-  var lastLogMsPerMember = {};
-  for (var pl = 1; pl < pageLogData.length; pl++) {
-    var plMemberId = (pageLogData[pl][2] || '').toString();
-    if (!plMemberId) continue;
-    var plDelta = Number(pageLogData[pl][4]) || 0;
-    if (plDelta <= 0) continue;  // Skip negative correction entries
-    var plDateStr = (pageLogData[pl][1] || '').toString();
-    var plMs = _aiPassParseDate_(plDateStr);
-    if (isNaN(plMs)) continue;
-    if (!lastLogMsPerMember[plMemberId] || plMs > lastLogMsPerMember[plMemberId]) {
-      lastLogMsPerMember[plMemberId] = plMs;
+  if (isFirstBatch) {
+    sourceIndex = _personaBuildSourceIndex_(ss);
+    // Pass totalDataRows so rarity shows "X / 32" (real club size), not "X / 37"
+    // (sourceIndex size, which can exceed MemberDB if historical member IDs linger
+    // in PageLogDB or ShelfDB after a member leaves).
+    rarityTally = _personaBuildRarityTally_(sourceIndex, totalDataRows);
+    // Cache for chained batches. These are compact aggregates, not raw rows.
+    props.setProperty(PERSONA_INDEX_KEY,  JSON.stringify(sourceIndex));
+    props.setProperty(PERSONA_RARITY_KEY, JSON.stringify(rarityTally));
+  } else {
+    try {
+      sourceIndex = JSON.parse(props.getProperty(PERSONA_INDEX_KEY)  || '{}');
+      rarityTally = JSON.parse(props.getProperty(PERSONA_RARITY_KEY) || '{}');
+    } catch (parseErr) {
+      // Cache lost mid-chain (rare) — rebuild from scratch.
+      console.warn('PersonaPass: cached index lost — rebuilding.');
+      sourceIndex = _personaBuildSourceIndex_(ss);
+      rarityTally = _personaBuildRarityTally_(sourceIndex);
     }
   }
 
-  // ── Process batch ───────────────────────────────────────────────────────
-  var nowMs                = Date.now();
-  var inactiveCutoffMs     = AIPASS_INACTIVE_DAYS_THRESHOLD * 24 * 60 * 60 * 1000;
-  var processedThisRun     = 0;
-  var calledGeminiThisRun  = 0;
-  var skippedInactive      = 0;
-  var skippedFingerprint   = 0;
-  var endRow               = Math.min(cursor + AIPASS_MEMBERS_PER_RUN - 1, totalDataRows);
+  // ── Load PersonaProfileDB into a memberId → {rowIndex, parsed} map ─────────
+  var profileSheet = ss.getSheetByName(PERSONA_PROFILE_SHEET);
+  if (!profileSheet) {
+    console.error('PersonaPass: PersonaProfileDB not found — create the sheet first.');
+    _personaCleanup_(props);
+    return;
+  }
+  var profileData    = profileSheet.getDataRange().getValues();
+  var profileByMember = {}; // memberId → { rowIndex(1-based), prevVerdicts, prevArchKey, prevFingerprint }
+  for (var pr = 1; pr < profileData.length; pr++) {
+    var pid = (profileData[pr][0] || '').toString().trim();
+    if (!pid) continue;
+    var prevVerdicts = {};
+    try {
+      var vArr = JSON.parse((profileData[pr][5] || '[]').toString()); // Col F
+      vArr.forEach(function(v) { prevVerdicts[v.axis] = v; });
+    } catch (e) { /* malformed — treat as no prior verdicts */ }
+    profileByMember[pid] = {
+      rowIndex       : pr + 1,
+      prevVerdicts   : prevVerdicts,
+      prevArchKey    : (profileData[pr][1] || '').toString(),  // Col B
+      prevArchName   : (profileData[pr][2] || '').toString(),  // Col C
+      prevFingerprint: _personaExtractFingerprint_(profileData[pr])
+    };
+  }
 
-  // Track which rows were actually modified so we write only changed cells.
-  var modifiedRows = []; // Array of { rowIndex, newJson }
+  // ── Process batch ───────────────────────────────────────────────────────
+  var nowMs            = Date.now();
+  var endRow           = Math.min(cursor + PERSONA_MEMBERS_PER_RUN - 1, totalDataRows);
+  var rowsToWrite      = []; // { rowIndex(1-based) | null for append, values[] }
+  var rowsToAppend     = []; // values[] for brand-new members
+  var activityRows     = []; // PERSONAUPDATE rows queued for one batched write
+  var processed = 0, skippedInactive = 0, skippedNoData = 0, skippedStale = 0, changed = 0;
 
   for (var ri = cursor; ri <= endRow; ri++) {
-    var memberId = (memData[ri][0] || '').toString().trim();
+    var memberId    = (memberData[ri][0] || '').toString().trim();
     if (!memberId) continue;
+    var displayName = (memberData[ri][3] || '').toString().trim();
+    processed++;
 
-    processedThisRun++;
+    var agg      = sourceIndex[memberId];
+    // Resolve existing row BEFORE the activity gate — the gate needs it to
+    // distinguish "never computed" (must run) from "already has a row" (can skip).
+    var existing = profileByMember[memberId] || null;
 
-    // ── Activity gate ─────────────────────────────────────────────────────
-    // Skip members who haven't logged any pages recently.
-    // Their stored aiAdvice (if any) remains untouched.
-    var lastLogMs      = lastLogMsPerMember[memberId] || 0;
-    var daysSinceLog   = lastLogMs > 0 ? (nowMs - lastLogMs) / (24 * 60 * 60 * 1000) : 9999;
-    if (daysSinceLog > AIPASS_INACTIVE_DAYS_THRESHOLD) {
+    // No-data guard — member exists in MemberDB but has zero rows in both
+    // PageLogDB and ShelfDB. Nothing to compute; skip silently until they
+    // start using the app. Distinct from inactive (has data, just old).
+    if (!agg) {
+      skippedNoData++;
+      continue;
+    }
+
+    // Activity gate — only skip inactive members who ALREADY have a computed row.
+    // First-time computation always runs regardless of threshold: shelf-derived
+    // axes (Breadth, Scale, Era) are valid from historical data even if the member
+    // hasn't logged pages recently. On subsequent nightly passes, stale rows for
+    // inactive members are correctly preserved unchanged.
+    var lastLogMs    = (agg && agg.lastLogMs) || 0;
+    var daysSinceLog = lastLogMs > 0 ? (nowMs - lastLogMs) / 86400000 : 99999;
+    if (existing && daysSinceLog > PERSONA_INACTIVE_DAYS_THRESHOLD) {
       skippedInactive++;
       continue;
     }
 
-    // ── Read existing Col S JSON ──────────────────────────────────────────
-    var existingColS   = (memData[ri][18] || '').toString();
-    var existingParsed = null;
-    try {
-      if (existingColS) existingParsed = JSON.parse(existingColS);
-    } catch (e) { /* malformed — will regenerate */ }
-
-    if (!existingParsed || !existingParsed.statSnapshot) {
-      // MasterEngine hasn't written a fresh snapshot for this member yet.
-      // This shouldn't happen (MasterEngine runs first) but skip gracefully.
-      console.warn('ArkaAIPass: no statSnapshot for ' + memberId + ' — skipping.');
+    // Staleness gate — fingerprint unchanged → skip.
+    var fingerprint = _personaBuildFingerprint_(agg);
+    if (existing && existing.prevFingerprint && existing.prevFingerprint === fingerprint) {
+      skippedStale++;
       continue;
     }
 
-    var statSnapshot = existingParsed.statSnapshot;
-    var insights     = existingParsed.insights || [];
+    // ── Compute this member's personality ────────────────────────────────
+    var personality = _personaComputeForMember_(agg, rarityTally);
+    // personality = { verdicts:[...], archetypeKey, archetypeName, archetypeEmoji,
+    //                 archetypeTagline, insights:[...], blindSpot|null, rarity:{...} }
 
-    // Require at least one insight before calling Gemini.
-    // Members with zero insights are very new or have no activity data.
-    if (insights.length === 0) continue;
-
-    // ── Staleness fingerprint check ───────────────────────────────────────
-    // Build a fingerprint from the fields that materially change the advice.
-    // If it matches the stored fingerprint, skip the Gemini call entirely.
-    var currentFingerprint = _aiPassBuildFingerprint_(statSnapshot);
-    var storedFingerprint  = existingParsed.aiFingerprint || null;
-    var storedAdvice       = existingParsed.aiAdvice      || null;
-
-    if (storedFingerprint && storedFingerprint === currentFingerprint && storedAdvice) {
-      skippedFingerprint++;
-      console.log('ArkaAIPass: fingerprint match for ' + memberId + ' — reusing stored advice.');
-      continue; // No write needed — Col S already has fresh advice for this snapshot
-    }
-
-    // ── Gemini call ───────────────────────────────────────────────────────
-    var displayName = (memData[ri][3] || '').toString().trim();
-    var newAdvice   = null;
-    try {
-      newAdvice = _aiPassCallGemini_(apiKey, displayName, insights, statSnapshot);
-      calledGeminiThisRun++;
-    } catch (geminiErr) {
-      console.warn('ArkaAIPass: Gemini call failed for ' + memberId + ' — ' + geminiErr.toString());
-      // Non-fatal: keep existing advice, skip the write for this member
-      continue;
-    }
-
-    // ── Update the Col S JSON with new advice and fingerprint ─────────────
-    existingParsed.aiAdvice      = newAdvice;
-    existingParsed.aiFingerprint = currentFingerprint;
-    // Update generatedAt to reflect when advice was actually regenerated.
-    existingParsed.aiGeneratedAt = Utilities.formatDate(
-      new Date(), Session.getScriptTimeZone(), 'dd-MMM-yyyy HH:mm'
-    );
-
-    modifiedRows.push({
-      rowIndex: ri + 1, // 1-based sheet row (ri is 0-based memData index)
-      newJson : JSON.stringify(existingParsed)
-    });
-
-    // ── Rate limit sleep — only when a Gemini call was actually made ──────
-    // No sleep when the fingerprint matched (no API call was made).
-    Utilities.sleep(AIPASS_INTER_CALL_SLEEP);
-  }
-
-  // ── Batch write modified rows back to sheet ───────────────────────────
-  // Write only rows that changed — avoids touching MasterEngine's work.
-  if (modifiedRows.length > 0) {
-    modifiedRows.forEach(function(mod) {
-      // Col S = column 19 (1-based). Write only the single cell.
-      memSheet.getRange(mod.rowIndex, 19).setValue(mod.newJson);
-    });
-    console.log('ArkaAIPass: wrote ' + modifiedRows.length + ' updated Col S cells.');
-  }
-
-  // ── Log run summary ───────────────────────────────────────────────────
-  console.log(
-    'ArkaAIPass batch complete — ' +
-    'cursor: ' + cursor + '→' + (endRow + 1) + ', ' +
-    'processed: ' + processedThisRun + ', ' +
-    'gemini calls: ' + calledGeminiThisRun + ', ' +
-    'fingerprint skips: ' + skippedFingerprint + ', ' +
-    'inactive skips: ' + skippedInactive
-  );
-
-  // ── Chain or finalise ─────────────────────────────────────────────────
-  var nextCursor = endRow + 1;
-
-  if (nextCursor > totalDataRows) {
-    // All members processed — clean up and done for tonight.
-    console.log('ArkaAIPass: all members processed. Run complete.');
-    _aiPassCleanup_(props);
-  } else {
-    // More members remain — save cursor and schedule the next trigger.
-    props.setProperty(AIPASS_CURSOR_KEY, nextCursor.toString());
-    _aiPassScheduleNextRun_();
-    console.log('ArkaAIPass: chaining — next run starts at cursor ' + nextCursor + ' in ' + AIPASS_CHAIN_DELAY_MINUTES + ' min.');
-  }
-}
-
-
-// ── Trigger management ─────────────────────────────────────────────────────
-
-/**
- * installArkaAIPassTrigger()
- *
- * One-time setup. Run manually from the Apps Script editor once.
- * Installs a daily time-based trigger at 00:10 (10 minutes after midnight)
- * so MasterEngine has time to complete before the AI pass starts.
- *
- * Chain triggers are installed/removed dynamically by the script itself —
- * do not call this more than once, and do not install additional triggers
- * manually or you will get duplicate runs.
- */
-function installArkaAIPassTrigger() {
-  // Remove any pre-existing triggers for this function to prevent duplicates.
-  _aiPassRemoveAllTriggers_();
-
-  ScriptApp.newTrigger(AIPASS_FUNCTION_NAME)
-    .timeBased()
-    .atHour(0)
-    .nearMinute(10)
-    .everyDays(1)
-    .create();
-
-  console.log('ArkaAIPass: daily trigger installed at 00:10.');
-}
-
-/**
- * _aiPassScheduleNextRun_()
- *
- * Schedules a one-off trigger to fire in AIPASS_CHAIN_DELAY_MINUTES minutes.
- * Called at the end of each partial run when more members remain.
- * Only one chain trigger is ever active at a time.
- *
- * @private
- */
-function _aiPassScheduleNextRun_() {
-  // Remove any stale chain triggers before adding a new one.
-  // The daily trigger must be preserved — only remove triggers whose handler
-  // is runArkaAIPass AND which are not the daily at-hour trigger.
-  var allTriggers = ScriptApp.getProjectTriggers();
-  allTriggers.forEach(function(t) {
-    if (t.getHandlerFunction() === AIPASS_FUNCTION_NAME &&
-        t.getEventType() === ScriptApp.EventType.CLOCK &&
-        t.getTriggerSource() === ScriptApp.TriggerSource.CLOCK) {
-      // Inspect the trigger to decide if it's the daily or a chain trigger.
-      // GAS doesn't expose trigger interval directly — we use the fact that
-      // chain triggers are always in the near future (< 10 minutes away).
-      // Safe heuristic: delete all non-daily triggers for this function and
-      // recreate only the chain trigger. The daily trigger is re-installed
-      // by installArkaAIPassTrigger() which is only called once.
-      try { ScriptApp.deleteTrigger(t); } catch (e) {}
-    }
-  });
-
-  var nextRunAt = new Date(Date.now() + AIPASS_CHAIN_DELAY_MINUTES * 60 * 1000);
-  ScriptApp.newTrigger(AIPASS_FUNCTION_NAME)
-    .timeBased()
-    .at(nextRunAt)
-    .create();
-}
-
-/**
- * _aiPassRemoveAllTriggers_()
- *
- * Removes ALL triggers for runArkaAIPass. Used by installArkaAIPassTrigger()
- * and cleanup to ensure a clean slate.
- *
- * @private
- */
-function _aiPassRemoveAllTriggers_() {
-  ScriptApp.getProjectTriggers().forEach(function(t) {
-    if (t.getHandlerFunction() === AIPASS_FUNCTION_NAME) {
-      try { ScriptApp.deleteTrigger(t); } catch (e) {}
-    }
-  });
-}
-
-/**
- * _aiPassCleanup_()
- *
- * Clears the cursor and ready flag from PropertiesService and removes any
- * chain triggers. Called when all members are processed or on abort.
- *
- * Does NOT remove the daily trigger — that must persist for the next night.
- *
- * @param {GoogleAppsScript.Properties.Properties} props
- * @private
- */
-function _aiPassCleanup_(props) {
-  props.deleteProperty(AIPASS_CURSOR_KEY);
-  props.deleteProperty(AIPASS_READY_FLAG_KEY);
-  props.deleteProperty(AIPASS_TOTAL_KEY);
-
-  // Remove only chain (one-off) triggers — preserve the daily trigger.
-  // Strategy: delete all runArkaAIPass triggers, then reinstall the daily one.
-  _aiPassRemoveAllTriggers_();
-  ScriptApp.newTrigger(AIPASS_FUNCTION_NAME)
-    .timeBased()
-    .atHour(0)
-    .nearMinute(10)
-    .everyDays(1)
-    .create();
-}
-
-
-// ── Gemini call ────────────────────────────────────────────────────────────
-
-/**
- * _aiPassCallGemini_()
- *
- * Makes a single Gemini API call using a four-layer coaching brief and returns
- * the advice text. Throws on non-200 responses or unexpected response structure.
- *
- * Prompt layers:
- *   Layer 1 — Reading DNA: archetype + all resolved persona axis verdicts
- *   Layer 2 — Goals & Identity: ReadingGoal, FavGenres, ShortBio
- *   Layer 3 — Current Reading State: pace (with week position), per-book
- *             velocity with pace-ratio flags, recent finishes, streak
- *   Layer 4 — Structured Commitments: active challenge goals + history
- *
- * Gemini is directed to pick ONE coaching angle and anchor every sentence in
- * the member's specific numbers, named books, or persona axes — no generic
- * reading advice is permitted by the prompt rules.
- *
- * @param {string} apiKey       - Gemini API key from Script Properties
- * @param {string} displayName  - Member's display name for warm address
- * @param {Array}  insights     - Computed insight chips from Col S JSON
- * @param {Object} statSnapshot - Enriched stats context object from Col S JSON
- * @returns {string} Advice paragraph text
- * @private
- */
-function _aiPassCallGemini_(apiKey, displayName, insights, statSnapshot) {
-  var firstName = displayName ? displayName.split(' ')[0] : 'there';
-
-  // ── Layer 1: Reading DNA ────────────────────────────────────────────────
-  var dnaLines = [];
-  var persona  = statSnapshot.personaDNA;
-  if (persona && persona.archetypeName) {
-    dnaLines.push(firstName + ' is ' + persona.archetypeName +
-      (persona.archetypeTagline ? ' — "' + persona.archetypeTagline + '"' : ''));
-    var axes = persona.axes || {};
-    Object.keys(axes).forEach(function(axisName) {
-      var ax = axes[axisName];
-      dnaLines.push('- ' + axisName + ': ' + ax.side +
-        (ax.note ? ' (' + ax.note + ')' : ''));
-    });
-  } else {
-    dnaLines.push('Reading personality not yet resolved — use the stats only.');
-  }
-  var dnaSection = dnaLines.join('\n');
-
-  // ── Layer 2: Goals & Identity ───────────────────────────────────────────
-  var goalLines = [];
-  if ((statSnapshot.readingGoal || '').trim()) {
-    goalLines.push('- Reading goal: "' + statSnapshot.readingGoal.trim() + '"');
-  }
-  if ((statSnapshot.favGenres || '').trim()) {
-    goalLines.push('- Favourite genres: ' + statSnapshot.favGenres.trim());
-  }
-  if ((statSnapshot.shortBio || '').trim()) {
-    goalLines.push('- In their own words: "' + statSnapshot.shortBio.trim() + '"');
-  }
-  var goalsSection = goalLines.length > 0
-    ? goalLines.join('\n')
-    : '(none provided — rely on the data only)';
-
-  // ── Layer 3: Current Reading State ─────────────────────────────────────
-  var readingLines = [];
-
-  // Week pace — always reference projected value so Gemini knows the week
-  // is not yet complete and pagesThisWeek is a partial figure.
-  var paceNote = statSnapshot.daysIntoWeek
-    ? ' (day ' + statSnapshot.daysIntoWeek + ' of 7 — projected ' +
-      statSnapshot.projectedWeeklyPace + '/week vs ' +
-      statSnapshot.avg4WeekPagesPerWeek + ' 4-week avg)'
-    : ' (vs ' + statSnapshot.avg4WeekPagesPerWeek + ' 4-week avg)';
-  readingLines.push('- Week pages so far: ' + statSnapshot.pagesThisWeek + paceNote);
-
-  readingLines.push('- Streak: ' + statSnapshot.currentStreak + ' weeks' +
-    (statSnapshot.bestStreak > 0 ? ' · personal best: ' + statSnapshot.bestStreak + ' weeks' : ''));
-
-  var lastLogNote = statSnapshot.daysSinceLastLog + ' day(s) since last log';
-  if (statSnapshot.comebackAfterDays) {
-    lastLogNote += ' — returning after a ' + statSnapshot.comebackAfterDays + '-day absence';
-  }
-  readingLines.push('- ' + lastLogNote.charAt(0).toUpperCase() + lastLogNote.slice(1));
-
-  // Per-book velocity — the core of the new coaching intelligence.
-  // A ← PACE LOW flag tells Gemini this book is a coaching opportunity.
-  var booksVelocity = statSnapshot.currentBooksVelocity || [];
-  if (booksVelocity.length > 0) {
-    booksVelocity.forEach(function(bv) {
-      var pagesLeftStr = bv.pagesLeft !== null
-        ? bv.pagesLeft + ' pages left'
-        : 'page count unknown';
-      var velocityNote = bv.sessionsOnBook + ' session(s) on this book, avg ' +
-        bv.avgPagesPerSessionThisBook + ' pages/session';
-      if (bv.memberOverallAvgPagesPerSession > 0) {
-        velocityNote += ' vs their usual ' + bv.memberOverallAvgPagesPerSession + ' pages/session overall';
+    // ── Diff against previous verdicts → queue PERSONAUPDATE rows ─────────
+    var prevVerdicts = existing ? existing.prevVerdicts : {};
+    var prevArchName = existing ? existing.prevArchName : '';
+    personality.verdicts.forEach(function(v) {
+      if (v.gated) return; // forming axes never log a shift
+      var prev = prevVerdicts[v.axis];
+      var prevSide = (prev && !prev.gated) ? prev.side : '(forming)';
+      if (prevSide !== v.side) {
+        activityRows.push(_personaBuildActivityRow_(
+          memberId, v.axis, prevSide, v.side, prevArchName, personality.archetypeName, fingerprint
+        ));
       }
-      var paceFlag = (bv.paceRatio < 0.6 && bv.sessionsOnBook >= 3)
-        ? ' ← PACE NOTABLY LOW vs their norm'
-        : '';
-      readingLines.push('- Reading: "' + bv.title + '" (' + (bv.genre || 'unknown genre') +
-        ', ' + pagesLeftStr + ') — ' + velocityNote + paceFlag);
     });
-  } else if ((statSnapshot.currentReadingBooks || []).length > 0) {
-    // Fallback for members without velocity data yet
-    readingLines.push('- Reading: ' + statSnapshot.currentReadingBooks.join(', '));
-  } else {
-    readingLines.push('- Not actively reading anything at the moment.');
-  }
+    if (activityRows.length) changed++;
 
-  if ((statSnapshot.recentFinishedBooks || []).length > 0) {
-    var recentStr = statSnapshot.recentFinishedBooks.map(function(b) {
-      return '"' + b.title + '"' + (b.genre ? ' (' + b.genre + ')' : '');
-    }).join(', ');
-    readingLines.push('- Recently finished: ' + recentStr);
-  }
-
-  readingLines.push('- Books this year: ' + statSnapshot.booksFinishedThisYear +
-    ' / ' + statSnapshot.totalBooksFinished + ' all-time · ' +
-    statSnapshot.toReadCount + ' in To Read shelf');
-
-  if (statSnapshot.dnfRate > 0) {
-    readingLines.push('- DNF rate: ' + statSnapshot.dnfRate + '% of completed reads abandoned');
-  }
-
-  var currentReadingSection = readingLines.join('\n');
-
-  // ── Layer 4b: Closest Badge + Level ────────────────────────────────────
-  var progressLines = [];
-  if (statSnapshot.nextBestBadge) {
-    var nb = statSnapshot.nextBestBadge;
-    progressLines.push('- Closest badge: ' + nb.caption + ' (' + nb.category + ') — '
-                       + nb.actionText + ' (currently at ' + nb.current + ', needs ' + nb.threshold + ')');
-  }
-  if (statSnapshot.levelProximity) {
-    var lp = statSnapshot.levelProximity;
-    progressLines.push('- Next level: ' + lp.nextLevelName + ' — ' + lp.gapToNext + ' CP away'
-                       + ' (rate ' + lp.ratingsNeeded + ' books OR write ' + lp.reviewsNeeded + ' review(s))');
-  }
-  var progressSection = progressLines.length > 0
-    ? progressLines.join('\n')
-    : '(no close badge or level targets)';
-
-  // ── Layer 4: Structured Commitments ────────────────────────────────────
-  var challengeLines = [];
-  var ch = statSnapshot.challengeHistory;
-  if (ch) {
-    var pastTotal = (ch.wonCount || 0) + (ch.finishedCount || 0) + (ch.droppedCount || 0);
-    if (pastTotal > 0) {
-      challengeLines.push('- Challenge track record: ' + ch.wonCount + ' won, ' +
-        ch.finishedCount + ' finished, ' + ch.droppedCount + ' dropped');
+    // ── Assemble the PersonaProfileDB row ────────────────────────────────
+    var rowValues = _personaAssembleRow_(memberId, personality, fingerprint);
+    if (existing) {
+      rowsToWrite.push({ rowIndex: existing.rowIndex, values: rowValues });
+    } else {
+      rowsToAppend.push(rowValues);
     }
-    (ch.activeGoals || []).forEach(function(g) {
-      var daysNote = g.daysLeft !== null ? g.daysLeft + ' days remaining' : 'no end date';
-      var completionFlag = g.pctDone >= 100 ? ' ← GOAL ALREADY EXCEEDED' : '';
-      challengeLines.push('- Challenge "' + g.title + '": ' + g.current + '/' + g.goalValue +
-                          ' ' + g.goalUnit + ' · ' + g.pctDone + '% done · ' +
-                          daysNote + completionFlag);
-    });
   }
-  var challengesSection = challengeLines.length > 0
-    ? challengeLines.join('\n')
-    : '(none active)';
 
-  // ── Insight chips already displayed to the member ───────────────────────
-  var insightSummary = insights.length > 0
-    ? insights.map(function(ins) { return '- ' + ins.label + ': ' + ins.sub; }).join('\n')
-    : '(none yet)';
+  // ── Write PersonaProfileDB rows ───────────────────────────────────────────
+  // In-place updates first (one row range each), then a single append block.
+  rowsToWrite.forEach(function(w) {
+    profileSheet.getRange(w.rowIndex, 1, 1, PERSONA_PROFILE_COL_COUNT).setValues([w.values]);
+  });
+  if (rowsToAppend.length > 0) {
+    var firstAppendRow = profileSheet.getLastRow() + 1;
+    profileSheet.getRange(firstAppendRow, 1, rowsToAppend.length, PERSONA_PROFILE_COL_COUNT)
+                .setValues(rowsToAppend);
+  }
 
-  // ── Assemble the full prompt ────────────────────────────────────────────
-  var prompt = [
-    'You are a sharp reading analyst at Arka Readers Club. Write a brief personal observation for ' + firstName + '.',
-    '',
-    'LAYER 1 — READING DNA:',
-    dnaSection,
-    '',
-    'LAYER 2 — STATED GOALS & IDENTITY:',
-    goalsSection,
-    '',
-    'LAYER 3 — CURRENT READING STATE:',
-    currentReadingSection,
-    '',
-    'LAYER 4 — CHALLENGES & COMMITMENTS:',
-    challengesSection,
-    '',
-    'LAYER 4b — CLOSEST BADGE & NEXT LEVEL:',
-    progressSection,
-    '',
-    'WHAT THEY ALREADY SEE IN-APP — do NOT repeat, only build on:',
-    insightSummary,
-    '',
-    'COACHING TASK: Write 2–3 sentences. Choose ONE angle that is most interesting or actionable for this reader right now:',
-    '(A) A pattern in their reading behaviour they may not have noticed',
-    '(B) A tension between their reading style/DNA and what they are currently doing',
-    '(C) A pace or progress observation grounded in their specific numbers',
-    '(D) A goal-oriented observation linking challenge progress or yearly pace to concrete action',
-    '',
-    'STRICT RULES:',
-    '- 2–3 sentences only. No padding.',
-    '- Do NOT open with the member\'s name.',
-    '- Never use hollow openers or hedging starters: "It\'s wonderful", "What a", "Great", "Impressive", "Amazing", "It\'s interesting to see", "It\'s interesting that", "It seems", "It appears", or any praise of the data itself.',
-    '- No motivational or sports language: "reignite", "momentum", "push through", "keep the streak alive", "get back on track", "build the habit", "get back into".',
-    '- Every sentence must be anchored in their specific numbers, named books, or persona axes — no generic advice.',
-    '- If a book shows a notably low pace vs their norm, comment on whether that book and their reading style are a good match.',
-    '- Reference the bio or reading goal only when it genuinely adds a coaching insight — skip it if irrelevant.',
-    '- Prose only. No bullet points, no headers.'
-  ].join('\n');
+  // ── Write PERSONAUPDATE activity rows (locked, sequential IDs) ─────────────
+  if (activityRows.length > 0) {
+    _personaAppendActivityRows_(ss, activityRows);
+  }
 
-  var requestBody = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      maxOutputTokens: AIPASS_MAX_OUTPUT_TOKENS,
-      temperature    : 0.4,
-      topP           : 0.85
-    }
-  };
-
-  var response = UrlFetchApp.fetch(
-    AIPASS_GEMINI_ENDPOINT + '?key=' + apiKey,
-    {
-      method            : 'post',
-      contentType       : 'application/json',
-      payload           : JSON.stringify(requestBody),
-      muteHttpExceptions: true
-    }
+  console.log(
+    'PersonaPass batch — cursor ' + cursor + '→' + (endRow + 1) +
+    ', processed ' + processed +
+    ', updated ' + (rowsToWrite.length + rowsToAppend.length) +
+    ', shifts logged ' + activityRows.length +
+    ', stale skips ' + skippedStale +
+    ', inactive skips ' + skippedInactive +
+    ', no-data skips ' + skippedNoData
   );
 
-  var responseCode = response.getResponseCode();
-  var responseText = response.getContentText();
-
-  if (responseCode === 429) {
-    throw new Error('Gemini rate limit (429) — will retry for this member on next nightly run.');
+  // ── Chain or finalise ─────────────────────────────────────────────────────
+  var nextCursor = endRow + 1;
+  if (nextCursor > totalDataRows) {
+    console.log('PersonaPass: all members processed. Done for tonight.');
+    _personaCleanup_(props);
+  } else {
+    props.setProperty(PERSONA_CURSOR_KEY, nextCursor.toString());
+    _personaScheduleNextRun_();
+    console.log('PersonaPass: chaining — next batch at cursor ' + nextCursor + ' in ' + PERSONA_CHAIN_DELAY_MINUTES + ' min.');
   }
-  if (responseCode !== 200) {
-    throw new Error('Gemini API ' + responseCode + ': ' + responseText.substring(0, 200));
-  }
-
-  var parsed = JSON.parse(responseText);
-
-  if (!parsed.candidates        ||
-      !parsed.candidates[0]     ||
-      !parsed.candidates[0].content ||
-      !parsed.candidates[0].content.parts ||
-      !parsed.candidates[0].content.parts[0]) {
-    throw new Error('Unexpected Gemini response structure: ' + responseText.substring(0, 200));
-  }
-
-  return (parsed.candidates[0].content.parts[0].text || '').trim();
 }
 
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+// ── Source indexing ──────────────────────────────────────────────────────────
 
 /**
- * _aiPassBuildFingerprint_()
+ * _personaBuildSourceIndex_()
  *
- * Builds a lightweight string fingerprint from the statSnapshot fields that
- * materially change the AI advice. If this matches the stored fingerprint,
- * the Gemini call is skipped and existing advice is reused.
+ * Single-pass read of PageLogDB, MemberShelfDB and ArkaLibraryDB into a compact
+ * per-member aggregate. This is the only place the heavy sheets are read; the
+ * result is cached in PropertiesService for chained batches.
  *
- * Fields included:
- *   - pagesThisWeek       — pace signal changes when the member reads more
- *   - currentStreak       — streak changes are high-signal coaching moments
- *   - daysSinceLastLog    — absence and comeback patterns
- *   - booksFinishedThisYear — yearly progress milestones
- *   - currentReadingBooks — book switches change coaching context entirely
- *   - personaArchetype    — persona changes (though rare) alter coaching tone
- *   - challengeProgress   — active challenge progress drives goal-oriented advice
+ * Returns: { memberId: {
+ *   sessions, lastLogMs, hourBuckets:{morning,midday,evening,night},
+ *   sessionPages:[...], logDayMsSorted:[...],
+ *   finishedCount, dnfCount, startedCount,
+ *   finishedPages:[...], finishedPubYears:[...], finishedGenres:{genre:count},
+ *   biggestDay:{ms,pages}, longestBook:{title,pages}
+ * } }
  *
- * @param {Object} statSnapshot
+ * @param {Spreadsheet} ss
+ * @returns {Object}
+ * @private
+ */
+function _personaBuildSourceIndex_(ss) {
+  var index = {};
+
+  function ensure(memberId) {
+    if (!index[memberId]) {
+      index[memberId] = {
+        sessions: 0, liveSessions: 0, lastLogMs: 0,
+        hourBuckets: { morning: 0, midday: 0, evening: 0, night: 0 },
+        sessionPages: [], logDaysSet: {},
+        finishedCount: 0, dnfCount: 0, startedCount: 0, toReadCount: 0,
+        finishedPages: [], finishedPubYears: [], finishedGenres: {},
+        biggestDay: { ms: 0, pages: 0 }, longestBook: { title: '', pages: 0 }
+      };
+    }
+    return index[memberId];
+  }
+
+  // ── Library lookup: BookID → { pages, pubYear, genres:[...] } ──────────────
+  var libData  = ss.getSheetByName(PERSONA_LIBRARY_SHEET).getDataRange().getValues();
+  var bookInfo = {};
+  for (var lr = 1; lr < libData.length; lr++) {
+    var bid = (libData[lr][0] || '').toString().trim(); // Col A BookID
+    if (!bid) continue;
+    bookInfo[bid] = {
+      title  : (libData[lr][1] || '').toString(),                 // Col B Title
+      genres : _personaCanonicalGenres_((libData[lr][3] || '')),  // Col D Genre
+      pages  : Number(libData[lr][4]) || 0,                       // Col E Pages
+      pubYear: _personaExtractYear_(libData[lr][11])              // Col L PublishedDate
+    };
+  }
+
+  // ── PageLogDB: rhythm, appetite, cadence, biggest day ──────────────────────
+  var plData = ss.getSheetByName(PERSONA_PAGELOG_SHEET).getDataRange().getValues();
+  var perMemberPerDayPages = {}; // memberId → { dayKey: pages } for biggest-day
+  for (var p = 1; p < plData.length; p++) {
+    var pMember = (plData[p][2] || '').toString().trim(); // Col C MemberID
+    if (!pMember) continue;
+    var delta = Number(plData[p][4]) || 0;                // Col E PagesDelta
+    if (delta <= 0) continue;                             // correction entry
+    var ms = _personaParseDate_(plData[p][1]);            // Col B Timestamp
+    if (isNaN(ms)) continue;
+
+    var m = ensure(pMember);
+
+    // A weekly bulk row (Sunday historical import) is a whole week of reading
+    // collapsed into one midnight-stamped row. It carries no real time-of-day,
+    // its page delta is not a single session, and its even weekly spacing would
+    // fake a perfect Cadence metronome. So it must NOT feed any behavioural
+    // session metric (Rhythm / Appetite / Cadence / biggest-day). It DOES still
+    // count toward recency (activity gate) and the change fingerprint, and its
+    // pages remain captured by MasterEngine's TotalPages elsewhere.
+    var isImport = (plData[p][3] || '').toString().trim() === 'HISTORICAL_IMPORT'; // Col D BookID
+
+    m.sessions++;                            // total rows — fingerprint only
+    if (ms > m.lastLogMs) m.lastLogMs = ms;  // recency includes imports
+    if (isImport) continue;                  // skip every session-pattern metric below
+
+    // ── Live-app session only from here ───────────────────────────────────
+    m.liveSessions++;
+    m.sessionPages.push(delta);
+
+    // Hour bucket (member-local offset is embedded in the timestamp string).
+    var hour = _personaExtractHour_(plData[p][1]);
+    if (hour >= 5 && hour < 12)       m.hourBuckets.morning++;
+    else if (hour >= 12 && hour < 17) m.hourBuckets.midday++;
+    else if (hour >= 17 && hour < 21) m.hourBuckets.evening++;
+    else                              m.hourBuckets.night++; // 21:00–04:59
+
+    // Cadence: record the calendar day (UTC-day key is fine for gap variance).
+    var dayKey = Math.floor(ms / 86400000);
+    m.logDaysSet[dayKey] = true;
+
+    // Biggest single day (sum deltas per member per day).
+    if (!perMemberPerDayPages[pMember]) perMemberPerDayPages[pMember] = {};
+    perMemberPerDayPages[pMember][dayKey] = (perMemberPerDayPages[pMember][dayKey] || 0) + delta;
+  }
+  // Resolve biggest day from the per-day sums.
+  Object.keys(perMemberPerDayPages).forEach(function(mid) {
+    var days = perMemberPerDayPages[mid];
+    Object.keys(days).forEach(function(dk) {
+      if (days[dk] > index[mid].biggestDay.pages) {
+        index[mid].biggestDay = { ms: Number(dk) * 86400000, pages: days[dk] };
+      }
+    });
+  });
+
+  // ── MemberShelfDB: persistence, era, scale, breadth, longest book ──────────
+  var shData = ss.getSheetByName(PERSONA_SHELF_SHEET).getDataRange().getValues();
+  for (var s = 1; s < shData.length; s++) {
+    var sMember = (shData[s][1] || '').toString().trim();  // Col B MemberID
+    if (!sMember) continue;
+    var status  = (shData[s][3] || '').toString().trim();  // Col D Status
+    if (status === 'Deleted') continue;
+    var bookId  = (shData[s][2] || '').toString().trim();  // Col C BookID
+    var m = ensure(sMember);
+
+    if (status === 'Reading' || status === 'Finished' || status === 'Did Not Finish') {
+      m.startedCount++;
+    }
+    if (status === 'Did Not Finish') m.dnfCount++;
+    if (status === 'To Read') m.toReadCount++;
+    if (status === 'Finished') {
+      m.finishedCount++;
+      var info = bookInfo[bookId];
+      if (info) {
+        if (info.pages > 0) {
+          m.finishedPages.push(info.pages);
+          if (info.pages > m.longestBook.pages) {
+            m.longestBook = { title: info.title, pages: info.pages };
+          }
+        }
+        if (info.pubYear) m.finishedPubYears.push(info.pubYear);
+        info.genres.forEach(function(g) {
+          m.finishedGenres[g] = (m.finishedGenres[g] || 0) + 1;
+        });
+      }
+    }
+  }
+
+  // Convert logDaysSet maps to sorted arrays for cadence variance.
+  Object.keys(index).forEach(function(mid) {
+    var days = Object.keys(index[mid].logDaysSet).map(Number).sort(function(a, b) { return a - b; });
+    index[mid].logDaysSorted = days;
+    delete index[mid].logDaysSet; // drop the map; keep the cache compact
+  });
+
+  return index;
+}
+
+/**
+ * _personaBuildRarityTally_()
+ *
+ * Computes club-wide counts of resolved archetypes and per-axis sides so each
+ * member's row can carry "3 of 47 share this type" / "1 of 6 Night Owls".
+ * Runs a lightweight dry computation of each member's verdicts WITHOUT rarity
+ * (rarity is the only field that needs the tally, so we compute verdicts here
+ * with a null tally and tally the results).
+ *
+ * @param {Object} sourceIndex
+ * @returns {Object} { totalMembers, archetypes:{key:count}, axes:{axis:{side:count}} }
+ * @private
+ */
+function _personaBuildRarityTally_(sourceIndex, totalClubMembers) {
+  // totalClubMembers = real MemberDB row count, passed in from runArkaPersonaPass()
+  // where totalDataRows is already computed. Falls back to sourceIndex size only
+  // when called without the parameter (e.g. from dryRunArkaPersonaPass).
+  var tally = {
+    totalMembers: totalClubMembers || Object.keys(sourceIndex).length,
+    archetypes: {},
+    axes: {}
+  };
+  Object.keys(sourceIndex).forEach(function(memberId) {
+    var p = _personaComputeForMember_(sourceIndex[memberId], null); // null = skip rarity
+    // totalMembers is now fixed — do NOT increment it here
+    if (p.archetypeKey) {
+      tally.archetypes[p.archetypeKey] = (tally.archetypes[p.archetypeKey] || 0) + 1;
+    }
+    p.verdicts.forEach(function(v) {
+      if (v.gated) return;
+      if (!tally.axes[v.axis]) tally.axes[v.axis] = {};
+      tally.axes[v.axis][v.side] = (tally.axes[v.axis][v.side] || 0) + 1;
+    });
+  });
+  return tally;
+}
+
+
+// ── Personality computation ───────────────────────────────────────────────
+
+/**
+ * _personaComputeForMember_()
+ *
+ * Pure function: given one member's aggregate and (optionally) the club rarity
+ * tally, produce the full personality object. Passing rarity=null skips the
+ * rarity fields — used by the dry pass in _personaBuildRarityTally_().
+ *
+ * @param {Object} agg     - per-member aggregate from _personaBuildSourceIndex_
+ * @param {Object|null} rarity - club rarity tally, or null to skip rarity
+ * @returns {Object} personality
+ * @private
+ */
+function _personaComputeForMember_(agg, rarity) {
+  var verdicts = [];
+
+  // Behavioural axes (Rhythm / Appetite / Cadence) gate on LIVE-app sessions
+  // only — weekly bulk imports carry no usable time/session signal. The shelf-
+  // derived axes (Persistence / Era / Scale / Breadth) are unaffected: they read
+  // MemberShelfDB + Library, which the import populates correctly.
+  var hasLiveData  = agg.liveSessions >= PERSONA_MIN_SESSIONS_FOR_RHYTHM;
+  var hasTasteData = agg.finishedCount >= PERSONA_MIN_FINISHED_FOR_TASTE;
+
+  // ── AXIS: Rhythm — Early Bird ←→ Night Owl ───────────────────────────────
+  // position 0 = fully Early Bird, 100 = fully Night Owl.
+  if (hasLiveData) {
+    var b = agg.hourBuckets;
+    var live       = agg.liveSessions; // denominator excludes imported bulk rows
+    var dayShare   = (b.morning + b.midday) / live;
+    var nightShare = (b.evening + b.night) / live;
+    var rhythmPos  = Math.round(nightShare * 100);
+    var nightPct   = Math.round((b.night / live) * 100);
+    verdicts.push({
+      axis: 'Rhythm',
+      side: nightShare >= dayShare ? 'Night Owl' : 'Early Bird',
+      badgeID: nightShare >= dayShare ? 'ARKA_BADGE_PERSONA_NIGHTOWL' : 'ARKA_BADGE_PERSONA_EARLYBIRD',
+      position: rhythmPos,
+      gated: false,
+      note: nightShare >= dayShare
+        ? nightPct + '% of your sessions happen after dark.'
+        : Math.round((b.morning / live) * 100) + '% of your sessions are before noon.'
+    });
+  } else {
+    verdicts.push(_personaGatedVerdict_('Rhythm', agg.liveSessions, PERSONA_MIN_SESSIONS_FOR_RHYTHM, 'live sessions'));
+  }
+
+  // ── AXIS: Appetite — The Nibbler ←→ The Devourer ─────────────────────────
+  if (hasLiveData) {
+    var medianSession = _personaMedian_(agg.sessionPages);
+    var appetitePos   = Math.max(0, Math.min(100, Math.round((medianSession / 50) * 100)));
+    verdicts.push({
+      axis: 'Appetite',
+      side: medianSession >= 20 ? 'The Devourer' : 'The Nibbler',
+      badgeID: medianSession >= 20 ? 'ARKA_BADGE_PERSONA_DEVOURER' : 'ARKA_BADGE_PERSONA_NIBBLER',
+      position: appetitePos,
+      gated: false,
+      note: 'A typical session is ' + Math.round(medianSession) + ' pages.'
+    });
+  } else {
+    verdicts.push(_personaGatedVerdict_('Appetite', agg.sessions, PERSONA_MIN_SESSIONS_FOR_RHYTHM, 'sessions'));
+  }
+
+  // ── AXIS: Cadence — The Binger ←→ The Metronome ──────────────────────────
+  // High gap-variance = Binger (left, pos low); low variance = Metronome (right).
+  if (agg.logDaysSorted && agg.logDaysSorted.length >= 5) {
+    var gaps = [];
+    for (var g = 1; g < agg.logDaysSorted.length; g++) {
+      gaps.push(agg.logDaysSorted[g] - agg.logDaysSorted[g - 1]);
+    }
+    var cv = _personaCoeffOfVariation_(gaps); // 0 = perfectly even
+    var cadencePos = Math.max(0, Math.min(100, Math.round((1 - Math.min(cv, 1)) * 100)));
+    verdicts.push({
+      axis: 'Cadence',
+      side: cv >= 0.6 ? 'The Binger' : 'The Metronome',
+      badgeID: cv >= 0.6 ? 'ARKA_BADGE_PERSONA_BINGER' : 'ARKA_BADGE_PERSONA_METRONOME',
+      position: cadencePos,
+      gated: false,
+      note: cv >= 0.6 ? 'You read in waves — quiet spells, then bursts.'
+                      : 'You read with remarkably even rhythm.'
+    });
+  } else {
+    verdicts.push(_personaGatedVerdict_('Cadence', (agg.logDaysSorted || []).length, 5, 'reading days'));
+  }
+
+  // ── AXIS: Era — Trendsetter ←→ Time Traveler ─────────────────────────────
+  if (hasTasteData && agg.finishedPubYears.length >= 3) {
+    var medianYear = _personaMedian_(agg.finishedPubYears);
+    var nowYear    = new Date().getFullYear();
+    // Older median → Time Traveler (right, pos high). 1950 anchors "fully old".
+    var ageSpan    = Math.max(0, Math.min(1, (nowYear - medianYear) / (nowYear - 1950)));
+    var eraPos     = Math.round(ageSpan * 100);
+    var isOld      = (nowYear - medianYear) >= 25;
+    verdicts.push({
+      axis: 'Era',
+      side: isOld ? 'Time Traveler' : 'Trendsetter',
+      badgeID: isOld ? 'ARKA_BADGE_PERSONA_TIMETRAVELER' : 'ARKA_BADGE_PERSONA_TRENDSETTER',
+      position: eraPos,
+      gated: false,
+      note: 'Your reading spirit-decade is the ' + (Math.floor(medianYear / 10) * 10) + 's.'
+    });
+  } else {
+    verdicts.push(_personaGatedVerdict_('Era', agg.finishedPubYears.length, 3, 'dated finishes'));
+  }
+
+  // ── AXIS: Scale — Novella Lover ←→ Doorstop Lover ────────────────────────
+  if (hasTasteData && agg.finishedPages.length >= 3) {
+    var avgPages  = _personaMean_(agg.finishedPages);
+    var scalePos  = Math.max(0, Math.min(100, Math.round((avgPages / 700) * 100)));
+    verdicts.push({
+      axis: 'Scale',
+      side: avgPages >= 450 ? 'Doorstop Lover' : 'Novella Lover',
+      badgeID: avgPages >= 450 ? 'ARKA_BADGE_PERSONA_DOORSTOP' : 'ARKA_BADGE_PERSONA_NOVELLA',
+      position: scalePos,
+      gated: false,
+      note: 'Your finished books average ' + Math.round(avgPages) + ' pages.'
+    });
+  } else {
+    verdicts.push(_personaGatedVerdict_('Scale', agg.finishedPages.length, 3, 'finished books with page counts'));
+  }
+
+  // ── AXIS: Breadth — Devoted Specialist ←→ Genre Nomad ────────────────────
+  if (hasTasteData) {
+    var genreKeys   = Object.keys(agg.finishedGenres);
+    var distinct    = genreKeys.length;
+    var breadthPos  = Math.max(0, Math.min(100, Math.round((distinct / 8) * 100)));
+    verdicts.push({
+      axis: 'Breadth',
+      side: distinct >= 5 ? 'Genre Nomad' : 'Devoted Specialist',
+      badgeID: distinct >= 5 ? 'ARKA_BADGE_PERSONA_NOMAD' : 'ARKA_BADGE_PERSONA_SPECIALIST',
+      position: breadthPos,
+      gated: false,
+      note: distinct >= 5 ? 'You roam across ' + distinct + ' genres.'
+                          : 'You stay close to ' + distinct + ' favoured ' + (distinct === 1 ? 'genre' : 'genres') + '.'
+    });
+  } else {
+    verdicts.push(_personaGatedVerdict_('Breadth', agg.finishedCount, PERSONA_MIN_FINISHED_FOR_TASTE, 'finished books'));
+  }
+
+  // ── Synthesize the archetype from the strongest resolved axes ─────────────
+  var archetype = _personaResolveArchetype_(verdicts);
+
+  // ── Insights — "things you didn't know" ───────────────────────────────────
+  var insights = _personaBuildInsights_(agg, verdicts);
+  var blindSpot = _personaBuildBlindSpot_(agg, verdicts);
+
+  // ── Rarity (skipped when rarity tally not supplied) ───────────────────────
+  var rarityOut = {};
+  if (rarity && rarity.totalMembers) {
+    if (archetype.key && rarity.archetypes[archetype.key]) {
+      rarityOut.archetypeShare = rarity.archetypes[archetype.key] + '/' + rarity.totalMembers;
+    }
+    rarityOut.axisRarities = {};
+    verdicts.forEach(function(v) {
+      if (v.gated) return;
+      var axisTally = rarity.axes[v.axis];
+      if (axisTally && axisTally[v.side]) {
+        rarityOut.axisRarities[v.axis] = axisTally[v.side] + '/' + rarity.totalMembers;
+      }
+    });
+  }
+
+  return {
+    verdicts        : verdicts,
+    archetypeKey    : archetype.key,
+    archetypeName   : archetype.name,
+    archetypeEmoji  : archetype.emoji,
+    archetypeTagline: archetype.tagline,
+    insights        : insights,
+    blindSpot       : blindSpot,
+    rarity          : rarityOut
+  };
+}
+
+/**
+ * _personaResolveArchetype_()
+ *
+ * Maps a member's resolved verdicts to a named headline archetype. v1 uses a
+ * small priority lookup over the most "characterful" axis combinations, with a
+ * graceful templated fallback so every member with ≥2 resolved axes gets a name.
+ *
+ * To extend: add entries to ARCH_TABLE (most specific first). Each entry lists
+ * required {axis:side} pairs; the first fully-matched entry wins.
+ *
+ * @param {Array} verdicts
+ * @returns {Object} { key, name, emoji, tagline }
+ * @private
+ */
+function _personaResolveArchetype_(verdicts) {
+  // Build a quick { axis: side } map of resolved (non-gated) verdicts.
+  var side = {};
+  var resolvedCount = 0;
+  verdicts.forEach(function(v) {
+    if (!v.gated) { side[v.axis] = v.side; resolvedCount++; }
+  });
+
+  // Too little to name a type yet.
+  if (resolvedCount < 2) {
+    return { key: '', name: '', emoji: '📖', tagline: '' };
+  }
+
+  // Most-specific-first lookup table. Each requires ALL listed pairs to match.
+  var ARCH_TABLE = [
+    {
+      need: { Rhythm: 'Night Owl', Appetite: 'The Devourer', Era: 'Time Traveler' },
+      key: 'ARKA_PERSONA_ARCH_MIDNIGHTSCHOLAR', name: 'The Midnight Scholar', emoji: '🌙',
+      tagline: 'You read deep, late, and to the last page — a quiet devourer of long, old books while the world sleeps.'
+    },
+    {
+      need: { Rhythm: 'Early Bird', Appetite: 'The Devourer' },
+      key: 'ARKA_PERSONA_ARCH_DAWNDEVOURER', name: 'The Dawn Devourer', emoji: '🌅',
+      tagline: 'You meet the morning with a book already open — and you do not put it down lightly.'
+    },
+    {
+      need: { Appetite: 'The Nibbler', Cadence: 'The Metronome' },
+      key: 'ARKA_PERSONA_ARCH_STEADYSIPPER', name: 'The Steady Sipper', emoji: '☕',
+      tagline: 'A few pages, every day, like clockwork. Small and certain wins the race.'
+    },
+    {
+      need: { Breadth: 'Genre Nomad', Scale: 'Novella Lover' },
+      key: 'ARKA_PERSONA_ARCH_WANDERER', name: 'The Wanderer', emoji: '🧭',
+      tagline: 'You roam widely and travel light — many genres, rarely a heavy tome.'
+    },
+    {
+      need: { Era: 'Trendsetter', Cadence: 'The Binger' },
+      key: 'ARKA_PERSONA_ARCH_TRENDCHASER', name: 'The Trend Chaser', emoji: '✨',
+      tagline: 'You devour what is new in great bursts — first to the page, every time.'
+    },
+    {
+      need: { Scale: 'Doorstop Lover', Breadth: 'Devoted Specialist' },
+      key: 'ARKA_PERSONA_ARCH_MOUNTAINEER', name: 'The Mountaineer', emoji: '🏔️',
+      tagline: 'You go deep on heavy books in the genres you love. The summit is the point.'
+    }
+  ];
+
+  for (var i = 0; i < ARCH_TABLE.length; i++) {
+    var entry = ARCH_TABLE[i];
+    var allMatch = Object.keys(entry.need).every(function(axis) {
+      return side[axis] === entry.need[axis];
+    });
+    if (allMatch) {
+      return { key: entry.key, name: entry.name, emoji: entry.emoji, tagline: entry.tagline };
+    }
+  }
+
+  // Templated fallback — name from the two highest-signal resolved axes.
+  return _personaTemplateArchetype_(side);
+}
+
+/**
+ * _personaTemplateArchetype_()
+ *
+ * Builds a "The {Trait} {Trait}" style name when no fixed archetype matches.
+ * Keeps every multi-axis member named without an exhaustive combination table.
+ *
+ * @param {Object} side - { axis: side }
+ * @returns {Object} { key, name, emoji, tagline }
+ * @private
+ */
+function _personaTemplateArchetype_(side) {
+  // Priority order of axes for naming, most evocative first.
+  var ORDER = ['Rhythm', 'Appetite', 'Era', 'Scale', 'Breadth', 'Cadence'];
+  var SHORT = {
+    'Night Owl': 'Nocturnal', 'Early Bird': 'Dawn', 'The Devourer': 'Voracious',
+    'The Nibbler': 'Patient', 'Time Traveler': 'Classic', 'Trendsetter': 'Modern',
+    'Doorstop Lover': 'Epic', 'Novella Lover': 'Concise',
+    'Genre Nomad': 'Roaming', 'Devoted Specialist': 'Focused',
+    'The Binger': 'Burst', 'The Metronome': 'Steady'
+  };
+  var picked = [];
+  for (var i = 0; i < ORDER.length && picked.length < 2; i++) {
+    if (side[ORDER[i]]) picked.push(SHORT[side[ORDER[i]]] || side[ORDER[i]]);
+  }
+  var name = 'The ' + picked.join(' ') + ' Reader';
+  return {
+    key    : 'ARKA_PERSONA_ARCH_TEMPLATE_' + picked.join('').toUpperCase(),
+    name   : name,
+    emoji  : '📚',
+    tagline: 'Your reading style is its own blend — ' + picked.join(' and ').toLowerCase() + '.'
+  };
+}
+
+/**
+ * _personaBuildInsights_()
+ *
+ * Assembles the "things you didn't know" cards from the aggregate.
+ * Each card: { kind, glyph, stat, caption, accent }.
+ *
+ * @param {Object} agg
+ * @param {Array}  verdicts
+ * @returns {Array}
+ * @private
+ */
+function _personaBuildInsights_(agg, verdicts) {
+  var out = [];
+
+  if (agg.biggestDay.pages > 0) {
+    out.push({
+      kind: 'biggestDay', glyph: '📈', accent: 'gold',
+      stat: agg.biggestDay.pages + ' pages in one day',
+      caption: 'Your biggest reading day ever — ' +
+               Utilities.formatDate(new Date(agg.biggestDay.ms), Session.getScriptTimeZone(), 'd MMM yyyy') + '.'
+    });
+  }
+  if (agg.longestBook.pages > 0) {
+    out.push({
+      kind: 'longestBook', glyph: '📕', accent: 'purple',
+      stat: agg.longestBook.pages + ' pages · longest conquered',
+      caption: agg.longestBook.title + ' — your heaviest finish to date.'
+    });
+  }
+  // Era spirit-decade as an insight too (only if Era resolved).
+  var eraV = verdicts.filter(function(v) { return v.axis === 'Era' && !v.gated; })[0];
+  if (eraV) {
+    out.push({ kind: 'era', glyph: '🏛️', accent: 'purple', stat: eraV.note, caption: 'A quiet signature in what you choose to finish.' });
+  }
+
+  return out;
+}
+
+/**
+ * _personaBuildBlindSpot_()
+ *
+ * Picks the single most surprising computed fact for the dark highlight card.
+ * Returns null if nothing notable stands out.
+ *
+ * @param {Object} agg
+ * @param {Array}  verdicts
+ * @returns {Object|null} { eyebrow, text }
+ * @private
+ */
+function _personaBuildBlindSpot_(agg, verdicts) {
+  // Strong night-reading skew is the most "didn't-know" insight when present.
+  if (agg.sessions >= PERSONA_MIN_SESSIONS_FOR_RHYTHM) {
+    var nightPct = agg.hourBuckets.night / agg.sessions;
+    if (nightPct >= 0.5) {
+      return {
+        eyebrow: 'YOUR BLIND SPOT',
+        text: 'More than half your reading happens after dark — and you probably never counted.'
+      };
+    }
+  }
+  // Otherwise, a never-abandoned reader.
+  if (agg.finishedCount >= PERSONA_MIN_FINISHED_FOR_TASTE && agg.dnfCount === 0) {
+    return {
+      eyebrow: 'YOUR BLIND SPOT',
+      text: 'You have never once abandoned a book. Every story you start, you see through to the end.'
+    };
+  }
+  return null;
+}
+
+
+// ── Row assembly + activity logging ─────────────────────────────────────────
+
+/**
+ * _personaAssembleRow_()
+ *
+ * Builds the 12-cell PersonaProfileDB row (A–L) for a member.
+ *
+ * @param {string} memberId
+ * @param {Object} personality
+ * @param {string} fingerprint
+ * @returns {Array} 12-element row
+ * @private
+ */
+function _personaAssembleRow_(memberId, personality, fingerprint) {
+  var today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MMM-yyyy');
+  // Embed the fingerprint inside RaritySummary's wrapper object so the
+  // staleness check can recover it next night without a dedicated column.
+  var rarityWithFingerprint = {
+    fingerprint   : fingerprint,
+    archetypeShare: personality.rarity.archetypeShare || null,
+    axisRarities  : personality.rarity.axisRarities   || {}
+  };
+  return [
+    memberId,                                       // A MemberID
+    personality.archetypeKey,                       // B ArchetypeKey
+    personality.archetypeName,                      // C ArchetypeName
+    personality.archetypeEmoji,                     // D ArchetypeEmoji
+    personality.archetypeTagline,                   // E ArchetypeTagline
+    JSON.stringify(personality.verdicts),           // F AxisVerdicts
+    JSON.stringify(personality.insights),           // G Insights
+    personality.blindSpot ? JSON.stringify(personality.blindSpot) : '', // H BlindSpot
+    JSON.stringify(rarityWithFingerprint),          // I RaritySummary (+fingerprint)
+    today,                                          // J ComputedDate
+    PERSONA_ENGINE_VERSION,                         // K EngineVersion
+    'Active'                                         // L Status
+  ];
+}
+
+/**
+ * _personaExtractFingerprint_()
+ *
+ * Reads the stored fingerprint back out of a PersonaProfileDB row's Col I.
+ *
+ * @param {Array} profileRow - a row from PersonaProfileDB getValues()
+ * @returns {string|null}
+ * @private
+ */
+function _personaExtractFingerprint_(profileRow) {
+  try {
+    var parsed = JSON.parse((profileRow[8] || '{}').toString()); // Col I
+    return parsed.fingerprint || null;
+  } catch (e) { return null; }
+}
+
+/**
+ * _personaBuildFingerprint_()
+ *
+ * Lightweight string fingerprint of the source fields that change a member's
+ * personality. Match = nothing material changed = skip recompute + no shift log.
+ *
+ * @param {Object} agg
  * @returns {string}
  * @private
  */
-function _aiPassBuildFingerprint_(statSnapshot) {
-  var personaKey = (statSnapshot.personaDNA && statSnapshot.personaDNA.archetypeName)
-    ? statSnapshot.personaDNA.archetypeName
-    : 'nopersona';
-
-  var challengeKey = '';
-  if (statSnapshot.challengeHistory && statSnapshot.challengeHistory.activeGoals) {
-    challengeKey = statSnapshot.challengeHistory.activeGoals.map(function(g) {
-      return g.title + ':' + g.current;
-    }).join('|');
-  }
-
+function _personaBuildFingerprint_(agg) {
+  if (!agg) return 'EMPTY';
   return [
-    statSnapshot.pagesThisWeek,
-    statSnapshot.currentStreak,
-    statSnapshot.daysSinceLastLog,
-    statSnapshot.booksFinishedThisYear,
-    (statSnapshot.currentReadingBooks || []).join('|'),
-    personaKey,
-    challengeKey
+    agg.sessions,
+    agg.lastLogMs,
+    agg.finishedCount,
+    agg.dnfCount
   ].join('::');
 }
 
 /**
- * _aiPassParseDate_()
+ * _personaBuildActivityRow_()
  *
- * Parses Arka date strings to milliseconds. Handles:
- *   - Arka Z-Format:    dd-MM-yyyy HH:mm:ss +NNNN
- *   - Arka Short-Date:  dd-MMM-yyyy
- *   - ISO:              yyyy-MM-dd
- *   - Native Date objects (passed through directly)
+ * Builds one ARKA_ACTTYP_PERSONAUPDATE row value object (ID assigned later,
+ * inside the locked append). Description format matches the Definitions doc:
+ *   Axis: <axisName> | <oldSide> → <newSide> | Archetype: <oldArch> → <newArch>
  *
- * Returns NaN for unparseable strings — caller must guard.
- *
- * @param {string|Date} raw
- * @returns {number} ms since epoch, or NaN
+ * @returns {Object} { type, date, memberId, desc, source, cp }
  * @private
  */
-function _aiPassParseDate_(raw) {
+function _personaBuildActivityRow_(memberId, axis, oldSide, newSide, oldArch, newArch, fingerprint) {
+  var desc = 'Axis: ' + axis + ' | ' + oldSide + ' → ' + newSide +
+             ' | Archetype: ' + (oldArch || '—') + ' → ' + (newArch || '—');
+  return {
+    type    : PERSONA_ACTIVITY_TYPE_ID,
+    date    : Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MM-yyyy HH:mm:ss Z'),
+    memberId: memberId,
+    desc    : desc,
+    source  : PERSONA_ACTIVITY_SOURCE,
+    cp      : 0
+  };
+}
+
+/**
+ * _personaAppendActivityRows_()
+ *
+ * Appends queued PERSONAUPDATE rows to ActivityLogDB under a script lock,
+ * assigning sequential ARKA_ACT_X IDs via the lastRow+1 pattern. CP is always 0.
+ *
+ * @param {Spreadsheet} ss
+ * @param {Array} rows - from _personaBuildActivityRow_
+ * @private
+ */
+function _personaAppendActivityRows_(ss, rows) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(30000);
+  } catch (lockErr) {
+    console.error('PersonaPass: could not acquire lock for activity log — shifts NOT logged this batch. ' + lockErr);
+    return;
+  }
+  try {
+    var sheet   = ss.getSheetByName(PERSONA_ACTIVITY_SHEET);
+    var lastRow = sheet.getLastRow();
+    // Derive the next numeric suffix from the last ActivityID (Col A).
+    var lastId  = (sheet.getRange(lastRow, 1).getValue() || '').toString();
+    var lastNum = parseInt((lastId.match(/(\d+)\s*$/) || [])[1], 10);
+    if (isNaN(lastNum)) lastNum = lastRow; // fallback
+    var block = rows.map(function(r, i) {
+      return [
+        'ARKA_ACT_' + (lastNum + 1 + i), // A ActivityID
+        r.type,                          // B ActivityTypeID
+        r.date,                          // C ActivityDate
+        r.memberId,                      // D MemberID
+        r.desc,                          // E Description
+        r.source,                        // F Source
+        r.cp                             // G CPAwarded
+      ];
+    });
+    sheet.getRange(lastRow + 1, 1, block.length, 7).setValues(block);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+
+// ── Small numeric + parsing helpers ─────────────────────────────────────────
+
+/** Median of a numeric array (0 if empty). @private */
+function _personaMedian_(arr) {
+  if (!arr || !arr.length) return 0;
+  var s = arr.slice().sort(function(a, b) { return a - b; });
+  var mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
+
+/** Arithmetic mean of a numeric array (0 if empty). @private */
+function _personaMean_(arr) {
+  if (!arr || !arr.length) return 0;
+  return arr.reduce(function(a, b) { return a + b; }, 0) / arr.length;
+}
+
+/** Coefficient of variation (stddev / mean) of a numeric array. @private */
+function _personaCoeffOfVariation_(arr) {
+  if (!arr || arr.length < 2) return 0;
+  var mean = _personaMean_(arr);
+  if (mean === 0) return 0;
+  var variance = arr.reduce(function(a, x) { return a + (x - mean) * (x - mean); }, 0) / arr.length;
+  return Math.sqrt(variance) / mean;
+}
+
+/**
+ * _personaGatedVerdict_()
+ *
+ * Builds a "still forming" verdict object for an axis below its data gate,
+ * including a progress note for the nudge UI.
+ * @private
+ */
+function _personaGatedVerdict_(axis, have, need, unitLabel) {
+  return {
+    axis: axis, side: 'Forming', badgeID: '', position: 50, gated: true,
+    note: 'Keep reading — ' + Math.max(0, need - have) + ' more ' + unitLabel +
+          ' to reveal this trait (' + Math.min(have, need) + ' of ' + need + ').'
+  };
+}
+
+/**
+ * _personaCanonicalGenres_()
+ *
+ * Splits a free-text genre cell into an array using the canonical 13-genre set.
+ * Free-text tags that match (case-insensitive) a canonical genre are kept;
+ * unknowns are dropped so Breadth counts canonical genres only — NOT the
+ * Genre-Collector free-text behaviour, which must stay distinct.
+ *
+ * @param {string} raw - Col D genre string
+ * @returns {Array<string>}
+ * @private
+ */
+function _personaCanonicalGenres_(raw) {
+  var CANON = ['Fiction','Fantasy','Sci-Fi','Crime & Suspense','Non-Fiction','Self-Help',
+               'Philosophy','Psychology','Classics','Religious','Horror','Business','Poetry'];
+  var lowerCanon = CANON.map(function(g) { return g.toLowerCase(); });
+  var found = {};
+  (raw || '').toString().split(',').forEach(function(tag) {
+    var t = tag.trim().toLowerCase();
+    var idx = lowerCanon.indexOf(t);
+    if (idx >= 0) found[CANON[idx]] = true;
+  });
+  return Object.keys(found);
+}
+
+/**
+ * _personaExtractYear_()
+ *
+ * Extracts a 4-digit year from a PublishedDate cell (year, or date string).
+ * Returns 0 if none found.
+ * @private
+ */
+function _personaExtractYear_(raw) {
+  if (!raw) return 0;
+  var m = raw.toString().match(/(\d{4})/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+
+/**
+ * _personaExtractHour_()
+ *
+ * Extracts the local hour (0–23) from an Arka Z-Format timestamp string
+ * (dd-MM-yyyy HH:mm:ss +NNNN). The HH is the member-local hour as written,
+ * which is exactly what Rhythm needs — do NOT convert to script tz.
+ * Returns -1 if unparseable (caller buckets it as night, harmless).
+ * @private
+ */
+function _personaExtractHour_(raw) {
+  if (!raw) return -1;
+  var m = raw.toString().match(/\d{2}-\d{2}-\d{4}\s+(\d{2}):/);
+  return m ? parseInt(m[1], 10) : -1;
+}
+
+/**
+ * _personaParseDate_()
+ *
+ * Parses Arka date strings to ms. Mirrors _aiPassParseDate_ for consistency.
+ * Handles Z-Format, Short-Date (dd-MMM-yyyy), ISO, and Date objects.
+ * Returns NaN for unparseable input — callers guard.
+ * @private
+ */
+function _personaParseDate_(raw) {
   if (!raw) return NaN;
   if (raw instanceof Date) return raw.getTime();
   var str = raw.toString().trim();
-
-  // Arka Z-Format: dd-MM-yyyy HH:mm:ss +NNNN
-  var zMatch = str.match(/(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+([\+\-]\d{4})/);
-  if (zMatch) {
-    var iso = zMatch[3] + '-' + zMatch[2] + '-' + zMatch[1] +
-              'T' + zMatch[4] + ':' + zMatch[5] + ':' + zMatch[6] + zMatch[7];
-    return new Date(iso).getTime();
+  var z = str.match(/(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+([\+\-]\d{4})/);
+  if (z) {
+    return new Date(z[3] + '-' + z[2] + '-' + z[1] + 'T' + z[4] + ':' + z[5] + ':' + z[6] + z[7]).getTime();
   }
-
-  // Arka Short-Date: dd-MMM-yyyy (e.g. 27-May-2026)
-  var shortMatch = str.match(/(\d{2})-([a-zA-Z]{3})-(\d{4})/);
-  if (shortMatch) {
-    return new Date(str.replace(/-/g, ' ')).getTime();
-  }
-
-  // Fallback
+  var sd = str.match(/(\d{2})-([a-zA-Z]{3})-(\d{4})/);
+  if (sd) return new Date(str.replace(/-/g, ' ')).getTime();
   return new Date(str).getTime();
 }
 
 
-// ── Manual run helpers (admin use only) ───────────────────────────────────
+// ── Trigger management (mirrors ArkaAIPass) ──────────────────────────────────
 
 /**
- * resetArkaAIPassState()
+ * installArkaPersonaPassTrigger()
  *
- * Clears all PropertiesService keys and removes all chain triggers.
- * Use this to manually abort a stuck run or reset state before a test.
- * Run from the Apps Script editor — not triggered automatically.
+ * One-time setup. Run manually once from the Apps Script editor. Installs a
+ * daily trigger at 00:07 (before ArkaAIPass at 00:10 — persona compute is fast
+ * and has no external dependency, so it can lead). Chain triggers are managed
+ * dynamically by the script. Do not install duplicates.
  */
-function resetArkaAIPassState() {
-  var props = PropertiesService.getScriptProperties();
-  props.deleteProperty(AIPASS_CURSOR_KEY);
-  props.deleteProperty(AIPASS_READY_FLAG_KEY);
-  props.deleteProperty(AIPASS_TOTAL_KEY);
-  _aiPassRemoveAllTriggers_();
-  console.log('ArkaAIPass: state reset. Run installArkaAIPassTrigger() to reinstall the daily trigger.');
+function installArkaPersonaPassTrigger() {
+  _personaRemoveAllTriggers_();
+  ScriptApp.newTrigger(PERSONA_FUNCTION_NAME)
+    .timeBased().atHour(0).nearMinute(7).everyDays(1).create();
+  console.log('PersonaPass: daily trigger installed at 00:07.');
+}
+
+/** Schedules the next chained run. @private */
+function _personaScheduleNextRun_() {
+  // Remove stale chain triggers for this function, then add a fresh one.
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === PERSONA_FUNCTION_NAME) {
+      try { ScriptApp.deleteTrigger(t); } catch (e) {}
+    }
+  });
+  var nextRunAt = new Date(Date.now() + PERSONA_CHAIN_DELAY_MINUTES * 60 * 1000);
+  ScriptApp.newTrigger(PERSONA_FUNCTION_NAME).timeBased().at(nextRunAt).create();
+}
+
+/** Removes ALL triggers for this function. @private */
+function _personaRemoveAllTriggers_() {
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === PERSONA_FUNCTION_NAME) {
+      try { ScriptApp.deleteTrigger(t); } catch (e) {}
+    }
+  });
 }
 
 /**
- * forceRunArkaAIPassNow()
+ * _personaCleanup_()
  *
- * Forces an immediate AI pass run regardless of the ARKAAIPASS_READY flag.
- * Useful for testing or manual backfill runs.
- * Sets the ready flag and cursor to 1, then calls runArkaAIPass().
+ * Clears cursor, ready flag, and cached indexes; removes chain triggers and
+ * reinstalls the daily trigger. Called when all members are processed or abort.
+ * @private
  */
-function forceRunArkaAIPassNow() {
+function _personaCleanup_(props) {
+  props.deleteProperty(PERSONA_CURSOR_KEY);
+  props.deleteProperty(PERSONA_READY_FLAG_KEY);
+  props.deleteProperty(PERSONA_INDEX_KEY);
+  props.deleteProperty(PERSONA_RARITY_KEY);
+  _personaRemoveAllTriggers_();
+  ScriptApp.newTrigger(PERSONA_FUNCTION_NAME)
+    .timeBased().atHour(0).nearMinute(7).everyDays(1).create();
+}
+
+
+// ── Manual run helpers (admin use only) ──────────────────────────────────────
+
+/**
+ * resetArkaPersonaPassState()
+ *
+ * Clears all PropertiesService keys and removes all chain triggers. Use to
+ * abort a stuck run or reset before a test. Run from the editor.
+ */
+function resetArkaPersonaPassState() {
   var props = PropertiesService.getScriptProperties();
-  props.setProperty(AIPASS_READY_FLAG_KEY, 'true');
-  props.setProperty(AIPASS_CURSOR_KEY, '1');
-  console.log('ArkaAIPass: forcing immediate run...');
-  runArkaAIPass();
+  props.deleteProperty(PERSONA_CURSOR_KEY);
+  props.deleteProperty(PERSONA_READY_FLAG_KEY);
+  props.deleteProperty(PERSONA_INDEX_KEY);
+  props.deleteProperty(PERSONA_RARITY_KEY);
+  _personaRemoveAllTriggers_();
+  console.log('PersonaPass: state reset. Run installArkaPersonaPassTrigger() to reinstall the daily trigger.');
+}
+
+/**
+ * forceRunArkaPersonaPassNow()
+ *
+ * Forces an immediate full run regardless of the ready flag. Sets the flag and
+ * cursor=1, then calls runArkaPersonaPass(). For testing / manual backfill.
+ */
+function forceRunArkaPersonaPassNow() {
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty(PERSONA_READY_FLAG_KEY, 'true');
+  props.setProperty(PERSONA_CURSOR_KEY, '1');
+  console.log('PersonaPass: forcing immediate run...');
+  runArkaPersonaPass();
+}
+
+
+
+// TEMP — verify the source index builds and looks sane. Read-only.
+function _personaTest_inspectIndex() {
+  var ss = SpreadsheetApp.openById(PERSONA_SPREADSHEET_ID);
+  var index = _personaBuildSourceIndex_(ss);
+  var ids = Object.keys(index);
+  console.log('Members indexed: ' + ids.length);
+  // Dump the 3 most active members so you can eyeball the aggregates.
+  ids.sort(function(a,b){ return index[b].sessions - index[a].sessions; })
+     .slice(0,3).forEach(function(id){
+       var m = index[id];
+       console.log(id + ' | sessions=' + m.sessions +
+         ' | hours=' + JSON.stringify(m.hourBuckets) +
+         ' | finished=' + m.finishedCount + ' dnf=' + m.dnfCount +
+         ' | medianSession=' + _personaMedian_(m.sessionPages) +
+         ' | biggestDay=' + JSON.stringify(m.biggestDay) +
+         ' | longest=' + JSON.stringify(m.longestBook));
+     });
+}
+
+// TEMP — verify one member's full computed personality. Read-only.
+function _personaTest_computeOne() {
+  var ss = SpreadsheetApp.openById(PERSONA_SPREADSHEET_ID);
+  var index = _personaBuildSourceIndex_(ss);
+  var rarity = _personaBuildRarityTally_(index);
+  var YOUR_ID = 'ARKA_MEMBER_1';   // ← put your own member ID here
+  console.log(JSON.stringify(_personaComputeForMember_(index[YOUR_ID], rarity), null, 2));
+}
+
+/**
+ * dryRunArkaPersonaPass()
+ *
+ * READ-ONLY diagnostic. Computes every member's personality in memory and logs
+ * a distribution summary — WITHOUT writing PersonaProfileDB rows or logging any
+ * PERSONAUPDATE activity. Use this to judge whether the v1 thresholds split the
+ * club sensibly before committing rows, and to re-check after tuning any cut-point.
+ *
+ * What it reports:
+ *   - Club size, and how many members clear the live-data / taste gates.
+ *   - Per-axis: how many land on each side vs how many are still "forming".
+ *   - Archetype histogram (which named types resolved, and the templated tail).
+ *   - The most/least common archetype, and the count with no archetype yet.
+ *
+ * Safe to run anytime. Does NOT touch triggers, properties, or sheets.
+ */
+function dryRunArkaPersonaPass() {
+  var ss    = SpreadsheetApp.openById(PERSONA_SPREADSHEET_ID);
+  var index = _personaBuildSourceIndex_(ss);
+  var rarity = _personaBuildRarityTally_(index);
+
+  var memberIds = Object.keys(index);
+  var clubSize  = memberIds.length;
+
+  // ── Tallies ────────────────────────────────────────────────────────────
+  var axisSides   = {}; // axis → { side: count, ... , _forming: count }
+  var archCounts  = {}; // archetypeName → count
+  var noArchetype = 0;
+  var gateLive    = 0;  // members clearing the live-session gate
+  var gateTaste   = 0;  // members clearing the finished-books gate
+  var resolvedAxisCounts = []; // per-member count of non-gated axes (for avg)
+
+  memberIds.forEach(function(id) {
+    var agg = index[id];
+    if (agg.liveSessions  >= PERSONA_MIN_SESSIONS_FOR_RHYTHM) gateLive++;
+    if (agg.finishedCount >= PERSONA_MIN_FINISHED_FOR_TASTE)  gateTaste++;
+
+    var p = _personaComputeForMember_(agg, rarity);
+
+    // Archetype histogram.
+    if (p.archetypeName) {
+      archCounts[p.archetypeName] = (archCounts[p.archetypeName] || 0) + 1;
+    } else {
+      noArchetype++;
+    }
+
+    // Per-axis side distribution.
+    var resolvedThisMember = 0;
+    p.verdicts.forEach(function(v) {
+      if (!axisSides[v.axis]) axisSides[v.axis] = { _forming: 0 };
+      if (v.gated) {
+        axisSides[v.axis]._forming++;
+      } else {
+        axisSides[v.axis][v.side] = (axisSides[v.axis][v.side] || 0) + 1;
+        resolvedThisMember++;
+      }
+    });
+    resolvedAxisCounts.push(resolvedThisMember);
+  });
+
+  // ── Print: header ────────────────────────────────────────────────────────
+  console.log('════════ PERSONA DRY RUN — ' + PERSONA_ENGINE_VERSION + ' ════════');
+  console.log('Club members indexed : ' + clubSize);
+  console.log('Clear live-data gate (≥' + PERSONA_MIN_SESSIONS_FOR_RHYTHM + ' live sessions) : ' +
+              gateLive + ' / ' + clubSize);
+  console.log('Clear taste gate (≥' + PERSONA_MIN_FINISHED_FOR_TASTE + ' finished books)    : ' +
+              gateTaste + ' / ' + clubSize);
+  var avgResolved = resolvedAxisCounts.length
+    ? (resolvedAxisCounts.reduce(function(a, b) { return a + b; }, 0) / resolvedAxisCounts.length)
+    : 0;
+  console.log('Avg resolved axes per member : ' + avgResolved.toFixed(1));
+
+  // ── Print: per-axis distribution ──────────────────────────────────────────
+  console.log('──────── AXIS DISTRIBUTION ────────');
+  Object.keys(axisSides).sort().forEach(function(axis) {
+    var sides = axisSides[axis];
+    var parts = [];
+    Object.keys(sides).forEach(function(side) {
+      if (side === '_forming') return;
+      parts.push(side + '=' + sides[side]);
+    });
+    parts.push('forming=' + sides._forming);
+    console.log(_personaPad_(axis, 14) + ' | ' + parts.join('  '));
+  });
+
+  // ── Print: archetype histogram (descending) ────────────────────────────────
+  console.log('──────── ARCHETYPES ────────');
+  var archSorted = Object.keys(archCounts).sort(function(a, b) {
+    return archCounts[b] - archCounts[a];
+  });
+  archSorted.forEach(function(name) {
+    console.log(_personaPad_(name, 28) + ' ' + archCounts[name]);
+  });
+  console.log(_personaPad_('(no archetype yet)', 28) + ' ' + noArchetype);
+
+  if (archSorted.length) {
+    console.log('Most common  : ' + archSorted[0] + ' (' + archCounts[archSorted[0]] + ')');
+    console.log('Rarest named : ' + archSorted[archSorted.length - 1] +
+                ' (' + archCounts[archSorted[archSorted.length - 1]] + ')');
+  }
+  console.log('Distinct archetypes resolved : ' + archSorted.length);
+  console.log('═══════════════════════════════════════════');
+}
+
+/** Right-pads a string to width for aligned log columns. @private */
+function _personaPad_(str, width) {
+  str = (str || '').toString();
+  while (str.length < width) str += ' ';
+  return str;
 }
