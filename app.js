@@ -19487,16 +19487,18 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   return pagesOnDay > 0 ? cumulative : null;
               });
               return {
-                  label           : nameLabel,
-                  data            : dataPoints,
-                  borderColor     : color,
-                  backgroundColor : color + '18',
-                  borderWidth     : 2,
-                  spanGaps        : true, // connect own logged points across null gaps
-                  pointRadius     : 3,
-                  pointHoverRadius: 5,
-                  fill            : false,
-                  tension         : 0.3
+                  label                : nameLabel,
+                  data                 : dataPoints,
+                  borderColor          : color,
+                  backgroundColor      : color + '18',
+                  pointBackgroundColor : color,
+                  pointBorderColor     : color,
+                  borderWidth          : 2,
+                  spanGaps             : true, // connect own logged points across null gaps
+                  pointRadius          : 3,
+                  pointHoverRadius     : 5,
+                  fill                 : false,
+                  tension              : 0.3
               };
           });
 
