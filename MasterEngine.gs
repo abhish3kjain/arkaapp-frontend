@@ -77,11 +77,13 @@ function invalidateCacheKey(key) {
       // First-time setup: create the sheet with a header row and the flag row.
       configSheet = ss.insertSheet(APP_CONFIG_SHEET);
       configSheet.getRange(1, 1, 1, 2).setValues([['key', 'value']]);
-      configSheet.getRange(BADGE_DIRTY_ROW, 1, 1, 2).setValues([['badge_awards_dirty', 'false']]);
+      configSheet.getRange(BADGE_DIRTY_ROW, 1, 1, 2).setValues([['badge_awards_dirty', false]]);
     }
-    configSheet.getRange(BADGE_DIRTY_ROW, 2).setValue('true');
-    console.log('MasterEngine: badge dirty flag set in ' + APP_CONFIG_SHEET);
-  } catch (cacheErr) { /* non-fatal */ }
+    configSheet.getRange(BADGE_DIRTY_ROW, 2).setValue(true);
+    console.log('MasterEngine: badge dirty flag set TRUE in ' + APP_CONFIG_SHEET);
+  } catch (cacheErr) {
+    console.error('MasterEngine: FAILED to set badge dirty flag — ', cacheErr);
+  }
 }
 
 // ── AI Coach pass ──────────────────────────────────────────────────────────
