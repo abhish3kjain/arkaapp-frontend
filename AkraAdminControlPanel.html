@@ -348,6 +348,18 @@
   </div>
 </div><!-- /admShell -->
 
+<!-- Approval confirmation modal (Reject / Revoke Access) -->
+<div class="adm-modal-overlay" id="admApprovalConfirmModal">
+  <div class="adm-modal">
+    <div class="adm-modal-title" id="admApprovalConfirmTitle">Confirm Action</div>
+    <div class="adm-modal-body" id="admApprovalConfirmBody"></div>
+    <div class="adm-modal-actions">
+      <button class="adm-btn adm-btn-light" onclick="admCloseApprovalConfirmModal()">Cancel</button>
+      <button class="adm-btn adm-btn-danger" id="admApprovalConfirmBtn" onclick="admConfirmApprovalChange()">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <!-- Revoke modal -->
 <div class="adm-modal-overlay" id="admRevokeModal">
   <div class="adm-modal">

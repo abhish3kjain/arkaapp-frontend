@@ -30,8 +30,9 @@
   var admAwardBrowseFilter = 'Active';
   var admMembersSort       = 'totalCp';
   var admMembersActivity   = 'all';
-  var admPendingRevokeId   = null;
-  var admToastTimer        = null;
+  var admPendingRevokeId        = null;
+  var admPendingApprovalChange  = null; // { memberId, newStatus } — set by confirm modal
+  var admToastTimer             = null;
   /** True once getReportsData() has returned successfully. */
   var admReportsDataLoaded = false;
 
@@ -163,7 +164,7 @@
         '<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:0.88rem">'+_esc(m.displayName)+'</div>'+
         '<div style="font-size:0.75rem;color:var(--text-faint)">'+_esc(m.email)+' · Joined '+_esc(m.joinDate)+'</div></div>'+
         '<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+m.memberId+'\',\'Approved\')"><i class="fa-solid fa-check"></i> Approve</button>'+
-        '<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admSetApproval(\''+m.memberId+'\',\'Rejected\')"><i class="fa-solid fa-xmark"></i> Reject</button></div>';
+        '<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenApprovalConfirmModal(\''+m.memberId+'\',\'Rejected\')"><i class="fa-solid fa-xmark"></i> Reject</button></div>';
     }).join('') + (pending.length>5?'<div style="padding:10px 0;font-size:0.78rem;color:var(--text-faint)">…and '+(pending.length-5)+' more. <a href="#" onclick="admSwitchSection(\'approvals\');return false">View all →</a></div>':'');
   }
 
@@ -192,8 +193,8 @@
     if (!filtered.length){ tbody.innerHTML='<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-magnifying-glass"></i><p>No members match the current filter.</p></div></td></tr>'; return; }
     tbody.innerHTML = filtered.map(function(m){
       var pill=_approvalPill(m.approvalStatus), actions='';
-      if (m.approvalStatus===APPROVAL_STATUS.PENDING) actions='<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+m.memberId+'\',\'Approved\')"><i class="fa-solid fa-check"></i> Approve</button> <button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admSetApproval(\''+m.memberId+'\',\'Rejected\')"><i class="fa-solid fa-xmark"></i> Reject</button>';
-      else if (m.approvalStatus===APPROVAL_STATUS.APPROVED) actions='<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admSetApproval(\''+m.memberId+'\',\'Rejected\')">Revoke Access</button>';
+      if (m.approvalStatus===APPROVAL_STATUS.PENDING) actions='<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+m.memberId+'\',\'Approved\')"><i class="fa-solid fa-check"></i> Approve</button> <button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenApprovalConfirmModal(\''+m.memberId+'\',\'Rejected\')"><i class="fa-solid fa-xmark"></i> Reject</button>';
+      else if (m.approvalStatus===APPROVAL_STATUS.APPROVED) actions='<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenApprovalConfirmModal(\''+m.memberId+'\',\'Rejected\')">Revoke Access</button>';
       else if (m.approvalStatus===APPROVAL_STATUS.REJECTED) actions='<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+m.memberId+'\',\'Approved\')">Re-Approve</button>';
       return '<tr><td class="adm-td-mono">'+_esc(m.memberId)+'</td><td><strong>'+_esc(m.displayName)+'</strong></td><td>'+_esc(m.fullName)+'</td><td style="color:var(--text-faint);font-size:0.78rem">'+_esc(m.email)+'</td><td style="white-space:nowrap">'+_esc(m.joinDate)+'</td><td>'+pill+'</td><td style="white-space:nowrap">'+actions+'</td></tr>';
     }).join('');
@@ -212,6 +213,47 @@
       })
       .withFailureHandler(function(err){ admShowToast('Server error: '+((err&&err.message)||'Please retry.'),'err'); document.querySelectorAll('button[onclick*="'+memberId+'"]').forEach(function(b){b.disabled=false;}); })
       .setMemberApprovalStatus(memberId, newStatus);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     APPROVAL CONFIRMATION MODAL
+     ══════════════════════════════════════════════════════════════════ */
+
+  function admOpenApprovalConfirmModal(memberId, newStatus) {
+    admPendingApprovalChange = { memberId: memberId, newStatus: newStatus };
+    var m = admMemberMap[memberId] || {};
+    var name = m.displayName || memberId;
+    var titleEl = document.getElementById('admApprovalConfirmTitle');
+    var bodyEl  = document.getElementById('admApprovalConfirmBody');
+    var btnEl   = document.getElementById('admApprovalConfirmBtn');
+    if (newStatus === APPROVAL_STATUS.REJECTED) {
+      if (m.approvalStatus === APPROVAL_STATUS.APPROVED) {
+        if (titleEl) titleEl.textContent = 'Revoke Access?';
+        if (bodyEl)  bodyEl.innerHTML = 'This will immediately block <strong>' + _esc(name) + '</strong> from accessing the app. Their data and history are preserved. You can re-approve them at any time.';
+        if (btnEl)  { btnEl.className = 'adm-btn adm-btn-danger'; btnEl.innerHTML = '<i class="fa-solid fa-user-xmark"></i> Revoke Access'; }
+      } else {
+        if (titleEl) titleEl.textContent = 'Reject Member?';
+        if (bodyEl)  bodyEl.innerHTML = 'This will prevent <strong>' + _esc(name) + '</strong> from accessing the app. The record is kept for the audit trail and can be re-approved later.';
+        if (btnEl)  { btnEl.className = 'adm-btn adm-btn-danger'; btnEl.innerHTML = '<i class="fa-solid fa-xmark"></i> Reject'; }
+      }
+    }
+    if (btnEl) { btnEl.disabled = false; }
+    document.getElementById('admApprovalConfirmModal').classList.add('open');
+  }
+
+  function admCloseApprovalConfirmModal() {
+    document.getElementById('admApprovalConfirmModal').classList.remove('open');
+    admPendingApprovalChange = null;
+  }
+
+  function admConfirmApprovalChange() {
+    if (!admPendingApprovalChange) return;
+    var memberId  = admPendingApprovalChange.memberId;
+    var newStatus = admPendingApprovalChange.newStatus;
+    var btnEl = document.getElementById('admApprovalConfirmBtn');
+    if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Processing…'; }
+    admCloseApprovalConfirmModal();
+    admSetApproval(memberId, newStatus);
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -668,9 +710,12 @@
   window.admSwitchSection       = admSwitchSection;
   window.admOpenDrawer          = admOpenDrawer;
   window.admCloseDrawer         = admCloseDrawer;
-  window.admFilterApprovals     = admFilterApprovals;
-  window.admRenderApprovals     = admRenderApprovals;
-  window.admSetApproval         = admSetApproval;
+  window.admFilterApprovals             = admFilterApprovals;
+  window.admRenderApprovals             = admRenderApprovals;
+  window.admSetApproval                 = admSetApproval;
+  window.admOpenApprovalConfirmModal    = admOpenApprovalConfirmModal;
+  window.admCloseApprovalConfirmModal   = admCloseApprovalConfirmModal;
+  window.admConfirmApprovalChange       = admConfirmApprovalChange;
   window.admSwitchBadgeSubTab   = admSwitchBadgeSubTab;
   window.admOnMemberInputChange = admOnMemberInputChange;
   window.admOnBadgeInputChange  = admOnBadgeInputChange;

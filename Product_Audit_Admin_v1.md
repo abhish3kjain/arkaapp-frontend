@@ -3,20 +3,35 @@
 **App Build Audited:** v127  
 **Panel File:** `AkraAdminControlPanel.html` (note: "Akra" typo in filename — actual panel, correct title)  
 **Audit Date:** June 2026  
+**Last Updated:** June 2026 (post-P1 implementation — see §0)  
 **Auditor:** Multi-disciplinary review — UX, Architecture, Mobile, Operations  
+
+---
+
+## 0. Post-Audit Implementation Log
+
+| Item | Description | Status |
+|---|---|---|
+| P1-1 | Mobile: Replace bottom tab strip with hamburger + slide-out drawer | ✅ Shipped |
+| P1-2 | Mobile: Fix toast obscured by tab strip | ✅ Shipped (resolved by P1-1) |
+| P1-3 | Mobile: Fix content overlap with topbar | ✅ Shipped (resolved by P1-1) |
+| P1-4 | Approvals: Confirmation modal for Reject and Revoke Access | ✅ Shipped |
+| CSS/JS extraction | Inline `<style>` → `arkaadmin_styles.css`; inline `<script>` → `arkaadmin_app.js`; both served via GitHub CDN — same pattern as member app | ✅ Shipped |
 
 ---
 
 ## Executive Summary
 
-| Dimension | Score | Verdict |
-|---|---|---|
-| UX & Ease of Use | 6.5 / 10 | Functional desktop tool; admin-hostile form ergonomics |
-| Logic Correctness | 7.5 / 10 | Core flows correct; backend under-exposed in UI |
-| Layout & Visual Design | 5.5 / 10 | Desktop acceptable; structural gaps at >1100px |
-| Mobile Usability | 3.0 / 10 | Critical — tab strip UX is broken for serious admin work |
-| Operational Coverage | 4.5 / 10 | 6 sections covering ~35% of what an admin operationally needs |
-| **Overall** | **5.4 / 10** | Working prototype; ready for structured uplift |
+*Scores reflect state **after** P1-1 through P1-4 implementation.*
+
+| Dimension | Score (at audit) | Score (now) | Notes |
+|---|---|---|---|
+| UX & Ease of Use | 6.5 / 10 | 7.0 / 10 | Confirmation modals close the accidental-rejection risk |
+| Logic Correctness | 7.5 / 10 | 7.5 / 10 | Unchanged |
+| Layout & Visual Design | 5.5 / 10 | 5.5 / 10 | Unchanged — desktop gaps remain |
+| Mobile Usability | 3.0 / 10 | 6.5 / 10 | Drawer + toast + topbar fixes make mobile workable; wide tables and reports canvas still P2/P3 |
+| Operational Coverage | 4.5 / 10 | 4.5 / 10 | Unchanged — missing sections not yet built |
+| **Overall** | **5.4 / 10** | **6.3 / 10** | P1 items shipped; P2 sprint is next |
 
 ---
 
@@ -47,7 +62,7 @@
 - No bulk-approval capability. If 12 new members register at once, admins must click Approve 12 times individually.
 - Email column uses `style="color:var(--text-faint);font-size:0.78rem"` inline rather than a CSS class — minor token violation.
 - "Revoke Access" copies the same button text for all approved members regardless of whether they have active shelf entries, badges, or posted content. No warning that revoking hides their data from the member app.
-- No confirmation modal before Reject/Revoke (only Revoke Badge has a modal). Accidental rejection of an approved member has no undo prompt.
+- ~~No confirmation modal before Reject/Revoke (only Revoke Badge has a modal). Accidental rejection of an approved member has no undo prompt.~~ **✅ Fixed (P1-4)** — `admApprovalConfirmModal` now gates both Reject (Pending rows) and Revoke Access (Approved rows) with context-aware title + body copy. Approve and Re-Approve remain direct (positive, low-risk actions).
 
 **Effort to fix:** Medium (bulk action + confirmation modals).
 
@@ -147,15 +162,17 @@ The Badge Award form uses full-width inputs inside a `.adm-card` that goes to `m
 
 ## 3. Mobile Screen Issues (Critical)
 
-### 3.1 Bottom Tab Strip is the Wrong Pattern
-**The problem:** At ≤768px the sidebar becomes `position: fixed; bottom: 0; display: flex; flex-direction: row; overflow-x: auto`. Nav items become vertical icon-then-label chips, `min-width: 56px`. With 7 nav items that's 392px minimum — wider than a 375px iPhone screen — requiring horizontal scroll just to see all sections.
+### 3.1 Bottom Tab Strip is the Wrong Pattern ✅ Fixed (P1-1/P1-2/P1-3)
+~~**The problem:** At ≤768px the sidebar becomes `position: fixed; bottom: 0; display: flex; flex-direction: row; overflow-x: auto`. Nav items become vertical icon-then-label chips, `min-width: 56px`. With 7 nav items that's 392px minimum — wider than a 375px iPhone screen — requiring horizontal scroll just to see all sections.~~
 
-**Specific failures:**
-- `adm-nav-pending-bubble` is `position: absolute; top: 4px; right: 6px` — in the mobile tab strip layout this absolute positioning is relative to the nav item's flex container, not the strip, so the bubble renders in the wrong position on small screens.
-- Active state indicator (the 3px left border) is `display: none` on mobile — the only active cue is `color: var(--arka-accent)` which is low contrast on white.
-- `.adm-nav-item { font-size: 0.65rem }` — below the 10px minimum legible size for body text.
+**Resolution:** The bottom tab strip has been removed. The sidebar is now a fixed slide-in drawer (`translateX(-100%)` → `translateX(0)`, 260px wide, full-height, z-index 400) triggered by a hamburger button in the topbar. A tap-to-close backdrop overlay sits behind it. Nav items restore full desktop appearance inside the drawer (row layout, left accent bar, correct pending bubble positioning). `admSwitchSection()` auto-closes the drawer after a nav tap.
 
-**Recommended fix:** Replace the bottom strip with a hamburger button in the topbar that opens a slide-in drawer overlay. This is the standard mobile admin pattern and would take approximately one day to implement cleanly.
+Previously noted failures — all resolved:
+- ~~Pending bubble mis-positioned~~ → bubble is inline (`margin-left: auto`) in the row layout, no absolute positioning needed.
+- ~~Active state only a colour cue~~ → left accent bar (`::before`) restored in the drawer.
+- ~~`font-size: 0.65rem` below legible minimum~~ → nav items use full `0.875rem` in the drawer.
+- ~~Toast hidden behind tab strip~~ → strip gone; `bottom: 28px` toast is now unobstructed (P1-2).
+- ~~Content padding-bottom `80px` for strip clearance~~ → reduced to `32px`; `#admShell padding-bottom: 0` (P1-3).
 
 ### 3.2 Tables Are Unworkable on Mobile
 Approvals table: 7 columns. Member Stats: 9 columns. Badge Awards: 8 columns. Even with `overflow-x: auto`, horizontal scroll on a 375px screen means core action buttons (Approve/Reject) are scrolled out of view. Admins must scroll right to act, left to see the member name, right to act — a constant back-and-forth.
@@ -167,11 +184,15 @@ As detailed in §1.6: the 1200×675 fixed-canvas slide system renders at ~33% sc
 
 **Mobile-appropriate alternative:** A text summary view of the same data (e.g., "This week: 847 pages, 12 books, 4 new members") that replaces the slide canvas on mobile. The visual slide report format is inherently desktop-print-oriented.
 
-### 3.4 Content Bottom Padding Miscalculation
-`.adm-content { padding: 16px 14px 80px }` on mobile. The tab strip is `auto` height (approximately 64px as accounted by `#admShell { padding-bottom: 64px }`). With the topbar at `56px` and content padding-top implicitly 0, the first card in each section starts behind the topbar. `padding-top: calc(var(--adm-topbar-h) + 8px)` is missing in the mobile content rule.
+### 3.4 Content Bottom Padding Miscalculation ✅ Fixed (P1-3)
+~~`.adm-content { padding: 16px 14px 80px }` on mobile. The tab strip clearance `80px` was excessive; `#admShell { padding-bottom: 64px }` paired with it.~~
 
-### 3.5 Toast Positioning Conflict
-`#admToast { bottom: 28px }` — on mobile, this places the toast behind the tab strip (`position: fixed; bottom: 0; height ~64px`). The toast is visually obscured on every action that shows a success/error message. Fix: `bottom: calc(64px + 12px)` on mobile.
+**Resolution:** With the tab strip removed, mobile content padding reduced to `16px 14px 32px` and `#admShell padding-bottom: 0`. No clearance needed.
+
+### 3.5 Toast Positioning Conflict ✅ Fixed (P1-2)
+~~`#admToast { bottom: 28px }` — on mobile, this places the toast behind the tab strip. The toast is visually obscured on every action confirmation.~~
+
+**Resolution:** Tab strip is gone. Toast at `bottom: 28px` is unobstructed on all screen sizes.
 
 ---
 
@@ -290,13 +311,13 @@ Low risk to fix; low priority but creates brand inconsistency in version control
 ## 7. Prioritised Recommendation Backlog
 
 ### Priority 1 — Critical (fix before next admin-heavy period)
-| # | Issue | Effort | Impact |
-|---|---|---|---|
-| P1-1 | Mobile: Replace bottom tab strip with hamburger + slide-out drawer | 1 day | Unblocks all mobile admin use |
-| P1-2 | Mobile: Fix toast obscured by tab strip (`bottom: calc(64px + 12px)`) | 30 min | Every action confirmation now visible |
-| P1-3 | Mobile: Fix topbar content overlap (`padding-top` in mobile content rule) | 30 min | First card no longer clipped |
-| P1-4 | Approvals: Add confirmation modal for Reject and Revoke Access actions | 2 hrs | Prevents accidental data loss |
-| P1-5 | Content moderation: Book post delete UI using existing `deleteBookPost()` | 4 hrs | Enables removal of problematic posts |
+| # | Status | Issue | Effort | Impact |
+|---|---|---|---|---|
+| P1-1 | ✅ Done | Mobile: Replace bottom tab strip with hamburger + slide-out drawer | 1 day | Unblocks all mobile admin use |
+| P1-2 | ✅ Done | Mobile: Fix toast obscured by tab strip | 30 min | Resolved by P1-1 (strip removed) |
+| P1-3 | ✅ Done | Mobile: Fix content padding / topbar overlap | 30 min | Resolved by P1-1 (strip removed) |
+| P1-4 | ✅ Done | Approvals: Confirmation modal for Reject and Revoke Access | 2 hrs | Prevents accidental member rejection |
+| P1-5 | ⬜ Next | Content moderation: Book post delete UI using existing `deleteBookPost()` | 4 hrs | Enables removal of problematic posts |
 
 ### Priority 2 — High (next development sprint)
 | # | Issue | Effort | Impact |
@@ -330,7 +351,7 @@ Low risk to fix; low priority but creates brand inconsistency in version control
 
 ## 8. What the Admin Panel Gets Right (Preserve These)
 
-- **Revoke Badge confirmation modal** — the right pattern for destructive admin actions; replicate for Reject/Revoke Access
+- **Confirmation modals for all destructive approval actions** — `admApprovalConfirmModal` (P1-4) now gates Reject and Revoke Access with context-aware copy, matching the existing Revoke Badge modal pattern. All three destructive actions now require explicit confirmation.
 - **Optimistic UI update pattern** in Approvals — local state update + re-render on success, button re-enable on failure
 - **Performance section quality** — technically the most sophisticated section; `spanGaps: false`, P90, noise floor, BigGulp vs Render split are all best-practice choices
 - **Admin-gated data loading** — `doGet(e)` in the backend checks `ADMIN_MEMBER_IDS_BACKEND` before serving the panel; data functions call `getVerifiedMemberId()` which re-checks approval on every call
