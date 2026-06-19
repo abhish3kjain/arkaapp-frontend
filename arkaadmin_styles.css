@@ -1,0 +1,234 @@
+    /* ══════════════════════════════════════════════════════════════════
+       ARKA DESIGN TOKENS — from Arka_Design_Tokens_v1.md
+       Never use raw literals for tokenised colours; use var(--token).
+       ══════════════════════════════════════════════════════════════════ */
+    :root {
+      --arka-accent:       #A984BA;
+      --arka-accent-hover: #8b6ba0;
+      --text-strong:       #2c3e50;
+      --text-muted:        #5b6b6e;
+      --surface-alt:       #f8f9fa;
+      --border-soft:       #ecf0f1;
+      --text-faint:        #6a7878;
+      --neutral-mid:       #bdc3c7;
+      --font-body:         'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      /* Admin semantic tokens */
+      --adm-sidebar-w: 220px;
+      --adm-topbar-h:  56px;
+      --adm-ok:        #1d9e75;
+      --adm-warn:      #f59f00;
+      --adm-danger:    #e74c3c;
+      --adm-page-bg:   #f4f7f6;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-body); background: var(--adm-page-bg); color: var(--text-strong); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+    a { color: var(--arka-accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Full-screen state panels ──────────────────────────────────── */
+    .adm-fullscreen-state { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 14px; text-align: center; padding: 24px; color: var(--text-muted); }
+    .adm-spinner { width: 40px; height: 40px; border: 3px solid var(--border-soft); border-top-color: var(--arka-accent); border-radius: 50%; animation: adm-spin 0.8s linear infinite; }
+    @keyframes adm-spin { to { transform: rotate(360deg); } }
+    .adm-state-icon  { font-size: 2.8rem; }
+    .adm-state-title { font-size: 1.15rem; font-weight: 700; color: var(--text-strong); }
+    .adm-state-body  { font-size: 0.88rem; max-width: 340px; }
+
+    /* ── Topbar ────────────────────────────────────────────────────── */
+    .adm-topbar { position: fixed; top: 0; left: 0; right: 0; height: var(--adm-topbar-h); background: #fff; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px; padding: 0 20px; z-index: 300; }
+    .adm-topbar-wordmark { font-size: 0.95rem; font-weight: 800; color: var(--text-strong); letter-spacing: -0.02em; }
+    .adm-topbar-wordmark i { color: var(--arka-accent); margin-right: 6px; }
+    .adm-topbar-badge { font-size: 0.6rem; font-weight: 700; background: #fef3e2; color: #854f0b; border: 1px solid var(--adm-warn); border-radius: 4px; padding: 2px 7px; letter-spacing: 0.04em; }
+    .adm-topbar-spacer { flex: 1; }
+    .adm-topbar-admin-label { font-size: 0.78rem; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .adm-topbar-refresh-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--surface-alt); border: 1px solid var(--border-soft); border-radius: 6px; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: background 0.12s; font-family: var(--font-body); }
+    .adm-topbar-refresh-btn:hover { background: var(--border-soft); }
+
+    /* ── Shell + layout ────────────────────────────────────────────── */
+    #admShell { padding-top: var(--adm-topbar-h); min-height: 100vh; }
+    .adm-layout { display: flex; min-height: calc(100vh - var(--adm-topbar-h)); }
+
+    /* ── Sidebar ───────────────────────────────────────────────────── */
+    .adm-sidebar { width: var(--adm-sidebar-w); flex-shrink: 0; background: #fff; border-right: 1px solid var(--border-soft); position: sticky; top: var(--adm-topbar-h); height: calc(100vh - var(--adm-topbar-h)); overflow-y: auto; padding: 12px 0 24px; }
+    .adm-nav-group-label { font-size: 0.66rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.09em; padding: 14px 20px 5px; }
+    .adm-nav-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 20px; background: none; border: none; text-align: left; font-size: 0.875rem; font-weight: 500; color: var(--text-muted); cursor: pointer; position: relative; transition: background 0.1s, color 0.1s; font-family: var(--font-body); }
+    .adm-nav-item:hover { background: var(--surface-alt); color: var(--text-strong); }
+    .adm-nav-item.active { background: #f0eaf4; color: var(--arka-accent); font-weight: 700; }
+    .adm-nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--arka-accent); border-radius: 0 2px 2px 0; }
+    .adm-nav-item i { width: 18px; text-align: center; flex-shrink: 0; font-size: 0.9rem; }
+    .adm-nav-item.dimmed { opacity: 0.4; cursor: default; pointer-events: none; }
+    .adm-nav-pending-bubble { margin-left: auto; background: var(--adm-danger); color: #fff; font-size: 0.66rem; font-weight: 800; border-radius: 99px; padding: 2px 7px; min-width: 20px; text-align: center; line-height: 1.4; }
+
+    /* ── Hamburger (mobile only — hidden on desktop) ───────────────── */
+    .adm-hamburger { display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; background: none; cursor: pointer; color: var(--text-strong); font-size: 1.1rem; border-radius: 6px; transition: background 0.12s; flex-shrink: 0; }
+    .adm-hamburger:hover { background: var(--surface-alt); }
+
+    /* ── Drawer close button (inside sidebar, mobile only) ─────────── */
+    .adm-drawer-close { display: none; align-items: center; gap: 8px; width: 100%; padding: 10px 16px 10px 20px; border: none; background: none; cursor: pointer; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border-soft); margin-bottom: 4px; font-family: var(--font-body); }
+    .adm-drawer-close:hover { background: var(--surface-alt); color: var(--text-strong); }
+    .adm-drawer-close i { font-size: 1rem; }
+
+    /* ── Drawer backdrop ───────────────────────────────────────────── */
+    .adm-drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 399; }
+    .adm-drawer-backdrop.open { display: block; }
+
+    /* ── Content ───────────────────────────────────────────────────── */
+    .adm-content { flex: 1; min-width: 0; padding: 24px 28px 60px; max-width: 1100px; }
+    .adm-section { display: none; }
+    .adm-section.active { display: block; }
+    .adm-section-header { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .adm-section-header h2 { font-size: 1.15rem; font-weight: 800; color: var(--text-strong); flex: 1; }
+    .adm-section-subtitle { font-size: 0.78rem; color: var(--text-faint); margin-top: -14px; margin-bottom: 18px; }
+
+    /* ── Cards ─────────────────────────────────────────────────────── */
+    .adm-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); padding: 20px; margin-bottom: 16px; }
+    .adm-card-title { font-size: 0.75rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+
+    /* ── Stat grid ─────────────────────────────────────────────────── */
+    .adm-stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .adm-stat-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); padding: 16px; display: flex; flex-direction: column; gap: 3px; }
+    .adm-stat-icon { font-size: 1.25rem; margin-bottom: 6px; color: var(--neutral-mid); }
+    .adm-stat-value { font-size: 1.75rem; font-weight: 800; color: var(--text-strong); line-height: 1.1; }
+    .adm-stat-label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
+    .adm-stat-card.c-accent .adm-stat-value { color: var(--arka-accent); }
+    .adm-stat-card.c-ok     .adm-stat-value { color: var(--adm-ok); }
+    .adm-stat-card.c-warn   .adm-stat-value { color: var(--adm-warn); }
+    .adm-stat-card.c-danger .adm-stat-value { color: var(--adm-danger); }
+
+    /* ── Buttons ───────────────────────────────────────────────────── */
+    .adm-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: none; border-radius: 7px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: opacity 0.12s; font-family: var(--font-body); white-space: nowrap; }
+    .adm-btn:hover { opacity: 0.86; }
+    .adm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .adm-btn-accent { background: var(--arka-accent); color: #fff; }
+    .adm-btn-ok     { background: var(--adm-ok);     color: #fff; }
+    .adm-btn-danger { background: var(--adm-danger);  color: #fff; }
+    .adm-btn-light  { background: var(--surface-alt); border: 1px solid var(--border-soft); color: var(--text-strong); }
+    .adm-btn-sm     { padding: 5px 10px; font-size: 0.75rem; }
+
+    /* ── Filter tabs ───────────────────────────────────────────────── */
+    .adm-filter-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+    .adm-filter-tab { padding: 5px 13px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1.5px solid var(--border-soft); background: #fff; color: var(--text-muted); cursor: pointer; transition: all 0.1s; font-family: var(--font-body); }
+    .adm-filter-tab:hover { border-color: var(--arka-accent); color: var(--arka-accent); }
+    .adm-filter-tab.active { background: var(--arka-accent); color: #fff; border-color: var(--arka-accent); }
+
+    /* ── Sub-tabs ──────────────────────────────────────────────────── */
+    .adm-subtabs { display: flex; border-bottom: 2px solid var(--border-soft); margin-bottom: 18px; }
+    .adm-subtab { padding: 9px 16px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.1s, border-color 0.1s; font-family: var(--font-body); }
+    .adm-subtab:hover { color: var(--text-strong); }
+    .adm-subtab.active { color: var(--arka-accent); border-bottom-color: var(--arka-accent); font-weight: 700; }
+
+    /* ── Form inputs ───────────────────────────────────────────────── */
+    .adm-input, .adm-select, .adm-textarea { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-soft); border-radius: 8px; font-size: 0.85rem; color: var(--text-strong); background: #fff; outline: none; transition: border-color 0.12s; font-family: var(--font-body); }
+    .adm-input:focus, .adm-select:focus, .adm-textarea:focus { border-color: var(--arka-accent); }
+    .adm-input-hint { font-size: 0.72rem; color: var(--text-faint); margin-top: 4px; min-height: 1em; }
+    .adm-form-group { margin-bottom: 16px; }
+    .adm-form-label { display: block; font-size: 0.77rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; }
+
+    /* ── Data tables ───────────────────────────────────────────────── */
+    .adm-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table.adm-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .adm-table th { text-align: left; padding: 8px 12px; font-size: 0.7rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.055em; border-bottom: 2px solid var(--border-soft); background: var(--surface-alt); white-space: nowrap; }
+    .adm-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+    .adm-table tbody tr:last-child td { border-bottom: none; }
+    .adm-table tbody tr:hover { background: var(--surface-alt); }
+    .adm-td-mono { font-family: 'Cascadia Code','Fira Code','Consolas',monospace; font-size: 0.75rem; color: var(--text-faint); }
+
+    /* ── Status pills ──────────────────────────────────────────────── */
+    .adm-pill { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
+    .adm-pill-approved { background: #e6f4ee; color: #155c3e; }
+    .adm-pill-pending  { background: #fef3e2; color: #7c4a0e; }
+    .adm-pill-rejected { background: #fde8e8; color: #7c1e1e; }
+    .adm-pill-active   { background: #e6f4ee; color: #155c3e; }
+    .adm-pill-revoked  { background: #f0f0f4; color: var(--text-faint); }
+    .adm-pill-system   { background: #e8f0ff; color: #1a3da6; }
+    .adm-pill-latest   { background: #f0eaf4; color: var(--arka-accent); }
+
+    /* ── Rank + live-dot ───────────────────────────────────────────── */
+    .adm-rank { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 0.7rem; font-weight: 800; background: var(--surface-alt); color: var(--text-faint); flex-shrink: 0; }
+    .adm-rank.gold   { background: #fef3e2; color: #854f0b; }
+    .adm-rank.silver { background: #f0f0f4; color: #4a4a5a; }
+    .adm-rank.bronze { background: #fdf0e8; color: #7c4420; }
+    .adm-live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--adm-ok); margin-right: 4px; vertical-align: middle; }
+
+    /* ── Performance bar ───────────────────────────────────────────── */
+    .adm-perf-bar-wrap { display: flex; align-items: center; gap: 8px; min-width: 130px; }
+    .adm-perf-bar-track { flex: 1; height: 5px; background: var(--border-soft); border-radius: 99px; overflow: hidden; }
+    .adm-perf-bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
+    .adm-perf-fill-ok   { background: var(--adm-ok); }
+    .adm-perf-fill-warn { background: var(--adm-warn); }
+    .adm-perf-fill-slow { background: var(--adm-danger); }
+    .adm-perf-label { font-size: 0.78rem; font-weight: 700; white-space: nowrap; min-width: 52px; text-align: right; }
+
+    /* ── Modal ─────────────────────────────────────────────────────── */
+    .adm-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 500; align-items: center; justify-content: center; padding: 16px; }
+    .adm-modal-overlay.open { display: flex; }
+    .adm-modal { background: #fff; border-radius: 14px; padding: 24px; width: 100%; max-width: 440px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+    .adm-modal-title { font-size: 1rem; font-weight: 800; margin-bottom: 8px; }
+    .adm-modal-body  { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 22px; line-height: 1.6; }
+    .adm-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ── Toast ─────────────────────────────────────────────────────── */
+    #admToast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(120%); background: var(--text-strong); color: #fff; padding: 12px 22px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; z-index: 999; transition: transform 0.22s ease; max-width: 380px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.22); pointer-events: none; }
+    #admToast.adm-toast-ok      { background: var(--adm-ok); }
+    #admToast.adm-toast-err     { background: var(--adm-danger); }
+    #admToast.adm-toast-visible { transform: translateX(-50%) translateY(0); }
+
+    /* ── Empty state ───────────────────────────────────────────────── */
+    .adm-empty { padding: 36px 24px; text-align: center; color: var(--text-faint); }
+    .adm-empty i { font-size: 1.8rem; margin-bottom: 10px; display: block; }
+    .adm-empty p { font-size: 0.84rem; }
+
+    /* ══════════════════════════════════════════════════════════════════
+       REPORTS ENGINE CSS — slide canvas + controls (from ArkaReports v4)
+       ══════════════════════════════════════════════════════════════════ */
+    #rptSlideScaleWrap { width: 100%; position: relative; overflow: hidden; border-radius: 8px; margin-bottom: 10px; }
+    #rptSlideCanvas { width: 1200px; height: 675px; position: absolute; top: 0; left: 0; transform-origin: top left; overflow: hidden; }
+    .rpt-canvas-spacer { width: 100%; padding-top: 56.25%; }
+    .rpt-slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+    .rpt-mode-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+    .rpt-mode-toggle button { flex: 1; padding: 10px; border-radius: 20px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: 1.5px solid transparent; transition: background 0.15s, color 0.15s; font-family: var(--font-body); }
+    .rpt-period-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    #rptThumbnailStrip { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; -webkit-overflow-scrolling: touch; }
+
+    /* ── Mobile — slide-out drawer ─────────────────────────────────── */
+    @media (max-width: 768px) {
+      /* Show hamburger in topbar */
+      .adm-hamburger { display: flex; }
+      /* Show close button inside drawer */
+      .adm-drawer-close { display: flex; }
+
+      /* Sidebar becomes a fixed slide-in drawer from the left */
+      .adm-sidebar {
+        position: fixed;
+        top: 0; left: 0; bottom: 0; right: auto;
+        width: 260px;
+        height: 100%;
+        min-height: unset;
+        border-right: 1px solid var(--border-soft);
+        border-top: none;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0;
+        z-index: 400;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.14);
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+      }
+      .adm-sidebar.drawer-open { transform: translateX(0); }
+
+      /* Nav items restore full desktop appearance inside the drawer */
+      .adm-nav-group-label { display: block; }
+      .adm-nav-item { flex-direction: row; align-items: center; gap: 10px; padding: 9px 20px; min-width: unset; font-size: 0.875rem; white-space: normal; }
+      .adm-nav-item.active::before { display: block; }
+      .adm-nav-item.active { background: #f0eaf4; color: var(--arka-accent); }
+      /* Pending bubble sits inline (no absolute positioning needed in row layout) */
+      .adm-nav-pending-bubble { position: static; margin-left: auto; font-size: 0.66rem; padding: 2px 7px; }
+
+      /* Shell + content — no bottom tab strip clearance needed */
+      #admShell { padding-bottom: 0; }
+      .adm-content { padding: 16px 14px 32px; }
+      .adm-stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .adm-topbar-admin-label { display: none; }
+    }
