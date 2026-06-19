@@ -12416,176 +12416,17 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
 
       // ── Sort state ────────────────────────────────────────────────────────────
-      // ── Reading Speed Engine V1 ──────────────────────────────────────────────
-      // See Arka_ReadingSpeedEngine_V1.md for full design rationale.
-      // Cached per session — invalidated on fresh library load via loadLibraryCatalog().
-      var _rseProfile_ = null;
-
-      /**
-       * Builds the RSE V1 profile for the current user from in-memory DBs.
-       * Computes overallAvgPace, recentPace, moodMultiplier, and per-genre pace.
-       * Uses personal IQR-based outlier detection with an adaptive ceiling driven
-       * by moodMultiplier, and time-weighting (full weight ≤ 12 months, 0.5 floor at 36+).
-       * @returns {Object|null} RSE profile, or null if insufficient log data.
-       */
-      function buildRseProfile_() {
-        var NOW_MS     = Date.now();
-        var MS_PER_DAY = 86400000;
-        var CUT30_MS   = NOW_MS - 30 * MS_PER_DAY;
-        var HIST_FLAG  = 'HISTORICAL_IMPORT';
-
-        // ── 1. Index personal page logs by bookId ───────────────────────────
-        // Include HISTORICAL_IMPORT pages in totals but exclude their timestamps
-        // from span calculations (artificial midnight dates — same guard as ArkaPersonaPass).
-        var bookLogIndex = new Map(); // bookId → { total, earliestMs, latestMs, hasRealTs }
-        globalMyPageLogDB.forEach(function(l) {
-          var pages = Number(l.pagesDelta) || 0;
-          if (pages <= 0) return;
-          var bookId = l.bookId || '';
-          var ts = parseGoogleDate(l.timestamp);
-          if (!ts || isNaN(ts.getTime())) return;
-          var ms = ts.getTime();
-          if (!bookLogIndex.has(bookId)) {
-            bookLogIndex.set(bookId, { total: 0, earliestMs: ms, latestMs: ms, hasRealTs: false });
-          }
-          var rec = bookLogIndex.get(bookId);
-          rec.total += pages;
-          if (bookId !== HIST_FLAG) {
-            rec.hasRealTs = true;
-            if (ms < rec.earliestMs) rec.earliestMs = ms;
-            if (ms > rec.latestMs)   rec.latestMs   = ms;
-          }
-        });
-
-        // ── 2. Recent pace — last 30 days, all books including unlinked ─────
-        var recentPages = 0;
-        globalMyPageLogDB.forEach(function(l) {
-          var pages = Number(l.pagesDelta) || 0;
-          if (pages <= 0) return;
-          if ((l.bookId || '') === HIST_FLAG) return;
-          var ts = parseGoogleDate(l.timestamp);
-          if (!ts || isNaN(ts.getTime())) return;
-          if (ts.getTime() >= CUT30_MS) recentPages += pages;
-        });
-        var recentPace = recentPages / 30; // pages/day
-
-        // ── 3. Per-book paces from finished books with real timestamps ───────
-        var finishedBookIds = new Set();
-        globalShelvesDB.forEach(function(s) {
-          if (s.memberId === currentUser && s.status === 'Finished') {
-            finishedBookIds.add(s.bookId);
-          }
-        });
-
-        var bookPaceSamples = []; // { bookId, genre, pace, finishedMs }
-        finishedBookIds.forEach(function(bookId) {
-          if (bookId === HIST_FLAG) return;
-          var rec = bookLogIndex.get(bookId);
-          if (!rec || !rec.hasRealTs || rec.total <= 0) return;
-          var spanDays = Math.max(1, (rec.latestMs - rec.earliestMs) / MS_PER_DAY);
-          var pace = rec.total / spanDays;
-          var book = booksMap.get(bookId);
-          var genre = (book && book.genre) ? book.genre.split(',')[0].trim() : '';
-          bookPaceSamples.push({ bookId: bookId, genre: genre, pace: pace, finishedMs: rec.latestMs });
-        });
-
-        if (bookPaceSamples.length === 0) return null;
-
-        // ── 4. Personal IQR outlier detection with adaptive ceiling ──────────
-        function _percentile_(sortedArr, p) {
-          if (sortedArr.length === 0) return 0;
-          var idx = (p / 100) * (sortedArr.length - 1);
-          var lo = Math.floor(idx), hi = Math.ceil(idx);
-          return sortedArr[lo] + (sortedArr[hi] - sortedArr[lo]) * (idx - lo);
-        }
-        var sortedPaces = bookPaceSamples.map(function(s) { return s.pace; }).sort(function(a, b) { return a - b; });
-        var q1  = _percentile_(sortedPaces, 25);
-        var q3  = _percentile_(sortedPaces, 75);
-        var iqr = q3 - q1;
-
-        // Preliminary avg to bootstrap moodMultiplier for the adaptive ceiling.
-        // The ceiling loosens when the user is in a fast streak and tightens in slow phases.
-        var prelimAvg  = sortedPaces.reduce(function(s, p) { return s + p; }, 0) / sortedPaces.length;
-        var prelimMood = (prelimAvg > 0 && recentPace > 0) ? recentPace / prelimAvg : 1.0;
-        var adaptiveK  = Math.min(3.0, Math.max(1.2, 2.0 * prelimMood));
-        var ceiling    = _percentile_(sortedPaces, 50) + adaptiveK * iqr;
-
-        var cleanSamples = bookPaceSamples.filter(function(s) { return s.pace <= ceiling; });
-        if (cleanSamples.length === 0) cleanSamples = bookPaceSamples; // safety fallback
-
-        // ── 5. Time-weighted overall average pace ────────────────────────────
-        // Books ≤ 12 months old: weight 1.0. Older books decay linearly to 0.5 at 36+ months.
-        var wSum = 0, wPaceSum = 0;
-        cleanSamples.forEach(function(s) {
-          var monthsAgo = (NOW_MS - s.finishedMs) / (MS_PER_DAY * 30.44);
-          var w = monthsAgo <= 12 ? 1.0 : Math.max(0.5, 1.0 - (monthsAgo - 12) / 48);
-          wPaceSum += s.pace * w;
-          wSum     += w;
-        });
-        var overallAvgPace = wSum > 0 ? wPaceSum / wSum : 0;
-
-        // ── 6. Final moodMultiplier — null if no recent activity ─────────────
-        var moodMultiplier = null;
-        if (overallAvgPace > 0 && recentPace > 0) {
-          moodMultiplier = Math.min(2.0, Math.max(0.4, recentPace / overallAvgPace));
-        }
-
-        // ── 7. Per-genre pace — minimum 3 qualifying books per genre ─────────
-        var genreMap = new Map(); // genre → [{ pace, weight }]
-        cleanSamples.forEach(function(s) {
-          if (!s.genre) return;
-          var monthsAgo = (NOW_MS - s.finishedMs) / (MS_PER_DAY * 30.44);
-          var w = monthsAgo <= 12 ? 1.0 : Math.max(0.5, 1.0 - (monthsAgo - 12) / 48);
-          if (!genreMap.has(s.genre)) genreMap.set(s.genre, []);
-          genreMap.get(s.genre).push({ pace: s.pace, weight: w });
-        });
-        var genrePace = {};
-        genreMap.forEach(function(entries, genre) {
-          if (entries.length < 3) return; // below threshold — too noisy
-          var gs = 0, gw = 0;
-          entries.forEach(function(e) { gs += e.pace * e.weight; gw += e.weight; });
-          genrePace[genre] = { pace: gw > 0 ? gs / gw : 0, booksUsed: entries.length };
-        });
-
-        return {
-          v             : 1,
-          overallAvgPace: Math.round(overallAvgPace * 10) / 10,
-          recentPace    : Math.round(recentPace * 10) / 10,
-          moodMultiplier: moodMultiplier !== null ? Math.round(moodMultiplier * 100) / 100 : null,
-          genrePace     : genrePace
-        };
-      }
-
-      /** Returns the cached RSE profile, building it lazily on first call. */
-      function getRseProfile_() {
-        if (!_rseProfile_) _rseProfile_ = buildRseProfile_();
-        return _rseProfile_;
-      }
-
-      /**
-       * Estimates days to finish a book using the RSE V1 5-step fallback chain.
-       * @param {number} pages - Book page count.
-       * @param {string} canonicalGenre - Primary genre (first item in comma-separated genre string).
-       * @returns {number|null} Estimated days, or null if no pace data at all.
-       */
-      function rseEstimateDays_(pages, canonicalGenre) {
+      // ── Reading Speed Engine — frontend stub ─────────────────────────────────
+      // Full RSE V1 runs nightly in MasterEngine.gs and writes to member.stats.readingSpeed (Col O).
+      // rseEstimateDays_ reads that pre-computed pace first; when absent it falls back to raw
+      // page count so sort order degrades gracefully to a Pages sort (step 5 of fallback chain).
+      function rseEstimateDays_(pages) {
         if (!pages || pages <= 0) return null;
-        var rse  = getRseProfile_();
-        if (!rse) return null;
-        var mood = rse.moodMultiplier;
-        var gp   = canonicalGenre && rse.genrePace[canonicalGenre];
-        // Step 1: genre pace × mood
-        if (gp && gp.pace > 0 && mood) return pages / (gp.pace * mood);
-        // Step 2: genre pace alone
-        if (gp && gp.pace > 0)         return pages / gp.pace;
-        // Step 3: overall avg × mood
-        if (rse.overallAvgPace > 0 && mood) return pages / (rse.overallAvgPace * mood);
-        // Step 4: overall avg
-        if (rse.overallAvgPace > 0)    return pages / rse.overallAvgPace;
-        // Step 5: no data
-        return null;
+        var rse  = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed;
+        var pace = rse && rse.overallAvgPace > 0 ? rse.overallAvgPace : 0;
+        return pace > 0 ? pages / pace : pages; // fallback: raw page count as proxy
       }
-      // ── End Reading Speed Engine V1 ──────────────────────────────────────────
+      // ── End Reading Speed Engine stub ────────────────────────────────────────
 
       /** Current sort key. Values: 'recent' | 'az' | 'rated' | 'mostread' | 'pages' | 'year' | 'readtime' | 'activity' */
       var currentLibrarySort        = 'recent';
@@ -12749,10 +12590,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               if (!pa && !pb) return 0;
               if (!pa) return 1;  // no pages → end
               if (!pb) return -1;
-              var ga = a.genre ? a.genre.split(',')[0].trim() : '';
-              var gb = b.genre ? b.genre.split(',')[0].trim() : '';
-              var da = rseEstimateDays_(pa, ga);
-              var db = rseEstimateDays_(pb, gb);
+              var da = rseEstimateDays_(pa);
+              var db = rseEstimateDays_(pb);
               if (da === null && db === null) return pa - pb; // fallback: page count
               if (da === null) return 1;
               if (db === null) return -1;
@@ -13250,7 +13089,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         currentLibrarySortAsc     = false; // 'recent' defaults descending (newest first)
         currentLibraryGenreFilter = null;
         currentLibraryShelfFilter = 'all';
-        _rseProfile_              = null;  // invalidate RSE cache on fresh open
 
         renderShelfFilterChips();
         renderSortChips();
