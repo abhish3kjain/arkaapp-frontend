@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=1.4">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=1.5">
 </head>
 <body>
 
@@ -89,6 +89,10 @@
       <button class="adm-nav-item" data-section="events" onclick="admSwitchSection('events')">
         <i class="fa-solid fa-calendar-days"></i><span>Events</span>
       </button>
+      <div class="adm-nav-group-label">System</div>
+      <button class="adm-nav-item" data-section="emailqueue" onclick="admSwitchSection('emailqueue')">
+        <i class="fa-solid fa-envelope-circle-check"></i><span>Email Queue</span>
+      </button>
     </nav>
 
     <!-- Content -->
@@ -120,6 +124,7 @@
       <section id="admSectionApprovals" class="adm-section">
         <div class="adm-section-header">
           <h2><i class="fa-solid fa-user-check" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Member Approvals</h2>
+          <button class="adm-btn adm-btn-light adm-btn-sm" id="admApprovalCardViewBtn" onclick="admToggleApprovalsCardView()" title="Toggle card view"><i class="fa-solid fa-table-cells-large"></i> Card View</button>
         </div>
         <p class="adm-section-subtitle">New members start as Pending. Approved = full app access. Rejected records are kept for the audit trail.</p>
         <div class="adm-filter-row">
@@ -130,10 +135,18 @@
           <div style="flex:1"></div>
           <input type="text" class="adm-input" id="admApprovalSearch" style="max-width:240px" placeholder="Search name or email…" oninput="admRenderApprovals()">
         </div>
+        <!-- Bulk action bar — shown when Pending rows are selected -->
+        <div id="admBulkApproveBar" style="display:none;align-items:center;gap:12px;background:var(--adm-page-bg);border:1.5px solid var(--arka-accent);border-radius:8px;padding:10px 14px;margin-bottom:12px">
+          <span id="admBulkCountLabel" style="font-size:0.85rem;font-weight:600;color:var(--text-strong)">0 selected</span>
+          <button class="adm-btn adm-btn-accent adm-btn-sm" id="admBulkApproveBtn" onclick="admBulkApproveSelected()">
+            <i class="fa-solid fa-check-double"></i> Approve Selected
+          </button>
+          <button class="adm-btn adm-btn-light adm-btn-sm" onclick="admClearBulkSelection()">Clear</button>
+        </div>
         <div class="adm-card" style="padding:0;overflow:hidden">
-          <div class="adm-table-wrap">
+          <div class="adm-table-wrap" id="admApprovalTableWrap">
             <table class="adm-table">
-              <thead><tr><th>Member ID</th><th>Display Name</th><th>Full Name</th><th>Email</th><th>Join Date</th><th>Status</th><th>Actions</th></tr></thead>
+              <thead><tr id="admApprovalThead"><th>Member ID</th><th>Display Name</th><th>Full Name</th><th>Email</th><th>Join Date</th><th>Status</th><th>Actions</th></tr></thead>
               <tbody id="admApprovalTbody"><tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr></tbody>
             </table>
           </div>
@@ -270,6 +283,7 @@
       <section id="admSectionMembers" class="adm-section">
         <div class="adm-section-header">
           <h2><i class="fa-solid fa-chart-bar" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Member Stats</h2>
+          <button class="adm-btn adm-btn-light adm-btn-sm" id="admMembersCardViewBtn" onclick="admToggleMembersCardView()" title="Toggle card view"><i class="fa-solid fa-table-cells-large"></i> Card View</button>
         </div>
         <p class="adm-section-subtitle">Approved members only. <span class="adm-live-dot"></span> = active in the last 30 days.</p>
         <div class="adm-filter-row" style="margin-bottom:16px">
@@ -284,7 +298,7 @@
           <button class="adm-filter-tab" data-members-activity="inactive" onclick="admSetMembersActivity('inactive')">Inactive</button>
         </div>
         <div class="adm-card" style="padding:0;overflow:hidden">
-          <div class="adm-table-wrap">
+          <div class="adm-table-wrap" id="admMembersTableWrap">
             <table class="adm-table">
               <thead><tr><th style="width:36px">#</th><th>Member</th><th>Country</th><th>Club Points</th><th>Pages</th><th>Books</th><th>Joined</th><th>Last Active</th><th>Status</th></tr></thead>
               <tbody id="admMembersTbody"><tr><td colspan="9"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr></tbody>
@@ -524,6 +538,30 @@
         </div>
       </section>
 
+      <!-- ── EMAIL QUEUE MONITOR ──────────────────────────────── -->
+      <section id="admSectionEmailqueue" class="adm-section">
+        <div class="adm-section-header">
+          <h2><i class="fa-solid fa-envelope-circle-check" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Email Queue</h2>
+          <button class="adm-btn adm-btn-light adm-btn-sm" onclick="admLoadEmailQueue()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+        </div>
+        <p class="adm-section-subtitle">Read-only view of the ArkaEmailPass queue. Shows the 300 most recent entries. Suppress a PENDING entry to prevent it from being sent.</p>
+        <div class="adm-filter-row">
+          <button class="adm-filter-tab active" data-eq-filter="All"         onclick="admSwitchEqFilter('All')">All</button>
+          <button class="adm-filter-tab" data-eq-filter="PENDING"    onclick="admSwitchEqFilter('PENDING')">Pending</button>
+          <button class="adm-filter-tab" data-eq-filter="SENT"       onclick="admSwitchEqFilter('SENT')">Sent</button>
+          <button class="adm-filter-tab" data-eq-filter="FAILED"     onclick="admSwitchEqFilter('FAILED')">Failed</button>
+          <button class="adm-filter-tab" data-eq-filter="SUPPRESSED" onclick="admSwitchEqFilter('SUPPRESSED')">Suppressed</button>
+        </div>
+        <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead><tr><th>Member</th><th class="adm-col-meta">Email Type</th><th class="adm-col-meta">Scheduled</th><th>Status</th><th class="adm-col-meta">Sent At</th><th class="adm-col-meta">Clicked</th><th>Actions</th></tr></thead>
+              <tbody id="admEqTbody"><tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- ── CLUB REPORTS (merged from ArkaReports v4) ────────── -->
       <section id="admSectionReports" class="adm-section">
         <div class="adm-section-header">
@@ -676,6 +714,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=1.4"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=1.5"></script>
 </body>
 </html>

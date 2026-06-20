@@ -54,6 +54,16 @@
   var admEvtEditing           = null; // eventId string, or null for create mode
   var admEvtHostMemberId      = '';
   var admPendingEvtStatusChange = null; // { eventId, newStatus, title }
+  /** Email queue — lazy-loaded on first visit to the section. */
+  var admEmailQueueDB         = [];
+  var admEmailQueueLoaded     = false;
+  var admEmailQueueFilter     = 'All';
+  /** Approvals card view toggle. */
+  var admApprovalsCardView    = false;
+  /** Member Stats card view toggle. */
+  var admMembersCardView      = false;
+  /** Bulk approval — set of selected member IDs when in Pending filter. */
+  var admBulkSelectedIds      = [];
 
   /* ══════════════════════════════════════════════════════════════════
      ADMIN INIT
@@ -135,6 +145,10 @@
     if (name === 'events' && !admEventsLoaded) {
       admLoadEvents();
     }
+    // Lazy-load email queue on first visit
+    if (name === 'emailqueue' && !admEmailQueueLoaded) {
+      admLoadEmailQueue();
+    }
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -211,7 +225,7 @@
   function admRenderApprovals() {
     if (!admPayload) return;
     var search = ((document.getElementById('admApprovalSearch')||{}).value||'').toLowerCase().trim();
-    var filtered = (admPayload.memberList||[]).filter(function(m){
+    var filtered = (admPayload.memberList||[]).filter(function(m) {
       var ok = admApprovalFilter==='All' || m.approvalStatus===admApprovalFilter;
       if (!ok) return false;
       if (!search) return true;
@@ -220,14 +234,118 @@
     var pc = (admPayload.memberList||[]).filter(function(m){return m.approvalStatus===APPROVAL_STATUS.PENDING;}).length;
     var pcEl = document.getElementById('admPendingCountLabel'); if (pcEl) pcEl.textContent = pc>0?'('+pc+')':'';
     var tbody = document.getElementById('admApprovalTbody'); if (!tbody) return;
-    if (!filtered.length){ tbody.innerHTML='<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-magnifying-glass"></i><p>No members match the current filter.</p></div></td></tr>'; return; }
-    tbody.innerHTML = filtered.map(function(m){
+
+    var showCb = admApprovalFilter === APPROVAL_STATUS.PENDING;
+    // Sync thead checkbox column
+    var thead = document.getElementById('admApprovalThead');
+    if (thead) {
+      thead.innerHTML = (showCb ? '<th style="width:36px"><input type="checkbox" id="admSelectAllPending" onchange="admToggleSelectAllPending(this.checked)" title="Select all pending"></th>' : '')
+        + '<th>Member ID</th><th>Display Name</th><th>Full Name</th><th>Email</th><th>Join Date</th><th>Status</th><th>Actions</th>';
+    }
+    if (!showCb) { admBulkSelectedIds = []; _admUpdateBulkBar(); }
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="'+(showCb?8:7)+'"><div class="adm-empty"><i class="fa-solid fa-magnifying-glass"></i><p>No members match the current filter.</p></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = filtered.map(function(m) {
       var pill=_approvalPill(m.approvalStatus), actions='';
-      if (m.approvalStatus===APPROVAL_STATUS.PENDING) actions='<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+m.memberId+'\',\'Approved\')"><i class="fa-solid fa-check"></i> Approve</button> <button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenApprovalConfirmModal(\''+m.memberId+'\',\'Rejected\')"><i class="fa-solid fa-xmark"></i> Reject</button>';
-      else if (m.approvalStatus===APPROVAL_STATUS.APPROVED) actions='<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenApprovalConfirmModal(\''+m.memberId+'\',\'Rejected\')">Revoke Access</button>';
-      else if (m.approvalStatus===APPROVAL_STATUS.REJECTED) actions='<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+m.memberId+'\',\'Approved\')">Re-Approve</button>';
-      return '<tr><td class="adm-td-mono">'+_esc(m.memberId)+'</td><td><strong>'+_esc(m.displayName)+'</strong></td><td>'+_esc(m.fullName)+'</td><td style="color:var(--text-faint);font-size:0.78rem">'+_esc(m.email)+'</td><td style="white-space:nowrap">'+_esc(m.joinDate)+'</td><td>'+pill+'</td><td style="white-space:nowrap">'+actions+'</td></tr>';
+      if (m.approvalStatus===APPROVAL_STATUS.PENDING) {
+        actions = '<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+_esc(m.memberId)+'\',\'Approved\')"><i class="fa-solid fa-check"></i> Approve</button> '
+          + '<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenApprovalConfirmModal(\''+_esc(m.memberId)+'\',\'Rejected\')"><i class="fa-solid fa-xmark"></i> Reject</button>';
+      } else if (m.approvalStatus===APPROVAL_STATUS.APPROVED) {
+        actions = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenApprovalConfirmModal(\''+_esc(m.memberId)+'\',\'Rejected\')">Revoke Access</button>';
+      } else if (m.approvalStatus===APPROVAL_STATUS.REJECTED) {
+        actions = '<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+_esc(m.memberId)+'\',\'Approved\')">Re-Approve</button>';
+      }
+      var cbCell = showCb
+        ? '<td data-label=""><input type="checkbox" onchange="admToggleApprovalRow(\''+_esc(m.memberId)+'\',this.checked)" '+(admBulkSelectedIds.indexOf(m.memberId)>-1?'checked':'')+' class="adm-bulk-cb"></td>'
+        : '';
+      return '<tr>'
+        + cbCell
+        + '<td data-label="ID" class="adm-td-mono">'+_esc(m.memberId)+'</td>'
+        + '<td data-label="Name"><strong>'+_esc(m.displayName)+'</strong></td>'
+        + '<td data-label="Full Name">'+_esc(m.fullName)+'</td>'
+        + '<td data-label="Email" style="font-size:0.78rem;color:var(--text-faint)">'+_esc(m.email)+'</td>'
+        + '<td data-label="Joined" style="white-space:nowrap">'+_esc(m.joinDate)+'</td>'
+        + '<td data-label="Status">'+pill+'</td>'
+        + '<td data-label="" style="white-space:nowrap">'+actions+'</td>'
+        + '</tr>';
     }).join('');
+  }
+
+  /* ── Bulk approval helpers ─────────────────────────────────────── */
+
+  function _admUpdateBulkBar() {
+    var bar   = document.getElementById('admBulkApproveBar');
+    var label = document.getElementById('admBulkCountLabel');
+    var count = admBulkSelectedIds.length;
+    if (bar)   bar.style.display = count > 0 ? 'flex' : 'none';
+    if (label) label.textContent = count + ' selected';
+  }
+
+  function admToggleApprovalRow(memberId, checked) {
+    var idx = admBulkSelectedIds.indexOf(memberId);
+    if (checked && idx === -1) admBulkSelectedIds.push(memberId);
+    if (!checked && idx > -1) admBulkSelectedIds.splice(idx, 1);
+    _admUpdateBulkBar();
+  }
+
+  function admToggleSelectAllPending(checked) {
+    if (checked) {
+      var search = ((document.getElementById('admApprovalSearch')||{}).value||'').toLowerCase().trim();
+      admBulkSelectedIds = (admPayload.memberList||[]).filter(function(m) {
+        if (m.approvalStatus !== APPROVAL_STATUS.PENDING) return false;
+        if (!search) return true;
+        return (m.displayName||'').toLowerCase().includes(search)
+          || (m.fullName||'').toLowerCase().includes(search)
+          || (m.email||'').toLowerCase().includes(search)
+          || (m.memberId||'').toLowerCase().includes(search);
+      }).map(function(m) { return m.memberId; });
+    } else {
+      admBulkSelectedIds = [];
+    }
+    document.querySelectorAll('.adm-bulk-cb').forEach(function(cb) { cb.checked = checked; });
+    _admUpdateBulkBar();
+  }
+
+  function admBulkApproveSelected() {
+    if (!admBulkSelectedIds.length) return;
+    var btn = document.getElementById('admBulkApproveBtn');
+    if (btn) btn.disabled = true;
+    var ids = admBulkSelectedIds.slice();
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (btn) btn.disabled = false;
+        if (result.status !== 'success') {
+          admShowToast('Bulk approve error: ' + (result.message || 'Unknown error'), 'err');
+          return;
+        }
+        var approved = result.approvedIds || [];
+        approved.forEach(function(id) {
+          var m = admMemberMap[id]; if (m) m.approvalStatus = APPROVAL_STATUS.APPROVED;
+        });
+        admPayload.pendingCount = (admPayload.memberList||[]).filter(function(m) {
+          return m.approvalStatus === APPROVAL_STATUS.PENDING;
+        }).length;
+        _admUpdatePendingBubble(admPayload.pendingCount);
+        admBulkSelectedIds = [];
+        _admUpdateBulkBar();
+        admShowToast(result.count + ' member' + (result.count !== 1 ? 's' : '') + ' approved', 'ok');
+        admRenderApprovals();
+        admRenderOverview();
+      })
+      .withFailureHandler(function(err) {
+        if (btn) btn.disabled = false;
+        admShowToast('Server error: ' + ((err && err.message) || 'Please retry.'), 'err');
+      })
+      .bulkApproveMembers(ids);
+  }
+
+  function admClearBulkSelection() {
+    admBulkSelectedIds = [];
+    _admUpdateBulkBar();
+    admRenderApprovals();
   }
 
   function admSetApproval(memberId, newStatus) {
@@ -657,14 +775,42 @@
     if (!members.length){ tbody.innerHTML='<tr><td colspan="9"><div class="adm-empty"><i class="fa-solid fa-users"></i><p>No members match the current filter.</p></div></td></tr>'; return; }
     tbody.innerHTML=members.map(function(m,i){
       var rank=i+1, rcls=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'', dot=m.lastAccessedTs>(now-ACTIVE_WINDOW_MS)?'<span class="adm-live-dot"></span>':'';
-      return '<tr><td><span class="adm-rank '+rcls+'">'+rank+'</span></td>'+
-        '<td><div style="font-weight:700">'+dot+_esc(m.displayName)+'</div><div class="adm-td-mono" style="font-size:0.7rem">'+_esc(m.memberId)+'</div></td>'+
-        '<td style="font-size:0.78rem;color:var(--text-muted)">'+_esc(m.country||'—')+'</td>'+
-        '<td><strong>'+_numFmt(m.totalCp)+'</strong></td><td>'+_numFmt(m.totalPages)+'</td><td>'+m.totalBooks+'</td>'+
-        '<td style="font-size:0.78rem;white-space:nowrap">'+_esc(m.joinDate)+'</td>'+
-        '<td style="font-size:0.78rem;white-space:nowrap;color:var(--text-faint)">'+(m.lastAccessed||'—')+'</td>'+
-        '<td>'+_approvalPill(m.approvalStatus)+'</td></tr>';
+      return '<tr>'
+        + '<td data-label="Rank"><span class="adm-rank '+rcls+'">'+rank+'</span></td>'
+        + '<td data-label="Member"><div style="font-weight:700">'+dot+_esc(m.displayName)+'</div><div class="adm-td-mono" style="font-size:0.7rem">'+_esc(m.memberId)+'</div></td>'
+        + '<td data-label="Country" style="font-size:0.78rem;color:var(--text-muted)">'+_esc(m.country||'—')+'</td>'
+        + '<td data-label="CP"><strong>'+_numFmt(m.totalCp)+'</strong></td>'
+        + '<td data-label="Pages">'+_numFmt(m.totalPages)+'</td>'
+        + '<td data-label="Books">'+m.totalBooks+'</td>'
+        + '<td data-label="Joined" style="font-size:0.78rem;white-space:nowrap">'+_esc(m.joinDate)+'</td>'
+        + '<td data-label="Last Active" style="font-size:0.78rem;white-space:nowrap;color:var(--text-faint)">'+(m.lastAccessed||'—')+'</td>'
+        + '<td data-label="Status">'+_approvalPill(m.approvalStatus)+'</td>'
+        + '</tr>';
     }).join('');
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     CARD VIEW TOGGLES — Approvals & Member Stats
+     ══════════════════════════════════════════════════════════════════ */
+
+  function admToggleApprovalsCardView() {
+    admApprovalsCardView = !admApprovalsCardView;
+    var wrap = document.getElementById('admApprovalTableWrap');
+    if (wrap) wrap.classList.toggle('card-view', admApprovalsCardView);
+    var btn = document.getElementById('admApprovalCardViewBtn');
+    if (btn) btn.innerHTML = admApprovalsCardView
+      ? '<i class="fa-solid fa-table"></i> Table View'
+      : '<i class="fa-solid fa-table-cells-large"></i> Card View';
+  }
+
+  function admToggleMembersCardView() {
+    admMembersCardView = !admMembersCardView;
+    var wrap = document.getElementById('admMembersTableWrap');
+    if (wrap) wrap.classList.toggle('card-view', admMembersCardView);
+    var btn = document.getElementById('admMembersCardViewBtn');
+    if (btn) btn.innerHTML = admMembersCardView
+      ? '<i class="fa-solid fa-table"></i> Table View'
+      : '<i class="fa-solid fa-table-cells-large"></i> Card View';
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -1599,6 +1745,91 @@
   }
 
   /* ══════════════════════════════════════════════════════════════════
+     EMAIL QUEUE MONITOR
+     ══════════════════════════════════════════════════════════════════ */
+
+  function admLoadEmailQueue() {
+    var tbody = document.getElementById('admEqTbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr>';
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res.status !== 'success') {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>' + _esc(res.message || 'Failed to load.') + '</p></div></td></tr>';
+          return;
+        }
+        admEmailQueueDB     = res.queue || [];
+        admEmailQueueLoaded = true;
+        admRenderEmailQueue();
+      })
+      .withFailureHandler(function(err) {
+        var tbody2 = document.getElementById('admEqTbody');
+        if (tbody2) tbody2.innerHTML = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>' + _esc((err && err.message) || 'Server error.') + '</p></div></td></tr>';
+      })
+      .getAdminEmailQueueData();
+  }
+
+  function admSwitchEqFilter(filter) {
+    admEmailQueueFilter = filter;
+    document.querySelectorAll('[data-eq-filter]').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.eqFilter === filter);
+    });
+    admRenderEmailQueue();
+  }
+
+  function admRenderEmailQueue() {
+    var tbody = document.getElementById('admEqTbody');
+    if (!tbody) return;
+    var filtered = admEmailQueueDB.filter(function(e) {
+      return admEmailQueueFilter === 'All' || e.status === admEmailQueueFilter;
+    });
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-envelope-circle-check"></i><p>No entries for this filter.</p></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = filtered.map(function(e) {
+      var statusCls = 'adm-eq-badge-' + (e.status || '').toLowerCase();
+      var badge     = '<span class="adm-eq-badge ' + statusCls + '">' + _esc(e.status) + '</span>';
+      var actions   = e.status === 'PENDING'
+        ? '<button class="adm-btn adm-btn-light adm-btn-sm adm-btn-icon" onclick="admSuppressEmailEntry(\'' + _esc(e.queueId) + '\')" title="Suppress"><i class="fa-solid fa-ban"></i></button>'
+        : '<span style="color:var(--text-faint);font-size:0.75rem">—</span>';
+      var scheduled = e.scheduledDate ? _esc(e.scheduledDate).substring(0, 16) : '—';
+      var sentAt    = e.sentAt        ? _esc(e.sentAt).substring(0, 16)        : '—';
+      var clicked   = e.clickedAt     ? _esc(e.clickedAt).substring(0, 16)     : '—';
+      return '<tr>'
+        + '<td data-label="Member"><strong>' + _esc(e.displayName) + '</strong><div class="adm-td-mono" style="font-size:0.7rem;color:var(--text-faint)">' + _esc(e.memberId) + '</div></td>'
+        + '<td data-label="Type" class="adm-col-meta" style="font-size:0.78rem">' + _esc(e.emailType) + '</td>'
+        + '<td data-label="Scheduled" class="adm-col-meta" style="font-size:0.78rem;white-space:nowrap">' + scheduled + '</td>'
+        + '<td data-label="Status">' + badge + '</td>'
+        + '<td data-label="Sent" class="adm-col-meta" style="font-size:0.78rem;white-space:nowrap">' + sentAt + '</td>'
+        + '<td data-label="Clicked" class="adm-col-meta" style="font-size:0.78rem;white-space:nowrap">' + clicked + '</td>'
+        + '<td data-label="">' + actions + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  function admSuppressEmailEntry(queueId) {
+    var btn = document.querySelector('[onclick*="admSuppressEmailEntry(\'' + queueId + '\')"]');
+    if (btn) btn.disabled = true;
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.status !== 'success') {
+          admShowToast('Suppress error: ' + (result.message || 'Unknown error'), 'err');
+          if (btn) btn.disabled = false;
+          return;
+        }
+        var entry = admEmailQueueDB.filter(function(e) { return e.queueId === queueId; })[0];
+        if (entry) entry.status = 'SUPPRESSED';
+        admShowToast('Entry suppressed', 'ok');
+        admRenderEmailQueue();
+      })
+      .withFailureHandler(function(err) {
+        admShowToast('Server error: ' + ((err && err.message) || 'Please retry.'), 'err');
+        if (btn) btn.disabled = false;
+      })
+      .adminSuppressEmailEntry(queueId);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
      PRIVATE HELPERS
      ══════════════════════════════════════════════════════════════════ */
 
@@ -1680,6 +1911,15 @@
   window.admOpenEvtStatusModal      = admOpenEvtStatusModal;
   window.admCloseEvtStatusModal     = admCloseEvtStatusModal;
   window.admConfirmEvtStatus        = admConfirmEvtStatus;
+  window.admToggleApprovalsCardView = admToggleApprovalsCardView;
+  window.admToggleMembersCardView   = admToggleMembersCardView;
+  window.admToggleApprovalRow       = admToggleApprovalRow;
+  window.admToggleSelectAllPending  = admToggleSelectAllPending;
+  window.admBulkApproveSelected     = admBulkApproveSelected;
+  window.admClearBulkSelection      = admClearBulkSelection;
+  window.admLoadEmailQueue          = admLoadEmailQueue;
+  window.admSwitchEqFilter          = admSwitchEqFilter;
+  window.admSuppressEmailEntry      = admSuppressEmailEntry;
 
   /* ── Bootstrap ─────────────────────────────────────────────────── */
   window.addEventListener('DOMContentLoaded', admInit);
