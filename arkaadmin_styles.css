@@ -231,6 +231,26 @@
       .adm-content { padding: 16px 14px 32px; }
       .adm-stat-grid { grid-template-columns: repeat(2, 1fr); }
       .adm-topbar-admin-label { display: none; }
+      /* Hide non-essential announcement table columns on mobile */
+      .adm-col-meta { display: none !important; }
+    }
+
+    /* Icon-only action button — bigger tap target than -sm */
+    .adm-btn-icon { padding: 7px 11px; min-width: 36px; justify-content: center; font-size: 0.82rem; }
+
+    /* Announcement table: mobile sub-line shown inside Title cell */
+    .adm-ann-title-sub {
+      display: none;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+      font-size: 0.72rem;
+      color: var(--text-faint);
+      font-weight: 400;
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .adm-ann-title-sub { display: flex; }
     }
 
     /* ════════════════════════════════════════════════════════════════
@@ -440,3 +460,16 @@
     #admAnnForm textarea.adm-input {
       resize: vertical;
     }
+
+    /* Scoped form label style for Events compose form */
+    #admEvtForm .adm-form-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+      margin-top: 16px;
+    }
+    #admEvtForm .adm-form-label:first-child { margin-top: 0; }

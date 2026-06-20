@@ -47,6 +47,13 @@
   var admAnnEditing           = null; // announcementId string, or null for create mode
   var admAnnSelectedMemberIds = [];
   var admPendingArchiveAnnId  = null;
+  /** Events — lazy-loaded on first visit to the section. */
+  var admEventsDB             = [];
+  var admEventsLoaded         = false;
+  var admEvtSubTab            = 'list';
+  var admEvtEditing           = null; // eventId string, or null for create mode
+  var admEvtHostMemberId      = '';
+  var admPendingEvtStatusChange = null; // { eventId, newStatus, title }
 
   /* ══════════════════════════════════════════════════════════════════
      ADMIN INIT
@@ -123,6 +130,10 @@
     // Lazy-load announcements on first visit
     if (name === 'announcements' && !admAnnouncementsLoaded) {
       admLoadAnnouncements();
+    }
+    // Lazy-load events on first visit
+    if (name === 'events' && !admEventsLoaded) {
+      admLoadEvents();
     }
   }
 
@@ -708,25 +719,37 @@
         activeTbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-bullhorn"></i><p>No active announcements.</p><button class="adm-btn adm-btn-accent" onclick="admSwitchAnnSubTab(\'compose\')" style="margin-top:12px"><i class="fa-solid fa-plus"></i> New Announcement</button></div></td></tr>';
       } else {
         activeTbody.innerHTML = active.map(function (a) {
-          var typeLabel  = a.announcementType === 'WHATS_NEW' ? '✦ What\'s New' : '📣 Club Notice';
+          var isWhatsNew = a.announcementType === 'WHATS_NEW';
+          var typeLabel  = isWhatsNew ? '✦ What\'s New' : '📣 Club Notice';
           var audience   = a.targetMemberIds
             ? _admAnnAudienceLabel(a.targetMemberIds)
             : '<span style="color:var(--text-faint)">All members</span>';
-          var pinIcon    = a.isPinned
-            ? '<i class="fa-solid fa-thumbtack" title="Pinned" style="color:var(--arka-accent)"></i>'
-            : '<i class="fa-regular fa-thumbtack" style="opacity:0.3" title="Not pinned"></i>';
-          var expiry     = a.expiryDate || '<span style="color:var(--text-faint)">—</span>';
+          var pinIconCls = a.isPinned ? 'fa-solid fa-thumbtack' : 'fa-solid fa-thumbtack';
+          var pinStyle   = a.isPinned ? 'color:var(--arka-accent)' : 'opacity:0.25';
+          var pinTitle   = a.isPinned ? 'Pinned' : 'Not pinned';
+          var expiryHtml = a.expiryDate
+            ? _esc(a.expiryDate)
+            : '<span style="color:var(--text-faint)">—</span>';
           var created    = (a.createdOn || '').substring(0, 10);
-          var editBtn    = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
-          var pinBtn     = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admToggleAnnPinRow(\'' + _esc(a.announcementId) + '\',' + (!a.isPinned) + ')" title="' + (a.isPinned ? 'Unpin' : 'Pin') + '" style="margin-left:4px"><i class="fa-solid fa-thumbtack' + (a.isPinned ? '' : '-slash') + '"></i></button>';
-          var archBtn    = '<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenAnnArchiveModal(\'' + _esc(a.announcementId) + '\')" title="Archive" style="margin-left:4px"><i class="fa-solid fa-box-archive"></i></button>';
+
+          // Mobile sub-line shown inside the Title cell below the title text
+          var mobileSub  = '<div class="adm-ann-title-sub">'
+            + '<span>' + typeLabel + '</span>'
+            + (a.isPinned ? '<i class="fa-solid fa-thumbtack" style="color:var(--arka-accent);font-size:0.7rem" title="Pinned"></i>' : '')
+            + (a.expiryDate ? '<span>Expires ' + _esc(a.expiryDate) + '</span>' : '')
+            + '</div>';
+
+          var editBtn = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
+          var pinBtn  = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admToggleAnnPinRow(\'' + _esc(a.announcementId) + '\',' + (!a.isPinned) + ')" title="' + (a.isPinned ? 'Unpin' : 'Pin to top') + '" style="margin-left:4px"><i class="fa-solid fa-thumbtack" style="' + pinStyle + '"></i></button>';
+          var archBtn = '<button class="adm-btn adm-btn-danger adm-btn-icon" onclick="admOpenAnnArchiveModal(\'' + _esc(a.announcementId) + '\')" title="Archive" style="margin-left:4px"><i class="fa-solid fa-box-archive"></i></button>';
+
           return '<tr>'
-            + '<td style="max-width:220px;white-space:normal;font-weight:600;font-size:0.85rem">' + _esc(a.title) + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
+            + '<td style="white-space:normal;font-weight:600;font-size:0.85rem">' + _esc(a.title) + mobileSub + '</td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
             + '<td style="font-size:0.82rem">' + audience + '</td>'
-            + '<td style="text-align:center">' + pinIcon + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(expiry) + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
+            + '<td class="adm-col-meta" style="text-align:center"><i class="' + pinIconCls + '" style="' + pinStyle + '" title="' + pinTitle + '"></i></td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + expiryHtml + '</td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
             + '<td style="white-space:nowrap">' + editBtn + pinBtn + archBtn + '</td>'
             + '</tr>';
         }).join('');
@@ -738,17 +761,20 @@
         archivedTbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-box-archive"></i><p>No archived announcements.</p></div></td></tr>';
       } else {
         archivedTbody.innerHTML = archived.map(function (a) {
-          var typeLabel = a.announcementType === 'WHATS_NEW' ? '✦ What\'s New' : '📣 Club Notice';
-          var audience  = a.targetMemberIds ? _admAnnAudienceLabel(a.targetMemberIds) : '<span style="color:var(--text-faint)">All members</span>';
-          var expiry    = a.expiryDate || '<span style="color:var(--text-faint)">—</span>';
-          var created   = (a.createdOn || '').substring(0, 10);
-          var editBtn   = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
+          var typeLabel  = a.announcementType === 'WHATS_NEW' ? '✦ What\'s New' : '📣 Club Notice';
+          var audience   = a.targetMemberIds ? _admAnnAudienceLabel(a.targetMemberIds) : '<span style="color:var(--text-faint)">All members</span>';
+          var expiryHtml = a.expiryDate
+            ? _esc(a.expiryDate)
+            : '<span style="color:var(--text-faint)">—</span>';
+          var created    = (a.createdOn || '').substring(0, 10);
+          var mobileSub  = '<div class="adm-ann-title-sub"><span>' + typeLabel + '</span></div>';
+          var editBtn    = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
           return '<tr>'
-            + '<td style="max-width:220px;white-space:normal;font-weight:600;font-size:0.85rem;opacity:0.65">' + _esc(a.title) + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
+            + '<td style="white-space:normal;font-weight:600;font-size:0.85rem;opacity:0.65">' + _esc(a.title) + mobileSub + '</td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
             + '<td style="font-size:0.82rem">' + audience + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(expiry) + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + expiryHtml + '</td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
             + '<td>' + editBtn + '</td>'
             + '</tr>';
         }).join('');
@@ -1074,6 +1100,318 @@
   }
 
   /* ══════════════════════════════════════════════════════════════════
+     EVENTS — list / compose / status
+     ══════════════════════════════════════════════════════════════════ */
+
+  function admLoadEvents() {
+    var tbody = document.getElementById('admEvtListTbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr>';
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (res.status !== 'success') {
+          var msg = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>' + _esc(res.message || 'Failed to load.') + '</p></div></td></tr>';
+          if (tbody) tbody.innerHTML = msg;
+          return;
+        }
+        admEventsDB     = res.eventsDB || [];
+        admEventsLoaded = true;
+        admRenderEvents();
+      })
+      .withFailureHandler(function (err) {
+        var msg = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>' + _esc((err && err.message) || 'Server error.') + '</p></div></td></tr>';
+        if (tbody) tbody.innerHTML = msg;
+      })
+      .getEventsData();
+  }
+
+  function admSwitchEvtSubTab(tab) {
+    admEvtSubTab = tab;
+    ['list','compose'].forEach(function (t) {
+      var btn   = document.getElementById('admEvtSubTab' + t.charAt(0).toUpperCase() + t.slice(1));
+      var panel = document.getElementById('admEvtPanel'  + t.charAt(0).toUpperCase() + t.slice(1));
+      if (btn)   btn.classList.toggle('active', t === tab);
+      if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
+    });
+    if (tab === 'compose' && !admEvtEditing) admResetEvtForm();
+  }
+
+  function admRenderEvents() {
+    var tbody = document.getElementById('admEvtListTbody');
+    if (!tbody) return;
+
+    if (admEventsDB.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-calendar-days"></i><p>No events yet.</p><button class="adm-btn adm-btn-accent" onclick="admSwitchEvtSubTab(\'compose\')" style="margin-top:12px"><i class="fa-solid fa-plus"></i> New Event</button></div></td></tr>';
+      return;
+    }
+
+    var statusOrder = { Active: 0, Completed: 1, Cancelled: 2 };
+    var sorted = admEventsDB.slice().sort(function (a, b) {
+      var sa = statusOrder[a.status] !== undefined ? statusOrder[a.status] : 9;
+      var sb = statusOrder[b.status] !== undefined ? statusOrder[b.status] : 9;
+      if (sa !== sb) return sa - sb;
+      return (b.startDate || '').localeCompare(a.startDate || '');
+    });
+
+    tbody.innerHTML = sorted.map(function (ev) {
+      var hostM    = admMemberMap[ev.hostMemberId] || {};
+      var hostName = ev.hostMemberId ? (hostM.displayName || ev.hostMemberId) : '—';
+      var startStr = ev.startDate + (ev.startTime ? ' ' + ev.startTime : '');
+      var mobileSub = '<div class="adm-ann-title-sub">'
+        + '<span>' + _esc(ev.eventType) + '</span>'
+        + '<span>' + _esc(startStr) + '</span>'
+        + '</div>';
+
+      var editBtn = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenEvtEdit(\'' + _esc(ev.eventId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
+      var actionBtns = editBtn;
+      if (ev.status === 'Active') {
+        actionBtns += ' <button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenEvtStatusModal(\'' + _esc(ev.eventId) + '\',\'Completed\')" title="Mark Complete" style="margin-left:4px"><i class="fa-solid fa-circle-check"></i></button>'
+          + ' <button class="adm-btn adm-btn-danger adm-btn-icon" onclick="admOpenEvtStatusModal(\'' + _esc(ev.eventId) + '\',\'Cancelled\')" title="Cancel Event" style="margin-left:4px"><i class="fa-solid fa-ban"></i></button>';
+      }
+
+      return '<tr>'
+        + '<td style="white-space:normal;font-weight:600;font-size:0.85rem">' + _esc(ev.title) + mobileSub + '</td>'
+        + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + _esc(ev.eventType) + '</td>'
+        + '<td class="adm-col-meta" style="font-size:0.82rem">' + _esc(hostName) + '</td>'
+        + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + _esc(startStr) + '</td>'
+        + '<td style="white-space:nowrap">' + _admEvtStatusBadge(ev.status) + '</td>'
+        + '<td style="white-space:nowrap">' + actionBtns + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  function _admEvtStatusBadge(status) {
+    if (status === 'Active')    return '<span class="adm-pill adm-pill-approved">Active</span>';
+    if (status === 'Completed') return '<span class="adm-pill" style="background:var(--adm-info-bg,#e8f4fd);color:var(--adm-info,#1a73e8)">Done</span>';
+    if (status === 'Cancelled') return '<span class="adm-pill adm-pill-rejected">Cancelled</span>';
+    return '<span class="adm-pill">' + _esc(status || '—') + '</span>';
+  }
+
+  /* ── Compose form ───────────────────────────────────────────────── */
+
+  function admResetEvtForm() {
+    admEvtEditing      = null;
+    admEvtHostMemberId = '';
+    var titleEl = document.getElementById('admEvtFormTitle');
+    if (titleEl) titleEl.textContent = 'New Event';
+    var typeEl = document.getElementById('admEvtTypeInput'); if (typeEl) typeEl.value = 'BookBuddyRead';
+    ['admEvtTitleInput','admEvtDescInput','admEvtStartDateInput','admEvtStartTimeInput',
+     'admEvtEndDateInput','admEvtEndTimeInput','admEvtLinkInput'].forEach(function (id) {
+      var el = document.getElementById(id); if (el) el.value = '';
+    });
+    var tz = document.getElementById('admEvtTimezoneInput'); if (tz) tz.value = 'IST';
+    var pin = document.getElementById('admEvtPinToggle'); if (pin) pin.classList.remove('on');
+    _admEvtRenderHostPill();
+    var saveBtn = document.getElementById('admEvtSaveBtn');
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Save Event'; }
+  }
+
+  function admOpenEvtEdit(evtId) {
+    var ev = admEventsDB.filter(function (e) { return e.eventId === evtId; })[0];
+    if (!ev) { admShowToast('Event not found.', 'err'); return; }
+
+    admEvtEditing      = evtId;
+    admEvtHostMemberId = ev.hostMemberId || '';
+
+    var titleEl = document.getElementById('admEvtFormTitle');
+    if (titleEl) titleEl.textContent = 'Edit Event';
+
+    var typeEl = document.getElementById('admEvtTypeInput'); if (typeEl) typeEl.value = ev.eventType || 'BookBuddyRead';
+    var set = function (id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; };
+    set('admEvtTitleInput',     ev.title);
+    set('admEvtDescInput',      ev.description);
+    set('admEvtStartDateInput', ev.startDate);
+    set('admEvtStartTimeInput', ev.startTime);
+    set('admEvtEndDateInput',   ev.endDate);
+    set('admEvtEndTimeInput',   ev.endTime);
+    set('admEvtLinkInput',      ev.meetingLink);
+    set('admEvtTimezoneInput',  ev.eventTimezone || 'IST');
+
+    var pin = document.getElementById('admEvtPinToggle'); if (pin) pin.classList.toggle('on', !!ev.isPinned);
+    _admEvtRenderHostPill();
+
+    var saveBtn = document.getElementById('admEvtSaveBtn');
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Event'; }
+
+    admSwitchEvtSubTab('compose');
+  }
+
+  /* ── Host member single-select picker ──────────────────────────── */
+
+  function _admEvtRenderHostPill() {
+    var pillsDiv = document.getElementById('admEvtHostPills');
+    var searchEl = document.getElementById('admEvtHostSearch');
+    if (!pillsDiv) return;
+    if (admEvtHostMemberId) {
+      var m = admMemberMap[admEvtHostMemberId] || {};
+      pillsDiv.innerHTML = '<span class="ann-member-pill">' + _esc(m.displayName || admEvtHostMemberId)
+        + '<button class="ann-member-pill-remove" onclick="admEvtRemoveHost()" type="button">✕</button></span>';
+      if (searchEl) { searchEl.style.display = 'none'; searchEl.value = ''; }
+    } else {
+      pillsDiv.innerHTML = '';
+      if (searchEl) searchEl.style.display = '';
+    }
+  }
+
+  function admEvtRemoveHost() {
+    admEvtHostMemberId = '';
+    _admEvtRenderHostPill();
+  }
+
+  function admEvtFilterDropdown() {
+    var query    = ((document.getElementById('admEvtHostSearch') || {}).value || '').toLowerCase().trim();
+    var dropdown = document.getElementById('admEvtHostDropdown');
+    if (!dropdown) return;
+    var matches = Object.keys(admMemberMap).map(function (id) { return admMemberMap[id]; }).filter(function (m) {
+      if (!query) return true;
+      return (m.displayName || '').toLowerCase().indexOf(query) !== -1
+          || (m.fullName    || '').toLowerCase().indexOf(query) !== -1;
+    }).slice(0, 8);
+
+    dropdown.innerHTML = matches.length === 0
+      ? '<div class="ann-member-option" style="color:var(--text-faint);pointer-events:none">No members found</div>'
+      : matches.map(function (m) {
+          return '<div class="ann-member-option" onclick="admEvtSelectHost(\'' + _esc(m.memberId) + '\')">'
+            + '<i class="fa-solid fa-user" style="font-size:0.8rem;color:var(--text-faint)"></i>'
+            + '<span>' + _esc(m.displayName) + '</span></div>';
+        }).join('');
+    dropdown.classList.add('open');
+  }
+
+  function admEvtOpenHostDropdown() {
+    var inp = document.getElementById('admEvtHostSearch');
+    if (inp) inp.value = '';
+    admEvtFilterDropdown();
+  }
+
+  function admEvtCloseDropdownDelayed() {
+    setTimeout(function () {
+      var dropdown = document.getElementById('admEvtHostDropdown');
+      if (dropdown) dropdown.classList.remove('open');
+    }, 180);
+  }
+
+  function admEvtSelectHost(memberId) {
+    admEvtHostMemberId = memberId;
+    _admEvtRenderHostPill();
+    var dropdown = document.getElementById('admEvtHostDropdown');
+    if (dropdown) dropdown.classList.remove('open');
+  }
+
+  function admEvtTogglePin() {
+    var toggle = document.getElementById('admEvtPinToggle');
+    if (toggle) toggle.classList.toggle('on');
+  }
+
+  /* ── Submit ─────────────────────────────────────────────────────── */
+
+  function admSubmitEvt() {
+    var title     = ((document.getElementById('admEvtTitleInput')     || {}).value || '').trim();
+    var evtType   = ((document.getElementById('admEvtTypeInput')      || {}).value || '').trim();
+    var startDate = ((document.getElementById('admEvtStartDateInput') || {}).value || '').trim();
+    var isPinned  = !!(document.getElementById('admEvtPinToggle') || {}).classList &&
+                    document.getElementById('admEvtPinToggle').classList.contains('on');
+
+    if (!title)     { admShowToast('Event title is required.', 'err'); return; }
+    if (!evtType)   { admShowToast('Event type is required.', 'err'); return; }
+    if (!startDate) { admShowToast('Start date is required (dd-MMM-yyyy).', 'err'); return; }
+
+    var payload = {
+      eventId      : admEvtEditing || null,
+      eventType    : evtType,
+      title        : title,
+      description  : ((document.getElementById('admEvtDescInput')      || {}).value || '').trim(),
+      hostMemberId : admEvtHostMemberId,
+      startDate    : startDate,
+      startTime    : ((document.getElementById('admEvtStartTimeInput') || {}).value || '').trim(),
+      endDate      : ((document.getElementById('admEvtEndDateInput')   || {}).value || '').trim(),
+      endTime      : ((document.getElementById('admEvtEndTimeInput')   || {}).value || '').trim(),
+      meetingLink  : ((document.getElementById('admEvtLinkInput')      || {}).value || '').trim(),
+      eventTimezone: ((document.getElementById('admEvtTimezoneInput')  || {}).value || 'IST').trim(),
+      isPinned     : isPinned
+    };
+
+    var saveBtn = document.getElementById('admEvtSaveBtn');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…'; }
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Save Event'; }
+        if (res.status !== 'success') { admShowToast('Error: ' + (res.message || 'Could not save.'), 'err'); return; }
+        if (admEvtEditing) {
+          var idx = -1;
+          for (var i = 0; i < admEventsDB.length; i++) { if (admEventsDB[i].eventId === admEvtEditing) { idx = i; break; } }
+          if (idx > -1 && res.event) admEventsDB[idx] = res.event;
+        } else {
+          if (res.event) admEventsDB.push(res.event);
+        }
+        admShowToast(admEvtEditing ? 'Event updated!' : 'Event created!', 'ok');
+        admEvtEditing = null;
+        admRenderEvents();
+        admSwitchEvtSubTab('list');
+      })
+      .withFailureHandler(function (err) {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Save Event'; }
+        admShowToast('Error: ' + ((err && err.message) || 'Server error.'), 'err');
+      })
+      .saveEvent(payload);
+  }
+
+  /* ── Status change modal ────────────────────────────────────────── */
+
+  function admOpenEvtStatusModal(evtId, newStatus) {
+    var ev = admEventsDB.filter(function (e) { return e.eventId === evtId; })[0] || {};
+    admPendingEvtStatusChange = { eventId: evtId, newStatus: newStatus };
+    var bodyEl = document.getElementById('admEvtStatusModalBody');
+    if (bodyEl) {
+      var verb = newStatus === 'Cancelled' ? 'Cancel' : 'Mark as complete';
+      bodyEl.innerHTML = verb + ' <strong>' + _esc(ev.title || evtId) + '</strong>?'
+        + (newStatus === 'Cancelled'
+          ? '<p style="margin-top:8px;font-size:0.82rem;color:var(--text-faint)">RSVPed members will be notified of the cancellation.</p>'
+          : '<p style="margin-top:8px;font-size:0.82rem;color:var(--text-faint)">The event status will be updated to Completed.</p>');
+    }
+    var confirmBtn = document.getElementById('admEvtStatusConfirmBtn');
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.className = 'adm-btn ' + (newStatus === 'Cancelled' ? 'adm-btn-danger' : 'adm-btn-accent');
+      confirmBtn.innerHTML = newStatus === 'Cancelled'
+        ? '<i class="fa-solid fa-ban"></i> Cancel Event'
+        : '<i class="fa-solid fa-circle-check"></i> Mark Complete';
+    }
+    var overlay = document.getElementById('admEvtStatusModal');
+    if (overlay) overlay.classList.add('open');
+  }
+
+  function admCloseEvtStatusModal() {
+    var overlay = document.getElementById('admEvtStatusModal');
+    if (overlay) overlay.classList.remove('open');
+    admPendingEvtStatusChange = null;
+  }
+
+  function admConfirmEvtStatus() {
+    if (!admPendingEvtStatusChange) return;
+    var evtId     = admPendingEvtStatusChange.eventId;
+    var newStatus = admPendingEvtStatusChange.newStatus;
+    var confirmBtn = document.getElementById('admEvtStatusConfirmBtn');
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating…'; }
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        admCloseEvtStatusModal();
+        if (res.status !== 'success') { admShowToast('Error: ' + (res.message || 'Could not update.'), 'err'); return; }
+        var ev = admEventsDB.filter(function (e) { return e.eventId === evtId; })[0];
+        if (ev) ev.status = newStatus;
+        admShowToast(newStatus === 'Cancelled' ? 'Event cancelled.' : 'Event marked complete.', 'ok');
+        admRenderEvents();
+      })
+      .withFailureHandler(function (err) {
+        admCloseEvtStatusModal();
+        admShowToast('Error: ' + ((err && err.message) || 'Server error.'), 'err');
+      })
+      .updateEventStatus(evtId, newStatus);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
      CONTENT MODERATION — book post feed + delete
      ══════════════════════════════════════════════════════════════════ */
 
@@ -1329,6 +1667,19 @@
   window.admOpenPostDeleteModal = admOpenPostDeleteModal;
   window.admClosePostDeleteModal= admClosePostDeleteModal;
   window.admConfirmDeletePost   = admConfirmDeletePost;
+  window.admLoadEvents              = admLoadEvents;
+  window.admSwitchEvtSubTab         = admSwitchEvtSubTab;
+  window.admOpenEvtEdit             = admOpenEvtEdit;
+  window.admEvtFilterDropdown       = admEvtFilterDropdown;
+  window.admEvtOpenHostDropdown     = admEvtOpenHostDropdown;
+  window.admEvtCloseDropdownDelayed = admEvtCloseDropdownDelayed;
+  window.admEvtSelectHost           = admEvtSelectHost;
+  window.admEvtRemoveHost           = admEvtRemoveHost;
+  window.admEvtTogglePin            = admEvtTogglePin;
+  window.admSubmitEvt               = admSubmitEvt;
+  window.admOpenEvtStatusModal      = admOpenEvtStatusModal;
+  window.admCloseEvtStatusModal     = admCloseEvtStatusModal;
+  window.admConfirmEvtStatus        = admConfirmEvtStatus;
 
   /* ── Bootstrap ─────────────────────────────────────────────────── */
   window.addEventListener('DOMContentLoaded', admInit);
