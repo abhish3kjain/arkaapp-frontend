@@ -708,25 +708,37 @@
         activeTbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-bullhorn"></i><p>No active announcements.</p><button class="adm-btn adm-btn-accent" onclick="admSwitchAnnSubTab(\'compose\')" style="margin-top:12px"><i class="fa-solid fa-plus"></i> New Announcement</button></div></td></tr>';
       } else {
         activeTbody.innerHTML = active.map(function (a) {
-          var typeLabel  = a.announcementType === 'WHATS_NEW' ? '✦ What\'s New' : '📣 Club Notice';
+          var isWhatsNew = a.announcementType === 'WHATS_NEW';
+          var typeLabel  = isWhatsNew ? '✦ What\'s New' : '📣 Club Notice';
           var audience   = a.targetMemberIds
             ? _admAnnAudienceLabel(a.targetMemberIds)
             : '<span style="color:var(--text-faint)">All members</span>';
-          var pinIcon    = a.isPinned
-            ? '<i class="fa-solid fa-thumbtack" title="Pinned" style="color:var(--arka-accent)"></i>'
-            : '<i class="fa-regular fa-thumbtack" style="opacity:0.3" title="Not pinned"></i>';
-          var expiry     = a.expiryDate || '<span style="color:var(--text-faint)">—</span>';
+          var pinIconCls = a.isPinned ? 'fa-solid fa-thumbtack' : 'fa-solid fa-thumbtack';
+          var pinStyle   = a.isPinned ? 'color:var(--arka-accent)' : 'opacity:0.25';
+          var pinTitle   = a.isPinned ? 'Pinned' : 'Not pinned';
+          var expiryHtml = a.expiryDate
+            ? _esc(a.expiryDate)
+            : '<span style="color:var(--text-faint)">—</span>';
           var created    = (a.createdOn || '').substring(0, 10);
-          var editBtn    = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
-          var pinBtn     = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admToggleAnnPinRow(\'' + _esc(a.announcementId) + '\',' + (!a.isPinned) + ')" title="' + (a.isPinned ? 'Unpin' : 'Pin') + '" style="margin-left:4px"><i class="fa-solid fa-thumbtack' + (a.isPinned ? '' : '-slash') + '"></i></button>';
-          var archBtn    = '<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenAnnArchiveModal(\'' + _esc(a.announcementId) + '\')" title="Archive" style="margin-left:4px"><i class="fa-solid fa-box-archive"></i></button>';
+
+          // Mobile sub-line shown inside the Title cell below the title text
+          var mobileSub  = '<div class="adm-ann-title-sub">'
+            + '<span>' + typeLabel + '</span>'
+            + (a.isPinned ? '<i class="fa-solid fa-thumbtack" style="color:var(--arka-accent);font-size:0.7rem" title="Pinned"></i>' : '')
+            + (a.expiryDate ? '<span>Expires ' + _esc(a.expiryDate) + '</span>' : '')
+            + '</div>';
+
+          var editBtn = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
+          var pinBtn  = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admToggleAnnPinRow(\'' + _esc(a.announcementId) + '\',' + (!a.isPinned) + ')" title="' + (a.isPinned ? 'Unpin' : 'Pin to top') + '" style="margin-left:4px"><i class="fa-solid fa-thumbtack" style="' + pinStyle + '"></i></button>';
+          var archBtn = '<button class="adm-btn adm-btn-danger adm-btn-icon" onclick="admOpenAnnArchiveModal(\'' + _esc(a.announcementId) + '\')" title="Archive" style="margin-left:4px"><i class="fa-solid fa-box-archive"></i></button>';
+
           return '<tr>'
-            + '<td style="max-width:220px;white-space:normal;font-weight:600;font-size:0.85rem">' + _esc(a.title) + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
+            + '<td style="white-space:normal;font-weight:600;font-size:0.85rem">' + _esc(a.title) + mobileSub + '</td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
             + '<td style="font-size:0.82rem">' + audience + '</td>'
-            + '<td style="text-align:center">' + pinIcon + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(expiry) + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
+            + '<td class="adm-col-meta" style="text-align:center"><i class="' + pinIconCls + '" style="' + pinStyle + '" title="' + pinTitle + '"></i></td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + expiryHtml + '</td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
             + '<td style="white-space:nowrap">' + editBtn + pinBtn + archBtn + '</td>'
             + '</tr>';
         }).join('');
@@ -738,17 +750,20 @@
         archivedTbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-box-archive"></i><p>No archived announcements.</p></div></td></tr>';
       } else {
         archivedTbody.innerHTML = archived.map(function (a) {
-          var typeLabel = a.announcementType === 'WHATS_NEW' ? '✦ What\'s New' : '📣 Club Notice';
-          var audience  = a.targetMemberIds ? _admAnnAudienceLabel(a.targetMemberIds) : '<span style="color:var(--text-faint)">All members</span>';
-          var expiry    = a.expiryDate || '<span style="color:var(--text-faint)">—</span>';
-          var created   = (a.createdOn || '').substring(0, 10);
-          var editBtn   = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
+          var typeLabel  = a.announcementType === 'WHATS_NEW' ? '✦ What\'s New' : '📣 Club Notice';
+          var audience   = a.targetMemberIds ? _admAnnAudienceLabel(a.targetMemberIds) : '<span style="color:var(--text-faint)">All members</span>';
+          var expiryHtml = a.expiryDate
+            ? _esc(a.expiryDate)
+            : '<span style="color:var(--text-faint)">—</span>';
+          var created    = (a.createdOn || '').substring(0, 10);
+          var mobileSub  = '<div class="adm-ann-title-sub"><span>' + typeLabel + '</span></div>';
+          var editBtn    = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
           return '<tr>'
-            + '<td style="max-width:220px;white-space:normal;font-weight:600;font-size:0.85rem;opacity:0.65">' + _esc(a.title) + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
+            + '<td style="white-space:normal;font-weight:600;font-size:0.85rem;opacity:0.65">' + _esc(a.title) + mobileSub + '</td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
             + '<td style="font-size:0.82rem">' + audience + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(expiry) + '</td>'
-            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + expiryHtml + '</td>'
+            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
             + '<td>' + editBtn + '</td>'
             + '</tr>';
         }).join('');
