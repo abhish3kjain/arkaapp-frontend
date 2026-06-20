@@ -460,3 +460,16 @@
     #admAnnForm textarea.adm-input {
       resize: vertical;
     }
+
+    /* Scoped form label style for Events compose form */
+    #admEvtForm .adm-form-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+      margin-top: 16px;
+    }
+    #admEvtForm .adm-form-label:first-child { margin-top: 0; }
