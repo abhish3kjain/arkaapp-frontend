@@ -394,7 +394,9 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 | TEN_PAGES_MEMBER_MAP PII in served frontend JS (`app.js` L82–103) | Privacy / security |
 | Prediction Engine Phase 1 (Finish Date, DNF Risk, Rating Prediction, Oracle Score) | Approved, not yet built |
 
-### Admin Panel — P1 Items (Critical)
+| Deprecate admin-only announcements section from main member app — admin panel Announcements section is now the canonical management UI | Deferred — do after P2 sprint |
+
+### Admin Panel — P1 + P2 Items
 | Item | Status |
 |---|---|
 | P1-1: Replace mobile bottom tab strip with hamburger + slide-out drawer | ✅ Done |
@@ -402,6 +404,11 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 | P1-3: Mobile content overlap with topbar | ✅ Done (resolved by P1-1) |
 | P1-4: Confirmation modal for Reject and Revoke Access in Approvals | ✅ Done |
 | P1-5: Book post delete UI using existing `deleteBookPost()` backend | ✅ Done |
+| P2-1: Announcements section — create/edit/archive/pin + member audience picker | ✅ Done |
+| P2-2: Events management section using existing `saveEvent()` | ⬜ Next |
+| P2-3: Email queue monitor (read-only) | ⬜ Queued |
+| P2-4: Mobile table card-view toggle for Approvals and Member Stats | ⬜ Queued |
+| P2-5: Approvals bulk-select + bulk-approve | ⬜ Queued |
 
 ---
 
@@ -416,8 +423,8 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 
 ### Admin Panel Improvement (Active)
 - Audit complete (`Product_Audit_Admin_v1.md`).
-- All P1 items shipped: P1-1/2/3 (mobile drawer), P1-4 (confirmation modals), P1-5 (Posts / content moderation section).
-- P2 items (Announcements section, Events, email queue monitor) queued next.
+- All P1 items shipped. P2-1 (Announcements) shipped.
+- P2-2 (Events) is next; P2-3/4/5 queued after.
 - See §11 Admin Panel tracking table for full status.
 
 
