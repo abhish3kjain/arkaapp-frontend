@@ -146,6 +146,9 @@ const EVENT_ASSETS_FOLDER_ID    = '1R0-aaxcymLuemLRXK2E_E0sqYEQdFC37';
 const BOOK_COVERS_FOLDER_ID     = '1a4CaUw3OjxkZQrvMxOtwFZWuWvc_-taD';
 const FEEDBACK_IMAGES_FOLDER_ID = '1lhRX1kpIYLRXHAk0znVCoSkMoIOGtZ0i';
 
+// ── BackEndEngine spreadsheet (EmailQueueDB lives here, separate from main DB) ──
+const EMAIL_BACKEND_SPREADSHEET_ID = '1s5h8T6PGPTOBs_RKJNRJjRCZm8igWJzmniLRoW7BFJA';
+
 // ── 10 Pages A Day bridge constants ───────────────────────────────────────
 // TEMPORARY — deprecated when the 10 Pages A Day app is retired.
 // All functions that reference these constants are clearly marked TEMPORARY.
@@ -9577,4 +9580,137 @@ function sanitiseGenreField_(rawValue) {
   const trimmed = String(rawValue || '').trim();
   const NONE_SENTINEL = /^none( listed\.?)?$/i;
   return NONE_SENTINEL.test(trimmed) ? '' : trimmed;
+}
+
+
+// ============================================================================
+// ADMIN — BULK APPROVE
+// ============================================================================
+
+/**
+ * Approves multiple Pending members in a single GAS call.
+ * Acquires the script lock once and processes all rows in a single sheet scan.
+ * Sends a welcome notice for each newly approved member (non-fatal on failure).
+ *
+ * @param {string[]} memberIds - Array of ARKA_MEMBER_X IDs to approve
+ * @returns {{ status: string, approvedIds: string[], count: number }}
+ */
+function bulkApproveMembers(memberIds) {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId || !isAdminMember(currentMemberId)) {
+    return { status: 'admin_required', message: 'Admin access required.' };
+  }
+  if (!Array.isArray(memberIds) || memberIds.length === 0) {
+    return { status: 'error', message: 'No member IDs provided.' };
+  }
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) {
+    return { status: 'error', message: 'System is busy. Please try again in a moment.' };
+  }
+
+  try {
+    const sheet   = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(MEMBERS_SHEET);
+    const data    = sheet.getDataRange().getValues();
+    const idSet   = new Set(memberIds.map(String));
+    const approved = [];
+
+    for (let i = 1; i < data.length; i++) {
+      const rowId = data[i][0].toString();
+      if (!idSet.has(rowId)) continue;
+      if ((data[i][MEMBER_APPROVAL_COL_INDEX] || '').toString().trim() !== APPROVAL_STATUS.PENDING) continue;
+      sheet.getRange(i + 1, MEMBER_APPROVAL_COL_NUMBER).setValue(APPROVAL_STATUS.APPROVED);
+      const displayName = (data[i][3] || '').toString().trim();
+      try { sendMemberWelcomeNotice_(rowId, displayName); } catch (e) { /* non-fatal */ }
+      approved.push(rowId);
+    }
+
+    return { status: 'success', approvedIds: approved, count: approved.length };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+
+// ============================================================================
+// ADMIN — EMAIL QUEUE MONITOR
+// ============================================================================
+
+/**
+ * Returns the 300 most recent EmailQueueDB rows from the BackEndEngine spreadsheet.
+ * Read-only viewer for admins. Column map (0-based):
+ *   A=QueueID, B=MemberID, D=DisplayName, E=EmailType, G=ScheduledDate,
+ *   H=Status, I=SentAt, K=ClickedAt, M=CreatedAt
+ *
+ * @returns {{ status: string, queue: Object[] }}
+ */
+function getAdminEmailQueueData() {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId || !isAdminMember(currentMemberId)) {
+    return { status: 'admin_required', message: 'Admin access required.' };
+  }
+
+  try {
+    const backendSs  = SpreadsheetApp.openById(EMAIL_BACKEND_SPREADSHEET_ID);
+    const queueSheet = backendSs.getSheetByName('EmailQueueDB');
+    if (!queueSheet) return { status: 'error', message: 'EmailQueueDB sheet not found.' };
+
+    const data = queueSheet.getDataRange().getValues();
+    const rows = [];
+    // Read newest rows first (skip header row 0)
+    const start = Math.max(1, data.length - 300);
+    for (let i = data.length - 1; i >= start; i--) {
+      if (!data[i][0]) continue;
+      rows.push({
+        queueId      : data[i][0].toString(),
+        memberId     : data[i][1].toString(),
+        displayName  : data[i][3].toString(),
+        emailType    : data[i][4].toString(),
+        scheduledDate: data[i][6] ? data[i][6].toString() : '',
+        status       : data[i][7] ? data[i][7].toString() : '',
+        sentAt       : data[i][8] ? data[i][8].toString() : '',
+        clickedAt    : data[i][10] ? data[i][10].toString() : '',
+        createdAt    : data[i][12] ? data[i][12].toString() : ''
+      });
+    }
+
+    return { status: 'success', queue: rows };
+  } catch (e) {
+    console.error('getAdminEmailQueueData error:', e);
+    return { status: 'error', message: e.toString() };
+  }
+}
+
+/**
+ * Marks a PENDING EmailQueueDB entry as SUPPRESSED so ArkaEmailPass skips it.
+ * Only PENDING entries can be suppressed — SENT/FAILED rows are immutable here.
+ *
+ * @param {string} queueId - ARKA_EMAILQ_X
+ * @returns {{ status: string }}
+ */
+function adminSuppressEmailEntry(queueId) {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId || !isAdminMember(currentMemberId)) {
+    return { status: 'admin_required', message: 'Admin access required.' };
+  }
+
+  try {
+    const backendSs  = SpreadsheetApp.openById(EMAIL_BACKEND_SPREADSHEET_ID);
+    const queueSheet = backendSs.getSheetByName('EmailQueueDB');
+    if (!queueSheet) return { status: 'error', message: 'EmailQueueDB sheet not found.' };
+
+    const data = queueSheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0].toString() !== queueId.toString()) continue;
+      if ((data[i][7] || '').toString() !== 'PENDING') {
+        return { status: 'error', message: 'Only PENDING entries can be suppressed.' };
+      }
+      queueSheet.getRange(i + 1, 8).setValue('SUPPRESSED'); // Col H — Status
+      return { status: 'success' };
+    }
+    return { status: 'error', message: 'Queue entry not found.' };
+  } catch (e) {
+    console.error('adminSuppressEmailEntry error:', e);
+    return { status: 'error', message: e.toString() };
+  }
 }
