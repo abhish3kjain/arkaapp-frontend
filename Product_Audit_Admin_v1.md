@@ -17,13 +17,14 @@
 | P1-3 | Mobile: Fix content overlap with topbar | ✅ Shipped (resolved by P1-1) |
 | P1-4 | Approvals: Confirmation modal for Reject and Revoke Access | ✅ Shipped |
 | P1-5 | Content moderation: Book post feed + delete UI using new `adminDeleteBookPost()` backend function | ✅ Shipped |
+| P2-1 | Announcements: create/edit/archive/pin with audience picker (entire club or specific members); new `getAdminAnnouncementsData()` backend fn | ✅ Shipped |
 | CSS/JS extraction | Inline `<style>` → `arkaadmin_styles.css`; inline `<script>` → `arkaadmin_app.js`; both served via GitHub CDN — same pattern as member app | ✅ Shipped |
 
 ---
 
 ## Executive Summary
 
-*Scores reflect state **after** P1-1 through P1-5 implementation.*
+*Scores reflect state **after** P1-1 through P1-5 + P2-1 implementation.*
 
 | Dimension | Score (at audit) | Score (now) | Notes |
 |---|---|---|---|
@@ -323,7 +324,7 @@ Low risk to fix; low priority but creates brand inconsistency in version control
 ### Priority 2 — High (next development sprint)
 | # | Issue | Effort | Impact |
 |---|---|---|---|
-| P2-1 | Announcements section: implement create/publish UI + member display surface | 2 days | Eliminates sheet-editing for announcements |
+| P2-1 | ✅ Done | Announcements section: create/edit/archive/pin UI with full member picker; new `getAdminAnnouncementsData()` backend | 2 days | Eliminates sheet-editing for announcements |
 | P2-2 | Events management section using existing `saveEvent()` | 1.5 days | Admin-controlled event creation |
 | P2-3 | Email queue monitor (read-only) | 4 hrs | Visibility into ArkaEmailPass pipeline |
 | P2-4 | Mobile table card-view toggle for Approvals and Member Stats | 1 day | Core admin tables usable on mobile |

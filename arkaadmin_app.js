@@ -40,6 +40,13 @@
   var admPostsTypeFilter  = 'All';
   var admPostsShown       = 50;
   var admPendingPostDeleteId = null;
+  /** Announcements — lazy-loaded on first visit to the section. */
+  var admAnnouncementsDB      = [];
+  var admAnnouncementsLoaded  = false;
+  var admAnnSubTab            = 'active';
+  var admAnnEditing           = null; // announcementId string, or null for create mode
+  var admAnnSelectedMemberIds = [];
+  var admPendingArchiveAnnId  = null;
 
   /* ══════════════════════════════════════════════════════════════════
      ADMIN INIT
@@ -112,6 +119,10 @@
     }
     if (name === 'content' && admReportsDataLoaded) {
       admRenderContent();
+    }
+    // Lazy-load announcements on first visit
+    if (name === 'announcements' && !admAnnouncementsLoaded) {
+      admLoadAnnouncements();
     }
   }
 
@@ -646,6 +657,423 @@
   }
 
   /* ══════════════════════════════════════════════════════════════════
+     ANNOUNCEMENTS — create / edit / archive / pin
+     ══════════════════════════════════════════════════════════════════ */
+
+  function admLoadAnnouncements() {
+    var activeTbody   = document.getElementById('admAnnActiveTbody');
+    var archivedTbody = document.getElementById('admAnnArchivedTbody');
+    var loadingRow    = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr>';
+    if (activeTbody)   activeTbody.innerHTML   = loadingRow;
+    if (archivedTbody) archivedTbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr>';
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (res.status !== 'success') {
+          var msg = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>' + _esc(res.message || 'Failed to load.') + '</p></div></td></tr>';
+          if (activeTbody) activeTbody.innerHTML = msg;
+          return;
+        }
+        admAnnouncementsDB     = res.announcements || [];
+        admAnnouncementsLoaded = true;
+        admRenderAnnouncements();
+      })
+      .withFailureHandler(function (err) {
+        var msg = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>' + _esc((err && err.message) || 'Server error.') + '</p></div></td></tr>';
+        if (activeTbody) activeTbody.innerHTML = msg;
+      })
+      .getAdminAnnouncementsData();
+  }
+
+  function admSwitchAnnSubTab(tab) {
+    admAnnSubTab = tab;
+    ['active','archived','compose'].forEach(function (t) {
+      var btn   = document.getElementById('admAnnSubTab' + t.charAt(0).toUpperCase() + t.slice(1));
+      var panel = document.getElementById('admAnnPanel'  + t.charAt(0).toUpperCase() + t.slice(1));
+      if (btn)   btn.classList.toggle('active', t === tab);
+      if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
+    });
+    if (tab === 'compose' && !admAnnEditing) admResetAnnForm();
+  }
+
+  function admRenderAnnouncements() {
+    var activeTbody   = document.getElementById('admAnnActiveTbody');
+    var archivedTbody = document.getElementById('admAnnArchivedTbody');
+
+    var active   = admAnnouncementsDB.filter(function (a) { return a.status !== 'Archived'; });
+    var archived = admAnnouncementsDB.filter(function (a) { return a.status === 'Archived'; });
+
+    if (activeTbody) {
+      if (active.length === 0) {
+        activeTbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-bullhorn"></i><p>No active announcements.</p><button class="adm-btn adm-btn-accent" onclick="admSwitchAnnSubTab(\'compose\')" style="margin-top:12px"><i class="fa-solid fa-plus"></i> New Announcement</button></div></td></tr>';
+      } else {
+        activeTbody.innerHTML = active.map(function (a) {
+          var typeLabel  = a.announcementType === 'WHATS_NEW' ? '✦ What\'s New' : '📣 Club Notice';
+          var audience   = a.targetMemberIds
+            ? _admAnnAudienceLabel(a.targetMemberIds)
+            : '<span style="color:var(--text-faint)">All members</span>';
+          var pinIcon    = a.isPinned
+            ? '<i class="fa-solid fa-thumbtack" title="Pinned" style="color:var(--arka-accent)"></i>'
+            : '<i class="fa-regular fa-thumbtack" style="opacity:0.3" title="Not pinned"></i>';
+          var expiry     = a.expiryDate || '<span style="color:var(--text-faint)">—</span>';
+          var created    = (a.createdOn || '').substring(0, 10);
+          var editBtn    = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
+          var pinBtn     = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admToggleAnnPinRow(\'' + _esc(a.announcementId) + '\',' + (!a.isPinned) + ')" title="' + (a.isPinned ? 'Unpin' : 'Pin') + '" style="margin-left:4px"><i class="fa-solid fa-thumbtack' + (a.isPinned ? '' : '-slash') + '"></i></button>';
+          var archBtn    = '<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenAnnArchiveModal(\'' + _esc(a.announcementId) + '\')" title="Archive" style="margin-left:4px"><i class="fa-solid fa-box-archive"></i></button>';
+          return '<tr>'
+            + '<td style="max-width:220px;white-space:normal;font-weight:600;font-size:0.85rem">' + _esc(a.title) + '</td>'
+            + '<td style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
+            + '<td style="font-size:0.82rem">' + audience + '</td>'
+            + '<td style="text-align:center">' + pinIcon + '</td>'
+            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(expiry) + '</td>'
+            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
+            + '<td style="white-space:nowrap">' + editBtn + pinBtn + archBtn + '</td>'
+            + '</tr>';
+        }).join('');
+      }
+    }
+
+    if (archivedTbody) {
+      if (archived.length === 0) {
+        archivedTbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-box-archive"></i><p>No archived announcements.</p></div></td></tr>';
+      } else {
+        archivedTbody.innerHTML = archived.map(function (a) {
+          var typeLabel = a.announcementType === 'WHATS_NEW' ? '✦ What\'s New' : '📣 Club Notice';
+          var audience  = a.targetMemberIds ? _admAnnAudienceLabel(a.targetMemberIds) : '<span style="color:var(--text-faint)">All members</span>';
+          var expiry    = a.expiryDate || '<span style="color:var(--text-faint)">—</span>';
+          var created   = (a.createdOn || '').substring(0, 10);
+          var editBtn   = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
+          return '<tr>'
+            + '<td style="max-width:220px;white-space:normal;font-weight:600;font-size:0.85rem;opacity:0.65">' + _esc(a.title) + '</td>'
+            + '<td style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
+            + '<td style="font-size:0.82rem">' + audience + '</td>'
+            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(expiry) + '</td>'
+            + '<td style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
+            + '<td>' + editBtn + '</td>'
+            + '</tr>';
+        }).join('');
+      }
+    }
+  }
+
+  function _admAnnAudienceLabel(targetMemberIds) {
+    if (!targetMemberIds) return '<span style="color:var(--text-faint)">All members</span>';
+    var ids   = targetMemberIds.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    var names = ids.map(function (id) {
+      var m = admMemberMap[id];
+      return m ? _esc(m.displayName) : _esc(id);
+    });
+    if (names.length <= 2) return names.join(', ');
+    return names[0] + ', ' + names[1] + ' +' + (names.length - 2) + ' more';
+  }
+
+  /* ── Compose form ───────────────────────────────────────────────── */
+
+  function admResetAnnForm() {
+    admAnnEditing           = null;
+    admAnnSelectedMemberIds = [];
+    var titleEl = document.getElementById('admAnnFormTitle');
+    if (titleEl) titleEl.textContent = 'New Announcement';
+    var t = document.getElementById('admAnnTitleInput');  if (t) t.value = '';
+    var b = document.getElementById('admAnnBodyInput');   if (b) b.value = '';
+    var e = document.getElementById('admAnnExpiryInput'); if (e) e.value = '';
+    var pin = document.getElementById('admAnnPinToggle'); if (pin) pin.classList.remove('on');
+    var scope = document.getElementById('admAnnScopeToggle'); if (scope) scope.classList.remove('on');
+    admAnnSelectType('CLUB_NOTICE');
+    _admAnnSetPickerVisible(false);
+    _admAnnRenderPills();
+    var saveBtn = document.getElementById('admAnnSaveBtn');
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Save Announcement'; }
+  }
+
+  function admOpenAnnEdit(annId) {
+    var ann = admAnnouncementsDB.filter(function (a) { return a.announcementId === annId; })[0];
+    if (!ann) { admShowToast('Announcement not found.', 'err'); return; }
+
+    admAnnEditing = annId;
+    admAnnSelectedMemberIds = ann.targetMemberIds
+      ? ann.targetMemberIds.split(',').map(function (s) { return s.trim(); }).filter(Boolean)
+      : [];
+
+    var titleEl = document.getElementById('admAnnFormTitle');
+    if (titleEl) titleEl.textContent = 'Edit Announcement';
+    var t = document.getElementById('admAnnTitleInput');  if (t) t.value = ann.title;
+    var b = document.getElementById('admAnnBodyInput');   if (b) b.value = ann.body;
+    var e = document.getElementById('admAnnExpiryInput'); if (e) e.value = ann.expiryDate || '';
+
+    var pin = document.getElementById('admAnnPinToggle');
+    if (pin) pin.classList.toggle('on', !!ann.isPinned);
+
+    admAnnSelectType(ann.announcementType || 'CLUB_NOTICE');
+
+    var hasTargets = admAnnSelectedMemberIds.length > 0;
+    var scope = document.getElementById('admAnnScopeToggle');
+    if (scope) scope.classList.toggle('on', hasTargets);
+    _admAnnSetPickerVisible(hasTargets);
+    _admAnnRenderPills();
+
+    var saveBtn = document.getElementById('admAnnSaveBtn');
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Announcement'; }
+
+    admSwitchAnnSubTab('compose');
+  }
+
+  function admAnnSelectType(typeValue) {
+    var isWhatsNew = (typeValue === 'WHATS_NEW');
+    var selector   = document.getElementById('admAnnTypeSelector');
+    var optClub    = document.getElementById('admAnnTypeOptClubNotice');
+    var optNew     = document.getElementById('admAnnTypeOptWhatsNew');
+    var hint       = document.getElementById('admAnnWhatsNewHint');
+    var pinSection = document.getElementById('admAnnPinSection');
+    var audSection = document.getElementById('admAnnAudienceSection');
+
+    if (selector) selector.dataset.selectedType = typeValue;
+    if (optClub)  optClub.classList.toggle('selected', !isWhatsNew);
+    if (optNew)   optNew.classList.toggle('selected',   isWhatsNew);
+    if (hint)     hint.style.display = isWhatsNew ? 'block' : 'none';
+    if (pinSection) pinSection.style.display = isWhatsNew ? 'none' : 'block';
+    if (audSection) audSection.style.display = isWhatsNew ? 'none' : 'block';
+
+    // When switching back to CLUB_NOTICE, respect scope-driven pin visibility
+    if (!isWhatsNew) {
+      var isScopeSpecific = (document.getElementById('admAnnScopeToggle') || {}).classList
+        && document.getElementById('admAnnScopeToggle').classList.contains('on');
+      if (pinSection) pinSection.style.display = isScopeSpecific ? 'none' : 'block';
+    }
+  }
+
+  function admAnnToggleScope() {
+    var scopeToggle = document.getElementById('admAnnScopeToggle');
+    var pinSection  = document.getElementById('admAnnPinSection');
+    var scopeSub    = document.getElementById('admAnnScopeSub');
+
+    var isNowSpecific = !scopeToggle.classList.contains('on');
+    scopeToggle.classList.toggle('on', isNowSpecific);
+    if (pinSection) pinSection.style.display = isNowSpecific ? 'none' : 'block';
+    if (scopeSub)   scopeSub.textContent     = isNowSpecific ? 'Visible to selected members only' : 'Visible to all club members';
+    _admAnnSetPickerVisible(isNowSpecific);
+    if (!isNowSpecific) {
+      admAnnSelectedMemberIds = [];
+      _admAnnRenderPills();
+    } else {
+      setTimeout(function () {
+        var inp = document.getElementById('admAnnMemberSearch');
+        if (inp) inp.focus();
+      }, 50);
+    }
+  }
+
+  function admAnnTogglePin() {
+    var toggle = document.getElementById('admAnnPinToggle');
+    if (toggle) toggle.classList.toggle('on');
+  }
+
+  function _admAnnSetPickerVisible(visible) {
+    var el = document.getElementById('admAnnMemberPickerSection');
+    if (el) el.style.display = visible ? 'block' : 'none';
+    var scopeSub = document.getElementById('admAnnScopeSub');
+    if (scopeSub) scopeSub.textContent = visible ? 'Visible to selected members only' : 'Visible to all club members';
+  }
+
+  /* ── Member picker ──────────────────────────────────────────────── */
+
+  function _admAnnRenderPills() {
+    var container = document.getElementById('admAnnMemberPills');
+    var inp       = document.getElementById('admAnnMemberSearch');
+    if (!container) return;
+    container.innerHTML = admAnnSelectedMemberIds.map(function (id) {
+      var m    = admMemberMap[id] || {};
+      var name = m.displayName || id;
+      return '<span class="ann-member-pill">' + _esc(name)
+        + '<button class="ann-member-pill-remove" onclick="admAnnRemoveMember(\'' + _esc(id) + '\')" type="button">✕</button>'
+        + '</span>';
+    }).join('');
+    if (inp) inp.placeholder = admAnnSelectedMemberIds.length > 0 ? 'Add more…' : 'Search member…';
+  }
+
+  function admAnnRemoveMember(memberId) {
+    admAnnSelectedMemberIds = admAnnSelectedMemberIds.filter(function (id) { return id !== memberId; });
+    _admAnnRenderPills();
+  }
+
+  function admAnnFilterDropdown() {
+    var query    = ((document.getElementById('admAnnMemberSearch') || {}).value || '').toLowerCase().trim();
+    var dropdown = document.getElementById('admAnnMemberDropdown');
+    if (!dropdown) return;
+
+    var selected = new Set(admAnnSelectedMemberIds);
+    var allMembers = Object.keys(admMemberMap).map(function (id) { return admMemberMap[id]; });
+
+    var matches = allMembers.filter(function (m) {
+      if (selected.has(m.memberId)) return false;
+      if (!query) return true;
+      return (m.displayName || '').toLowerCase().indexOf(query) !== -1
+          || (m.fullName    || '').toLowerCase().indexOf(query) !== -1;
+    }).slice(0, 8);
+
+    if (matches.length === 0) {
+      dropdown.innerHTML = '<div class="ann-member-option" style="color:var(--text-faint);pointer-events:none">No members found</div>';
+    } else {
+      dropdown.innerHTML = matches.map(function (m) {
+        return '<div class="ann-member-option" onclick="admAnnSelectMember(\'' + _esc(m.memberId) + '\')">'
+          + '<i class="fa-solid fa-user" style="font-size:0.8rem;color:var(--text-faint)"></i>'
+          + '<span>' + _esc(m.displayName) + '</span>'
+          + '</div>';
+      }).join('');
+    }
+    dropdown.classList.add('open');
+  }
+
+  function admAnnOpenDropdown() {
+    var inp = document.getElementById('admAnnMemberSearch');
+    if (inp) inp.value = '';
+    admAnnFilterDropdown();
+  }
+
+  function admAnnCloseDropdownDelayed() {
+    setTimeout(function () {
+      var dropdown = document.getElementById('admAnnMemberDropdown');
+      if (dropdown) dropdown.classList.remove('open');
+    }, 180);
+  }
+
+  function admAnnSelectMember(memberId) {
+    if (admAnnSelectedMemberIds.indexOf(memberId) === -1) {
+      admAnnSelectedMemberIds.push(memberId);
+    }
+    _admAnnRenderPills();
+    var inp = document.getElementById('admAnnMemberSearch');
+    if (inp) inp.value = '';
+    var dropdown = document.getElementById('admAnnMemberDropdown');
+    if (dropdown) dropdown.classList.remove('open');
+  }
+
+  /* ── Submit ─────────────────────────────────────────────────────── */
+
+  function admSubmitAnn() {
+    var rawTitle  = ((document.getElementById('admAnnTitleInput')  || {}).value || '').trim();
+    var rawBody   = ((document.getElementById('admAnnBodyInput')   || {}).value || '').trim();
+    var rawExpiry = ((document.getElementById('admAnnExpiryInput') || {}).value || '').trim();
+    var isPinned  = !!(document.getElementById('admAnnPinToggle')  || {}).classList &&
+                    document.getElementById('admAnnPinToggle').classList.contains('on');
+
+    if (!rawTitle) { admShowToast('Title is required.', 'err'); return; }
+    if (!rawBody)  { admShowToast('Body is required.', 'err');  return; }
+
+    var isSpecific     = document.getElementById('admAnnScopeToggle').classList.contains('on');
+    var targetMemberIds = isSpecific ? admAnnSelectedMemberIds.join(',') : '';
+    if (isSpecific && !targetMemberIds) {
+      admShowToast('Select at least one member, or switch to club-wide.', 'err');
+      return;
+    }
+
+    var typeSelector     = document.getElementById('admAnnTypeSelector');
+    var announcementType = (typeSelector && typeSelector.dataset.selectedType === 'WHATS_NEW')
+      ? 'WHATS_NEW' : 'CLUB_NOTICE';
+
+    var saveBtn = document.getElementById('admAnnSaveBtn');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…'; }
+
+    var payload = {
+      announcementId  : admAnnEditing || null,
+      title           : rawTitle,
+      body            : rawBody,
+      isPinned        : isPinned,
+      expiryDate      : rawExpiry,
+      targetMemberIds : targetMemberIds,
+      announcementType: announcementType
+    };
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Save Announcement'; }
+        if (res.status !== 'success') {
+          admShowToast('Error: ' + (res.message || 'Could not save.'), 'err');
+          return;
+        }
+        // Update local cache
+        if (admAnnEditing) {
+          var idx = admAnnouncementsDB.findIndex
+            ? admAnnouncementsDB.findIndex(function (a) { return a.announcementId === admAnnEditing; })
+            : (function () { for (var i = 0; i < admAnnouncementsDB.length; i++) { if (admAnnouncementsDB[i].announcementId === admAnnEditing) return i; } return -1; })();
+          if (idx > -1 && res.announcement) admAnnouncementsDB[idx] = res.announcement;
+        } else {
+          if (res.announcement) admAnnouncementsDB.push(res.announcement);
+        }
+        admShowToast(admAnnEditing ? 'Announcement updated!' : 'Announcement created!', 'ok');
+        admAnnEditing = null;
+        admRenderAnnouncements();
+        admSwitchAnnSubTab('active');
+      })
+      .withFailureHandler(function (err) {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Save Announcement'; }
+        admShowToast('Error: ' + ((err && err.message) || 'Server error.'), 'err');
+      })
+      .saveAnnouncement(payload);
+  }
+
+  /* ── Archive ────────────────────────────────────────────────────── */
+
+  function admOpenAnnArchiveModal(annId) {
+    admPendingArchiveAnnId = annId;
+    var ann   = admAnnouncementsDB.filter(function (a) { return a.announcementId === annId; })[0] || {};
+    var bodyEl = document.getElementById('admAnnArchiveModalBody');
+    if (bodyEl) {
+      bodyEl.innerHTML = 'Archive <strong>' + _esc(ann.title || annId) + '</strong>?'
+        + '<p style="margin-top:8px;font-size:0.82rem;color:var(--text-faint)">The announcement will be removed from the member feed immediately. The record is kept for audit purposes.</p>';
+    }
+    var btnEl = document.getElementById('admAnnArchiveConfirmBtn');
+    if (btnEl) btnEl.disabled = false;
+    var overlay = document.getElementById('admAnnArchiveModal');
+    if (overlay) overlay.classList.add('open');
+  }
+
+  function admCloseAnnArchiveModal() {
+    var overlay = document.getElementById('admAnnArchiveModal');
+    if (overlay) overlay.classList.remove('open');
+    admPendingArchiveAnnId = null;
+  }
+
+  function admConfirmArchiveAnn() {
+    if (!admPendingArchiveAnnId) return;
+    var annId = admPendingArchiveAnnId;
+    var btnEl = document.getElementById('admAnnArchiveConfirmBtn');
+    if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Archiving…'; }
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        admCloseAnnArchiveModal();
+        if (res.status !== 'success') { admShowToast('Error: ' + (res.message || 'Could not archive.'), 'err'); return; }
+        var ann = admAnnouncementsDB.filter(function (a) { return a.announcementId === annId; })[0];
+        if (ann) ann.status = 'Archived';
+        admShowToast('Announcement archived.', 'ok');
+        admRenderAnnouncements();
+      })
+      .withFailureHandler(function (err) {
+        admCloseAnnArchiveModal();
+        admShowToast('Error: ' + ((err && err.message) || 'Server error.'), 'err');
+      })
+      .archiveAnnouncement(annId);
+  }
+
+  /* ── Pin toggle from list view ──────────────────────────────────── */
+
+  function admToggleAnnPinRow(annId, newPinState) {
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (res.status !== 'success') { admShowToast('Error: ' + (res.message || 'Could not update pin.'), 'err'); return; }
+        var ann = admAnnouncementsDB.filter(function (a) { return a.announcementId === annId; })[0];
+        if (ann) ann.isPinned = newPinState;
+        admShowToast(newPinState ? 'Announcement pinned.' : 'Announcement unpinned.', 'ok');
+        admRenderAnnouncements();
+      })
+      .withFailureHandler(function (err) {
+        admShowToast('Error: ' + ((err && err.message) || 'Server error.'), 'err');
+      })
+      .setAnnouncementPin(annId, newPinState);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
      CONTENT MODERATION — book post feed + delete
      ══════════════════════════════════════════════════════════════════ */
 
@@ -879,6 +1307,22 @@
   window.admSetMembersActivity  = admSetMembersActivity;
   window.admShowToast           = admShowToast;
   window.admLoadReportsData     = admLoadReportsData;
+  window.admLoadAnnouncements       = admLoadAnnouncements;
+  window.admSwitchAnnSubTab         = admSwitchAnnSubTab;
+  window.admOpenAnnEdit             = admOpenAnnEdit;
+  window.admAnnSelectType           = admAnnSelectType;
+  window.admAnnToggleScope          = admAnnToggleScope;
+  window.admAnnTogglePin            = admAnnTogglePin;
+  window.admAnnFilterDropdown       = admAnnFilterDropdown;
+  window.admAnnOpenDropdown         = admAnnOpenDropdown;
+  window.admAnnCloseDropdownDelayed = admAnnCloseDropdownDelayed;
+  window.admAnnSelectMember         = admAnnSelectMember;
+  window.admAnnRemoveMember         = admAnnRemoveMember;
+  window.admSubmitAnn               = admSubmitAnn;
+  window.admOpenAnnArchiveModal     = admOpenAnnArchiveModal;
+  window.admCloseAnnArchiveModal    = admCloseAnnArchiveModal;
+  window.admConfirmArchiveAnn       = admConfirmArchiveAnn;
+  window.admToggleAnnPinRow         = admToggleAnnPinRow;
   window.admFilterPostsType     = admFilterPostsType;
   window.admRenderContent       = admRenderContent;
   window.admShowMorePosts       = admShowMorePosts;

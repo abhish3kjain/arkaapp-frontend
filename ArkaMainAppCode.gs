@@ -5693,6 +5693,45 @@ function revokeBadgeAward(awardId) {
  */
  
 /**
+ * ADMIN ONLY: Returns all announcement rows (Active + Archived) for the admin
+ * panel list view. Unlike fetchActiveAnnouncements(), this includes archived
+ * rows so admins can see history and re-manage the feed.
+ * @returns {{ status: string, announcements?: AnnouncementRecord[], message?: string }}
+ */
+function getAdminAnnouncementsData() {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId || !isAdminMember(currentMemberId)) {
+    return { status: 'admin_required', message: 'Admin access required.' };
+  }
+
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(ANNOUNCEMENT_SHEET);
+  if (!sheet) return { status: 'error', message: 'AnnouncementDB sheet not found.' };
+
+  const data          = sheet.getDataRange().getValues();
+  const announcements = [];
+
+  for (let i = 1; i < data.length; i++) {
+    if (!data[i][0]) continue;
+    announcements.push({
+      announcementId  : data[i][0].toString(),
+      title           : data[i][1].toString(),
+      body            : data[i][2].toString(),
+      isPinned        : data[i][3] === true || data[i][3] === 'TRUE',
+      expiryDate      : data[i][4] ? data[i][4].toString() : '',
+      status          : data[i][5] ? data[i][5].toString() : 'Active',
+      createdBy       : data[i][6] ? data[i][6].toString() : '',
+      createdOn       : data[i][7] ? data[i][7].toString() : '',
+      targetMemberIds : data[i][8] ? data[i][8].toString() : '',
+      dismissedBy     : data[i][9] ? data[i][9].toString() : '',
+      announcementType: data[i][10] ? data[i][10].toString().trim() : 'CLUB_NOTICE'
+    });
+  }
+
+  return { status: 'success', announcements: announcements };
+}
+
+/**
  * PRIVATE HELPER: Reads all non-Archived announcements from AnnouncementDB.
  * Reuses the already-open spreadsheet instance passed in from getAppMasterData()
  * to avoid opening a second connection — keeps the Big Gulp fast.
