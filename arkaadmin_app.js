@@ -596,7 +596,17 @@
       var aBy=a.awardedBy==='MasterEngine'?'<span class="adm-pill adm-pill-system">System</span>':_esc(a.awardedBy);
       var revBtn=a.status==='Active'?'<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenRevokeModal(\''+a.awardId+'\')"><i class="fa-solid fa-ban"></i> Revoke</button>':'—';
       var catLabel=b.badgeCategory?_admBadgeCatLabel(b.badgeCategory):'';
-      return '<tr><td class="adm-td-mono">'+_esc(a.awardId)+'</td><td><strong>'+_esc(b.caption)+'</strong>'+(catLabel?'<br><span style="font-size:0.7rem;color:var(--text-faint)">'+_esc(catLabel)+'</span>':'')+'</td><td>'+_esc(m.displayName)+'<br><span class="adm-td-mono" style="font-size:0.7rem">'+_esc(a.memberId)+'</span></td><td>'+aBy+'</td><td style="white-space:nowrap">'+_esc(a.awardedDate)+'</td><td>'+stPill+'</td><td style="font-size:0.78rem;max-width:160px;color:var(--text-muted)">'+_esc(a.notes||'—')+'</td><td>'+revBtn+'</td></tr>';
+      // On mobile: Award ID, Awarded By and Notes collapse (adm-col-meta); Badge cell shows category sub-line for context.
+      return '<tr>'
+        + '<td class="adm-td-mono adm-col-meta">'+_esc(a.awardId)+'</td>'
+        + '<td><strong>'+_esc(b.caption)+'</strong>'+(catLabel?'<br><span style="font-size:0.7rem;color:var(--text-faint)">'+_esc(catLabel)+'</span>':'')+'</td>'
+        + '<td>'+_esc(m.displayName)+'<br><span class="adm-td-mono" style="font-size:0.7rem">'+_esc(a.memberId)+'</span></td>'
+        + '<td class="adm-col-meta">'+aBy+'</td>'
+        + '<td style="white-space:nowrap">'+_esc(a.awardedDate)+'</td>'
+        + '<td>'+stPill+'</td>'
+        + '<td class="adm-col-meta" style="font-size:0.78rem;max-width:160px;color:var(--text-muted)">'+_esc(a.notes||'—')+'</td>'
+        + '<td>'+revBtn+'</td>'
+        + '</tr>';
     }).join('');
   }
 
