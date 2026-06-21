@@ -1,5 +1,6 @@
 /**
- * ARKA AI PASS — Standalone Gemini Coach Script
+ * ARKA AI PASS — Standalone Gemini Coach Script    v1.4.0
+ * Full version history: VERSIONS.md
  *
  * Responsibility: generate personalised AI reading advice for every active
  * Arka member by calling the Gemini API, then writing the result back into

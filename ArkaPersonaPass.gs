@@ -1,5 +1,9 @@
 /**
- * ARKA AI PASS — Standalone Gemini Coach Script
+ * ARKA PERSONA PASS    v1.0.0
+ * Full version history: VERSIONS.md
+ *
+ * NOTE: File header is a carry-over from an earlier copy — functions below are
+ * the correct PersonaPass implementation (6-axis reading DNA, ArkaPersonaProfileDB write).
  *
  * Responsibility: generate personalised AI reading advice for every active
  * Arka member by calling the Gemini API, then writing the result back into

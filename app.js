@@ -1,4 +1,7 @@
 		/**
+       * ArkaClubApp — frontend    v3.6.0
+       * Full version history: VERSIONS.md
+       *
        * T0: JS execution start time.
        * Captured before any variable declarations so it is as close to
        * true page-load start as possible. Used to measure BigGulpMs and TotalMs.
