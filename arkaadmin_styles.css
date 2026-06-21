@@ -27,8 +27,9 @@
       --adm-danger:        #e74c3c;
       --adm-danger-bg:     #fde8e8;
       --adm-page-bg:       #f4f7f6;
-      --color-gamification: #EF9F27;
-      --color-challenge:   #534AB7;
+      --color-gamification:   #EF9F27;
+      --color-challenge:     #534AB7;
+      --color-announcements: #2980b9;
 
       /* ── Mobile layout tokens ─────────────────────────────────────── */
       /* Height of the sticky bottom navigation bar shown only on mobile.
@@ -501,11 +502,13 @@
     }
     #admEvtForm .adm-form-label:first-child { margin-top: 0; }
 
-    /* Scoped label style for Challenge create/edit form */
+    /* Scoped label + input style for Challenge create/edit form */
     #admChalPanelForm label {
       display: block; font-size: 0.77rem; font-weight: 700; color: var(--text-muted);
       margin-bottom: 5px; margin-top: 14px;
     }
+    #admChalPanelForm textarea.adm-input { resize: vertical; }
+    #admChalPanelForm select.adm-input   { cursor: pointer; }
 
 
     /* ══════════════════════════════════════════════════════════════════
@@ -842,6 +845,32 @@
     .adm-chal-pill-upcoming { background:var(--adm-warn-bg);   color:var(--adm-warn); }
     .adm-chal-pill-completed{ background:var(--surface-alt);   color:var(--text-muted); }
     .adm-chal-pill-archived { background:var(--surface-alt);   color:var(--text-faint); }
+    /* Badge award table thumbnail */
+    .adm-award-thumb {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      border: 1.5px solid var(--border-soft); object-fit: cover;
+    }
+    .adm-award-thumb-fallback {
+      background: var(--surface-alt);
+      display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem;
+    }
+
+    /* Challenge table row states (P6) */
+    .adm-chal-row-pinned   { box-shadow: inset 3px 0 0 var(--arka-accent); }
+    .adm-chal-row-archived { opacity: 0.6; }
+
+    /* Badge category colour pills (P8) — reuse challenge type palette */
+    .badge-cat-badge {
+      display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 1px 6px;
+      border-radius: 20px; text-transform: uppercase; letter-spacing: 0.3px; margin-right: 4px;
+    }
+    .badge-cat-PAGES_READ     { background: #E6F1FB; color: #0C447C; }
+    .badge-cat-BOOKS_READ     { background: #FAEEDA; color: #633806; }
+    .badge-cat-GENRE_EXPLORER { background: #E1F5EE; color: #085041; }
+    .badge-cat-READING_STREAK { background: #FBEAF0; color: #72243E; }
+    .badge-cat-YEARLY         { background: #EEEDFE; color: var(--color-challenge); }
+    .badge-cat-SPECIAL        { background: #f0eaf4; color: var(--arka-accent-text); }
+
     /* Challenge type colour pills — ported from member app styles.css */
     .chal-type-badge {
       display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px;

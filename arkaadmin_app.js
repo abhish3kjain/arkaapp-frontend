@@ -504,9 +504,14 @@
     if (!matches.length) { dd.style.display = 'none'; return; }
     dd.innerHTML = matches.map(function(b) {
       var catLabel = _admBadgeCatLabel(b.badgeCategory);
+      var catChip = b.badgeCategory
+        ? '<span class="badge-cat-badge badge-cat-'+_esc(b.badgeCategory)+'">'+_esc(catLabel)+'</span>'
+        : '';
       return '<div class="ann-member-option" onmousedown="admBadgePickerSelect(\''+_esc(b.badgeId)+'\',\''+ctx+'\')">'
-        + '<span style="font-weight:600">'+_esc(b.caption)+'</span>'
-        + '<span style="margin-left:8px;font-size:0.72rem;color:var(--text-faint)">'+_esc(catLabel)+' &middot; '+b.badgePoints+' CP</span>'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px">'
+          + '<span style="font-weight:600">'+_esc(b.caption)+'</span>'
+          + '<span style="white-space:nowrap">'+catChip+'<span style="font-size:0.72rem;color:var(--text-faint)">'+b.badgePoints+' CP</span></span>'
+        + '</div>'
         + '</div>';
     }).join('');
     dd.style.display = 'block';
@@ -628,11 +633,18 @@
       var aBy=a.awardedBy==='MasterEngine'?'<span class="adm-pill adm-pill-system">System</span>':_esc(a.awardedBy);
       var revBtn=a.status==='Active'?'<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenRevokeModal(\''+a.awardId+'\')"><i class="fa-solid fa-ban"></i> Revoke</button>':'—';
       var catLabel=b.badgeCategory?_admBadgeCatLabel(b.badgeCategory):'';
+      var thumb=(b.imgUrl&&b.imgUrl.trim())
+        ?'<img src="'+_esc(b.imgUrl)+'" class="adm-award-thumb" alt="">'
+        :'<span class="adm-award-thumb adm-award-thumb-fallback">🏅</span>';
       return '<tr>'
         + '<td class="adm-td-mono adm-col-mob">' + _esc(a.awardId) + '</td>'
         + '<td>'
-          + '<strong>' + _esc(b.caption) + '</strong>'
-          + (catLabel ? '<br><span style="font-size:0.7rem;color:var(--text-faint)">' + _esc(catLabel) + '</span>' : '')
+          + '<div style="display:flex;align-items:center;gap:8px">'
+            + thumb
+            + '<div><strong>' + _esc(b.caption) + '</strong>'
+              + (catLabel ? '<br><span style="font-size:0.7rem;color:var(--text-faint)">' + _esc(catLabel) + '</span>' : '')
+            + '</div>'
+          + '</div>'
         + '</td>'
         + '<td>'
           + _esc(m.displayName)
@@ -2219,7 +2231,8 @@
       var archBtn    = c.status !== 'Archived'
         ? '<button class="adm-btn adm-btn-danger adm-btn-sm" style="margin-left:4px" onclick="admOpenChalArchiveModal(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-box-archive"></i></button>'
         : '';
-      return '<tr>'
+      var rowCls = c.status === 'Archived' ? ' class="adm-chal-row-archived"' : (c.isPinned ? ' class="adm-chal-row-pinned"' : '');
+      return '<tr' + rowCls + '>'
         + '<td><strong>' + _esc(c.title) + '</strong>' + pins + (c.seriesTag ? '<br><span class="adm-td-mono" style="font-size:0.7rem;color:var(--text-faint)">' + _esc(c.seriesTag) + '</span>' : '') + '</td>'
         + '<td class="adm-col-meta">' + typeLabel + '</td>'
         + '<td class="adm-col-meta" style="white-space:nowrap;font-size:0.78rem">' + dates + '</td>'
