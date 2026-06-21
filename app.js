@@ -15769,7 +15769,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (dateStr instanceof Date) return dateStr;
         
         // 1. Handle the Arka Z-Format: dd-MM-yyyy HH:mm:ss +0000
-        const zMatch = dateStr.match(/(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+([\+\-]\d{4})/);
+        // \s* allows no-space before offset (manual-entry timestamps omit the space)
+        const zMatch = dateStr.match(/(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s*([\+\-]\d{4})/);
         if (zMatch) {
           // Reorder to ISO-friendly: YYYY-MM-DDTHH:mm:ss+0000
           const isoString = `${zMatch[3]}-${zMatch[2]}-${zMatch[1]}T${zMatch[4]}:${zMatch[5]}:${zMatch[6]}${zMatch[7]}`;
@@ -18650,7 +18651,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
           globalPageLogDB.forEach(function(log) {
               var t = parseGoogleDate(log.timestamp).getTime();
-              if (t < monMs || t > sunMs) return;
+              if (isNaN(t) || t < monMs || t > sunMs) return;
               var pg  = Number(log.pagesDelta) || 0;
               if (pg <= 0) return;
               thisWeekPages += pg;
