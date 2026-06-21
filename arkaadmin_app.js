@@ -128,6 +128,14 @@
     document.querySelectorAll('.adm-nav-item[data-section]').forEach(function (btn) {
       btn.classList.toggle('active', btn.dataset.section === name);
     });
+    /* Sync the mobile bottom navigation bar active state.
+       Only the four sections that have a bottom-nav tab get the active
+       class; if the user navigates to any other section from the sidebar
+       drawer, all bottom-nav items are de-activated (no misleading
+       highlight). */
+    document.querySelectorAll('.adm-bnav-item[data-bnav]').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.bnav === name);
+    });
     // Close drawer on mobile after nav tap
     admCloseDrawer();
     // Lazy-load reports data on first visit to reports or content section
@@ -250,6 +258,7 @@
     }
     tbody.innerHTML = filtered.map(function(m) {
       var pill=_approvalPill(m.approvalStatus), actions='';
+      /* Action buttons — use _esc() on memberId for XSS safety. */
       if (m.approvalStatus===APPROVAL_STATUS.PENDING) {
         actions = '<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+_esc(m.memberId)+'\',\'Approved\')"><i class="fa-solid fa-check"></i> Approve</button> '
           + '<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenApprovalConfirmModal(\''+_esc(m.memberId)+'\',\'Rejected\')"><i class="fa-solid fa-xmark"></i> Reject</button>';
@@ -258,16 +267,28 @@
       } else if (m.approvalStatus===APPROVAL_STATUS.REJECTED) {
         actions = '<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+_esc(m.memberId)+'\',\'Approved\')">Re-Approve</button>';
       }
+      /* Bulk-select checkbox cell — shown when card view is off and bulk
+         mode is active. Hidden on mobile via display:none on the th/td
+         when the table goes into single-column card layout. */
       var cbCell = showCb
         ? '<td data-label=""><input type="checkbox" onchange="admToggleApprovalRow(\''+_esc(m.memberId)+'\',this.checked)" '+(admBulkSelectedIds.indexOf(m.memberId)>-1?'checked':'')+' class="adm-bulk-cb"></td>'
         : '';
+      /* Mobile sub-line: surfaced inside Display Name when Member ID /
+         Full Name / Email / Join Date columns are hidden via adm-col-mob. */
+      var mobileSub = '<div class="adm-ann-title-sub">'
+        + '<span class="adm-td-mono" style="font-size:0.68rem">' + _esc(m.memberId) + '</span>'
+        + '<span style="opacity:0.4">·</span>'
+        + '<span style="font-size:0.75rem">' + _esc(m.email) + '</span>'
+        + '<span style="opacity:0.4">·</span>'
+        + '<span style="font-size:0.75rem">' + _esc(m.joinDate) + '</span>'
+        + '</div>';
       return '<tr>'
         + cbCell
-        + '<td data-label="ID" class="adm-td-mono">'+_esc(m.memberId)+'</td>'
-        + '<td data-label="Name"><strong>'+_esc(m.displayName)+'</strong></td>'
-        + '<td data-label="Full Name">'+_esc(m.fullName)+'</td>'
-        + '<td data-label="Email" style="font-size:0.78rem;color:var(--text-faint)">'+_esc(m.email)+'</td>'
-        + '<td data-label="Joined" style="white-space:nowrap">'+_esc(m.joinDate)+'</td>'
+        + '<td data-label="ID" class="adm-td-mono adm-col-mob">'+_esc(m.memberId)+'</td>'
+        + '<td data-label="Name"><strong>'+_esc(m.displayName)+'</strong>' + mobileSub + '</td>'
+        + '<td data-label="Full Name" class="adm-col-mob">'+_esc(m.fullName)+'</td>'
+        + '<td data-label="Email" class="adm-col-mob" style="font-size:0.78rem;color:var(--text-faint)">'+_esc(m.email)+'</td>'
+        + '<td data-label="Joined" class="adm-col-mob" style="white-space:nowrap">'+_esc(m.joinDate)+'</td>'
         + '<td data-label="Status">'+pill+'</td>'
         + '<td data-label="" style="white-space:nowrap">'+actions+'</td>'
         + '</tr>';
@@ -486,7 +507,24 @@
       var stPill=a.status==='Active'?'<span class="adm-pill adm-pill-active">Active</span>':'<span class="adm-pill adm-pill-revoked">Revoked</span>';
       var aBy=a.awardedBy==='MasterEngine'?'<span class="adm-pill adm-pill-system">System</span>':_esc(a.awardedBy);
       var revBtn=a.status==='Active'?'<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenRevokeModal(\''+a.awardId+'\')"><i class="fa-solid fa-ban"></i> Revoke</button>':'—';
-      return '<tr><td class="adm-td-mono">'+_esc(a.awardId)+'</td><td><strong>'+_esc(b.caption)+'</strong>'+(b.badgeCategory?'<br><span style="font-size:0.7rem;color:var(--text-faint)">'+_esc(b.badgeCategory)+'</span>':'')+'</td><td>'+_esc(m.displayName)+'<br><span class="adm-td-mono" style="font-size:0.7rem">'+_esc(a.memberId)+'</span></td><td>'+aBy+'</td><td style="white-space:nowrap">'+_esc(a.awardedDate)+'</td><td>'+stPill+'</td><td style="font-size:0.78rem;max-width:160px;color:var(--text-muted)">'+_esc(a.notes||'—')+'</td><td>'+revBtn+'</td></tr>';
+      /* Mobile: Award ID, Awarded By and Notes are collapsed (adm-col-mob).
+         The Badge cell already has the category sub-line for context. */
+      return '<tr>'
+        + '<td class="adm-td-mono adm-col-mob">' + _esc(a.awardId) + '</td>'
+        + '<td>'
+          + '<strong>' + _esc(b.caption) + '</strong>'
+          + (b.badgeCategory ? '<br><span style="font-size:0.7rem;color:var(--text-faint)">' + _esc(b.badgeCategory) + '</span>' : '')
+        + '</td>'
+        + '<td>'
+          + _esc(m.displayName)
+          + '<br><span class="adm-td-mono" style="font-size:0.7rem">' + _esc(a.memberId) + '</span>'
+        + '</td>'
+        + '<td class="adm-col-mob">' + aBy + '</td>'
+        + '<td style="white-space:nowrap">' + _esc(a.awardedDate) + '</td>'
+        + '<td>' + stPill + '</td>'
+        + '<td class="adm-col-mob" style="font-size:0.78rem;max-width:160px;color:var(--text-muted)">' + _esc(a.notes || '—') + '</td>'
+        + '<td>' + revBtn + '</td>'
+        + '</tr>';
     }).join('');
   }
 
@@ -774,15 +812,20 @@
     var tbody=document.getElementById('admMembersTbody'); if (!tbody) return;
     if (!members.length){ tbody.innerHTML='<tr><td colspan="9"><div class="adm-empty"><i class="fa-solid fa-users"></i><p>No members match the current filter.</p></div></td></tr>'; return; }
     tbody.innerHTML=members.map(function(m,i){
-      var rank=i+1, rcls=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'', dot=m.lastAccessedTs>(now-ACTIVE_WINDOW_MS)?'<span class="adm-live-dot"></span>':'';
+      var rank = i + 1;
+      var rcls = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+      var isActive = m.lastAccessedTs > (now - ACTIVE_WINDOW_MS);
+      var dot = isActive ? '<span class="adm-live-dot"></span>' : '';
+      /* Mobile: Country, Pages, Books, Joined are hidden (adm-col-mob).
+         data-label attrs are kept for card-view CSS (main branch feature). */
       return '<tr>'
         + '<td data-label="Rank"><span class="adm-rank '+rcls+'">'+rank+'</span></td>'
         + '<td data-label="Member"><div style="font-weight:700">'+dot+_esc(m.displayName)+'</div><div class="adm-td-mono" style="font-size:0.7rem">'+_esc(m.memberId)+'</div></td>'
-        + '<td data-label="Country" style="font-size:0.78rem;color:var(--text-muted)">'+_esc(m.country||'—')+'</td>'
+        + '<td data-label="Country" class="adm-col-mob" style="font-size:0.78rem;color:var(--text-muted)">'+_esc(m.country||'—')+'</td>'
         + '<td data-label="CP"><strong>'+_numFmt(m.totalCp)+'</strong></td>'
-        + '<td data-label="Pages">'+_numFmt(m.totalPages)+'</td>'
-        + '<td data-label="Books">'+m.totalBooks+'</td>'
-        + '<td data-label="Joined" style="font-size:0.78rem;white-space:nowrap">'+_esc(m.joinDate)+'</td>'
+        + '<td data-label="Pages" class="adm-col-mob">'+_numFmt(m.totalPages)+'</td>'
+        + '<td data-label="Books" class="adm-col-mob">'+m.totalBooks+'</td>'
+        + '<td data-label="Joined" class="adm-col-mob" style="font-size:0.78rem;white-space:nowrap">'+_esc(m.joinDate)+'</td>'
         + '<td data-label="Last Active" style="font-size:0.78rem;white-space:nowrap;color:var(--text-faint)">'+(m.lastAccessed||'—')+'</td>'
         + '<td data-label="Status">'+_approvalPill(m.approvalStatus)+'</td>'
         + '</tr>';
@@ -1625,12 +1668,23 @@
         ? _esc((p.reviewText || '').substring(0, 100)) + '…'
         : _esc(p.reviewText || '');
       var datePart = (p.timestamp || '').substring(0, 10);
+      /* Mobile: Date and Likes columns are hidden (adm-col-mob).
+         A sub-line appended to the excerpt cell surfaces both values
+         so moderators still have full context on narrow screens. */
+      var mobileSub = '<div class="adm-ann-title-sub">'
+        + '<span style="font-size:0.72rem">' + _esc(datePart) + '</span>'
+        + '<span style="opacity:0.4">·</span>'
+        + '<i class="fa-solid fa-heart" style="font-size:0.65rem;color:var(--adm-danger);opacity:0.7"></i>'
+        + '<span style="font-size:0.72rem">' + (p.likeCount || 0) + '</span>'
+        + '</div>';
       return '<tr>'
         + '<td>' + name + '</td>'
         + '<td><span class="adm-pill">' + _esc(p.postType) + '</span></td>'
-        + '<td style="max-width:260px;white-space:normal;font-size:0.82rem;color:var(--text-body)">' + excerpt + '</td>'
-        + '<td style="white-space:nowrap;font-size:0.82rem">' + _esc(datePart) + '</td>'
-        + '<td style="text-align:center">' + (p.likeCount || 0) + '</td>'
+        + '<td style="max-width:260px;white-space:normal;font-size:0.82rem;color:var(--text-body)">'
+          + excerpt + mobileSub
+        + '</td>'
+        + '<td class="adm-col-mob" style="white-space:nowrap;font-size:0.82rem">' + _esc(datePart) + '</td>'
+        + '<td class="adm-col-mob" style="text-align:center">' + (p.likeCount || 0) + '</td>'
         + '<td><button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenPostDeleteModal(\'' + _esc(p.postId) + '\')">'
         + '<i class="fa-solid fa-trash"></i></button></td>'
         + '</tr>';
@@ -1837,9 +1891,19 @@
     var map={admLoadingState:'flex',admAccessDenied:'flex',admErrorState:'flex',admShell:'block'};
     Object.keys(map).forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display=(id===activeId)?map[id]:'none'; });
   }
+  /* _admUpdatePendingBubble — keeps BOTH pending-count indicators in sync.
+     sidebar bubble: #admNavPendingBubble (always visible on desktop)
+     bottom-nav badge: #admBNavPendingBadge (visible only on mobile) */
   function _admUpdatePendingBubble(count) {
-    var b=document.getElementById('admNavPendingBubble'); if (!b) return;
-    b.textContent=count; b.style.display=count>0?'inline-flex':'none';
+    // Sidebar bubble
+    var sb = document.getElementById('admNavPendingBubble');
+    if (sb) { sb.textContent = count; sb.style.display = count > 0 ? 'inline-flex' : 'none'; }
+    // Mobile bottom-nav badge
+    var bnb = document.getElementById('admBNavPendingBadge');
+    if (bnb) {
+      bnb.textContent = count > 9 ? '9+' : count;
+      bnb.classList.toggle('visible', count > 0);
+    }
   }
   function _esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function _fmtMs(ms){ if (!ms||ms===0) return '—'; return ms>=1000?(ms/1000).toFixed(1)+'s':Math.round(ms)+'ms'; }
