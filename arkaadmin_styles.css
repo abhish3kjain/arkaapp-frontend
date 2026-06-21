@@ -21,9 +21,14 @@
       --adm-sidebar-w:     220px;
       --adm-topbar-h:      56px;
       --adm-ok:            #1d9e75;
+      --adm-ok-bg:         #e6f7f1;
       --adm-warn:          #f59f00;
+      --adm-warn-bg:       #fff8e6;
       --adm-danger:        #e74c3c;
+      --adm-danger-bg:     #fde8e8;
       --adm-page-bg:       #f4f7f6;
+      --color-gamification: #EF9F27;
+      --color-challenge:   #534AB7;
 
       /* ── Mobile layout tokens ─────────────────────────────────────── */
       /* Height of the sticky bottom navigation bar shown only on mobile.
@@ -496,6 +501,12 @@
     }
     #admEvtForm .adm-form-label:first-child { margin-top: 0; }
 
+    /* Scoped label style for Challenge create/edit form */
+    #admChalPanelForm label {
+      display: block; font-size: 0.77rem; font-weight: 700; color: var(--text-muted);
+      margin-bottom: 5px; margin-top: 14px;
+    }
+
 
     /* ══════════════════════════════════════════════════════════════════
        MOBILE BOTTOM NAVIGATION BAR
@@ -831,6 +842,18 @@
     .adm-chal-pill-upcoming { background:var(--adm-warn-bg);   color:var(--adm-warn); }
     .adm-chal-pill-completed{ background:var(--surface-alt);   color:var(--text-muted); }
     .adm-chal-pill-archived { background:var(--surface-alt);   color:var(--text-faint); }
+    /* Challenge type colour pills — ported from member app styles.css */
+    .chal-type-badge {
+      display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px;
+      border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .chal-type-HABIT_STREAK   { background: #FAEEDA; color: #633806; }
+    .chal-type-BINGO_GRID     { background: #EEEDFE; color: var(--color-challenge); }
+    .chal-type-BUDDY_READ     { background: #FBEAF0; color: #72243E; }
+    .chal-type-COUNTRY_SPREAD { background: #E1F5EE; color: #085041; }
+    .chal-type-ALPHABET       { background: #E6F1FB; color: #0C447C; }
+    .chal-type-BOOK_COUNT     { background: #FAEEDA; color: #633806; }
+    .chal-type-PAGE_COUNT     { background: #E6F1FB; color: #0C447C; }
     @media (max-width: 768px) {
       /* ── 24. Announcement compose: form action row ─────────────────  */
       #admAnnForm  > div[style*="display:flex"],
