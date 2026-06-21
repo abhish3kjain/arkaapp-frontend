@@ -915,13 +915,6 @@
 
           </div>
 
-          <!-- Onboarding journey card — rendered by renderOnboardingCard().
-               Sits between the identity row and the celebration card.
-               .ob-card applied here directly so the shadow, border-radius, and
-               position:relative (for the dismiss overlay) all live on this element.
-               Hidden by default; shown by Wave 1 render once dismissed flag is confirmed false. -->
-          <div id="meOnboardingCard" class="ob-card" style="display:none;"></div>
-
           <!-- Celebration card — sits directly above the Reading Journey section -->
           <div id="meCelebrationCard" style="display:none; margin-bottom:14px;"></div>
 
@@ -931,6 +924,13 @@
                successful page log while the Me tab is visible.
           ──────────────────────────────────────────────────────────────────────── -->
           <div id="meActionBand" style="margin-top:6px; margin-bottom:4px;"></div>
+
+          <!-- Onboarding journey card — rendered by renderOnboardingCard().
+               Sits between the identity row and the celebration card.
+               .ob-card applied here directly so the shadow, border-radius, and
+               position:relative (for the dismiss overlay) all live on this element.
+               Hidden by default; shown by Wave 1 render once dismissed flag is confirmed false. -->
+          <div id="meOnboardingCard" class="ob-card" style="display:none;"></div>
 
           <!-- ── What's New strip — Phase 2 ───────────────────────────────────────────
                Rendered by renderMeWhatsNewStrip(); called from applyWave2() and
