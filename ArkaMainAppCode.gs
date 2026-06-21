@@ -146,6 +146,9 @@ const EVENT_ASSETS_FOLDER_ID    = '1R0-aaxcymLuemLRXK2E_E0sqYEQdFC37';
 const BOOK_COVERS_FOLDER_ID     = '1a4CaUw3OjxkZQrvMxOtwFZWuWvc_-taD';
 const FEEDBACK_IMAGES_FOLDER_ID = '1lhRX1kpIYLRXHAk0znVCoSkMoIOGtZ0i';
 
+// ── BackEndEngine spreadsheet (EmailQueueDB lives here, separate from main DB) ──
+const EMAIL_BACKEND_SPREADSHEET_ID = '1s5h8T6PGPTOBs_RKJNRJjRCZm8igWJzmniLRoW7BFJA';
+
 // ── 10 Pages A Day bridge constants ───────────────────────────────────────
 // TEMPORARY — deprecated when the 10 Pages A Day app is retired.
 // All functions that reference these constants are clearly marked TEMPORARY.
@@ -1898,7 +1901,7 @@ function updateMemberShelf(shelfData) {
     // Only fires for dual members when syncTo10Pages flag is set and pages genuinely
     // increased. Edit mode is intentionally excluded — editing history must not
     // corrupt the live weekly tracker.
-    if (shelfData.syncTo10Pages && !isEditMode) {
+    if (shelfData.syncTo10Pages && !isEditMode && (finalStatus !== 'Finished' || isCurrentYearFinish)) {
       try {
         // CASE 2 (progress update on existing record): recalculate delta from shelf data.
         // CASE 3 (brand new record): previous pages = 0, so delta = finalPagesRead.
@@ -5065,6 +5068,31 @@ function deleteBookPost(postId) {
 }
 
 /**
+ * ADMIN ONLY: Soft-deletes any book post by postId, bypassing the ownership
+ * check that the member-facing deleteBookPost() enforces. Sets status col G
+ * to "Deleted". Only callable by members in ADMIN_MEMBER_IDS_BACKEND.
+ */
+function adminDeleteBookPost(postId) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(BOOK_POST_SHEET);
+  if (!sheet) return { status: 'error', message: 'BookPostDB not found.' };
+
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId || !isAdminMember(currentMemberId)) {
+    return { status: 'error', message: 'Admin access required.' };
+  }
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0].toString() !== postId.toString()) continue;
+    sheet.getRange(i + 1, 7).setValue('Deleted');
+    return { status: 'success' };
+  }
+
+  return { status: 'error', message: 'Post not found.' };
+}
+
+/**
  * Helper: Gets the next sequential activity ID by reading only the last row's ID cell.
  * Saves reading the entire ActivityLogDB just to find the highest number.
  * @param {Sheet} logSheet - The ActivityLogDB sheet object.
@@ -5245,15 +5273,14 @@ function setMemberApprovalStatus(memberId, newStatus) {
 
 
 /**
- * PUBLIC: Clears the MemberDB Col N celebration field for the calling member.
- * Called by the frontend immediately after the member dismisses the celebration card.
- * Sets the cell to '' so MasterEngine knows all pending items have been seen.
+ * PUBLIC: Clears the badge/level celebration fields in MemberDB Col N for the
+ * calling member. Only clears `badges` and `newLevel` — preserves `personaShiftSeen`
+ * so the persona card stays dismissed even after a badge/level card dismiss.
  *
  * Design:
  *   - memberId resolved from the session — never accepted from the caller.
- *   - Col N is the only column the app-side writes on this path. MasterEngine
- *     is the sole writer for populating badge IDs and newLevel.
- *   - Blanking the cell is idempotent; a second call (e.g. double-tap) is safe.
+ *   - Read-modify-write: removes badges/newLevel, keeps personaShiftSeen.
+ *   - Blanks the cell only when nothing remains (no personaShiftSeen to preserve).
  *
  * @returns {Object} { status: 'success' } | { status: 'error', message }
  */
@@ -5268,7 +5295,34 @@ function clearMemberCelebration() {
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][0].toString() !== memberId) continue;
-      memberSheet.getRange(i + 1, MEMBER_CELEBRATION_COL_NUMBER).setValue('');
+
+      // Read-modify-write: preserve personaShiftSeen while clearing badge/level fields.
+      const raw = (data[i][MEMBER_CELEBRATION_COL_INDEX] || '').toString().trim();
+      let existing = {};
+      try { if (raw) existing = JSON.parse(raw); } catch (e) { existing = {}; }
+
+      const personaShiftSeen   = existing.personaShiftSeen   || null;
+      const personaShiftSeenAt = Number(existing.personaShiftSeenAt) || 0;
+
+      // Only preserve the persona seen marker if it was stamped within the same
+      // 7-day window that renderPersonaCelebrationCard_() uses to surface the card.
+      // An older marker is useless (the card wouldn't show anyway) so we drop it,
+      // letting the cell go blank and keeping Col N tidy.
+      const PERSONA_CELEB_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+      const seenIsStillFresh = personaShiftSeen &&
+                               personaShiftSeenAt > 0 &&
+                               (Date.now() - personaShiftSeenAt) < PERSONA_CELEB_WINDOW_MS;
+
+      let newValue;
+      if (seenIsStillFresh) {
+        // Keep only the persona seen marker — drop badges and newLevel.
+        newValue = JSON.stringify({ personaShiftSeen, personaShiftSeenAt });
+      } else {
+        // Nothing to preserve (no marker, or marker is stale) — blank the cell.
+        newValue = '';
+      }
+
+      memberSheet.getRange(i + 1, MEMBER_CELEBRATION_COL_NUMBER).setValue(newValue);
       return { status: 'success' };
     }
 
@@ -5317,7 +5371,8 @@ function setPersonaCelebrationSeen(seenActivityId) {
       let existing = {};
       try { if (raw) existing = JSON.parse(raw); } catch (e) { existing = {}; }
 
-      existing.personaShiftSeen = seenActivityId;
+      existing.personaShiftSeen   = seenActivityId;
+      existing.personaShiftSeenAt = Date.now(); // epoch ms — used by clearMemberCelebration to expire stale markers
 
       memberSheet
         .getRange(i + 1, MEMBER_CELEBRATION_COL_NUMBER)
@@ -5640,6 +5695,45 @@ function revokeBadgeAward(awardId) {
  * @property {string}  createdOn      - dd-MM-yyyy HH:mm:ss Z         (Col H)
  */
  
+/**
+ * ADMIN ONLY: Returns all announcement rows (Active + Archived) for the admin
+ * panel list view. Unlike fetchActiveAnnouncements(), this includes archived
+ * rows so admins can see history and re-manage the feed.
+ * @returns {{ status: string, announcements?: AnnouncementRecord[], message?: string }}
+ */
+function getAdminAnnouncementsData() {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId || !isAdminMember(currentMemberId)) {
+    return { status: 'admin_required', message: 'Admin access required.' };
+  }
+
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(ANNOUNCEMENT_SHEET);
+  if (!sheet) return { status: 'error', message: 'AnnouncementDB sheet not found.' };
+
+  const data          = sheet.getDataRange().getValues();
+  const announcements = [];
+
+  for (let i = 1; i < data.length; i++) {
+    if (!data[i][0]) continue;
+    announcements.push({
+      announcementId  : data[i][0].toString(),
+      title           : data[i][1].toString(),
+      body            : data[i][2].toString(),
+      isPinned        : data[i][3] === true || data[i][3] === 'TRUE',
+      expiryDate      : data[i][4] ? data[i][4].toString() : '',
+      status          : data[i][5] ? data[i][5].toString() : 'Active',
+      createdBy       : data[i][6] ? data[i][6].toString() : '',
+      createdOn       : data[i][7] ? data[i][7].toString() : '',
+      targetMemberIds : data[i][8] ? data[i][8].toString() : '',
+      dismissedBy     : data[i][9] ? data[i][9].toString() : '',
+      announcementType: data[i][10] ? data[i][10].toString().trim() : 'CLUB_NOTICE'
+    });
+  }
+
+  return { status: 'success', announcements: announcements };
+}
+
 /**
  * PRIVATE HELPER: Reads all non-Archived announcements from AnnouncementDB.
  * Reuses the already-open spreadsheet instance passed in from getAppMasterData()
@@ -9034,8 +9128,28 @@ const CACHE_TTL = 21600; // 6 hours
  * @param {string} key - One of the CACHE_KEYS values
  * @returns {Array|null}
  */
+// Sheet used as a cross-project dirty-flag channel (written by MasterEngine).
+const APP_CONFIG_SHEET = 'AppConfigData';
+const BADGE_DIRTY_ROW  = 2; // row in AppConfigData that holds badge_awards_dirty flag
+
 function getCachedDb(key) {
   try {
+    // For badge awards: check the shared dirty flag written by MasterEngine.
+    // MasterEngine runs in a separate GAS project so its CacheService namespace
+    // is isolated — the flag cell is the only shared channel between projects.
+    if (key === CACHE_KEYS.badgeAwards) {
+      const configSheet = SpreadsheetApp.openById(SPREADSHEET_ID)
+                            .getSheetByName(APP_CONFIG_SHEET);
+      if (configSheet) {
+        const flagVal = configSheet.getRange(BADGE_DIRTY_ROW, 2).getValue();
+        if (flagVal === true) {
+          configSheet.getRange(BADGE_DIRTY_ROW, 2).setValue(false);
+          CacheService.getScriptCache().remove(key);
+          console.log('Cache BYPASSED (badge dirty flag): ' + key);
+          return null;
+        }
+      }
+    }
     const cached = CacheService.getScriptCache().get(key);
     if (!cached) return null;
     console.log('Cache HIT: ' + key);
@@ -9466,4 +9580,137 @@ function sanitiseGenreField_(rawValue) {
   const trimmed = String(rawValue || '').trim();
   const NONE_SENTINEL = /^none( listed\.?)?$/i;
   return NONE_SENTINEL.test(trimmed) ? '' : trimmed;
+}
+
+
+// ============================================================================
+// ADMIN — BULK APPROVE
+// ============================================================================
+
+/**
+ * Approves multiple Pending members in a single GAS call.
+ * Acquires the script lock once and processes all rows in a single sheet scan.
+ * Sends a welcome notice for each newly approved member (non-fatal on failure).
+ *
+ * @param {string[]} memberIds - Array of ARKA_MEMBER_X IDs to approve
+ * @returns {{ status: string, approvedIds: string[], count: number }}
+ */
+function bulkApproveMembers(memberIds) {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId || !isAdminMember(currentMemberId)) {
+    return { status: 'admin_required', message: 'Admin access required.' };
+  }
+  if (!Array.isArray(memberIds) || memberIds.length === 0) {
+    return { status: 'error', message: 'No member IDs provided.' };
+  }
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) {
+    return { status: 'error', message: 'System is busy. Please try again in a moment.' };
+  }
+
+  try {
+    const sheet   = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(MEMBERS_SHEET);
+    const data    = sheet.getDataRange().getValues();
+    const idSet   = new Set(memberIds.map(String));
+    const approved = [];
+
+    for (let i = 1; i < data.length; i++) {
+      const rowId = data[i][0].toString();
+      if (!idSet.has(rowId)) continue;
+      if ((data[i][MEMBER_APPROVAL_COL_INDEX] || '').toString().trim() !== APPROVAL_STATUS.PENDING) continue;
+      sheet.getRange(i + 1, MEMBER_APPROVAL_COL_NUMBER).setValue(APPROVAL_STATUS.APPROVED);
+      const displayName = (data[i][3] || '').toString().trim();
+      try { sendMemberWelcomeNotice_(rowId, displayName); } catch (e) { /* non-fatal */ }
+      approved.push(rowId);
+    }
+
+    return { status: 'success', approvedIds: approved, count: approved.length };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+
+// ============================================================================
+// ADMIN — EMAIL QUEUE MONITOR
+// ============================================================================
+
+/**
+ * Returns the 300 most recent EmailQueueDB rows from the BackEndEngine spreadsheet.
+ * Read-only viewer for admins. Column map (0-based):
+ *   A=QueueID, B=MemberID, D=DisplayName, E=EmailType, G=ScheduledDate,
+ *   H=Status, I=SentAt, K=ClickedAt, M=CreatedAt
+ *
+ * @returns {{ status: string, queue: Object[] }}
+ */
+function getAdminEmailQueueData() {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId || !isAdminMember(currentMemberId)) {
+    return { status: 'admin_required', message: 'Admin access required.' };
+  }
+
+  try {
+    const backendSs  = SpreadsheetApp.openById(EMAIL_BACKEND_SPREADSHEET_ID);
+    const queueSheet = backendSs.getSheetByName('EmailQueueDB');
+    if (!queueSheet) return { status: 'error', message: 'EmailQueueDB sheet not found.' };
+
+    const data = queueSheet.getDataRange().getValues();
+    const rows = [];
+    // Read newest rows first (skip header row 0)
+    const start = Math.max(1, data.length - 300);
+    for (let i = data.length - 1; i >= start; i--) {
+      if (!data[i][0]) continue;
+      rows.push({
+        queueId      : data[i][0].toString(),
+        memberId     : data[i][1].toString(),
+        displayName  : data[i][3].toString(),
+        emailType    : data[i][4].toString(),
+        scheduledDate: data[i][6] ? data[i][6].toString() : '',
+        status       : data[i][7] ? data[i][7].toString() : '',
+        sentAt       : data[i][8] ? data[i][8].toString() : '',
+        clickedAt    : data[i][10] ? data[i][10].toString() : '',
+        createdAt    : data[i][12] ? data[i][12].toString() : ''
+      });
+    }
+
+    return { status: 'success', queue: rows };
+  } catch (e) {
+    console.error('getAdminEmailQueueData error:', e);
+    return { status: 'error', message: e.toString() };
+  }
+}
+
+/**
+ * Marks a PENDING EmailQueueDB entry as SUPPRESSED so ArkaEmailPass skips it.
+ * Only PENDING entries can be suppressed — SENT/FAILED rows are immutable here.
+ *
+ * @param {string} queueId - ARKA_EMAILQ_X
+ * @returns {{ status: string }}
+ */
+function adminSuppressEmailEntry(queueId) {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId || !isAdminMember(currentMemberId)) {
+    return { status: 'admin_required', message: 'Admin access required.' };
+  }
+
+  try {
+    const backendSs  = SpreadsheetApp.openById(EMAIL_BACKEND_SPREADSHEET_ID);
+    const queueSheet = backendSs.getSheetByName('EmailQueueDB');
+    if (!queueSheet) return { status: 'error', message: 'EmailQueueDB sheet not found.' };
+
+    const data = queueSheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0].toString() !== queueId.toString()) continue;
+      if ((data[i][7] || '').toString() !== 'PENDING') {
+        return { status: 'error', message: 'Only PENDING entries can be suppressed.' };
+      }
+      queueSheet.getRange(i + 1, 8).setValue('SUPPRESSED'); // Col H — Status
+      return { status: 'success' };
+    }
+    return { status: 'error', message: 'Queue entry not found.' };
+  } catch (e) {
+    console.error('adminSuppressEmailEntry error:', e);
+    return { status: 'error', message: e.toString() };
+  }
 }

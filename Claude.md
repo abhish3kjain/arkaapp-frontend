@@ -52,8 +52,39 @@ Update `VERSIONS.md` with a one-line summary on every commit that changes a vers
 | `Arka_Product_Audit_v2.md` | Product audit framework + open items | v2 |
 | `Arka_PersonaEngine_V1.md` | Formal design doc for ArkaPersonaPass | v1 |
 | `Arka_ReadingSpeedEngine_V1.md` | Formal design doc for RSE V1 | v1 |
+### Member App
+| File | Purpose | Notes |
+|---|---|---|
+| `ArkaClubApp.html` | GAS HTML shell — markup only (367 lines) | Links `styles.css` and `app.js` via GitHub CDN |
+| `styles.css` | Member app CSS | Served from GitHub CDN `?v=1.5` |
+| `app.js` | Member app JavaScript | Served from GitHub CDN `?v=1.5` |
+| `ArkaMainAppCode.gs` | Backend GAS — all `google.script.run` handlers | Version variable in file |
+| `MasterEngine.gs` | Nightly batch engine — stats, badges, email queue | current |
+| `ArkaAIPass.gs` | Gemini AI narrative generation via `UrlFetchApp` | current |
+| `ArkaEmailPass.gs` | Email pipeline — reads queue, sends, logs | current |
+| `ArkaPersonaPass.gs` | Reading personality / archetype computation | current |
+
+### Admin Panel
+| File | Purpose | Notes |
+|---|---|---|
+| `AkraAdminControlPanel.html` | GAS HTML shell — markup only (367 lines) | ⚠️ Filename typo: "Akra" not "Arka". Links `arkaadmin_styles.css` and `arkaadmin_app.js` via GitHub CDN |
+| `arkaadmin_styles.css` | Admin panel CSS | Served from GitHub CDN `?v=1.0` |
+| `arkaadmin_app.js` | Admin panel JavaScript (admin IIFE + reports engine) | Served from GitHub CDN `?v=1.0` |
+
+### Reference & Docs
+| File | Purpose |
+|---|---|
+| `ArkaHelp.html` | In-app help content (47 articles as of Jun 2026) — v11.0 |
+| `ArkaDesign_Tokens.md` | Design token definitions — single source of truth for colour/type |
+| `ArkaDatabase_Definitions.md` | Column-by-column schema for every sheet |
+| `Product_Audit_v3.md` | Latest comprehensive product audit (v127 build) — overall 8.5/10 |
+| `Product_Audit_Admin_v1.md` | Admin panel audit — overall 5.4/10 (6.3/10 post-P1) |
+| `Arka_PersonaEngine_V1.md` | Formal design doc for ArkaPersonaPass — axes, archetypes, gating logic, frontend integration |
+| `Arka_ReadingSpeedEngine_V1.md` | Formal design doc for Reading Speed Engine — pace computation, outlier detection, genre fallback chain, frontend usage |
 
 **Version scheme:** `MAJOR.MINOR.PATCH` — see `VERSIONS.md` for increment rules.
+
+**CDN cache busting:** When deploying changes to `styles.css`, `app.js`, `arkaadmin_styles.css`, or `arkaadmin_app.js`, increment the `?v=X.Y` query string in the corresponding HTML shell file.
 
 ---
 
@@ -157,9 +188,10 @@ Inline comments should explain **why**, not what. Code already shows what it doe
 
 ## 6. Architecture Overview
 
-### Frontend SPA (`ArkaClubApp_v111.html`)
-- Single-file HTML/CSS/JS. All frontend logic, CSS, and HTML templates coexist in one file.
-- No build step. Served directly by GAS `HtmlService`.
+### Frontend SPA (`ArkaClubApp.html` + `styles.css` + `app.js`)
+- HTML shell is markup-only (~367 lines). CSS and JS are split into separate files served from the GitHub Pages CDN (`https://abhish3kjain.github.io/arkaapp-frontend/`).
+- No build step. Served directly by GAS `HtmlService`. The CDN files are loaded as external `<link>` and `<script src>` tags.
+- Same pattern applies to the Admin Panel: `AkraAdminControlPanel.html` + `arkaadmin_styles.css` + `arkaadmin_app.js`.
 - External libraries (loaded from CDN, no new OAuth scopes):
   - `Font Awesome 6.4.0` — icons
   - `Chart.js` — data visualisation
@@ -261,13 +293,15 @@ Any feature requiring a sensitive scope must be routed through a **separate owne
 - The only place token literal values may appear is inside the `:root` block.
 - New recurring colours must be **promoted to a token**, not hardcoded inline.
 
-### Phase 6 Semantic Tokens (Open — Prerequisite for Dark Mode)
-These tokens are **planned but not yet implemented**. Dark mode is blocked until they exist:
-- `--color-success` (currently hardcoded `#1d9e75`)
-- `--color-danger` (currently hardcoded `#e74c3c`)
-- `--color-warning` (currently hardcoded `#ef9f27`)
-- `--color-gamification` (currently hardcoded light-purple fills)
-- `--color-challenge` (currently hardcoded teal variants)
+### Phase 6 Semantic Tokens (✅ Deployed in `styles.css` lines 18–24)
+```css
+--color-success:      #1D9E75;   /* success states, approved, streaks */
+--color-danger:       #e74c3c;   /* errors, warnings, rejection */
+--color-warning:      #e67e22;   /* caution states */
+--color-gamification: #EF9F27;   /* XP, points, gamification accents */
+--color-challenge:    #534AB7;   /* challenge-specific UI */
+```
+Dark mode is still blocked pending surface tokenisation (~311 `#ffffff` uses, body background `#f4f7f6`, ~281 other hardcoded colours — see `ArkaDesign_Tokens.md §5`).
 
 ### Reusable Component Classes (always prefer these over new patterns)
 
@@ -366,19 +400,37 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 
 ## 11. Current Product Audit Score & Open Items
 
-**Score:** ~8.5 / 10 against Arka Product Audit v2.
+**Member App:** 8.5 / 10 (Product_Audit_v3.md, v127 build)
+**Admin Panel:** 5.4 / 10 (Product_Audit_Admin_v1.md, v127 build)
 
-### Open / In-Progress Items
+### Member App — Open Items
 | Item | Priority |
 |---|---|
-| Phase 6 semantic color tokens (`--color-success`, `--color-danger`, `--color-warning`, `--color-gamification`, `--color-challenge`) | Prerequisite for dark mode |
-| Full `data-action` attribute migration (8/145 done) | Accessibility |
+| Full `data-action` attribute migration (8 remaining of 145) | Accessibility |
 | Structured reading goal fields (replace free-text with `{ type, target, period }`) | Product |
 | Remove "Temp" badge | Cleanup |
 | `help-whats-new` June 2026 entry | Help content |
 | Persona rarity peer signal ("You're 1 of 3 Midnight Scholars") | Product |
-| Dark mode (`@media (prefers-color-scheme: dark)` + surface audit) | Blocked by Phase 6 tokens |
+| Dark mode (`@media (prefers-color-scheme: dark)` + surface audit) | Blocked — needs surface tokenisation |
 | Archetype chip on Home header | Quick win |
+| TEN_PAGES_MEMBER_MAP PII in served frontend JS (`app.js` L82–103) | Privacy / security |
+| Prediction Engine Phase 1 (Finish Date, DNF Risk, Rating Prediction, Oracle Score) | Approved, not yet built |
+
+| Deprecate admin-only announcements section from main member app — admin panel Announcements section is now the canonical management UI | Deferred — do after P2 sprint |
+
+### Admin Panel — P1 + P2 Items
+| Item | Status |
+|---|---|
+| P1-1: Replace mobile bottom tab strip with hamburger + slide-out drawer | ✅ Done |
+| P1-2: Toast obscured by tab strip | ✅ Done (resolved by P1-1) |
+| P1-3: Mobile content overlap with topbar | ✅ Done (resolved by P1-1) |
+| P1-4: Confirmation modal for Reject and Revoke Access in Approvals | ✅ Done |
+| P1-5: Book post delete UI using existing `deleteBookPost()` backend | ✅ Done |
+| P2-1: Announcements section — create/edit/archive/pin + member audience picker | ✅ Done |
+| P2-2: Events management section using existing `saveEvent()` | ⬜ Next |
+| P2-3: Email queue monitor (read-only) | ⬜ Queued |
+| P2-4: Mobile table card-view toggle for Approvals and Member Stats | ⬜ Queued |
+| P2-5: Approvals bulk-select + bulk-approve | ⬜ Queued |
 
 ---
 
@@ -390,6 +442,13 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 - Key parameters: genre threshold = 3 books, moodMultiplier clamp = [0.4, 2.0], adaptiveIQR clamp = [1.2, 3.0], time-weight full period = 12 months, floor = 0.5 at 36+ months.
 - Frontend: Library "Reading Time" sort chip uses RSE fallback chain. Book Detail finish estimate to be upgraded to RSE V1.
 - Any change to V1 parameters requires a version bump in the JSON (`v` field) and a new entry in the version history table in the MD file.
+
+### Admin Panel Improvement (Active)
+- Audit complete (`Product_Audit_Admin_v1.md`).
+- All P1 items shipped. P2-1 (Announcements) shipped.
+- P2-2 (Events) is next; P2-3/4/5 queued after.
+- See §11 Admin Panel tracking table for full status.
+
 
 ### Prediction Engine Phase 1 (Next Active Workstream)
 - Technical design is complete: **Finish Date**, **DNF Risk Score**, **Rating Prediction**, **Oracle Score** mechanic.
@@ -456,4 +515,4 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 
 ---
 
-*Last updated: June 2026 | App version at time of writing: v127*
+*Last updated: June 2026 | Member app version: v127 | Admin panel: post-P1-1 (mobile drawer)*

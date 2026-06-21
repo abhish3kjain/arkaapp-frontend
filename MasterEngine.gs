@@ -50,28 +50,42 @@ const EMAIL_BACKEND_SPREADSHEET_ID = '1s5h8T6PGPTOBs_RKJNRJjRCZm8igWJzmniLRoW7BF
 const EMAILPASS_READY_FLAG_KEY = 'ARKAEMAILPASS_READY';
 
 // ── Script cache utilities ─────────────────────────────────────────────────
-// MasterEngine is a standalone GAS project and cannot reference functions
-// defined in ArkaClubAppCode. These are the minimal cache constants and
-// helpers MasterEngine needs to invalidate the BadgeAwardDB cache after
-// each nightly badge write, so the member app gets fresh data on next load.
-// Key strings must stay in sync with CACHE_KEYS in ArkaClubAppCode.
+// MasterEngine is a standalone GAS project — CacheService.getScriptCache()
+// is scoped per project and does NOT share a namespace with ArkaMainAppCode.
+// To signal the web app that badge data changed, MasterEngine writes a dirty
+// flag into the shared "AppConfigData" sheet. ArkaMainAppCode reads that flag
+// in getCachedDb(), bypasses the stale cache entry, then resets the flag after
+// writing fresh data back to cache.
 const MASTER_CACHE_KEYS = {
   badgeAwards: 'arka_cache_badgeawards_v1'
 };
 
+// Sheet used as a cross-project signalling channel.
+const APP_CONFIG_SHEET   = 'AppConfigData';
+// Row in AppConfigData that holds the badge-awards dirty flag (1-indexed).
+// Layout: col A = flag key, col B = "true" | "false"
+const BADGE_DIRTY_ROW    = 2;
+
 /**
- * Removes one cache key from the script cache.
- * Called after MasterEngine writes new rows to BadgeAwardDB so the member
- * app does not serve stale badge data on the next Wave 3 load.
- * Silently swallows errors — cache invalidation failure is never fatal.
- *
- * @param {string} key - A MASTER_CACHE_KEYS value
+ * Sets the badge-awards dirty flag in AppConfigData so that ArkaMainAppCode
+ * bypasses its stale script cache on the next Wave 3 load.
+ * Silently swallows errors — invalidation failure is never fatal.
  */
 function invalidateCacheKey(key) {
   try {
-    CacheService.getScriptCache().remove(key);
-    console.log('MasterEngine: cache invalidated — ' + key);
-  } catch (cacheErr) { /* non-fatal — app will re-fetch from sheet on next load */ }
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    let configSheet = ss.getSheetByName(APP_CONFIG_SHEET);
+    if (!configSheet) {
+      // First-time setup: create the sheet with a header row and the flag row.
+      configSheet = ss.insertSheet(APP_CONFIG_SHEET);
+      configSheet.getRange(1, 1, 1, 2).setValues([['key', 'value']]);
+      configSheet.getRange(BADGE_DIRTY_ROW, 1, 1, 2).setValues([['badge_awards_dirty', false]]);
+    }
+    configSheet.getRange(BADGE_DIRTY_ROW, 2).setValue(true);
+    console.log('MasterEngine: badge dirty flag set TRUE in ' + APP_CONFIG_SHEET);
+  } catch (cacheErr) {
+    console.error('MasterEngine: FAILED to set badge dirty flag — ', cacheErr);
+  }
 }
 
 // ── AI Coach pass ──────────────────────────────────────────────────────────
@@ -1619,14 +1633,16 @@ function _buildYearStatsMap_(year, activityData, shelfData, pageLogData,
   }
 
   // ── 6. Badges earned (year) ──────────────────────────────────────────────
-  // BadgeAwardDB Col C (index 2) = MemberID, Col D (index 3) = AwardedDate,
-  // Col F (index 5) = Status. Only Active awards count; Revoked awards are
-  // excluded to match the existing badge-strip display rule.
+  // BadgeAwardDB layout: A=AwardID, B=BadgeID, C=MemberID, D=AwardedBy,
+  // E=AwardedDate (dd-MMM-yyyy), F=Status, G=BadgeCaption.
+  // Indices:              [0]        [1]       [2]          [3]
+  //                       [4]                  [5]           [6]
+  // Only Active awards count; Revoked awards are excluded.
   for (var bai = 1; bai < badgeAwardData.length; bai++) {
     if ((badgeAwardData[bai][5] || '').toString() !== 'Active') continue;
     var baMid  = (badgeAwardData[bai][2] || '').toString();
     if (!baMid) continue;
-    var baDate = parseArkaDateString_(badgeAwardData[bai][3]);  // Col D: AwardedDate
+    var baDate = parseArkaDateString_(badgeAwardData[bai][4]);  // Col E (index 4): AwardedDate
     if (isNaN(baDate.getTime()) || baDate.getFullYear() !== year) continue;
     _ensureMember_(baMid);
     stats[baMid].badges++;

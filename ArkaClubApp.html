@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/styles.css?v=1.2">
+    <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/styles.css?v=1.5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -159,55 +159,55 @@
           <div id="helpCategoryGrid" class="help-grid">
 
             <!-- 1. Getting Started — first touch for new members -->
-            <div class="help-category-card" onclick="openHelpCategory('Getting Started')">
+            <div class="help-category-card" role="button" tabindex="0" data-action onclick="openHelpCategory('Getting Started')">
               <i class="fa-solid fa-rocket help-category-icon" style="color: #3498db;"></i>
               <div class="help-category-title">Getting Started</div>
             </div>
 
             <!-- 2. Reading & Logging — core daily action -->
-            <div class="help-category-card" onclick="openHelpCategory('Reading & Logging')">
+            <div class="help-category-card" role="button" tabindex="0" data-action onclick="openHelpCategory('Reading & Logging')">
               <i class="fa-solid fa-pen-to-square help-category-icon" style="color: #8e44ad;"></i>
               <div class="help-category-title">Reading &amp; Logging</div>
             </div>
 
             <!-- 3. Library — browse and discover books -->
-            <div class="help-category-card" onclick="openHelpCategory('Library')">
+            <div class="help-category-card" role="button" tabindex="0" data-action onclick="openHelpCategory('Library')">
               <i class="fa-solid fa-book-open help-category-icon" style="color: #27ae60;"></i>
               <div class="help-category-title">Library</div>
             </div>
 
             <!-- 4. Me Tab — personal dashboard; icon matches nav bar -->
-            <div class="help-category-card" onclick="openHelpCategory('Me Tab')">
+            <div class="help-category-card" role="button" tabindex="0" data-action onclick="openHelpCategory('Me Tab')">
               <i class="fa-solid fa-circle-user help-category-icon" style="color: var(--arka-accent);"></i>
               <div class="help-category-title">Me Tab</div>
             </div>
 
             <!-- 5. Challenges -->
-            <div class="help-category-card" onclick="openHelpCategory('Challenges')">
+            <div class="help-category-card" role="button" tabindex="0" data-action onclick="openHelpCategory('Challenges')">
               <i class="fa-solid fa-dice help-category-icon" style="color: #9b59b6;"></i>
               <div class="help-category-title">Challenges</div>
             </div>
 
             <!-- 6. Events & Club Life -->
-            <div class="help-category-card" onclick="openHelpCategory('Events & Club Life')">
-              <i class="fa-solid fa-calendar-days help-category-icon" style="color: #e74c3c;"></i>
+            <div class="help-category-card" role="button" tabindex="0" data-action onclick="openHelpCategory('Events & Club Life')">
+              <i class="fa-solid fa-calendar-days help-category-icon" style="color: var(--color-danger);"></i>
               <div class="help-category-title">Events &amp; Club Life</div>
             </div>
 
             <!-- 7. Points & Badges -->
-            <div class="help-category-card" onclick="openHelpCategory('Points & Badges')">
+            <div class="help-category-card" role="button" tabindex="0" data-action onclick="openHelpCategory('Points & Badges')">
               <i class="fa-solid fa-star help-category-icon" style="color: #f1c40f;"></i>
               <div class="help-category-title">Points &amp; Badges</div>
             </div>
 
             <!-- 8. Members -->
-            <div class="help-category-card" onclick="openHelpCategory('Members')">
+            <div class="help-category-card" role="button" tabindex="0" data-action onclick="openHelpCategory('Members')">
               <i class="fa-solid fa-people-group help-category-icon" style="color: #2980b9;"></i>
               <div class="help-category-title">Members</div>
             </div>
 
             <!-- 9. Help & FAQs -->
-            <div class="help-category-card" onclick="openHelpCategory('Help & FAQs')">
+            <div class="help-category-card" role="button" tabindex="0" data-action onclick="openHelpCategory('Help & FAQs')">
               <i class="fa-solid fa-circle-question help-category-icon" style="color: var(--text-muted);"></i>
               <div class="help-category-title">Help &amp; FAQs</div>
             </div>
@@ -237,7 +237,7 @@
           <!-- Bottom close — visible after scrolling through the article -->
           <div class="help-article-footer">
             <div class="help-article-footer-line"></div>
-            <div class="help-article-footer-btn" onclick="closeHelpArticle()">Close</div>
+            <div class="help-article-footer-btn" role="button" tabindex="0" data-action onclick="closeHelpArticle()">Close</div>
             <div class="help-article-footer-line"></div>
           </div>
 
@@ -272,7 +272,7 @@
               Club Activity
             </span>
             <!-- Sync button sits inline — neutral pill, no blue, no separate row -->
-            <div onclick="fetchLatestActivities(true)"
+            <div role="button" tabindex="0" data-action onclick="fetchLatestActivities(true)"
                  style="display:flex; align-items:center; gap:5px; cursor:pointer;
                         background:#f8f7fc; border:0.5px solid var(--border-soft);
                         padding:4px 10px; border-radius:10px;
@@ -348,12 +348,12 @@
                   <span class="lib-stat-label">Members</span>
                 </div>
                 <div class="lib-stat-pill lib-stat-reading">
-                  <span class="lib-stat-value" id="mbrStatReading">&mdash;</span>
-                  <span class="lib-stat-label">Reading Now</span>
+                  <span class="lib-stat-value" id="mbrStatActiveWeek">&mdash;</span>
+                  <span class="lib-stat-label">Active This Week</span>
                 </div>
                 <div class="lib-stat-pill">
-                  <span class="lib-stat-value" id="mbrStatBooks">&mdash;</span>
-                  <span class="lib-stat-label">Books Finished</span>
+                  <span class="lib-stat-value" id="mbrStatPagesYear">&mdash;</span>
+                  <span class="lib-stat-label">Pages This Year</span>
                 </div>
               </div>
             </div>
@@ -382,12 +382,12 @@
 
               <!-- Search bar + member count (count below bar, not inline) -->
               <div style="padding:10px 16px 8px; border-bottom:1px solid var(--border-soft);">
-                <div style="display:flex; align-items:center; gap:7px; background:var(--surface-alt);
-                            border:1px solid var(--border-soft); border-radius:20px; padding:6px 12px;">
-                  <i class="fa-solid fa-magnifying-glass" style="color:var(--text-faint); font-size:11px;"></i>
+                <div style="display:flex; align-items:center; gap:8px; background:var(--surface-alt);
+                            border:1px solid var(--border-soft); border-radius:20px; padding:10px 16px;">
+                  <i class="fa-solid fa-magnifying-glass" style="color:var(--text-faint); font-size:14px;"></i>
                   <input type="text" id="memberSearch" placeholder="Search members…"
                          onkeyup="filterMembers()"
-                         style="border:none; background:transparent; margin:0; padding:0; font-size:12px;
+                         style="border:none; background:transparent; margin:0; padding:0; font-size:15px;
                                 color:var(--text-strong); outline:none; flex:1;">
                 </div>
                 <div style="font-size:11px; color:var(--text-faint); margin-top:6px; padding-left:2px;">
@@ -566,7 +566,7 @@
                      onerror="this.style.display='none'; document.getElementById('meAvatarFallback').style.display='flex';">
                 <div id="meAvatarFallback" class="profile-avatar-fallback">👤</div>
               </div>
-              <div class="profile-edit-dot" onclick="toggleEditMode(true)" title="Edit Profile">✏️</div>
+              <div class="profile-edit-dot" role="button" tabindex="0" data-action onclick="toggleEditMode(true)" title="Edit Profile">✏️</div>
             </div>
             <div id="meName" class="profile-card-name">Loading...</div>
             <div id="meLevelPill" class="profile-level-pill">
@@ -768,7 +768,7 @@
                       padding:14px 16px; margin-bottom:20px;">
             <!-- Header row: icon + label + ? info button -->
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-              <i class="fa-solid fa-dna" style="color:#534AB7; font-size:13px;"></i>
+              <i class="fa-solid fa-dna" style="color:var(--color-challenge); font-size:13px;"></i>
               <span style="font-size:0.82rem; font-weight:700; color:var(--text-strong);">
                 Reading Personality
               </span>
@@ -778,12 +778,12 @@
                     style="margin-left:auto; width:22px; height:22px; border-radius:50%;
                            background:#e8def0; display:flex; align-items:center;
                            justify-content:center; cursor:pointer; font-size:11px;
-                           color:#534AB7; font-weight:700; flex-shrink:0;">?</span>
+                           color:var(--color-challenge); font-weight:700; flex-shrink:0;">?</span>
             </div>
             <!-- Toggle row -->
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
               <div style="flex:1;">
-                <div style="font-size:0.78rem; font-weight:600; color:#534AB7; margin-bottom:3px;">
+                <div style="font-size:0.78rem; font-weight:600; color:var(--color-challenge); margin-bottom:3px;">
                   Show my personality to other members
                 </div>
                 <div id="personaVisibilityHelp"
@@ -879,7 +879,7 @@
                             font-size:18px;font-weight:700;color:var(--text-muted);">A</div>
                 <!-- Pencil badge makes the My Profile tap target discoverable -->
                 <div style="position:absolute;bottom:0;right:0;width:16px;height:16px;border-radius:50%;
-                            background:#e67e22;border:2px solid #fff;
+                            background:var(--color-warning);border:2px solid #fff;
                             display:flex;align-items:center;justify-content:center;
                             font-size:8px;color:#fff;pointer-events:none;">✏️</div>
               </div>
@@ -895,16 +895,16 @@
             <!-- Row 3: Action chips -->
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <!-- Our Story chip — unchanged behaviour, navigates to help article -->
-              <div onclick="openHelpArticle('help-arka-story-index')"
+              <div role="button" tabindex="0" data-action onclick="openHelpArticle('help-arka-story-index')"
                    style="display:inline-flex; align-items:center; gap:5px;
-                          background:#fff8f0; border:0.5px solid #e67e22;
+                          background:#fff8f0; border:0.5px solid var(--color-warning);
                           border-radius:40px; padding:4px 11px; cursor:pointer;">
-                <i class="fa-solid fa-mountain-sun" style="font-size:13px; color:#e67e22;"></i>
+                <i class="fa-solid fa-mountain-sun" style="font-size:13px; color:var(--color-warning);"></i>
                 <span style="font-size:12px; font-weight:500; color:#b8640a;">Our story</span>
               </div>
               <!-- My personality chip — always visible; acts as discovery nudge for
                    Forming profiles and as a shortcut for resolved ones. -->
-              <div onclick="openMyPersonality()"
+              <div role="button" tabindex="0" data-action onclick="openMyPersonality()"
                    style="display:inline-flex; align-items:center; gap:5px;
                           background:#EEEDFE; border:0.5px solid var(--arka-accent);
                           border-radius:40px; padding:4px 11px; cursor:pointer;">
@@ -1031,7 +1031,7 @@
               </div>
             </div>
             <div style="height:8px; background:#f1efe8; border-radius:4px; overflow:hidden;">
-              <div id="meLevelProgressFill" style="height:100%; width:0%; border-radius:4px; background:#EF9F27; transition:width 0.6s ease;"></div>
+              <div id="meLevelProgressFill" style="height:100%; width:0%; border-radius:4px; background:var(--color-gamification); transition:width 0.6s ease;"></div>
             </div>
             <div style="display:flex; justify-content:space-between; margin-top:5px;">
               <div style="font-size:10px; color:var(--text-faint);" id="meLevelBarLeft">–</div>
@@ -1045,7 +1045,7 @@
           </div>
 
           <!-- Reading story destination row — natural extension of the Journey section -->
-          <div onclick="openInsightsView()"
+          <div role="button" tabindex="0" data-action onclick="openInsightsView()"
                style="display:flex;align-items:center;gap:12px;background:white;
                       border:0.5px solid var(--border-soft);border-radius:12px;
                       padding:13px 14px;margin-top:12px;cursor:pointer;">
@@ -1071,7 +1071,7 @@
               <div style="flex:1; height:2px; background:linear-gradient(to right, var(--text-strong), transparent);"></div>
               <span style="font-size:13px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; display:flex; align-items:center; gap:6px;">
                 Arka Coach
-                <span id="meCoachNewBadge" style="display:none; background:#1D9E75; color:white; font-size:9px; font-weight:700; border-radius:20px; padding:2px 7px; vertical-align:middle;">NEW</span>
+                <span id="meCoachNewBadge" style="display:none; background:var(--color-success); color:white; font-size:9px; font-weight:700; border-radius:20px; padding:2px 7px; vertical-align:middle;">NEW</span>
                 <i class="fa-solid fa-circle-question"
                    onclick="openHelpArticle('help-me-coach');"
                    title="About Arka Coach"
@@ -1086,7 +1086,7 @@
             <!-- AI text card — hidden until aiAdvice field exists in coachInsights JSON -->
             <div id="meCoachAiCard" style="display:none; background:white; border:1.5px solid var(--arka-accent); border-radius:12px; padding:14px; position:relative; overflow:hidden;">
               <!-- Rainbow shimmer strip — signals this is AI-generated -->
-              <div style="position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--arka-accent),#EF9F27,#1D9E75,var(--arka-accent));"></div>
+              <div style="position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--arka-accent),var(--color-gamification),var(--color-success),var(--arka-accent));"></div>
               <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; margin-top:2px;">
                 <div style="width:32px; height:32px; border-radius:8px; background:var(--arka-accent); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                   <i class="fa-solid fa-wand-magic-sparkles" style="color:white; font-size:13px;"></i>
@@ -1115,7 +1115,7 @@
           <div id="meShelfTilesContainer"></div>
 
           <!-- Shelf collapse / expand toggle strip -->
-          <div onclick="toggleMeShelfSection()"
+          <div role="button" tabindex="0" data-action onclick="toggleMeShelfSection()"
                style="display:flex;align-items:center;justify-content:center;gap:6px;
                       padding:9px 0 11px;cursor:pointer;
                       border-top:0.5px solid var(--border-soft);margin-top:4px;">
@@ -1446,7 +1446,7 @@
             <div style="display:flex;gap:6px;flex-wrap:wrap;position:relative;z-index:1;">
               <div style="background:white;border:1px solid #c9c2f0;border-radius:20px;
                           padding:3px 10px;display:flex;align-items:center;gap:5px;
-                          font-size:10px;font-weight:600;color:#534AB7;">
+                          font-size:10px;font-weight:600;color:var(--color-challenge);">
                 <i class="fa-solid fa-chart-line" style="font-size:9px;"></i> Pace
               </div>
               <div style="background:white;border:1px solid #e8d49a;border-radius:20px;
@@ -1488,7 +1488,7 @@
                 <div style="width:30px;height:30px;border-radius:8px;flex-shrink:0;
                             background:#EEEDFE;border:1px solid #c9c2f0;
                             display:flex;align-items:center;justify-content:center;">
-                  <i class="fa-solid fa-chart-line" style="font-size:13px;color:#534AB7;"></i>
+                  <i class="fa-solid fa-chart-line" style="font-size:13px;color:var(--color-challenge);"></i>
                 </div>
                 <div style="font-size:14px;font-weight:700;color:var(--text-strong);line-height:1.2;">
                   Am I ahead of last year?
@@ -1804,7 +1804,7 @@
             Stay
           </button>
           <button onclick="confirmLeaveApp()"
-                  style="flex:1; background:#e74c3c; color:#fff; border:none;
+                  style="flex:1; background:var(--color-danger); color:#fff; border:none;
                          padding:12px; border-radius:6px; font-size:1rem; cursor:pointer;">
             Leave
           </button>
@@ -1904,7 +1904,7 @@
                       border: 1px solid var(--border-soft);">
           <span style="flex: 1; font-size: 0.82rem; color: var(--text-muted);">Screenshot attached</span>
           <button onclick="clearFeedbackScreenshot()"
-                  style="background: none; border: none; color: #e74c3c; cursor: pointer;
+                  style="background: none; border: none; color: var(--color-danger); cursor: pointer;
                          font-size: 0.82rem; padding: 0; font-weight: 600;">
             ✕ Remove
           </button>
@@ -2029,7 +2029,7 @@
           <!-- Deviation warning — shown by JS when entered pages look implausible -->
           <div id="shelfPagesWarning"
               style="display: none; margin-top: 6px; font-size: 0.78rem;
-                      color: #e67e22; line-height: 1.4;">
+                      color: var(--color-warning); line-height: 1.4;">
             ⚠️ That's well above the listed page count. Different edition?
           </div>
           <!-- Sync to 10 Pages A Day — dual members only, shown with pages input.
@@ -2079,10 +2079,10 @@
                     gap: 5px; margin-top: 11px; padding-top: 10px;
                     border-top: 1px solid var(--border-soft); cursor: pointer;"
              onclick="confirmShelfDelete()"
-             onmouseenter="this.querySelector('.shelf-delete-label').style.color='#e74c3c'; this.querySelector('.shelf-delete-icon').style.stroke='#e74c3c';"
-             onmouseleave="this.querySelector('.shelf-delete-label').style.color='var(--text-faint)'; this.querySelector('.shelf-delete-icon').style.stroke='#e74c3c';">
+             onmouseenter="this.querySelector('.shelf-delete-label').style.color='var(--color-danger)'; this.querySelector('.shelf-delete-icon').style.stroke='var(--color-danger)';"
+             onmouseleave="this.querySelector('.shelf-delete-label').style.color='var(--text-faint)'; this.querySelector('.shelf-delete-icon').style.stroke='var(--color-danger)';">
           <svg class="shelf-delete-icon"
-               style="width:11px;height:11px;flex-shrink:0;stroke:#e74c3c;transition:stroke 0.15s;"
+               style="width:11px;height:11px;flex-shrink:0;stroke:var(--color-danger);transition:stroke 0.15s;"
                viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M2 3.5h10M5 3.5V2.5a.5.5 0 01.5-.5h3a.5.5 0 01.5.5v1M5.5 6v4M8.5 6v4M3 3.5l.667 7a.5.5 0 00.5.5h5.666a.5.5 0 00.5-.5L11 3.5"
                   stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2120,7 +2120,7 @@
         <div style="display:flex;gap:10px;">
           <!-- Destructive confirm button — colour set by showConfirmModal() -->
           <button id="confirmModalOkBtn"
-                  style="flex:1;background-color:#e74c3c;border:none;border-radius:6px;
+                  style="flex:1;background-color:var(--color-danger);border:none;border-radius:6px;
                          padding:12px;color:white;font-size:0.95rem;font-weight:bold;
                          cursor:pointer;">
             Confirm
@@ -2135,7 +2135,7 @@
     </div>
 
     <div id="libraryView" class="view-section">
-        <div id="libraryMainCard" style="overflow:hidden; margin:-40px 0px 0;">
+        <div id="libraryMainCard" style="margin:-60px 0 0;">
 
           <!-- ── Library Banner ───────────────────────────────────────────────── -->
           <!-- Dark-green identity block. Replaces the old white card header and  -->
@@ -2155,16 +2155,16 @@
 
             <!-- Row 2: Stat pills — IDs preserved; calculateLibraryPulse() unchanged -->
             <div class="lib-stat-row">
-              <div class="lib-stat-pill" onclick="toggleDynamicChart('books')" title="Books read by the club">
+              <div class="lib-stat-pill" role="button" tabindex="0" data-action onclick="toggleDynamicChart('books')" title="Books read by the club">
                 <span class="lib-stat-value" id="pulseTotalBooks">0</span>
                 <span class="lib-stat-label">Titles Read</span>
               </div>
-              <div class="lib-stat-pill" onclick="toggleDynamicChart('genres')" title="Unique genres explored">
+              <div class="lib-stat-pill" role="button" tabindex="0" data-action onclick="toggleDynamicChart('genres')" title="Unique genres explored">
                 <span class="lib-stat-value" id="pulseTotalGenres">0</span>
                 <span class="lib-stat-label">Genres</span>
               </div>
               <!-- Reading pill: purple accent marks it as a live/real-time stat -->
-              <div class="lib-stat-pill lib-stat-reading" onclick="scrollToArkaReading()" title="Members reading right now">
+              <div class="lib-stat-pill lib-stat-reading" role="button" tabindex="0" data-action onclick="scrollToArkaReading()" title="Members reading right now">
                 <span class="lib-stat-value" id="pulseCurrentlyReading">0</span>
                 <span class="lib-stat-label">Reading</span>
               </div>
@@ -2172,10 +2172,10 @@
 
             <!-- Row 3: Tabs at banner bottom edge — underline active on dark bg -->
             <div class="library-tabs">
-              <div class="lib-tab active" id="tabDiscover" onclick="switchLibraryTab('discover')">
+              <div class="lib-tab active" role="button" tabindex="0" data-action id="tabDiscover" onclick="switchLibraryTab('discover')">
                 <i class="fa-solid fa-wand-magic-sparkles" style="font-size:0.78rem;margin-right:5px;"></i>Discover
               </div>
-              <div class="lib-tab" id="tabAllBooks" onclick="switchLibraryTab('all')">
+              <div class="lib-tab" role="button" tabindex="0" data-action id="tabAllBooks" onclick="switchLibraryTab('all')">
                 <i class="fa-solid fa-book" style="font-size:0.78rem;margin-right:5px;"></i>All Books
               </div>
             </div>
@@ -2350,7 +2350,7 @@
                 </div>
 
                 <!-- The CTA card — kept as #workspaceNoMatchArea for JS compatibility -->
-                <div id="workspaceNoMatchArea" onclick="showAddBookForm()"
+                <div id="workspaceNoMatchArea" role="button" tabindex="0" data-action onclick="showAddBookForm()"
                      class="add-book-step2-cta">
                   <div class="add-book-step2-cta-icon">
                     <i class="fa-solid fa-sparkles"
@@ -2360,7 +2360,7 @@
                     <p style="margin:0 0 2px;font-size:0.88rem;font-weight:600;color:#3C3489;">
                       Create a new entry
                     </p>
-                    <p style="margin:0;font-size:0.78rem;color:#534AB7;">
+                    <p style="margin:0;font-size:0.78rem;color:var(--color-challenge);">
                       Use ISBN auto-fill or enter manually
                     </p>
                   </div>
@@ -2402,6 +2402,10 @@
                     Search
                   </button>
                 </div>
+                <!-- ISBN review panel — shown after search returns results -->
+                <div id="isbnReviewPanel"
+                     style="display:none;margin-top:12px;border-top:0.5px solid #C0DD97;padding-top:10px;">
+                </div>
               </div>
             
               <!-- ── ESSENTIAL ──────────────────────────────────────────────────────── -->
@@ -2412,15 +2416,15 @@
               <div style="background:white;border:0.5px solid var(--border-soft);border-radius:12px;
                           padding:14px 16px;margin-bottom:14px;">
             
-                <label class="form-label">Title <span style="color:#e74c3c;">*</span></label>
+                <label class="form-label">Title <span style="color:var(--color-danger);">*</span></label>
                 <input type="text" id="newBookTitle" placeholder="e.g. Project Hail Mary">
             
-                <label class="form-label">Author <span style="color:#e74c3c;">*</span></label>
+                <label class="form-label">Author <span style="color:var(--color-danger);">*</span></label>
                 <input type="text" id="newBookAuthor" placeholder="e.g. Andy Weir">
             
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                   <div>
-                    <label class="form-label">Pages <span style="color:#e74c3c;">*</span></label>
+                    <label class="form-label">Pages <span style="color:var(--color-danger);">*</span></label>
                     <input type="number" id="newBookPages" placeholder="e.g. 476" min="1">
                   </div>
                   <div>
@@ -2431,7 +2435,7 @@
                           maxlength="4"
                           oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4); _onPubYearInput(this.value)">
                     <!-- Disambiguation hint shown only for 1–2 digit entries (e.g. 26 CE vs 2026) -->
-                    <div id="pubYearAmbiguityHint" style="display:none; font-size:11.5px; color:#e67e22; margin-top:4px; line-height:1.4;"></div>
+                    <div id="pubYearAmbiguityHint" style="display:none; font-size:11.5px; color:var(--color-warning); margin-top:4px; line-height:1.4;"></div>
                   </div>
                 </div>
               </div>
@@ -2439,7 +2443,7 @@
               <!-- ── GENRE TAG INPUT ────────────────────────────────────────────────── -->
               <div style="font-size:0.68rem;font-weight:600;color:var(--text-muted);
                           text-transform:uppercase;letter-spacing:0.6px;margin:0 0 8px;">
-                Genre <span style="color:#e74c3c;">*</span>
+                Genre <span style="color:var(--color-danger);">*</span>
               </div>
               <div style="background:white;border:0.5px solid var(--border-soft);border-radius:12px;
                           padding:14px 16px;margin-bottom:14px;">
@@ -2910,9 +2914,9 @@
       
           <!-- ── Sub-tabs ────────────────────────────────────────────────────── -->
           <div class="library-tabs" style="margin-bottom:16px;">
-            <div class="lib-tab" id="tabEvtUpcoming" onclick="switchEventsTab('upcoming')">📅 Upcoming</div>
-            <div class="lib-tab" id="tabEvtPast"     onclick="switchEventsTab('past')">🕓 Past</div>
-            <div class="lib-tab active" id="tabEvtNotices"  onclick="switchEventsTab('notices')">📣 Notices</div>
+            <div class="lib-tab" role="button" tabindex="0" data-action id="tabEvtUpcoming" onclick="switchEventsTab('upcoming')">📅 Upcoming</div>
+            <div class="lib-tab" role="button" tabindex="0" data-action id="tabEvtPast"     onclick="switchEventsTab('past')">🕓 Past</div>
+            <div class="lib-tab active" role="button" tabindex="0" data-action id="tabEvtNotices"  onclick="switchEventsTab('notices')">📣 Notices</div>
           </div>
       
           <!-- ── Upcoming Events (stub — Events feature coming next) ─────────── -->
@@ -2962,10 +2966,10 @@
       
           <!-- Sub-tabs: All / Mine (members) or Active / Upcoming / Archived (admins see all) -->
           <div class="library-tabs" style="margin-bottom:16px;" id="chalSubTabBar">
-            <div class="lib-tab active" id="tabChalAll"      onclick="switchChallengesTab('all')">All</div>
-            <div class="lib-tab"        id="tabChalMine"     onclick="switchChallengesTab('mine')">Mine</div>
-            <div class="lib-tab"        id="tabChalUpcoming" onclick="switchChallengesTab('upcoming')" style="display:none;">Upcoming</div>
-            <div class="lib-tab"        id="tabChalArchived" onclick="switchChallengesTab('archived')" style="display:none;">Archived</div>
+            <div class="lib-tab active" role="button" tabindex="0" data-action id="tabChalAll"      onclick="switchChallengesTab('all')">All</div>
+            <div class="lib-tab"        role="button" tabindex="0" data-action id="tabChalMine"     onclick="switchChallengesTab('mine')">Mine</div>
+            <div class="lib-tab"        role="button" tabindex="0" data-action id="tabChalUpcoming" onclick="switchChallengesTab('upcoming')" style="display:none;">Upcoming</div>
+            <div class="lib-tab"        role="button" tabindex="0" data-action id="tabChalArchived" onclick="switchChallengesTab('archived')" style="display:none;">Archived</div>
           </div>
       
           <!-- Tab content panels -->
@@ -2997,7 +3001,7 @@
       </div>
       
       <!-- ── Challenge Admin FAB ──────────────────────────────────────────────────── -->
-      <div id="chalCreateFab" onclick="openChallengeFormSheet(null)" title="Create Challenge">
+      <div id="chalCreateFab" role="button" tabindex="0" data-action onclick="openChallengeFormSheet(null)" title="Create Challenge">
         <span class="fab-icon">+</span>
       </div>
       
@@ -3064,7 +3068,7 @@
                 <div class="chal-toggle-label">Reset streak on missed day</div>
                 <div class="chal-toggle-sub">Off = missed days are recorded but streak continues</div>
               </div>
-              <div id="chalStreak-resetToggle" class="toggle-pill on" onclick="this.classList.toggle('on')"></div>
+              <div id="chalStreak-resetToggle" class="toggle-pill on" role="button" tabindex="0" data-action onclick="this.classList.toggle('on')"></div>
             </div>
           </div>
       
@@ -3138,7 +3142,7 @@
                 <div class="chal-toggle-label">Skip articles (The, A, An)</div>
                 <div class="chal-toggle-sub">"The Kite Runner" qualifies for K, not T</div>
               </div>
-              <div id="chalAlpha-skipToggle" class="toggle-pill on" onclick="this.classList.toggle('on')"></div>
+              <div id="chalAlpha-skipToggle" class="toggle-pill on" role="button" tabindex="0" data-action onclick="this.classList.toggle('on')"></div>
             </div>
             <label for="chalAlpha-optionalLetters">Optional letters — members may skip these</label>
             <input type="text" id="chalAlpha-optionalLetters" value="Q, X, Z"
@@ -3155,7 +3159,7 @@
                 <div class="chal-toggle-label">Allow personal goal per member</div>
                 <div class="chal-toggle-sub">Each member sets their own target on enrolment</div>
               </div>
-              <div id="chalBookCount-personalToggle" class="toggle-pill on" onclick="this.classList.toggle('on')"></div>
+              <div id="chalBookCount-personalToggle" class="toggle-pill on" role="button" tabindex="0" data-action onclick="this.classList.toggle('on')"></div>
             </div>
           </div>
       
@@ -3169,7 +3173,7 @@
                 <div class="chal-toggle-label">Allow personal goal per member</div>
                 <div class="chal-toggle-sub">Each member sets their own target on enrolment</div>
               </div>
-              <div id="chalPageCount-personalToggle" class="toggle-pill on" onclick="this.classList.toggle('on')"></div>
+              <div id="chalPageCount-personalToggle" class="toggle-pill on" role="button" tabindex="0" data-action onclick="this.classList.toggle('on')"></div>
             </div>
           </div>
 
@@ -3207,7 +3211,7 @@
               <div class="chal-toggle-label">📌 Pin to challenges list</div>
               <div class="chal-toggle-sub">Pinned challenges appear at the top for all members</div>
             </div>
-            <div id="chalFormPinToggle" class="toggle-pill" onclick="this.classList.toggle('on')"></div>
+            <div id="chalFormPinToggle" class="toggle-pill" role="button" tabindex="0" data-action onclick="this.classList.toggle('on')"></div>
           </div>
       
           <div class="chal-toggle-row">
@@ -3215,7 +3219,7 @@
               <div class="chal-toggle-label">🏆 Show club leaderboard tab</div>
               <div class="chal-toggle-sub">Off for personal challenges (Book Count, Page Count)</div>
             </div>
-            <div id="chalFormCompetitiveToggle" class="toggle-pill on" onclick="this.classList.toggle('on')"></div>
+            <div id="chalFormCompetitiveToggle" class="toggle-pill on" role="button" tabindex="0" data-action onclick="this.classList.toggle('on')"></div>
           </div>
       
           <label for="chalFormStatusSelect" style="margin-top:14px;">Status</label>
@@ -3263,7 +3267,7 @@
       
           <!-- What you'll earn by joining -->
           <div id="chalEnrolPointsNotice" style="background:#EEEDFE; border-radius:8px;
-                padding:10px 14px; margin-bottom:16px; font-size:0.82rem; color:#534AB7;
+                padding:10px 14px; margin-bottom:16px; font-size:0.82rem; color:var(--color-challenge);
                 line-height:1.5;">
             <!-- Filled dynamically by openChalEnrolSheet() -->
           </div>
@@ -3497,11 +3501,11 @@
 
             <!-- Deviation warning -->
             <div id="logReadingWarning"
-                 style="display:none;font-size:0.78rem;color:#e67e22;margin-bottom:10px;line-height:1.4;">
+                 style="display:none;font-size:0.78rem;color:var(--color-warning);margin-bottom:10px;line-height:1.4;">
               ⚠️ That's above the listed page count. Different edition?
             </div>
             <!-- Finish strip — same pattern as the old progress form -->
-            <div onclick="logReadingMarkFinished_()"
+            <div role="button" tabindex="0" data-action onclick="logReadingMarkFinished_()"
                  style="background:#eaf3de;border-radius:8px;padding:10px 14px;
                         display:flex;justify-content:space-between;align-items:center;
                         cursor:pointer;margin-top:4px;">
@@ -3525,9 +3529,6 @@
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
             <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
               <label style="font-size:0.78rem;color:var(--text-muted);font-weight:600;margin:0;">Reading note</label>
-              <span id="logReadingNoteTempDot"
-                    title="Auto-loads from 10 Pages a Day for dual members — temporary."
-                    style="display:none;width:7px;height:7px;border-radius:50%;background:#e67e22;flex-shrink:0;cursor:help;"></span>
             </div>
             <button onclick="logReadingClearNote()" title="Clear note"
                     style="width:28px;height:28px;background:white;border:1.5px solid var(--border-soft);
@@ -3598,7 +3599,7 @@
 
             <!-- "Not in the library" fallback — always visible; label adapts to query -->
             <div style="margin-top:10px;border-top:0.5px solid var(--border-soft);padding-top:12px;">
-              <div onclick="logReadingAddNewBook_()"
+              <div role="button" tabindex="0" data-action onclick="logReadingAddNewBook_()"
                    style="display:flex;align-items:center;gap:10px;background:#f5f0ff;
                           border:1.5px dashed var(--arka-accent);border-radius:10px;
                           padding:11px 12px;cursor:pointer;">
@@ -3756,7 +3757,7 @@
                 </label>
                 <span title="This feature is temporary and will be removed when 10 Pages A Day is retired."
                       style="width:7px;height:7px;border-radius:50%;
-                             background:#e67e22;display:inline-block;
+                             background:var(--color-warning);display:inline-block;
                              flex-shrink:0;cursor:help;"></span>
               </div>
               <!-- Right: clear note button — load button removed, note auto-loads on open -->
@@ -3797,7 +3798,7 @@
 
 
       <!-- Admin FAB — fixed position, shown only when admin is on Notices tab ──── -->
-      <div id="annCreateFab" onclick="openAnnouncementFormSheet(null)" title="Create Announcement">
+      <div id="annCreateFab" role="button" tabindex="0" data-action onclick="openAnnouncementFormSheet(null)" title="Create Announcement">
         <span class="fab-icon">+</span>
       </div>
       
@@ -3848,7 +3849,7 @@
               <div class="ann-scope-label">👥 Audience</div>
               <div class="ann-scope-sub" id="annScopeSub">Visible to all club members</div>
             </div>
-            <div id="annScopeToggle" class="toggle-pill" onclick="toggleAnnScope()"></div>
+            <div id="annScopeToggle" class="toggle-pill" role="button" tabindex="0" data-action onclick="toggleAnnScope()"></div>
           </div>
 
           <!-- Member picker — shown only when scope toggle is ON (specific members) -->
@@ -3877,7 +3878,7 @@
               <div class="ann-pin-toggle-label">📌 Pin to Home Feed</div>
               <div class="ann-pin-toggle-sub">Pinned notices always appear at the top and cannot be dismissed by members.</div>
             </div>
-            <div id="annFormPinToggle" class="toggle-pill" onclick="toggleAnnFormPin()"></div>
+            <div id="annFormPinToggle" class="toggle-pill" role="button" tabindex="0" data-action onclick="toggleAnnFormPin()"></div>
           </div>
           </div><!-- /annFormPinSection -->
 
@@ -4002,7 +4003,7 @@
                 <div class="ann-pin-toggle-label">📌 Pin to top of Events</div>
                 <div class="ann-pin-toggle-sub">Pinned events appear first in the list.</div>
               </div>
-              <div id="evtFormPinToggle" class="toggle-pill" onclick="toggleEvtFormPin()"></div>
+              <div id="evtFormPinToggle" class="toggle-pill" role="button" tabindex="0" data-action onclick="toggleEvtFormPin()"></div>
             </div>
           </div>
       
@@ -4092,7 +4093,7 @@
       </div>
       
       <!-- Event create FAB ─────────────────────────────────────────────────────────── -->
-      <div id="evtCreateFab" onclick="openEventFormSheet(null)" title="Create Event">
+      <div id="evtCreateFab" role="button" tabindex="0" data-action onclick="openEventFormSheet(null)" title="Create Event">
         <span class="fab-icon">+</span>
       </div>
 
@@ -4246,23 +4247,23 @@
 
       <div class="drawer-personal-grid">
 
-        <div class="drawer-grid-item" onclick="openMyProfile()">
+        <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openMyProfile()">
           <div class="drawer-grid-icon" style="background:#f5eefa;">
             <i class="fa-solid fa-circle-user" style="color:var(--arka-accent);"></i>
           </div>
           <span>My Profile</span>
         </div>
 
-        <div class="drawer-grid-item" onclick="openBadgeGallery()">
+        <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openBadgeGallery()">
           <div class="drawer-grid-icon" style="background:#eaf3de;">
             <i class="fa-solid fa-award" style="color:#3b6d11;"></i>
           </div>
           <span>Badges</span>
         </div>
 
-        <div class="drawer-grid-item" onclick="openMyPersonality()">
+        <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openMyPersonality()">
           <div class="drawer-grid-icon" style="background:#f0e8f5;">
-            <i class="fa-solid fa-dna" style="color:#534AB7;"></i>
+            <i class="fa-solid fa-dna" style="color:var(--color-challenge);"></i>
           </div>
           <span>My Personality</span>
         </div>
@@ -4274,44 +4275,44 @@
 
       <div class="drawer-club-grid">
 
-        <div class="drawer-grid-item" onclick="openHallOfFame()">
+        <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openHallOfFame()">
           <div class="drawer-grid-icon" style="background:#fff8f0;">
             <i class="fa-solid fa-star" style="color:#c47a20;"></i>
           </div>
           <span>Hall of Fame</span>
         </div>
 
-        <div class="drawer-grid-item" onclick="openEventsAndAnnouncementsView()">
+        <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openEventsAndAnnouncementsView()">
           <div class="drawer-grid-icon" style="background:#fff8f0;">
             <i class="fa-solid fa-calendar-days" style="color:#c47a20;"></i>
           </div>
           <span>Events</span>
         </div>
 
-        <div class="drawer-grid-item" onclick="openChallengesView()">
+        <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openChallengesView()">
           <div class="drawer-grid-icon" style="background:#fef9ec;">
             <i class="fa-solid fa-trophy" style="color:#9a6c0a;"></i>
           </div>
           <span>Challenges</span>
         </div>
 
-        <div class="drawer-grid-item" onclick="openTenPagesChallenge()">
+        <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openTenPagesChallenge()">
           <div class="drawer-grid-icon" style="background:#fef0ee;">
             <i class="fa-solid fa-fire-flame-curved" style="color:#b84a38;"></i>
           </div>
           <span>10 Pages A Day</span>
         </div>
 
-        <div class="drawer-grid-item" onclick="openBookBingo()">
+        <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openBookBingo()">
           <div class="drawer-grid-icon" style="background:#f5eefa;">
             <i class="fa-solid fa-table-cells-large" style="color:#7b4fa6;"></i>
           </div>
           <span>Book Bingo</span>
         </div>
 
-        <div class="drawer-grid-item" onclick="openHelpArticle('help-arka-story-index')">
+        <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openHelpArticle('help-arka-story-index')">
           <div class="drawer-grid-icon" style="background:#fff8f0;">
-            <i class="fa-solid fa-mountain-sun" style="color:#e67e22;"></i>
+            <i class="fa-solid fa-mountain-sun" style="color:var(--color-warning);"></i>
           </div>
           <span>Our Story</span>
         </div>
@@ -4323,14 +4324,14 @@
 
       <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:4px;">
 
-        <div class="drawer-grid-item" onclick="openFeedbackModal()">
+        <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openFeedbackModal()">
           <div class="drawer-grid-icon" style="background:#eaf6ef;">
             <i class="fa-solid fa-lightbulb" style="color:#256b3a;"></i>
           </div>
           <span>Report Bug</span>
         </div>
 
-        <div class="drawer-grid-item" onclick="openHelpCenter()">
+        <div class="drawer-grid-item" role="button" tabindex="0" data-action onclick="openHelpCenter()">
           <div class="drawer-grid-icon" style="background:#e8f4fb;">
             <i class="fa-solid fa-info" style="color:#185FA5;"></i>
           </div>
@@ -4342,7 +4343,7 @@
       <!-- ── Admin — hidden by default, revealed by revealAdminDrawerItems_() ── -->
       <div id="drawerAdminSectionHead" class="drawer-section-head" style="display:none;">Admin</div>
 
-      <div id="drawerAdminPanelItem" class="drawer-item" onclick="openAdminPanel()"
+      <div id="drawerAdminPanelItem" class="drawer-item" role="button" tabindex="0" data-action onclick="openAdminPanel()"
            style="display:none;">
         <div class="drawer-icon-box" style="background:#f5eefa;">
           <i class="fa-solid fa-shield-halved" style="color:var(--arka-accent);"></i>
@@ -4357,23 +4358,23 @@
     </div>
 
     <div class="bottom-nav" id="bottomNav" style="display: none;">
-      <div class="nav-item active" id="nav-home" onclick="navReset(); switchTab('home')">
+      <div class="nav-item active" role="button" tabindex="0" data-action id="nav-home" onclick="navReset(); switchTab('home')">
         <div class="nav-icon"><i class="fa-solid fa-house"></i></div>
         <div>Home</div>
       </div>
-      <div class="nav-item" id="nav-library" onclick="navReset(); switchTab('library')">
+      <div class="nav-item" role="button" tabindex="0" data-action id="nav-library" onclick="navReset(); switchTab('library')">
         <div class="nav-icon"><i class="fa-solid fa-book-open"></i></div>
         <div>Library</div>
       </div>
-      <div class="nav-item" id="nav-members" onclick="navReset(); switchTab('members'); var b=document.getElementById('membersBackBtn'); if(b) b.style.display='none';">
+      <div class="nav-item" role="button" tabindex="0" data-action id="nav-members" onclick="navReset(); switchTab('members'); var b=document.getElementById('membersBackBtn'); if(b) b.style.display='none';">
         <div class="nav-icon"><i class="fa-solid fa-users"></i></div>
         <div>Members</div>
       </div>
-      <div class="nav-item" id="nav-me" onclick="navReset(); switchTab('me')">
+      <div class="nav-item" role="button" tabindex="0" data-action id="nav-me" onclick="navReset(); switchTab('me')">
         <div class="nav-icon"><i class="fa-solid fa-circle-user"></i></div>
         <div>Me</div>
       </div>
-      <div class="nav-item" id="nav-more" onclick="toggleDrawer(true)">
+      <div class="nav-item" role="button" tabindex="0" data-action id="nav-more" onclick="toggleDrawer(true)">
         <div class="nav-icon"><i class="fa-solid fa-compass"></i></div>
         <div>More</div>
       </div>
@@ -4483,7 +4484,7 @@
        */
       const ARKA_LAUNCH_PARAMS = <?!= launchParamsJson ?>;
     </script>
-    <script src="https://abhish3kjain.github.io/arkaapp-frontend/app.js?v=1.2"></script>
+    <script src="https://abhish3kjain.github.io/arkaapp-frontend/app.js?v=1.5"></script>
 
   </body>
 </html>
