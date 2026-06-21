@@ -23517,12 +23517,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (!panel) return;
 
         var FIELDS = [
-          { id: 'newBookTitle',         label: 'Title',       key: 'title'  },
-          { id: 'newBookAuthor',        label: 'Author',      key: 'author' },
-          { id: 'newBookPages',         label: 'Pages',       key: 'pages'  },
-          { id: 'newBookIsbn13',        label: 'ISBN-13',     key: 'isbn',   alwaysCheckbox: true },
-          { id: 'newBookPublishedDate', label: 'Year',        key: 'year'   },
-          { id: 'newBookBlurb',         label: 'Blurb',       key: 'blurb'  },
+          { id: 'newBookTitle',         label: 'Title',   key: 'title'  },
+          { id: 'newBookAuthor',        label: 'Author',  key: 'author' },
+          { id: 'newBookPages',         label: 'Pages',   key: 'pages'  },
+          { id: 'newBookIsbn13',        label: 'ISBN-13', key: 'isbn'   },
+          { id: 'newBookPublishedDate', label: 'Year',    key: 'year'   },
+          { id: 'newBookBlurb',         label: 'Blurb',   key: 'blurb'  },
         ];
 
         var ROW_STYLE  = 'display:flex;align-items:flex-start;gap:10px;padding:7px 0;'
@@ -23588,21 +23588,32 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             + '</span></label>';
         }
 
-        // Cover row
+        // Cover row — checkbox only when replacing an existing cover; auto-fill otherwise
         if (fetched.coverB64) {
           var hasCover = !!document.getElementById('bookCoverBase64').value;
-          rows +=
-            '<label style="' + ROW_STYLE + 'border-bottom:none;cursor:pointer;align-items:center;">'
-            + '<input type="checkbox" data-isbn-field="_cover" style="' + CB_STYLE + '">'
-            + '<span style="' + TEXT_STYLE + '">'
-            + '<span style="font-weight:600;color:#3B6D11;">Cover</span>'
-            + (hasCover
-                ? ' <span style="color:var(--text-muted);">· replace</span>'
-                : ' <span style="color:var(--text-muted);">· will fill</span>')
-            + '</span>'
-            + '<img src="' + fetched.coverB64 + '" style="width:28px;height:42px;'
-            + 'object-fit:cover;border-radius:3px;flex-shrink:0;">'
-            + '</label>';
+          var coverThumb = '<img src="' + fetched.coverB64 + '" style="width:28px;height:42px;'
+            + 'object-fit:cover;border-radius:3px;flex-shrink:0;">';
+          if (hasCover) {
+            rows +=
+              '<label style="' + ROW_STYLE + 'border-bottom:none;cursor:pointer;align-items:center;">'
+              + '<input type="checkbox" data-isbn-field="_cover" style="' + CB_STYLE + '">'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">Cover</span>'
+              + ' <span style="color:var(--text-muted);">· replace</span>'
+              + '</span>'
+              + coverThumb
+              + '</label>';
+          } else {
+            rows +=
+              '<div style="' + ROW_STYLE + 'border-bottom:none;align-items:center;">'
+              + '<span style="color:#3B6D11;font-size:0.85rem;flex-shrink:0;">✓</span>'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">Cover</span>'
+              + ' <span style="color:var(--text-muted);">· will fill</span>'
+              + '</span>'
+              + coverThumb
+              + '</div>';
+          }
         }
 
         if (!rows) {
@@ -23628,8 +23639,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         // Stash fetched payload so applyIsbnReview_ can read coverB64/coverUrl
         panel.dataset.fetchedJson = JSON.stringify({
-          coverB64 : fetched.coverB64  || '',
-          coverUrl : fetched.coverUrl  || ''
+          coverB64    : fetched.coverB64  || '',
+          coverUrl    : fetched.coverUrl  || '',
+          autoFillCover: !!(fetched.coverB64 && !document.getElementById('bookCoverBase64').value)
         });
         panel.style.display = 'block';
       }
@@ -23640,6 +23652,13 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (!panel) return;
         var extra  = {};
         try { extra = JSON.parse(panel.dataset.fetchedJson || '{}'); } catch(e) {}
+
+        // Auto-fill cover if it was shown as ✓ (no existing cover — no checkbox)
+        if (extra.autoFillCover && extra.coverB64) {
+          document.getElementById('bookCoverBase64').value    = extra.coverB64;
+          document.getElementById('bookCoverSourceUrl').value = extra.coverUrl || '';
+          showBookCoverPreview(extra.coverB64, 'Cover from Open Library. Upload to override.');
+        }
 
         var checkboxes = panel.querySelectorAll('input[type="checkbox"][data-isbn-field]');
         checkboxes.forEach(function(cb) {
