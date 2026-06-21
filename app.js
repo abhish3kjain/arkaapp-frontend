@@ -7451,22 +7451,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const paceAvgPagesPerDay = statSnap.badgePaceAvgPagesPerDay || 0;
         const paceAvgBooksPerDay = statSnap.badgePaceAvgBooksPerDay || 0;
 
-        // ── RSE V1 moodMultiplier — used to classify estimate confidence ───────
-        // Easy (≥ 1.2): reading faster than usual, estimate is conservative.
-        // Stretch (0.8–1.2): pace in line with baseline, estimate is reliable.
-        // Aggressive (< 0.8): reading slower than usual, estimate may slip.
-        // Time-bound categories (streak/plogger/anniversary) are exempt — their
-        // timeline is calendar-driven, not pace-driven.
-        const _rseSpeed_   = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {};
-        const _moodMult_   = typeof _rseSpeed_.moodMultiplier === 'number' ? _rseSpeed_.moodMultiplier : null;
-        const PACE_EXEMPT  = new Set(['STREAK_MILESTONE', 'PLOGGER', 'ANNIVERSARY']);
-
-        function _badgeConfidenceBand_(category) {
-          if (_moodMult_ === null || PACE_EXEMPT.has(category)) return null;
-          if (_moodMult_ >= 1.2) return { dot: '#1D9E75', label: 'Easy pace'       };
-          if (_moodMult_ >= 0.8) return { dot: '#EF9F27', label: 'Stretch pace'    };
-          return                        { dot: '#e74c3c', label: 'Aggressive pace'  };
-        }
 
         /**
          * _badgeDaysToUnlock_()
@@ -7571,7 +7555,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             category, label, icon, accent, conf,
             pct, remaining, nextThreshold, barMetric,
             apOnUnlock, daysToUnlock, estimatedLabel,
-            confidenceBand: _badgeConfidenceBand_(category)
           });
         });
 
@@ -7652,14 +7635,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                       ${apDisplay} AP
                     </span>` : ''}
                 </div>
-                ${c.confidenceBand ? `
-                <div style="margin-top:5px;display:flex;align-items:center;gap:4px;">
-                  <span style="width:6px;height:6px;border-radius:50%;
-                               background:${c.confidenceBand.dot};flex-shrink:0;"></span>
-                  <span style="font-size:0.58rem;color:${c.confidenceBand.dot};font-weight:600;">
-                    ${c.confidenceBand.label}
-                  </span>
-                </div>` : ''}
               </div>
             </div>`;
         });
