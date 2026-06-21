@@ -496,7 +496,17 @@ Always use `tryLock()` with a timeout. Always release in `finally`.
 
 ---
 
-## 14. Communication Style Preferences
+## 14. Future Ideas (Parked)
+
+Ideas that have been considered but explicitly deferred. Do not implement without AJ re-raising them.
+
+| Idea | Context | Parked |
+|---|---|---|
+| Club benchmark on book detail | Show per-member pace bars + club avg pg/day for the book's genre; mockup in `mock-book-detail-club-benchmark.html` | Jun 2026 |
+
+---
+
+## 15. Communication Style Preferences
 
 - **Surgical and direct.** Minimal preamble. Get to the code.
 - AJ **interrogates solutions** before accepting them — this is normal, not a rejection. Engage constructively.
