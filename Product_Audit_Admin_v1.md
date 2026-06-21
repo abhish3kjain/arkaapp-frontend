@@ -365,3 +365,126 @@ Low risk to fix; low priority but creates brand inconsistency in version control
 ---
 
 *Audit produced against codebase at v127. Sections read: `AkraAdminControlPanel.html` (full), `ArkaMainAppCode.gs` (admin function grep + offset reads), `Claude.md`, `ArkaDatabase_Definitions.md`.*
+
+---
+
+## 9. Visual Design Audit — Admin Panel vs Member App Alignment
+
+**Added:** June 2026 (post P2 + P3-1 implementation)
+
+The Badge and Challenge sections were flagged as looking "washed out — no color accents, layout is off." This section documents every design gap found between `ArkaClubApp.html` / `styles.css` and the admin panel, with a priority list.
+
+---
+
+### 9.1 Immediate Bugs (Broken Today)
+
+| # | Bug | Location | Impact |
+|---|-----|----------|--------|
+| B-1 | **CSS class name mismatch on Challenges sub-tab bar.** HTML uses `adm-sub-tab` / `adm-sub-tabs` (with hyphen). CSS only defines `adm-subtab` / `adm-subtabs` (no hyphen). Challenges sub-tab bar is completely unstyled — no active underline, no hover, no accent colour. | `AkraAdminControlPanel.html` line 664–666 vs `arkaadmin_styles.css` line 209–218 | Challenges nav looks broken |
+| B-2 | **`--adm-ok-bg` and `--adm-warn-bg` not defined as root variables.** The challenge status pill CSS uses `background:var(--adm-ok-bg)` and `background:var(--adm-warn-bg)` without fallbacks. The email queue badges use inline fallbacks (`var(--adm-ok-bg,#e6f7f1)`) that work, but the challenge pills added in P3-1 will render transparent. | `arkaadmin_styles.css` lines 830–831 | Active/Upcoming challenge pills have no background colour |
+| B-3 | **Challenge form `<label>` elements are unstyled.** The Challenges form uses plain `<label>` tags (not `.adm-form-label`) so they inherit browser defaults instead of the `0.77rem / uppercase / text-muted` treatment used on Announcements and Events forms. All form fields look visually flat with no label hierarchy. | `AkraAdminControlPanel.html` challenge panel vs `arkaadmin_styles.css` line 234 | Form fields have no visual label treatment |
+| B-4 | **Badge form inputs lack focus-border accent styling.** The combobox picker inputs and badge form fields don't have scoped focus styling (cf. `#chalFormDrawer input:focus { border-color: var(--arka-accent) }` in `styles.css` line 3978). | `AkraAdminControlPanel.html` badge panel | No visual feedback on field focus |
+
+---
+
+### 9.2 Design Token Gaps
+
+The member app `styles.css` `:root` defines tokens the admin panel is missing entirely:
+
+| Token | Value | Used for | Missing from admin? |
+|-------|-------|----------|---------------------|
+| `--color-gamification` | `#EF9F27` | CP points, badge rewards display | ✅ Yes |
+| `--color-challenge` | `#534AB7` | Challenge section accent (indigo) | ✅ Yes |
+| `--adm-ok-bg` | `#e6f7f1` | Green tint background for ok state pills | ✅ Yes (used but not defined) |
+| `--adm-warn-bg` | `#fff8e6` | Amber tint background for warn state pills | ✅ Yes (used but not defined) |
+| `--adm-danger-bg` | `#fde8e8` | Red tint background for danger state pills | ✅ Yes (used but not defined) |
+| `--adm-warn` | `#f59f00` | Warning colour | Defined, but diverges from `--color-warning: #e67e22` in member app |
+| `--adm-btn-warn` | — | Warning-coloured action button (e.g. status change) | Not defined anywhere |
+
+---
+
+### 9.3 Component-Level Gaps
+
+#### 9.3.1 Challenge Type Pills — Missing colour coding
+
+Member app: each challenge type has a semantic coloured pill (`.chal-type-HABIT_STREAK` = warm amber, `.chal-type-BINGO_GRID` = indigo, `.chal-type-BUDDY_READ` = rose, etc.) defined in `styles.css` lines 3930–3936. The admin panel shows the type as plain text in the table column.
+
+**Gap:** Admin challenge table shows `BINGO_GRID` as text; member app shows it as a rose/indigo chip. The admin table should use the same coloured chips — they are pure CSS, zero effort to port.
+
+#### 9.3.2 Badge Section — No image thumbnails in Browse Awards table
+
+Member app renders badge images as 52 × 52 px circles wherever a badge is displayed. The admin Browse Awards table shows only the caption text — no image. The `admBadgeMap[badgeId].imgUrl` is already available in the client-side data.
+
+**Gap:** Award rows have no visual badge identity. Adding a 36 px thumbnail as the first cell would make it immediately scannable.
+
+#### 9.3.3 Badge Award Form — Combobox has no type-colour accents
+
+The member app's badge picker shows each badge with its category colour chip and CP value. The admin combobox dropdown (`admAwardBadgeDropdown`) renders a plain text list with no category chip or visual hierarchy.
+
+**Gap:** The dropdown items look like a plain list. The member app's equivalent (filtering badges by type) uses coloured category chips that make scanning fast.
+
+#### 9.3.4 Challenge List — Plain table vs card pattern
+
+Member app renders challenges as rich visual cards: left accent border for pinned (`border-left: 3px solid var(--arka-accent)`), enrollment count green pill, type chip, progress bar for enrolled members. Admin panel renders a plain 8-column table.
+
+**Gap:** The table is fine for admin use, but lacks the key visual anchors: no type colour chip, no pin indicator, no visual differentiation between Active / Upcoming / Archived rows. The table rows are visually identical regardless of status.
+
+#### 9.3.5 Badge Create / Update Image forms — No section dividers or visual grouping
+
+The badge Create and Update Image panels have no `.adm-chal-section-divider` equivalents — fields are stacked with no visual grouping. The member app equivalent groups fields under "Basic info", "Points", "Visibility" dividers, making long forms scannable.
+
+**Gap:** Both badge admin sub-panels feel like a flat list of fields with no breathing room or hierarchy.
+
+#### 9.3.6 Section header icons — Flat purple on every section
+
+Every admin section header icon uses `color:var(--arka-accent)` (purple). The member app uses semantic colours per section: indigo for challenges, amber for badges/points, green for success states. The admin panel has no per-section icon colour.
+
+**Gap:** All 9 section headers look identical — same purple icon, same font weight. No visual differentiation at a glance.
+
+#### 9.3.7 Empty-state illustrations — Generic spinner and icon
+
+Admin empty states use `adm-empty` with a single FA icon and a `<p>`. Member app empty states include contextual illustration-level icons with colour and more descriptive copy. Not a functional gap, but contributes to the "washed out" feel.
+
+#### 9.3.8 `adm-form-label` not applied in Challenge or Badge panels
+
+`.adm-form-label` is defined in the admin CSS (line 234) and used correctly in the Announcements and Events forms. The Challenge form (P3-1) and the Badge sub-panels use plain `<label>` tags without the class — so they don't get the `font-size: 0.77rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px` treatment.
+
+---
+
+### 9.4 Layout Gaps
+
+#### 9.4.1 Challenge form inputs lack scoped width cap
+
+In the member app, the challenge form drawer is 90vw max-height and naturally constrained by the drawer width. In the admin panel, the form is inside a `.adm-card { max-width: 680px }` but form inputs inside stretch to the card width. The `<select>`, `<input>`, and `<textarea>` elements need a scoped width treatment matching the admin form pattern used in Events / Announcements (which scope to `#admEvtForm .adm-input`).
+
+#### 9.4.2 Challenge form inputs don't use `.adm-input` focus styles
+
+The inputs have `class="adm-input"` correctly, but `.adm-input` focus style (`border-color: var(--arka-accent)`) is a global rule. The scoped Announcements and Events forms add extra styles for their input blocks. The Challenge and Badge Create panels don't have scoped rules, so focus interaction feels inconsistent across forms.
+
+#### 9.4.3 Badge Browse Awards table column width on wide screens
+
+The `max-width: 160px` on the Notes column causes ugly truncation on mid-width screens (1000–1200px). The member app equivalent uses `line-height: 1.4; white-space: normal; word-break: break-word` to allow wrapping. This makes Notes readable without a fixed pixel cap.
+
+---
+
+### 9.5 Prioritised Fix List (UI-P series)
+
+| # | Fix | Files | Effort | Impact |
+|---|-----|-------|--------|--------|
+| **UI-P1** | **Fix Challenges sub-tab CSS class name** — rename `adm-sub-tab` / `adm-sub-tabs` in HTML to match existing `adm-subtab` / `adm-subtabs` CSS (or vice-versa; pick one and make it consistent everywhere) | HTML, CSS | 15 min | Restores functioning sub-tab bar on Challenges |
+| **UI-P2** | **Define missing background tokens** — add `--adm-ok-bg`, `--adm-warn-bg`, `--adm-danger-bg`, `--color-gamification`, `--color-challenge` to admin `:root`; replace inline fallbacks | CSS | 30 min | Fixes transparent challenge status pills; enables consistent tint usage |
+| **UI-P3** | **Add `adm-form-label` class to Challenge and Badge form `<label>` elements** — scoped treatment matching Events / Announcements pattern | HTML | 45 min | Restores label hierarchy — biggest contributor to "washed out" feel |
+| **UI-P4** | **Port challenge type colour pills** from `styles.css` lines 3930–3936 to `arkaadmin_styles.css`; apply `.chal-type-badge .chal-type-X` on the Type column in the admin challenge table | CSS, JS render function | 1 hr | Immediate colour in challenge table — single biggest visual improvement |
+| **UI-P5** | **Add badge image thumbnail to Browse Awards table** — 36 px circle using existing `admBadgeMap[badgeId].imgUrl`; fallback to medal icon if no URL | JS render function | 1 hr | Scannability of award rows |
+| **UI-P6** | **Add pin indicator and row-level status tinting to challenge table** — pinned rows get left accent border; Archived rows get `opacity: 0.6`; Active rows get no change | CSS, JS render function | 1 hr | Visual differentiation between row states |
+| **UI-P7** | **Scope challenge form input styling** — add `#admChalPanelForm .adm-input` rules matching Events/Announcements scoped form rules; ensure focus border accent fires | CSS | 30 min | Consistent form field feel across all admin forms |
+| **UI-P8** | **Add category colour chips to badge award combobox dropdown items** — port the `.chal-type-badge` pattern to badge categories using `ADM_BADGE_CATEGORIES` | CSS, JS combobox render | 1.5 hrs | Award form badge picker becomes scannable |
+| **UI-P9** | **Add section-level icon colours** — Challenges = `--color-challenge` indigo; Badges = `--color-gamification` amber; Events = green; Announcements = blue; Posts = orange | HTML (inline style on each icon) | 30 min | Each section instantly distinguishable at a glance |
+| **UI-P10** | **Unify `--adm-warn` with `--color-warning`** — decide on one amber (`#f59f00` vs `#e67e22`) and apply consistently across both panels | CSS | 15 min | Token system convergence |
+| **UI-P11** | **Fix Notes column in Browse Awards** — remove `max-width:160px`, add `white-space:normal; word-break:break-word; max-width:200px` | JS render function | 15 min | Notes readable without truncation |
+| **UI-P12** | **Add visual section dividers to Badge Create / Update Image forms** — group fields under "Image", "Metadata", "Points" dividers using `.adm-chal-section-divider` pattern | HTML | 30 min | Badge admin forms feel structured, not flat |
+
+**Total estimated effort for UI-P1–P12: ~8 hours**
+
+Items UI-P1 through UI-P4 address the "washed out" report directly. UI-P1 is a bug fix that should ship immediately. UI-P2 through P4 require less than 2 hours combined and produce the most visible improvement.
+
