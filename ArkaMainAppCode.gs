@@ -9723,3 +9723,73 @@ function adminSuppressEmailEntry(queueId) {
     return { status: 'error', message: e.toString() };
   }
 }
+
+/**
+ * ADMIN ONLY: Returns full ChallengeDB list with live enrollment counts.
+ *
+ * Enrollment count = rows in ChallengeEnrollmentDB for the challenge where
+ * enrollmentStatus is NOT 'Dropped' (i.e. Active + Finisher + Winner).
+ *
+ * @returns {{ status: string, challengeList?: Array }}
+ */
+function getAdminChallengesData() {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId)                return { status: 'error', message: 'Unauthorized session.' };
+  if (!isAdminMember(currentMemberId)) return { status: 'error', message: 'Admin access required.' };
+
+  try {
+    const ss             = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const challengeSheet = ss.getSheetByName(CHALLENGE_SHEET);
+    if (!challengeSheet) return { status: 'error', message: 'ChallengeDB sheet not found.' };
+
+    // Build enrollment counts per challengeId (exclude Dropped)
+    const enrollCounts = {};
+    const enrollSheet  = ss.getSheetByName(CHALLENGE_ENROLLMENT_SHEET);
+    if (enrollSheet) {
+      const enrollRows = enrollSheet.getDataRange().getValues();
+      for (let i = 1; i < enrollRows.length; i++) {
+        const cid    = (enrollRows[i][1] || '').toString().trim(); // Col B: ChallengeID
+        const status = (enrollRows[i][4] || '').toString().trim(); // Col E: EnrollmentStatus
+        if (cid && status !== 'Dropped') {
+          enrollCounts[cid] = (enrollCounts[cid] || 0) + 1;
+        }
+      }
+    }
+
+    const challengeRows = challengeSheet.getDataRange().getValues();
+    const challengeList = [];
+
+    for (let i = 1; i < challengeRows.length; i++) {
+      const r = challengeRows[i];
+      if (!r[0]) continue;
+      const cid = r[0].toString().trim();
+      challengeList.push({
+        challengeId   : cid,
+        challengeType : (r[1] || '').toString().trim(),
+        title         : (r[2] || '').toString().trim(),
+        description   : (r[3] || '').toString().trim(),
+        startDate     : (r[4] || '').toString().trim(),
+        endDate       : (r[5] || '').toString().trim(),
+        goalValue     : Number(r[6]) || 0,
+        goalUnit      : (r[7] || '').toString().trim(),
+        goalConfigJson: (r[8] || '{}').toString().trim(),
+        status        : (r[9] || 'Active').toString().trim(),
+        isCompetitive : r[10] === true || r[10] === 'TRUE',
+        seriesTag     : (r[11] || '').toString().trim(),
+        isPinned      : r[12] === true || r[12] === 'TRUE',
+        createdBy     : (r[13] || '').toString().trim(),
+        createdOn     : (r[14] || '').toString().trim(),
+        enrollPoints  : Number(r[15]) || 0,
+        finishPoints  : Number(r[16]) || 0,
+        winPoints     : Number(r[17]) || 0,
+        enrolledCount : enrollCounts[cid] || 0
+      });
+    }
+
+    return { status: 'success', challengeList: challengeList };
+
+  } catch (err) {
+    console.error('getAdminChallengesData error:', err);
+    return { status: 'error', message: 'Failed to load challenges: ' + (err.message || String(err)) };
+  }
+}

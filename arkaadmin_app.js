@@ -76,6 +76,13 @@
   var admMembersCardView      = false;
   /** Bulk approval — set of selected member IDs when in Pending filter. */
   var admBulkSelectedIds      = [];
+  /** Challenges — lazy-loaded on first visit to the section. */
+  var admChallengeDB          = [];
+  var admChallengeLoaded      = false;
+  var admChalSubTab           = 'list';
+  var admChalStatusFilter     = 'All';
+  var admChalEditingId        = null;
+  var admPendingChalArchiveId = null;
 
   /* ══════════════════════════════════════════════════════════════════
      ADMIN INIT
@@ -168,6 +175,10 @@
     // Lazy-load email queue on first visit
     if (name === 'emailqueue' && !admEmailQueueLoaded) {
       admLoadEmailQueue();
+    }
+    // Lazy-load challenges on first visit
+    if (name === 'challenges' && !admChallengeLoaded) {
+      admLoadChallenges();
     }
   }
 
@@ -2118,6 +2129,456 @@
   }
 
   /* ══════════════════════════════════════════════════════════════════
+     CHALLENGES
+     ══════════════════════════════════════════════════════════════════ */
+
+  var ADM_CHAL_TYPE_LABELS = {
+    HABIT_STREAK  : '📅 Habit Streak',
+    BINGO_GRID    : '🎲 Bingo Grid',
+    BUDDY_READ    : '📖 Buddy Read',
+    COUNTRY_SPREAD: '🌍 Around the World',
+    ALPHABET      : '🔤 Alphabet',
+    BOOK_COUNT    : '📚 Book Count',
+    PAGE_COUNT    : '📄 Page Count'
+  };
+
+  var ADM_CHAL_POINT_DEFAULTS = {
+    HABIT_STREAK  : { enrol: 100, finish: 1500, win: 3000 },
+    BINGO_GRID    : { enrol:  50, finish: 1000, win: 3000 },
+    BUDDY_READ    : { enrol:  30, finish:  200, win:    0 },
+    COUNTRY_SPREAD: { enrol: 100, finish: 1500, win: 3000 },
+    ALPHABET      : { enrol: 100, finish: 1500, win: 5000 },
+    BOOK_COUNT    : { enrol:  30, finish:  100, win:    0 },
+    PAGE_COUNT    : { enrol:  30, finish:  100, win:    0 }
+  };
+
+  function admLoadChallenges() {
+    var tbody = document.getElementById('admChalTbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="8"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr>';
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res.status !== 'success') {
+          admShowToast((res.message || 'Failed to load challenges.'), 'err');
+          return;
+        }
+        admChallengeDB     = res.challengeList || [];
+        admChallengeLoaded = true;
+        admRenderChallengeList();
+        _admPopulateChalEventOptions();
+        _admPopulateChalSeriesTags();
+      })
+      .withFailureHandler(function(err) {
+        admShowToast('Server error loading challenges.', 'err');
+      })
+      .getAdminChallengesData();
+  }
+
+  function admSwitchChalSubTab(tab) {
+    admChalSubTab = tab;
+    var panels = { list: 'admChalPanelList', form: 'admChalPanelForm' };
+    Object.keys(panels).forEach(function(t) {
+      var el = document.getElementById(panels[t]);
+      if (el) el.style.display = t === tab ? 'block' : 'none';
+    });
+    var listBtn = document.getElementById('admChalSubTabList');
+    var formBtn = document.getElementById('admChalSubTabForm');
+    if (listBtn) listBtn.classList.toggle('active', tab === 'list');
+    if (formBtn) formBtn.classList.toggle('active', tab === 'form');
+    if (tab === 'list') admRenderChallengeList();
+  }
+
+  function admSwitchChalStatusFilter(status) {
+    admChalStatusFilter = status;
+    document.querySelectorAll('[data-chal-status]').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.chalStatus === status);
+    });
+    admRenderChallengeList();
+  }
+
+  function admRenderChallengeList() {
+    var tbody = document.getElementById('admChalTbody');
+    if (!tbody) return;
+    var list = admChallengeDB.filter(function(c) {
+      return admChalStatusFilter === 'All' || c.status === admChalStatusFilter;
+    });
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="8"><div class="adm-empty"><i class="fa-solid fa-trophy"></i><p>No challenges match this filter.</p></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(function(c) {
+      var statusCls = 'adm-chal-pill adm-chal-pill-' + c.status.toLowerCase();
+      var statusPill = '<span class="' + statusCls + '">' + _esc(c.status) + '</span>';
+      var typeLabel  = ADM_CHAL_TYPE_LABELS[c.challengeType] || _esc(c.challengeType);
+      var dates      = _esc(c.startDate) + (c.endDate ? ' → ' + _esc(c.endDate) : ' → open');
+      var goal       = c.goalValue ? (c.goalValue + ' ' + _esc(c.goalUnit)) : '—';
+      var pts        = c.enrollPoints + ' / ' + c.finishPoints + ' / ' + c.winPoints;
+      var pins       = c.isPinned ? ' <i class="fa-solid fa-thumbtack" style="color:var(--arka-accent);font-size:0.75rem;" title="Pinned"></i>' : '';
+      var editBtn    = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenChalEdit(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-pen-to-square"></i></button>';
+      var archBtn    = c.status !== 'Archived'
+        ? '<button class="adm-btn adm-btn-danger adm-btn-sm" style="margin-left:4px" onclick="admOpenChalArchiveModal(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-box-archive"></i></button>'
+        : '';
+      return '<tr>'
+        + '<td><strong>' + _esc(c.title) + '</strong>' + pins + (c.seriesTag ? '<br><span class="adm-td-mono" style="font-size:0.7rem;color:var(--text-faint)">' + _esc(c.seriesTag) + '</span>' : '') + '</td>'
+        + '<td class="adm-col-meta">' + typeLabel + '</td>'
+        + '<td class="adm-col-meta" style="white-space:nowrap;font-size:0.78rem">' + dates + '</td>'
+        + '<td>' + goal + '</td>'
+        + '<td style="text-align:center">' + c.enrolledCount + '</td>'
+        + '<td class="adm-col-meta adm-td-mono" style="font-size:0.78rem">' + pts + '</td>'
+        + '<td>' + statusPill + '</td>'
+        + '<td>' + editBtn + archBtn + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  function admOpenChalEdit(challengeId) {
+    admChalEditingId = challengeId || null;
+    var c = challengeId ? admChallengeDB.filter(function(x) { return x.challengeId === challengeId; })[0] : null;
+    var labelEl = document.getElementById('admChalFormTabLabel');
+    var hiddenId = document.getElementById('admChalEditingId');
+    if (hiddenId) hiddenId.value = challengeId || '';
+
+    if (c) {
+      if (labelEl) labelEl.textContent = 'Edit Challenge';
+      var typeEl = document.getElementById('admChalTypeSelect');
+      if (typeEl) { typeEl.value = c.challengeType; typeEl.disabled = true; }
+      _admSetVal('admChalTitleInput',      c.title || '');
+      _admSetVal('admChalDescInput',       c.description || '');
+      _admSetVal('admChalStartDate',       _admChalToInputDate(c.startDate));
+      _admSetVal('admChalEndDate',         _admChalToInputDate(c.endDate));
+      _admSetVal('admChalSeriesTag',       c.seriesTag || '');
+      _admSetVal('admChalStatusSelect',    c.status || 'Active');
+      _admSetVal('admChalEnrollPoints',    c.enrollPoints);
+      _admSetVal('admChalFinishPoints',    c.finishPoints);
+      _admSetVal('admChalWinPoints',       c.winPoints);
+      var pinTog  = document.getElementById('admChalPinToggle');
+      var compTog = document.getElementById('admChalCompetitiveToggle');
+      if (pinTog)  pinTog.classList.toggle('on',  !!c.isPinned);
+      if (compTog) compTog.classList.toggle('on', !!c.isCompetitive);
+      _admChalShowTypeSection(c.challengeType);
+      _admChalPrefillTypeFields(c);
+    } else {
+      if (labelEl) labelEl.textContent = 'New Challenge';
+      var typeEl = document.getElementById('admChalTypeSelect');
+      if (typeEl) { typeEl.value = ''; typeEl.disabled = false; }
+      ['admChalTitleInput','admChalDescInput','admChalStartDate','admChalEndDate','admChalSeriesTag'].forEach(function(id) { _admSetVal(id, ''); });
+      _admSetVal('admChalStatusSelect', 'Active');
+      _admSetVal('admChalEnrollPoints', 100);
+      _admSetVal('admChalFinishPoints', 500);
+      _admSetVal('admChalWinPoints', 1500);
+      var pinTog  = document.getElementById('admChalPinToggle');
+      var compTog = document.getElementById('admChalCompetitiveToggle');
+      if (pinTog)  pinTog.classList.remove('on');
+      if (compTog) compTog.classList.add('on');
+      document.querySelectorAll('.adm-chal-type-section').forEach(function(el) { el.classList.remove('visible'); });
+    }
+
+    var saveBtn = document.getElementById('admChalSaveBtn');
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Challenge'; }
+    admSwitchChalSubTab('form');
+  }
+
+  function admChalTypeChange() {
+    var type = (document.getElementById('admChalTypeSelect') || {}).value || '';
+    _admChalShowTypeSection(type);
+    var pts = ADM_CHAL_POINT_DEFAULTS[type];
+    if (pts) {
+      _admSetVal('admChalEnrollPoints', pts.enrol);
+      _admSetVal('admChalFinishPoints', pts.finish);
+      _admSetVal('admChalWinPoints',    pts.win);
+    }
+    var nonComp = ['BOOK_COUNT', 'PAGE_COUNT'];
+    var compTog = document.getElementById('admChalCompetitiveToggle');
+    if (compTog) compTog.classList.toggle('on', nonComp.indexOf(type) === -1);
+    if (type === 'BINGO_GRID') admChalRenderBingoBuilder();
+  }
+
+  function _admChalShowTypeSection(type) {
+    document.querySelectorAll('.adm-chal-type-section').forEach(function(el) { el.classList.remove('visible'); });
+    var target = document.getElementById('admChalConfig-' + type);
+    if (target) target.classList.add('visible');
+  }
+
+  function admChalRenderBingoBuilder() {
+    var gridSize   = parseInt((document.getElementById('admChalBingo-gridSize') || {}).value) || 3;
+    var totalCells = gridSize * gridSize;
+    var centreIdx  = Math.floor(totalCells / 2);
+    var container  = document.getElementById('admChalBingo-cellBuilder');
+    if (!container) return;
+    container.style.gridTemplateColumns = 'repeat(' + gridSize + ', 1fr)';
+    var html = '';
+    for (var i = 0; i < totalCells; i++) {
+      var isFree = (totalCells % 2 !== 0) && (i === centreIdx);
+      html += '<div>';
+      html += '<div class="adm-bingo-cell-label">Cell ' + (i + 1) + (isFree ? ' (FREE)' : '') + '</div>';
+      if (isFree) {
+        html += '<input class="adm-bingo-cell-input is-free" id="admChalBingo-cell-' + i + '" value="FREE — any book you loved" readonly>';
+      } else {
+        html += '<input class="adm-bingo-cell-input" id="admChalBingo-cell-' + i + '" placeholder="Reading prompt…">';
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  function _admChalPrefillTypeFields(c) {
+    var config = {};
+    try { config = JSON.parse(c.goalConfigJson || '{}'); } catch (e) { config = {}; }
+    var t = c.challengeType;
+    if (t === 'HABIT_STREAK') {
+      _admSetVal('admChalStreak-minPages', config.minPagesPerDay || 10);
+      var tog = document.getElementById('admChalStreak-resetToggle');
+      if (tog) tog.classList.toggle('on', config.streakResetOnMiss !== false);
+    }
+    if (t === 'BINGO_GRID') {
+      _admSetVal('admChalBingo-gridSize',         config.gridSize       || 3);
+      _admSetVal('admChalBingo-winCondition',      config.winCondition   || 'ALL_CELLS');
+      _admSetVal('admChalBingo-finisherCondition', config.finisherCondition || 'ANY_LINE');
+      admChalRenderBingoBuilder();
+      if (config.cells && Array.isArray(config.cells)) {
+        config.cells.forEach(function(cell, idx) {
+          var input = document.getElementById('admChalBingo-cell-' + idx);
+          if (input && !input.readOnly) input.value = cell.prompt || '';
+        });
+      }
+    }
+    if (t === 'BUDDY_READ') {
+      _admSetVal('admChalBuddy-bookTitle', config.bookTitle || '');
+      var evtEl = document.getElementById('admChalBuddy-linkedEvent');
+      if (evtEl && config.linkedEventId) evtEl.value = config.linkedEventId;
+    }
+    if (t === 'COUNTRY_SPREAD') {
+      _admSetVal('admChalCountry-goalValue', c.goalValue || 10);
+      _admSetVal('admChalCountry-qualRule',  config.qualificationRule || 'BOOK_SETTING_OR_AUTHOR');
+    }
+    if (t === 'ALPHABET') {
+      _admSetVal('admChalAlpha-matchRule',       config.matchRule || 'TITLE_FIRST_WORD');
+      _admSetVal('admChalAlpha-optionalLetters', (config.optionalLetters || ['Q','X','Z']).join(', '));
+      var skipTog = document.getElementById('admChalAlpha-skipToggle');
+      if (skipTog) skipTog.classList.toggle('on', config.skipArticles !== false);
+    }
+    if (t === 'BOOK_COUNT') {
+      _admSetVal('admChalBookCount-default', config.defaultGoal || 24);
+      var tog = document.getElementById('admChalBookCount-personalToggle');
+      if (tog) tog.classList.toggle('on', config.allowPersonalGoal !== false);
+    }
+    if (t === 'PAGE_COUNT') {
+      _admSetVal('admChalPageCount-default', config.defaultGoal || 5000);
+      var tog = document.getElementById('admChalPageCount-personalToggle');
+      if (tog) tog.classList.toggle('on', config.allowPersonalGoal !== false);
+    }
+  }
+
+  function _admChalBuildGoalConfig(type) {
+    var config = {}, goalValue = 0, goalUnit = '';
+    if (type === 'HABIT_STREAK') {
+      var minPages = parseInt((document.getElementById('admChalStreak-minPages') || {}).value) || 10;
+      goalValue = minPages; goalUnit = 'pages';
+      config = {
+        minPagesPerDay    : minPages,
+        streakResetOnMiss : (document.getElementById('admChalStreak-resetToggle') || {}).classList && document.getElementById('admChalStreak-resetToggle').classList.contains('on'),
+        countTowardsSource: ['ArkaClubApp']
+      };
+    }
+    if (type === 'BINGO_GRID') {
+      var gridSize = parseInt((document.getElementById('admChalBingo-gridSize') || {}).value) || 3;
+      var total    = gridSize * gridSize;
+      var centre   = Math.floor(total / 2);
+      var cells    = [];
+      for (var i = 0; i < total; i++) {
+        var inp = document.getElementById('admChalBingo-cell-' + i);
+        cells.push({ cellId: 'C' + (i + 1), position: [Math.floor(i / gridSize), i % gridSize], prompt: inp ? inp.value.trim() : '' });
+      }
+      goalValue = total; goalUnit = 'cells';
+      config = {
+        gridSize          : gridSize,
+        winCondition      : (document.getElementById('admChalBingo-winCondition') || {}).value || 'ALL_CELLS',
+        finisherCondition : (document.getElementById('admChalBingo-finisherCondition') || {}).value || 'ANY_LINE',
+        cells             : cells
+      };
+    }
+    if (type === 'BUDDY_READ') {
+      var bookTitle = ((document.getElementById('admChalBuddy-bookTitle') || {}).value || '').trim();
+      var linkedEvt = ((document.getElementById('admChalBuddy-linkedEvent') || {}).value || '').trim();
+      goalValue = 1; goalUnit = 'book';
+      config = { bookTitle: bookTitle, linkedEventId: linkedEvt };
+    }
+    if (type === 'COUNTRY_SPREAD') {
+      goalValue = parseInt((document.getElementById('admChalCountry-goalValue') || {}).value) || 10;
+      goalUnit  = 'countries';
+      config    = { qualificationRule: (document.getElementById('admChalCountry-qualRule') || {}).value || 'BOOK_SETTING_OR_AUTHOR' };
+    }
+    if (type === 'ALPHABET') {
+      goalValue = 26; goalUnit = 'letters';
+      var optRaw = ((document.getElementById('admChalAlpha-optionalLetters') || {}).value || 'Q, X, Z');
+      config = {
+        matchRule      : (document.getElementById('admChalAlpha-matchRule') || {}).value || 'TITLE_FIRST_WORD',
+        skipArticles   : (document.getElementById('admChalAlpha-skipToggle') || {}).classList && document.getElementById('admChalAlpha-skipToggle').classList.contains('on'),
+        optionalLetters: optRaw.split(',').map(function(s) { return s.trim().toUpperCase(); }).filter(Boolean)
+      };
+    }
+    if (type === 'BOOK_COUNT') {
+      goalValue = parseInt((document.getElementById('admChalBookCount-default') || {}).value) || 24;
+      goalUnit  = 'books';
+      config    = {
+        defaultGoal      : goalValue,
+        allowPersonalGoal: (document.getElementById('admChalBookCount-personalToggle') || {}).classList && document.getElementById('admChalBookCount-personalToggle').classList.contains('on')
+      };
+    }
+    if (type === 'PAGE_COUNT') {
+      goalValue = parseInt((document.getElementById('admChalPageCount-default') || {}).value) || 5000;
+      goalUnit  = 'pages';
+      config    = {
+        defaultGoal      : goalValue,
+        allowPersonalGoal: (document.getElementById('admChalPageCount-personalToggle') || {}).classList && document.getElementById('admChalPageCount-personalToggle').classList.contains('on')
+      };
+    }
+    return { goalConfigJson: JSON.stringify(config), goalValue: goalValue, goalUnit: goalUnit };
+  }
+
+  function admSubmitChallenge() {
+    var btn           = document.getElementById('admChalSaveBtn');
+    var type          = ((document.getElementById('admChalTypeSelect') || {}).value || '').trim();
+    var title         = ((document.getElementById('admChalTitleInput') || {}).value || '').trim();
+    var startDateRaw  = ((document.getElementById('admChalStartDate') || {}).value || '').trim();
+
+    if (!type)          { admShowToast('Please select a challenge type.', 'err');  return; }
+    if (!title)         { admShowToast('Please enter a challenge title.', 'err');  return; }
+    if (!startDateRaw)  { admShowToast('Please set a start date.', 'err');         return; }
+
+    var goalCfg = _admChalBuildGoalConfig(type);
+
+    var payload = {
+      challengeId   : ((document.getElementById('admChalEditingId') || {}).value || '') || null,
+      challengeType : type,
+      title         : title,
+      description   : ((document.getElementById('admChalDescInput') || {}).value || '').trim(),
+      startDate     : _admChalFromInputDate(startDateRaw),
+      endDate       : _admChalFromInputDate(((document.getElementById('admChalEndDate') || {}).value || '').trim()),
+      goalValue     : goalCfg.goalValue,
+      goalUnit      : goalCfg.goalUnit,
+      goalConfigJson: goalCfg.goalConfigJson,
+      status        : ((document.getElementById('admChalStatusSelect') || {}).value || 'Active'),
+      isCompetitive : !!(document.getElementById('admChalCompetitiveToggle') || {}).classList && document.getElementById('admChalCompetitiveToggle').classList.contains('on'),
+      seriesTag     : ((document.getElementById('admChalSeriesTag') || {}).value || '').trim().toUpperCase(),
+      isPinned      : !!(document.getElementById('admChalPinToggle') || {}).classList && document.getElementById('admChalPinToggle').classList.contains('on'),
+      enrollPoints  : parseInt((document.getElementById('admChalEnrollPoints') || {}).value) || 0,
+      finishPoints  : parseInt((document.getElementById('admChalFinishPoints') || {}).value) || 0,
+      winPoints     : parseInt((document.getElementById('admChalWinPoints') || {}).value)    || 0
+    };
+
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…'; }
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res.status !== 'success') {
+          admShowToast(res.message || 'Could not save challenge.', 'err');
+          if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Challenge'; }
+          return;
+        }
+        var saved = res.challenge;
+        saved.enrolledCount = payload.challengeId
+          ? ((admChallengeDB.filter(function(x) { return x.challengeId === saved.challengeId; })[0] || {}).enrolledCount || 0)
+          : 0;
+        if (res.isUpdate) {
+          var idx = admChallengeDB.findIndex
+            ? admChallengeDB.findIndex(function(c) { return c.challengeId === saved.challengeId; })
+            : (function() { for (var i = 0; i < admChallengeDB.length; i++) { if (admChallengeDB[i].challengeId === saved.challengeId) return i; } return -1; })();
+          if (idx > -1) admChallengeDB[idx] = saved; else admChallengeDB.push(saved);
+        } else {
+          admChallengeDB.push(saved);
+        }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Challenge'; }
+        admShowToast(res.isUpdate ? 'Challenge updated!' : 'Challenge created!', 'ok');
+        admChalEditingId = null;
+        _admPopulateChalSeriesTags();
+        admSwitchChalSubTab('list');
+      })
+      .withFailureHandler(function(err) {
+        admShowToast('Server error saving challenge.', 'err');
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Challenge'; }
+      })
+      .saveChallenge(payload);
+  }
+
+  function admOpenChalArchiveModal(challengeId) {
+    admPendingChalArchiveId = challengeId;
+    var c    = admChallengeDB.filter(function(x) { return x.challengeId === challengeId; })[0] || {};
+    var body = document.getElementById('admChalArchiveModalBody');
+    if (body) body.innerHTML = 'Archive <strong>' + _esc(c.title || challengeId) + '</strong>?'
+      + (c.enrolledCount ? ' <strong>' + c.enrolledCount + ' member(s)</strong> are enrolled — the challenge will be hidden from the member app.' : '');
+    var modal = document.getElementById('admChalArchiveModal');
+    if (modal) modal.style.display = 'flex';
+  }
+
+  function admCloseChalArchiveModal() {
+    var modal = document.getElementById('admChalArchiveModal');
+    if (modal) modal.style.display = 'none';
+    admPendingChalArchiveId = null;
+  }
+
+  function admConfirmChalArchive() {
+    var id = admPendingChalArchiveId;
+    if (!id) return;
+    admCloseChalArchiveModal();
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res.status !== 'success') {
+          admShowToast(res.message || 'Archive failed.', 'err');
+          return;
+        }
+        var c = admChallengeDB.filter(function(x) { return x.challengeId === id; })[0];
+        if (c) c.status = 'Archived';
+        admShowToast('Challenge archived.', 'ok');
+        admRenderChallengeList();
+      })
+      .withFailureHandler(function() { admShowToast('Server error archiving challenge.', 'err'); })
+      .archiveChallenge(id);
+  }
+
+  /* date helpers — 'dd-MMM-yyyy' ↔ 'yyyy-MM-dd' (HTML date input format) */
+  var _ADM_MONTHS = { Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12 };
+  var _ADM_MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function _admChalToInputDate(str) {
+    if (!str) return '';
+    var m = str.match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
+    if (!m) return '';
+    var mon = _ADM_MONTHS[m[2]];
+    if (!mon) return '';
+    return m[3] + '-' + (mon < 10 ? '0' + mon : '' + mon) + '-' + m[1];
+  }
+
+  function _admChalFromInputDate(str) {
+    if (!str) return '';
+    var m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return '';
+    return m[3] + '-' + _ADM_MONTH_NAMES[parseInt(m[2], 10) - 1] + '-' + m[1];
+  }
+
+  function _admSetVal(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.value = val;
+  }
+
+  function _admPopulateChalSeriesTags() {
+    var dl = document.getElementById('admChalSeriesTagList');
+    if (!dl) return;
+    var tags = admChallengeDB.map(function(c) { return c.seriesTag; }).filter(Boolean);
+    tags = tags.filter(function(t, i) { return tags.indexOf(t) === i; }).sort();
+    dl.innerHTML = tags.map(function(t) { return '<option value="' + _esc(t) + '">'; }).join('');
+  }
+
+  function _admPopulateChalEventOptions() {
+    var sel = document.getElementById('admChalBuddy-linkedEvent');
+    if (!sel || !admEventsDB || !admEventsDB.length) return;
+    var opts = '<option value="">— Not linked to any event —</option>';
+    admEventsDB.filter(function(e) { return e.status === 'Active' || e.status === 'Upcoming'; }).forEach(function(e) {
+      opts += '<option value="' + _esc(e.eventId) + '">' + _esc(e.title) + ' · ' + _esc(e.startDate) + '</option>';
+    });
+    sel.innerHTML = opts;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
      PRIVATE HELPERS
      ══════════════════════════════════════════════════════════════════ */
 
@@ -2227,6 +2688,16 @@
   window.admLoadEmailQueue          = admLoadEmailQueue;
   window.admSwitchEqFilter          = admSwitchEqFilter;
   window.admSuppressEmailEntry      = admSuppressEmailEntry;
+  window.admLoadChallenges          = admLoadChallenges;
+  window.admSwitchChalSubTab        = admSwitchChalSubTab;
+  window.admSwitchChalStatusFilter  = admSwitchChalStatusFilter;
+  window.admOpenChalEdit            = admOpenChalEdit;
+  window.admChalTypeChange          = admChalTypeChange;
+  window.admChalRenderBingoBuilder  = admChalRenderBingoBuilder;
+  window.admSubmitChallenge         = admSubmitChallenge;
+  window.admOpenChalArchiveModal    = admOpenChalArchiveModal;
+  window.admCloseChalArchiveModal   = admCloseChalArchiveModal;
+  window.admConfirmChalArchive      = admConfirmChalArchive;
 
   /* ── Bootstrap ─────────────────────────────────────────────────── */
   window.addEventListener('DOMContentLoaded', admInit);
