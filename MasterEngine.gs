@@ -1129,7 +1129,7 @@ function autoAwardBadge_(memberId, badgeId, badgePoints, badgeCaption, activityD
     'ARKA_ACTTYP_BADGEAWARD',
     activityDate,
     memberId,
-    thisAwardId,       // Col E: description = AwardID for traceability
+    thisAwardId,       // Col E: description = AwardID (on member dismiss: "awardId | SeenByMember")
     MASTERSYNC_SOURCE,
     badgePoints        // Col G: injected CP (may be 0 for legacy-milestone recipients)
   ]);
@@ -2472,7 +2472,7 @@ function syncAllMemberStats() {
             "ARKA_ACTTYP_MEMBERLEVELUP",
             activityDate,
             memberId,
-            `Previous Level: ${oldLevel} | New Level: ${newLevel}`,
+            `Previous Level: ${oldLevel} | New Level: ${newLevel}`, // on member dismiss: "… | SeenByMember"
             MASTERSYNC_SOURCE,
             0
           ]);

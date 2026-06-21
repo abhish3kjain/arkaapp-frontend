@@ -962,6 +962,7 @@ function _personaBuildFingerprint_(agg) {
  * Builds one ARKA_ACTTYP_PERSONAUPDATE row value object (ID assigned later,
  * inside the locked append). Description format matches the Definitions doc:
  *   Axis: <axisName> | <oldSide> → <newSide> | Archetype: <oldArch> → <newArch>
+ *   (On member dismiss: " | SeenByMember" appended by markActivitySeen in ArkaMainAppCode.gs)
  *
  * @returns {Object} { type, date, memberId, desc, source, cp }
  * @private
