@@ -1,4 +1,7 @@
 		/**
+       * ArkaClubApp — frontend    v3.7.0
+       * Full version history: VERSIONS.md
+       *
        * T0: JS execution start time.
        * Captured before any variable declarations so it is as close to
        * true page-load start as possible. Used to measure BigGulpMs and TotalMs.
@@ -2166,28 +2169,45 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        * Placeholders (—) remain until Wave 3 is loaded for Reading Now and Books Finished.
        */
       function _fillMembersBannerStats_() {
-        var membersEl = document.getElementById('mbrStatMembers');
-        var readingEl = document.getElementById('mbrStatReading');
-        var booksEl   = document.getElementById('mbrStatBooks');
+        var membersEl    = document.getElementById('mbrStatMembers');
+        var activeWeekEl = document.getElementById('mbrStatActiveWeek');
+        var pagesYearEl  = document.getElementById('mbrStatPagesYear');
 
         // Members count — available from Wave 1, safe to fill immediately
         if (membersEl && globalMembersDB.length > 0) {
           membersEl.textContent = globalMembersDB.length;
         }
 
-        // Reading Now + Books Finished require Wave 3 (globalShelvesDB)
+        // Active This Week — derived from member.lastAccessed (Wave 1)
+        if (activeWeekEl && globalMembersDB.length > 0) {
+          var weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+          var activeCount = globalMembersDB.filter(function(m) {
+            var d = parseGoogleDate(m.lastAccessed);
+            return d && d.getTime() >= weekAgo;
+          }).length;
+          activeWeekEl.textContent = activeCount;
+        }
+
+        // Pages This Year — requires Wave 3 (globalShelvesDB)
         if (!isWave3Loaded) return;
 
-        var readingMemberIds = new Set();
-        var finishedTotal    = 0;
+        var thisYear   = new Date().getFullYear();
+        var pagesTotal = 0;
 
         globalShelvesDB.forEach(function(shelf) {
-          if (shelf.status === 'Reading')  readingMemberIds.add(shelf.memberId);
-          if (shelf.status === 'Finished') finishedTotal++;
+          if (shelf.status === 'Finished' && shelf.dateFinished) {
+            var d = parseGoogleDate(shelf.dateFinished);
+            if (d && d.getFullYear() === thisYear) {
+              pagesTotal += Number(shelf.pagesRead) || 0;
+            }
+          }
         });
 
-        if (readingEl) readingEl.textContent = readingMemberIds.size;
-        if (booksEl)   booksEl.textContent   = finishedTotal.toLocaleString();
+        if (pagesYearEl) {
+          pagesYearEl.textContent = pagesTotal >= 1000
+            ? (pagesTotal / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+            : pagesTotal.toLocaleString();
+        }
       }
 
 
@@ -7427,11 +7447,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const STRIP_MAX = 3; // Maximum cards shown in strip before scroll
 
         // ── Pace signals from last nightly MasterEngine run ───────────────────
-        // meCoachInsightsCache is the global CoachInsights payload (MemberDB Col S)
-        // populated in Wave 1. Both fields are 0 for members with no page logs yet.
         const statSnap           = (meCoachInsightsCache && meCoachInsightsCache.statSnapshot) || {};
         const paceAvgPagesPerDay = statSnap.badgePaceAvgPagesPerDay || 0;
         const paceAvgBooksPerDay = statSnap.badgePaceAvgBooksPerDay || 0;
+
 
         /**
          * _badgeDaysToUnlock_()
@@ -7535,7 +7554,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           candidates.push({
             category, label, icon, accent, conf,
             pct, remaining, nextThreshold, barMetric,
-            apOnUnlock, daysToUnlock, estimatedLabel
+            apOnUnlock, daysToUnlock, estimatedLabel,
           });
         });
 
@@ -12559,11 +12578,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             return books.slice().sort(function(a, b) {
               var pa = Number(a.pages) || 0;
               var pb = Number(b.pages) || 0;
-              // books with no page count go to the end
               if (!pa && !pb) return 0;
-              if (!pa) return 1;
+              if (!pa) return 1;  // no pages → always end, regardless of direction
               if (!pb) return -1;
-              return pa - pb; // shortest first
+              return pa - pb; // shortest first (default); reversed externally for desc
             });
           }
         },
@@ -12575,7 +12593,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             return books.slice().sort(function(a, b) {
               var ya = parseInt((a.publishedDate || '').toString().trim().slice(0, 4)) || 0;
               var yb = parseInt((b.publishedDate || '').toString().trim().slice(0, 4)) || 0;
-              return yb - ya; // newest first; books with no year go to the end
+              if (!ya && !yb) return 0;
+              if (!ya) return 1;  // no year → always end, regardless of direction
+              if (!yb) return -1;
+              return yb - ya; // newest first (default); reversed externally for asc
             });
           }
         },
@@ -12588,14 +12609,14 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               var pa = Number(a.pages) || 0;
               var pb = Number(b.pages) || 0;
               if (!pa && !pb) return 0;
-              if (!pa) return 1;  // no pages → end
+              if (!pa) return 1;  // no pages → always end, regardless of direction
               if (!pb) return -1;
               var da = rseEstimateDays_(pa);
               var db = rseEstimateDays_(pb);
-              if (da === null && db === null) return pa - pb; // fallback: page count
-              if (da === null) return 1;
+              if (da === null && db === null) return pa - pb;
+              if (da === null) return 1;  // no estimate → always end
               if (db === null) return -1;
-              return da - db; // quickest read first
+              return da - db; // quickest first (default); reversed externally for desc
             });
           }
         },
@@ -12869,8 +12890,24 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // ── Step 4: Apply active sort + direction ─────────────────────────────────
         var sortOpt = LIBRARY_SORT_OPTIONS.find(function(o) { return o.key === currentLibrarySort; });
         var sorted  = sortOpt ? sortOpt.sort(shelfFiltered) : shelfFiltered;
-        // Each sort function always produces its "default" order; flip when needed.
-        if (sortOpt && currentLibrarySortAsc !== sortOpt.defaultAsc) sorted = sorted.slice().reverse();
+        // Flip direction when needed, but keep no-data books pinned to the end.
+        // nullTail sorts (pages, year, readtime) push missing-data books last in
+        // their comparator; a plain .reverse() would bring them to the front.
+        if (sortOpt && currentLibrarySortAsc !== sortOpt.defaultAsc) {
+          var NULL_TAIL_SORTS = { pages: true, year: true, readtime: true };
+          if (NULL_TAIL_SORTS[currentLibrarySort]) {
+            var nullTailPredicate = {
+              pages   : function(b) { return !(Number(b.pages) > 0); },
+              year    : function(b) { return !parseInt((b.publishedDate || '').toString().trim().slice(0, 4)); },
+              readtime: function(b) { return !(Number(b.pages) > 0); }
+            }[currentLibrarySort];
+            var withData    = sorted.filter(function(b) { return !nullTailPredicate(b); });
+            var withoutData = sorted.filter(nullTailPredicate);
+            sorted = withData.slice().reverse().concat(withoutData);
+          } else {
+            sorted = sorted.slice().reverse();
+          }
+        }
 
         // ── Step 5: Update the active genre filter chip row ────────────────────────
         // Shows a dismissible pill so members can see the active filter and understand
@@ -15086,22 +15123,22 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           } catch(e) { return ''; }
         }
 
-        // Build a small avatar circle (38px) with initials fallback
+        // Build a small avatar circle (44px) with initials fallback
         function buildShelfAvHtml(u, bgColor, textColor) {
           const init = u.name ? u.name.charAt(0).toUpperCase() : '?';
           if (u.imageURL) {
             return `<img src="${escapeHtml(u.imageURL)}"
-                        style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;"
+                        style="width:44px;height:44px;border-radius:50%;object-fit:cover;display:block;"
                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                    <div style="display:none;width:38px;height:38px;border-radius:50%;
+                    <div style="display:none;width:44px;height:44px;border-radius:50%;
                                 background:${bgColor};color:${textColor};
                                 align-items:center;justify-content:center;
-                                font-size:0.78rem;font-weight:bold;">${init}</div>`;
+                                font-size:0.82rem;font-weight:bold;">${init}</div>`;
           }
-          return `<div style="width:38px;height:38px;border-radius:50%;
+          return `<div style="width:44px;height:44px;border-radius:50%;
                               background:${bgColor};color:${textColor};display:flex;
                               align-items:center;justify-content:center;
-                              font-size:0.78rem;font-weight:bold;">${init}</div>`;
+                              font-size:0.82rem;font-weight:bold;">${init}</div>`;
         }
 
         // Status config with dot colour, label, avatar bg/text for each status
@@ -15151,7 +15188,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 `<div class="detail-shelf-av-item"
                       onclick="showMemberProfile('${u.memberId}')"
                       style="cursor:pointer;">
-                   <div style="position:relative;display:inline-block;padding:6px 8px 0 0;">
+                   <div style="position:relative;display:inline-block;padding:8px 10px 0 0;">
                      ${buildShelfAvHtml(u, cfg.bg, cfg.fg)}
                      ${ratingBadge}
                    </div>
@@ -15159,7 +15196,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                      ${escapeHtml(shortName)}
                    </div>
-                   <div style="font-size:0.6rem;color:var(--text-faint);">${escapeHtml(dateLabel)}</div>
+                   <div style="font-size:0.6rem;color:var(--text-faint);white-space:nowrap;">${escapeHtml(dateLabel)}</div>
                  </div>`;
             } else {
               avItems +=
@@ -15183,7 +15220,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                  ${cfg.label} &nbsp;·&nbsp; ${members.length}
                </div>
                <div style="display:flex;overflow-x:auto;gap:10px;
-                           padding-bottom:4px;-ms-overflow-style:none;scrollbar-width:none;">
+                           padding-top:8px;padding-bottom:4px;-ms-overflow-style:none;scrollbar-width:none;">
                  ${avItems}
                </div>
              </div>`;
@@ -18271,23 +18308,20 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         },
 
         // ── Strategy 11a: Mood Match — Fast Pace ──────────────────────────────
-        // Computes the user's average daily pages over the last 14 days from
-        // PageLogDB. If the user is in a reading groove (≥ 30 pages/day avg),
-        // recommend a substantial book (≥ 400 pages) to match their momentum.
-        // Split into two registry entries (11a / 11b) so each pace direction
-        // gets its own label and both can co-exist in the shuffled strategy draw.
-        // Only one will match per session since pace conditions are mutually exclusive.
+        // Uses RSE V1 moodMultiplier (recentPace / overallAvgPace) when available —
+        // fires when the user is reading ≥ 30% faster than their personal baseline.
+        // Falls back to the absolute 14-day avg threshold when RSE data is absent.
         {
           id   : 'MOOD_MATCH_FAST',
           label: '⚡ Matches your reading pace right now',
           run  : function(ctx) {
-            var MOOD_HIGH_PACE_PAGES = 30;  // avg pages/day to qualify as "high pace"
-            var MOOD_LONG_BOOK_PAGES = 400; // minimum pages for a "substantial" book
-
-            // avgDailyPages pre-computed by buildSerendipityContext_() — no second loop needed
-            var avgDailyPages = ctx.avgDailyPages;
-            if (avgDailyPages < MOOD_HIGH_PACE_PAGES) return null; // not a fast reader right now
-
+            var MOOD_LONG_BOOK_PAGES = 400;
+            var rse  = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {};
+            var mood = rse.moodMultiplier;
+            var isFast = (mood !== null && mood !== undefined)
+              ? mood >= 1.3                        // 30% faster than personal baseline
+              : ctx.avgDailyPages >= 30;           // absolute fallback when no RSE yet
+            if (!isFast) return null;
             var pool = ctx.unshelvedPool.filter(function(book) {
               return (Number(book.pages) || 0) >= MOOD_LONG_BOOK_PAGES;
             });
@@ -18296,23 +18330,19 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         },
 
         // ── Strategy 11b: Mood Match — Slow Pace ──────────────────────────────
-        // Same lookback window as 11a. If the user is in a quiet reading period
-        // (> 0 but < 15 pages/day avg), recommend a shorter book (≤ 250 pages)
-        // — something completable without pressure at their current pace.
-        // Returns null for zero-activity users (no data signal to act on) and
-        // for mid-range pace users (neither strategy fires, which is correct).
+        // Uses RSE V1 moodMultiplier when available — fires when reading ≤ 30%
+        // below personal baseline. Falls back to absolute 14-day avg threshold.
         {
           id   : 'MOOD_MATCH_SLOW',
           label: '🌿 Something you can finish at your pace',
           run  : function(ctx) {
-            var MOOD_LOW_PACE_MAX     = 15;  // avg pages/day ceiling for "slow pace"
-            var MOOD_SHORT_BOOK_PAGES = 250; // maximum pages for a "short" book
-
-            // avgDailyPages pre-computed by buildSerendipityContext_() — no second loop needed
-            var avgDailyPages = ctx.avgDailyPages;
-            // Must have some activity but below the low-pace ceiling
-            if (avgDailyPages <= 0 || avgDailyPages >= MOOD_LOW_PACE_MAX) return null;
-
+            var MOOD_SHORT_BOOK_PAGES = 250;
+            var rse  = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {};
+            var mood = rse.moodMultiplier;
+            var isSlow = (mood !== null && mood !== undefined)
+              ? mood <= 0.7                                           // 30% below personal baseline
+              : (ctx.avgDailyPages > 0 && ctx.avgDailyPages < 15);  // absolute fallback when no RSE yet
+            if (!isSlow) return null;
             var pool = ctx.unshelvedPool.filter(function(book) {
               var pages = Number(book.pages) || 0;
               return pages > 0 && pages <= MOOD_SHORT_BOOK_PAGES;
@@ -19263,8 +19293,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        *
        * @type {string[]}
        */
-      var RT_MEMBER_COLORS = ['var(--color-challenge)', 'var(--color-success)', 'var(--color-gamification)', '#D4537E', '#378ADD',
-                              '#8e44ad', '#16a085', 'var(--color-warning)'];
+      var RT_MEMBER_COLORS = ['#534AB7', '#1D9E75', '#EF9F27', '#D4537E', '#378ADD',
+                              '#8e44ad', '#16a085', '#e67e22'];
 
       /**
        * _rtChartInstance_
@@ -23406,135 +23436,102 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     
             var details = book.details;
     
-            // ── Fill Essential fields ────────────────────────────────────────
-            var titleEl = document.getElementById('newBookTitle');
-            if (titleEl && details.title) titleEl.value = details.title;
-    
-            var authorEl = document.getElementById('newBookAuthor');
-            if (authorEl && details.authors && details.authors.length > 0) {
-              // Structure 1 — name is inline on the edition record
+            // ── Collect all fetched values; resolve async ones, then show review panel ─
+            var fetched = { isbn: isbn };
+
+            // Title
+            if (details.title) fetched.title = details.title;
+
+            // Author — inline names first, key-ref fallback
+            var authorPromise = Promise.resolve('');
+            if (details.authors && details.authors.length > 0) {
               var inlineNames = details.authors
                 .filter(function(a) { return a.name; })
                 .map(function(a) { return a.name; });
-
               if (inlineNames.length > 0) {
-                // Names available directly — use them
-                authorEl.value = inlineNames.join(', ');
-              } else {
-                // Structure 2 — authors are key references, need a second fetch
-                // Take first author only to keep it simple
-                var authorKey = details.authors[0].key; // e.g. "/authors/OL7353479A"
-                if (authorKey) {
-                  fetch('https://openlibrary.org' + authorKey + '.json')
-                    .then(function(r) { return r.json(); })
-                    .then(function(author) {
-                      if (author.name && authorEl) {
-                        authorEl.value = author.name;
-                      }
-                    })
-                    .catch(function() {}); // Fail silently — user can type manually
-                }
+                authorPromise = Promise.resolve(inlineNames.join(', '));
+              } else if (details.authors[0].key) {
+                authorPromise = fetch('https://openlibrary.org' + details.authors[0].key + '.json')
+                  .then(function(r) { return r.json(); })
+                  .then(function(a) { return a.name || ''; })
+                  .catch(function() { return ''; });
               }
             }
-            // Structure 3 (no authors on edition) is handled by the work fetch
-            // which can be extended similarly if needed
-    
-            var pagesEl = document.getElementById('newBookPages');
-            if (pagesEl && details.number_of_pages) pagesEl.value = details.number_of_pages;
 
-            // Populate the ISBN-13 field in the Details section with the
-            // validated isbn used for the lookup — it was never written there.
-            var isbnFieldEl = document.getElementById('newBookIsbn13');
-            if (isbnFieldEl) isbnFieldEl.value = isbn;
-    
-            var yearEl = document.getElementById('newBookPublishedDate');
-            if (yearEl && details.publish_date) {
-              // Extract just the 4-digit year from strings like "May 4, 2021" or "2021"
-              var yearMatch = details.publish_date.match(/\d{4}/);
-              if (yearMatch) yearEl.value = yearMatch[0];
+            // Pages
+            if (details.number_of_pages) fetched.pages = String(details.number_of_pages);
+
+            // Year
+            if (details.publish_date) {
+              var ym = details.publish_date.match(/\d{4}/);
+              if (ym) fetched.year = ym[0];
             }
-    
-            // Try description on the edition first (occasionally present)
-            var blurbEl = document.getElementById('newBookBlurb');
+
+            // Blurb — edition first, work fallback
             var editionDesc = details.description
               ? (typeof details.description === 'string'
                   ? details.description
                   : (details.description.value || ''))
               : '';
-
-            if (blurbEl && editionDesc) {
-              // Edition has a description — use it directly
-              blurbEl.value = editionDesc.slice(0, 500);
-            } else if (details.works && details.works.length > 0) {
-              // No edition description — fetch from the parent Work record
-              var workKey = details.works[0].key; // e.g. "/works/OL45883W"
-              fetch('https://openlibrary.org' + workKey + '.json')
+            var blurbPromise = Promise.resolve(editionDesc ? editionDesc.slice(0, 500) : '');
+            if (!editionDesc && details.works && details.works.length > 0) {
+              blurbPromise = fetch('https://openlibrary.org' + details.works[0].key + '.json')
                 .then(function(r) { return r.json(); })
                 .then(function(work) {
-                  if (!work.description || !blurbEl) return;
-                  var workDesc = typeof work.description === 'string'
-                    ? work.description
-                    : (work.description.value || '');
-                  if (workDesc) blurbEl.value = workDesc.slice(0, 500);
+                  if (!work.description) return '';
+                  var d = typeof work.description === 'string'
+                    ? work.description : (work.description.value || '');
+                  return d.slice(0, 500);
                 })
-                .catch(function() {}); // Fail silently — blurb is optional
+                .catch(function() { return ''; });
             }
-    
-            // ── Genre from subjects ──────────────────────────────────────────
+
+            // Genres
             if (details.subjects && details.subjects.length > 0) {
-              // Take first 3 subjects as genre tags
-              var genreGuesses = details.subjects
+              fetched.genres = details.subjects
                 .slice(0, 3)
-                .map(function(s) {
-                  // Subjects can be long phrases — take first two words
-                  return s.split(',')[0].trim().split(' ').slice(0, 2).join(' ');
-                })
+                .map(function(s) { return s.split(',')[0].trim().split(' ').slice(0, 2).join(' '); })
                 .filter(function(s) { return s.length > 0; });
-              setGenreTags(genreGuesses.join(', '));
             }
-    
-            // ── Cover from Open Library ──────────────────────────────────────
-            var coverUrl = 'https://covers.openlibrary.org/b/isbn/' + isbn + '-M.jpg';
-            // Store the URL — we'll pass it to backend if no device upload overrides
-            document.getElementById('bookCoverSourceUrl').value = coverUrl;
-    
-            // Load the cover into the preview
-            var testImg   = new Image();
-            testImg.onload = function() {
-              // Cover found — resize to 160x240 via canvas and store as base64
-              // This way the backend always receives base64, regardless of source
-              var canvas = document.createElement('canvas');
-              canvas.width  = 240;
-              canvas.height = 360;
-              var ctx = canvas.getContext('2d');
-              ctx.fillStyle = '#f8f8f8';
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-              var scale   = Math.max(canvas.width / testImg.width, canvas.height / testImg.height);
-              var sw      = testImg.width  * scale;
-              var sh      = testImg.height * scale;
-              ctx.drawImage(testImg, (canvas.width - sw) / 2, (canvas.height - sh) / 2, sw, sh);
-              var base64 = canvas.toDataURL('image/jpeg', 0.75);
-    
-              document.getElementById('bookCoverBase64').value = base64;
-              showBookCoverPreview(
-                base64,
-                'Cover found on Open Library. Upload from device to override.'
-              );
-            };
-            testImg.onerror = function() {
-              // Open Library has no cover — show placeholder
-              clearBookCoverPreview();
-              showBookCoverPreview('', '');
-            };
-            // Open Library returns a 1px placeholder if no cover — check for it
-            testImg.crossOrigin = 'anonymous';
-            testImg.src = coverUrl + '?t=' + Date.now(); // Cache-bust
-    
-            var authorFilled = document.getElementById('newBookAuthor').value.trim();
-            status.innerText   = authorFilled
-              ? 'Found! Review and confirm the details below.'
-              : 'Partially found — please verify and fill in any missing fields.';
-            status.style.color = authorFilled ? '#27ae60' : 'var(--color-warning)';
+
+            // Cover — fetch as base64 so review panel can show thumbnail
+            var coverUrl    = 'https://covers.openlibrary.org/b/isbn/' + isbn + '-M.jpg';
+            var coverPromise = new Promise(function(resolve) {
+              var img = new Image();
+              img.crossOrigin = 'anonymous';
+              img.onload = function() {
+                var c = document.createElement('canvas');
+                c.width = 240; c.height = 360;
+                var cx = c.getContext('2d');
+                cx.fillStyle = '#f8f8f8';
+                cx.fillRect(0, 0, c.width, c.height);
+                var sc = Math.max(c.width / img.width, c.height / img.height);
+                cx.drawImage(img, (c.width - img.width * sc) / 2,
+                                  (c.height - img.height * sc) / 2,
+                                  img.width * sc, img.height * sc);
+                resolve(c.toDataURL('image/jpeg', 0.75));
+              };
+              img.onerror = function() { resolve(''); };
+              img.src = coverUrl + '?t=' + Date.now();
+            });
+
+            Promise.all([authorPromise, blurbPromise, coverPromise])
+              .then(function(results) {
+                if (results[0]) fetched.author   = results[0];
+                if (results[1]) fetched.blurb    = results[1];
+                if (results[2]) fetched.coverB64 = results[2];
+                fetched.coverUrl = coverUrl;
+
+                status.innerText = '';
+
+                // In Add New Book mode just fill everything directly — no review panel needed
+                var isEditMode = !!(document.getElementById('workspaceBookId').value);
+                if (!isEditMode) {
+                  applyIsbnFetchDirect_(fetched);
+                } else {
+                  showIsbnReviewPanel_(fetched);
+                }
+              });
           })
           .catch(function(err) {
             btn.disabled  = false;
@@ -23544,9 +23541,245 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             console.error('ISBN search error:', err);
           });
       }
-    
-    
-      
+
+      /**
+       * Fills all fetched ISBN fields directly into the form with no review step.
+       * Used in Add New Book mode where there is no existing data to protect.
+       */
+      function applyIsbnFetchDirect_(fetched) {
+        var FIELD_MAP = {
+          title  : 'newBookTitle',
+          author : 'newBookAuthor',
+          pages  : 'newBookPages',
+          isbn   : 'newBookIsbn13',
+          year   : 'newBookPublishedDate',
+          blurb  : 'newBookBlurb'
+        };
+        Object.keys(FIELD_MAP).forEach(function(key) {
+          var val = fetched[key];
+          if (!val) return;
+          var el = document.getElementById(FIELD_MAP[key]);
+          if (el) el.value = val;
+        });
+        if (fetched.genres && fetched.genres.length > 0) {
+          setGenreTags(fetched.genres.join(', '));
+        }
+        if (fetched.coverB64) {
+          document.getElementById('bookCoverBase64').value    = fetched.coverB64;
+          document.getElementById('bookCoverSourceUrl').value = fetched.coverUrl || '';
+          showBookCoverPreview(fetched.coverB64, 'Cover found on Open Library. Upload from device to override.');
+        }
+        var status = document.getElementById('isbnSearchStatus');
+        if (status) {
+          status.innerText   = fetched.author
+            ? 'Found! Review and confirm the details below.'
+            : 'Partially found — please verify and fill in any missing fields.';
+          status.style.color = fetched.author ? '#27ae60' : 'var(--color-warning)';
+        }
+      }
+
+      /**
+       * Renders the ISBN review panel inside the ISBN Quick Fill box.
+       * Fields that are currently empty are auto-filled silently.
+       * Fields with existing data show a checkbox so the user can decide
+       * whether to replace them with the fetched value.
+       * The ISBN field always gets a checkbox regardless of whether it's filled.
+       */
+      function showIsbnReviewPanel_(fetched) {
+        var panel = document.getElementById('isbnReviewPanel');
+        if (!panel) return;
+
+        var FIELDS = [
+          { id: 'newBookTitle',         label: 'Title',   key: 'title'  },
+          { id: 'newBookAuthor',        label: 'Author',  key: 'author' },
+          { id: 'newBookPages',         label: 'Pages',   key: 'pages'  },
+          { id: 'newBookIsbn13',        label: 'ISBN-13', key: 'isbn'   },
+          { id: 'newBookPublishedDate', label: 'Year',    key: 'year'   },
+          { id: 'newBookBlurb',         label: 'Blurb',   key: 'blurb'  },
+        ];
+
+        var ROW_STYLE  = 'display:flex;align-items:flex-start;gap:10px;padding:7px 0;'
+                       + 'border-bottom:0.5px solid rgba(0,0,0,0.06);width:100%;box-sizing:border-box;';
+        var TEXT_STYLE = 'font-size:0.78rem;line-height:1.5;flex:1;min-width:0;word-break:break-word;';
+        var CB_STYLE   = 'margin-top:3px;flex-shrink:0;accent-color:#3B6D11;width:15px;height:15px;';
+
+        var rows     = '';
+        var autoFills = []; // fields with no existing data — applied unconditionally on Apply
+
+        FIELDS.forEach(function(f) {
+          var val = fetched[f.key];
+          if (!val) return;
+          var cur        = (document.getElementById(f.id) ? document.getElementById(f.id).value : '').trim();
+          var hasData    = cur.length > 0;
+          var displayVal = val.length > 60 ? val.slice(0, 57) + '…' : val;
+
+          if (hasData) {
+            rows +=
+              '<label style="' + ROW_STYLE + 'cursor:pointer;">'
+              + '<input type="checkbox" data-isbn-field="' + f.id + '" data-isbn-val="'
+              + escapeHtml(val) + '" style="' + CB_STYLE + '">'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">' + f.label + '</span>'
+              + ' <span style="color:var(--text-muted);">· replace</span>'
+              + '<br><span style="color:#222;">' + escapeHtml(displayVal) + '</span>'
+              + '<br><span style="color:#aaa;font-size:0.68rem;">currently: '
+              + escapeHtml(cur.length > 50 ? cur.slice(0, 47) + '…' : cur) + '</span>'
+              + '</span></label>';
+          } else {
+            autoFills.push({ id: f.id, val: val });
+            rows +=
+              '<div style="' + ROW_STYLE + '">'
+              + '<span style="color:#3B6D11;font-size:0.85rem;flex-shrink:0;margin-top:1px;">✓</span>'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">' + f.label + '</span>'
+              + ' <span style="color:var(--text-muted);">· will fill</span>'
+              + '<br><span style="color:#222;">' + escapeHtml(displayVal) + '</span>'
+              + '</span></div>';
+          }
+        });
+
+        // Genres row
+        if (fetched.genres && fetched.genres.length > 0) {
+          var genreStr  = fetched.genres.join(', ');
+          var hasGenres = bookFormGenreTags.length > 0;
+          if (hasGenres) {
+            rows +=
+              '<label style="' + ROW_STYLE + 'cursor:pointer;">'
+              + '<input type="checkbox" data-isbn-field="_genres" data-isbn-val="'
+              + escapeHtml(genreStr) + '" style="' + CB_STYLE + '">'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">Genres</span>'
+              + ' <span style="color:var(--text-muted);">· replace</span>'
+              + '<br><span style="color:#222;">' + escapeHtml(genreStr) + '</span>'
+              + '<br><span style="color:#aaa;font-size:0.68rem;">currently: '
+              + escapeHtml(bookFormGenreTags.join(', ')) + '</span>'
+              + '</span></label>';
+          } else {
+            autoFills.push({ id: '_genres', val: genreStr });
+            rows +=
+              '<div style="' + ROW_STYLE + '">'
+              + '<span style="color:#3B6D11;font-size:0.85rem;flex-shrink:0;margin-top:1px;">✓</span>'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">Genres</span>'
+              + ' <span style="color:var(--text-muted);">· will fill</span>'
+              + '<br><span style="color:#222;">' + escapeHtml(genreStr) + '</span>'
+              + '</span></div>';
+          }
+        }
+
+        // Cover row — checkbox only when replacing an existing cover; auto-fill otherwise
+        if (fetched.coverB64) {
+          var hasCover = !!document.getElementById('bookCoverBase64').value;
+          var coverThumb = '<img src="' + fetched.coverB64 + '" style="width:28px;height:42px;'
+            + 'object-fit:cover;border-radius:3px;flex-shrink:0;">';
+          if (hasCover) {
+            rows +=
+              '<label style="' + ROW_STYLE + 'border-bottom:none;cursor:pointer;align-items:center;">'
+              + '<input type="checkbox" data-isbn-field="_cover" style="' + CB_STYLE + '">'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">Cover</span>'
+              + ' <span style="color:var(--text-muted);">· replace</span>'
+              + '</span>'
+              + coverThumb
+              + '</label>';
+          } else {
+            rows +=
+              '<div style="' + ROW_STYLE + 'border-bottom:none;align-items:center;">'
+              + '<span style="color:#3B6D11;font-size:0.85rem;flex-shrink:0;">✓</span>'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">Cover</span>'
+              + ' <span style="color:var(--text-muted);">· will fill</span>'
+              + '</span>'
+              + coverThumb
+              + '</div>';
+          }
+        }
+
+        if (!rows) {
+          panel.innerHTML =
+            '<p style="font-size:0.78rem;color:var(--color-warning);margin:8px 0 0;">No fields returned by Open Library.</p>';
+          panel.style.display = 'block';
+          return;
+        }
+
+        panel.innerHTML =
+          '<div style="font-size:0.78rem;font-weight:600;color:#3B6D11;margin-bottom:8px;">'
+          + 'Review what to apply — check the fields you want to update'
+          + '</div>'
+          + '<div id="isbnReviewRows">' + rows + '</div>'
+          + '<div style="display:flex;gap:8px;margin-top:10px;">'
+          + '<button onclick="applyIsbnReview_()" '
+          + 'style="flex:1;background:#3B6D11;color:#fff;border:none;border-radius:8px;'
+          + 'padding:8px 0;font-size:0.85rem;font-weight:600;cursor:pointer;">Apply selected</button>'
+          + '<button onclick="dismissIsbnReview_()" '
+          + 'style="width:auto;padding:8px 14px;background:transparent;color:#3B6D11;'
+          + 'border:1px solid #3B6D11;border-radius:8px;font-size:0.85rem;cursor:pointer;">Dismiss</button>'
+          + '</div>';
+
+        // Stash payload so applyIsbnReview_ can apply auto-fills and cover
+        panel.dataset.fetchedJson = JSON.stringify({
+          coverB64     : fetched.coverB64  || '',
+          coverUrl     : fetched.coverUrl  || '',
+          autoFillCover: !!(fetched.coverB64 && !document.getElementById('bookCoverBase64').value),
+          autoFills    : autoFills
+        });
+        panel.style.display = 'block';
+      }
+
+      /** Applies checked ISBN review fields to the form and hides the panel. */
+      function applyIsbnReview_() {
+        var panel = document.getElementById('isbnReviewPanel');
+        if (!panel) return;
+        var extra  = {};
+        try { extra = JSON.parse(panel.dataset.fetchedJson || '{}'); } catch(e) {}
+
+        // Apply all auto-fill fields (empty fields — no checkbox, always applied)
+        (extra.autoFills || []).forEach(function(f) {
+          if (f.id === '_genres') {
+            setGenreTags(f.val);
+          } else {
+            var el = document.getElementById(f.id);
+            if (el) el.value = f.val;
+          }
+        });
+
+        // Auto-fill cover if it was shown as ✓ (no existing cover — no checkbox)
+        if (extra.autoFillCover && extra.coverB64) {
+          document.getElementById('bookCoverBase64').value    = extra.coverB64;
+          document.getElementById('bookCoverSourceUrl').value = extra.coverUrl || '';
+          showBookCoverPreview(extra.coverB64, 'Cover from Open Library. Upload to override.');
+        }
+
+        var checkboxes = panel.querySelectorAll('input[type="checkbox"][data-isbn-field]');
+        checkboxes.forEach(function(cb) {
+          if (!cb.checked) return;
+          var fieldId = cb.dataset.isbnField;
+          var val     = cb.dataset.isbnVal || '';
+
+          if (fieldId === '_genres') {
+            setGenreTags(val);
+          } else if (fieldId === '_cover') {
+            if (extra.coverB64) {
+              document.getElementById('bookCoverBase64').value    = extra.coverB64;
+              document.getElementById('bookCoverSourceUrl').value = extra.coverUrl || '';
+              showBookCoverPreview(extra.coverB64, 'Cover from Open Library. Upload to override.');
+            }
+          } else {
+            var el = document.getElementById(fieldId);
+            if (el) el.value = val;
+          }
+        });
+
+        dismissIsbnReview_();
+      }
+
+      /** Hides the ISBN review panel without applying anything. */
+      function dismissIsbnReview_() {
+        var panel = document.getElementById('isbnReviewPanel');
+        if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
+      }
+
+
 
 
       /**
@@ -23650,6 +23883,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         });
     
         document.getElementById('isbnSearchStatus').innerText = '';
+        dismissIsbnReview_();
         clearGenreTags();
         clearBookCoverPreview();
         document.getElementById('bookCoverBase64').value    = '';
@@ -24325,13 +24559,18 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           ? Math.round(totalLoggedForBook / daysOnShelf)
           : 0;
 
-        // Overall personal pages/day avg (all books, last 90 days)
-        const cutoff90Ms   = NOW_MS - 90 * MS_PER_DAY;
-        const recentAllLog = globalMyPageLogDB.filter(function(l) {
-          return l.pagesDelta > 0 && parseGoogleDate(l.timestamp).getTime() >= cutoff90Ms;
-        });
-        const pagesLast90  = recentAllLog.reduce(function(s, l) { return s + l.pagesDelta; }, 0);
-        const overallAvgPacePerDay = Math.round(pagesLast90 / 90);
+        // Overall personal pages/day avg — use RSE V1 pre-computed value from Col O first.
+        // Falls back to a 90-day scan when RSE data is not yet available.
+        const _rseData_ = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {};
+        const overallAvgPacePerDay = _rseData_.overallAvgPace > 0
+          ? Math.round(_rseData_.overallAvgPace)
+          : (function() {
+              const cutoff90Ms = NOW_MS - 90 * MS_PER_DAY;
+              const pages90    = globalMyPageLogDB
+                .filter(function(l) { return l.pagesDelta > 0 && parseGoogleDate(l.timestamp).getTime() >= cutoff90Ms; })
+                .reduce(function(s, l) { return s + l.pagesDelta; }, 0);
+              return Math.round(pages90 / 90);
+            })();
 
         // ── PRIORITY 1: Almost done ───────────────────────────────────────────────
         if (pagesLeft !== null && pagesLeft <= 40 && pagesLeft >= 0) {
@@ -24389,20 +24628,37 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           paceOnThisBook > 0 &&
           paceOnThisBook < Math.round(overallAvgPacePerDay * 0.6)
         ) {
-          // Estimate finish date from book-specific pace
           const finishEstimate = (pagesLeft !== null && paceOnThisBook > 0)
             ? (function() {
                 const finishDate = new Date(NOW_MS + (pagesLeft / paceOnThisBook) * MS_PER_DAY);
                 return finishDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
               })()
             : null;
-          return {
-            theme : 'amber',
-            icon  : '🐢',
-            label : 'Going slower than your usual pace',
-            sub   : `${paceOnThisBook} pages/day here vs your avg ${overallAvgPacePerDay}.`
-                  + (finishEstimate ? ` At this pace, done ~${finishEstimate}.` : '')
-          };
+          const finishSuffix = finishEstimate ? ` At this pace, done ~${finishEstimate}.` : '';
+
+          // Use RSE V1 data to explain *why* pace is slow — genre-specific or global slump.
+          const primaryGenre   = book.genre ? book.genre.split(',')[0].trim() : '';
+          const genrePaceMap   = _rseData_.genrePace || {};
+          const genreEntry     = primaryGenre && genrePaceMap[primaryGenre];
+          const moodMult       = _rseData_.moodMultiplier;
+
+          if (genreEntry && genreEntry.pace > 0 && paceOnThisBook >= genreEntry.pace * 0.7) {
+            // Pace matches genre norm — not a warning. Fall through to next priority silently.
+          } else if (moodMult !== null && moodMult !== undefined && moodMult < 0.7) {
+            return {
+              theme : 'amber',
+              icon  : '🐢',
+              label : 'Your reading pace has been lower lately',
+              sub   : `${paceOnThisBook} pages/day here vs your usual ${overallAvgPacePerDay}. Pace dips happen.${finishSuffix}`
+            };
+          } else {
+            return {
+              theme : 'amber',
+              icon  : '🐢',
+              label : 'Going slower than your usual pace',
+              sub   : `${paceOnThisBook} pages/day here vs your avg ${overallAvgPacePerDay}.${finishSuffix}`
+            };
+          }
         }
 
         // ── PRIORITY 4: Stuck flag ────────────────────────────────────────────────
@@ -24463,8 +24719,23 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         }
 
         // ── PRIORITY 6: Finish estimate ───────────────────────────────────────────
+        // Pace used follows the RSE fallback chain:
+        //   1. genre pace × moodMultiplier   2. genre pace
+        //   3. overall avg × moodMultiplier  4. overall avg   5. book-specific pace
         if (pagesLeft !== null && pagesLeft > 0 && overallAvgPacePerDay >= 5) {
-          const estimatePace    = paceOnThisBook > 0 ? paceOnThisBook : overallAvgPacePerDay;
+          const _p6Genre_  = book.genre ? book.genre.split(',')[0].trim() : '';
+          const _p6Gentry_ = _p6Genre_ && (_rseData_.genrePace || {})[_p6Genre_];
+          const _p6Gp_     = _p6Gentry_ && _p6Gentry_.pace > 0 ? _p6Gentry_.pace : 0;
+          const _p6Mood_   = _rseData_.moodMultiplier || null;
+          const _p6Ovr_    = overallAvgPacePerDay;
+
+          let estimatePace;
+          if (_p6Gp_ && _p6Mood_)      estimatePace = Math.round(_p6Gp_ * _p6Mood_);
+          else if (_p6Gp_)             estimatePace = Math.round(_p6Gp_);
+          else if (_p6Ovr_ && _p6Mood_) estimatePace = Math.round(_p6Ovr_ * _p6Mood_);
+          else if (_p6Ovr_)            estimatePace = _p6Ovr_;
+          else                         estimatePace = paceOnThisBook || 1;
+
           const daysToFinish    = Math.ceil(pagesLeft / estimatePace);
           const finishDate      = new Date(NOW_MS + daysToFinish * MS_PER_DAY);
           const finishDateLabel = finishDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
@@ -32878,9 +33149,14 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
           const avatarHtml = buildAvatarHtml(member, 28);
 
+          // For the current user, surface recentPace from RSE V1 as pace context.
+          const rseRecent = isMe
+            ? (((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {}).recentPace || 0
+            : 0;
+
           return { isMe, name, member, memberId: enrollment.memberId,
                   personalGoal, currentTotal, projection, pct,
-                  paceIcon, paceColor, avatarHtml };
+                  paceIcon, paceColor, avatarHtml, rseRecent };
         }).sort(function(a, b) { return b.pct - a.pct; });
 
         const rowsHtml = rows.map(function(r) {
@@ -32936,7 +33212,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   ${r.paceIcon}
                 </div>
                 <div style="font-size:0.68rem;color:${r.paceColor};white-space:nowrap;">
-                  ${projStr}
+                  ${r.isMe && r.rseRecent > 0 ? Math.round(r.rseRecent) + ' pg/d' : projStr}
                 </div>
               </div>
 

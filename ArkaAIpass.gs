@@ -1,5 +1,6 @@
 /**
- * ARKA AI PASS — Standalone Gemini Coach Script
+ * ARKA AI PASS — Standalone Gemini Coach Script    v1.4.0
+ * Full version history: VERSIONS.md
  *
  * Responsibility: generate personalised AI reading advice for every active
  * Arka member by calling the Gemini API, then writing the result back into
@@ -498,8 +499,33 @@ function _aiPassCallGemini_(apiKey, displayName, insights, statSnapshot) {
   }
   readingLines.push('- ' + lastLogNote.charAt(0).toUpperCase() + lastLogNote.slice(1));
 
+  // Daily pace from RSE V1 — pages/day (not pages/session like booksVelocity).
+  // Gives Gemini a complementary signal: how consistently the member reads day-to-day.
+  var rse = statSnapshot.memberReadingSpeed;
+  if (rse && rse.overallAvgPace > 0) {
+    var rseLine = '- Daily reading pace: ' + rse.overallAvgPace + ' pages/day (all-time avg)';
+    if (rse.recentPace > 0) {
+      rseLine += ', ' + rse.recentPace + ' pages/day (last 30 days)';
+    }
+    if (rse.moodMultiplier !== null && rse.moodMultiplier !== undefined) {
+      var moodLabel = rse.moodMultiplier >= 1.3 ? 'reading notably faster than their norm — high momentum phase'
+                    : rse.moodMultiplier <= 0.7 ? 'reading notably slower than their norm — low momentum phase'
+                    : 'pace broadly in line with their norm';
+      rseLine += ' — ' + moodLabel + ' (multiplier: ' + rse.moodMultiplier + 'x)';
+    }
+    readingLines.push(rseLine);
+    if (rse.genrePace && Object.keys(rse.genrePace).length > 0) {
+      var genreLines = Object.keys(rse.genrePace).map(function(g) {
+        return g + ': ' + rse.genrePace[g].pace + ' pg/day (' + rse.genrePace[g].booksUsed + ' books)';
+      }).join(', ');
+      readingLines.push('- Genre pace: ' + genreLines);
+    }
+  }
+
   // Per-book velocity — the core of the new coaching intelligence.
   // A ← PACE LOW flag tells Gemini this book is a coaching opportunity.
+  // Genre note added when RSE V1 has a pace for that genre so Gemini can
+  // distinguish book-specific slowness from genre-normal behaviour.
   var booksVelocity = statSnapshot.currentBooksVelocity || [];
   if (booksVelocity.length > 0) {
     booksVelocity.forEach(function(bv) {
@@ -511,8 +537,15 @@ function _aiPassCallGemini_(apiKey, displayName, insights, statSnapshot) {
       if (bv.memberOverallAvgPagesPerSession > 0) {
         velocityNote += ' vs their usual ' + bv.memberOverallAvgPagesPerSession + ' pages/session overall';
       }
+      // Annotate with genre pace/day from RSE V1 when available
+      var primaryGenre = bv.genre ? bv.genre.split(',')[0].trim() : '';
+      var genreRse     = rse && primaryGenre && rse.genrePace && rse.genrePace[primaryGenre];
+      if (genreRse) {
+        velocityNote += '; their ' + primaryGenre + ' pace is ' + genreRse.pace +
+          ' pg/day (' + genreRse.booksUsed + ' books of history)';
+      }
       var paceFlag = (bv.paceRatio < 0.6 && bv.sessionsOnBook >= 3)
-        ? ' ← PACE NOTABLY LOW vs their norm'
+        ? (genreRse ? ' ← PACE LOW vs overall norm (check if genre-normal for them)' : ' ← PACE NOTABLY LOW vs their norm')
         : '';
       readingLines.push('- Reading: "' + bv.title + '" (' + (bv.genre || 'unknown genre') +
         ', ' + pagesLeftStr + ') — ' + velocityNote + paceFlag);

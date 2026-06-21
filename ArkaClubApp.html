@@ -1,3 +1,4 @@
+<!-- ArkaClubApp.html    v1.2.0 | Full version history: VERSIONS.md -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -347,12 +348,12 @@
                   <span class="lib-stat-label">Members</span>
                 </div>
                 <div class="lib-stat-pill lib-stat-reading">
-                  <span class="lib-stat-value" id="mbrStatReading">&mdash;</span>
-                  <span class="lib-stat-label">Reading Now</span>
+                  <span class="lib-stat-value" id="mbrStatActiveWeek">&mdash;</span>
+                  <span class="lib-stat-label">Active This Week</span>
                 </div>
                 <div class="lib-stat-pill">
-                  <span class="lib-stat-value" id="mbrStatBooks">&mdash;</span>
-                  <span class="lib-stat-label">Books Finished</span>
+                  <span class="lib-stat-value" id="mbrStatPagesYear">&mdash;</span>
+                  <span class="lib-stat-label">Pages This Year</span>
                 </div>
               </div>
             </div>
@@ -2400,6 +2401,10 @@
                                 border:none;border-radius:8px;">
                     Search
                   </button>
+                </div>
+                <!-- ISBN review panel — shown after search returns results -->
+                <div id="isbnReviewPanel"
+                     style="display:none;margin-top:12px;border-top:0.5px solid #C0DD97;padding-top:10px;">
                 </div>
               </div>
             

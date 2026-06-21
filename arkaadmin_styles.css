@@ -5,6 +5,11 @@
     :root {
       --arka-accent:       #A984BA;
       --arka-accent-hover: #8b6ba0;
+      /* Darker accent variant for text-on-white; the standard #A984BA
+         yields only ~3.4:1 contrast on white, failing WCAG AA.
+         Use --arka-accent-text wherever accent colour sits on a white or
+         light background as running text (nav labels, links, etc.). */
+      --arka-accent-text:  #7a5e8e;
       --text-strong:       #2c3e50;
       --text-muted:        #5b6b6e;
       --surface-alt:       #f8f9fa;
@@ -13,17 +18,56 @@
       --neutral-mid:       #bdc3c7;
       --font-body:         'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       /* Admin semantic tokens */
-      --adm-sidebar-w: 220px;
-      --adm-topbar-h:  56px;
-      --adm-ok:        #1d9e75;
-      --adm-warn:      #f59f00;
-      --adm-danger:    #e74c3c;
-      --adm-page-bg:   #f4f7f6;
+      --adm-sidebar-w:     220px;
+      --adm-topbar-h:      56px;
+      --adm-ok:            #1d9e75;
+      --adm-warn:          #f59f00;
+      --adm-danger:        #e74c3c;
+      --adm-page-bg:       #f4f7f6;
+
+      /* ── Mobile layout tokens ─────────────────────────────────────── */
+      /* Height of the sticky bottom navigation bar shown only on mobile.
+         Shell content gets an equivalent padding-bottom so nothing hides
+         behind the bar. */
+      --adm-bottomnav-h:   58px;
+
+      /* iOS safe-area insets (notch / home indicator).
+         Falls back to 0px on devices without notch. */
+      --mob-safe-top:    env(safe-area-inset-top,    0px);
+      --mob-safe-bottom: env(safe-area-inset-bottom, 0px);
+      --mob-safe-left:   env(safe-area-inset-left,   0px);
+      --mob-safe-right:  env(safe-area-inset-right,  0px);
+
+      /* Minimum touch target per Apple HIG / Material Design (44 × 44 dp).
+         Reference this token on any interactive element's min-height /
+         min-width so the standard is enforced consistently. */
+      --mob-touch-min:   44px;
     }
 
+    /* ── Global reset ──────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--font-body); background: var(--adm-page-bg); color: var(--text-strong); min-height: 100vh; font-size: 14px; line-height: 1.5; }
-    a { color: var(--arka-accent); text-decoration: none; }
+
+    /* body
+       - font-size raised from 14 px → 15 px: improves readability on
+         mobile without triggering the 16 px iOS auto-zoom rule on its own.
+         Inputs override to exactly 16 px in the mobile media query.
+       - overflow-x:hidden: tables with overflow-x:auto sit inside the
+         layout; the body itself must not allow the page to wobble sideways
+         when content briefly overflows during rendering. */
+    /* overflow-x: hidden must live on html, not body — iOS Safari treats
+       overflow:hidden on body as a scroll container, which breaks position:fixed
+       (fixed elements end up anchored to the document bottom instead of the
+       viewport, showing a grey body background at the viewport bottom). */
+    html { overflow-x: hidden; }
+    body {
+      font-family: var(--font-body);
+      background: var(--adm-page-bg);
+      color: var(--text-strong);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    a { color: var(--arka-accent-text); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
     /* ── Full-screen state panels ──────────────────────────────────── */
@@ -35,14 +79,31 @@
     .adm-state-body  { font-size: 0.88rem; max-width: 340px; }
 
     /* ── Topbar ────────────────────────────────────────────────────── */
-    .adm-topbar { position: fixed; top: 0; left: 0; right: 0; height: var(--adm-topbar-h); background: #fff; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px; padding: 0 20px; z-index: 300; }
+    /* padding-left/right use max() to respect the device's horizontal
+       safe-area insets (e.g. landscape iPhone notch). */
+    .adm-topbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--adm-topbar-h);
+      background: #fff;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 max(20px, var(--mob-safe-right)) 0 max(20px, var(--mob-safe-left));
+      z-index: 300;
+    }
     .adm-topbar-wordmark { font-size: 0.95rem; font-weight: 800; color: var(--text-strong); letter-spacing: -0.02em; }
     .adm-topbar-wordmark i { color: var(--arka-accent); margin-right: 6px; }
     .adm-topbar-badge { font-size: 0.6rem; font-weight: 700; background: #fef3e2; color: #854f0b; border: 1px solid var(--adm-warn); border-radius: 4px; padding: 2px 7px; letter-spacing: 0.04em; }
     .adm-topbar-spacer { flex: 1; }
     .adm-topbar-admin-label { font-size: 0.78rem; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
-    .adm-topbar-refresh-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--surface-alt); border: 1px solid var(--border-soft); border-radius: 6px; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: background 0.12s; font-family: var(--font-body); }
+    .adm-topbar-refresh-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      background: var(--surface-alt); border: 1px solid var(--border-soft); border-radius: 6px;
+      font-size: 0.78rem; font-weight: 600; color: var(--text-muted);
+      cursor: pointer; transition: background 0.12s; font-family: var(--font-body);
+    }
     .adm-topbar-refresh-btn:hover { background: var(--border-soft); }
+    .adm-topbar-refresh-btn:active { background: var(--border-soft); opacity: 0.75; }
 
     /* ── Shell + layout ────────────────────────────────────────────── */
     #admShell { padding-top: var(--adm-topbar-h); min-height: 100vh; }
@@ -53,19 +114,31 @@
     .adm-nav-group-label { font-size: 0.66rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.09em; padding: 14px 20px 5px; }
     .adm-nav-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 20px; background: none; border: none; text-align: left; font-size: 0.875rem; font-weight: 500; color: var(--text-muted); cursor: pointer; position: relative; transition: background 0.1s, color 0.1s; font-family: var(--font-body); }
     .adm-nav-item:hover { background: var(--surface-alt); color: var(--text-strong); }
-    .adm-nav-item.active { background: #f0eaf4; color: var(--arka-accent); font-weight: 700; }
+    /* Active uses the darker text-safe accent so contrast on #f0eaf4 ≥ 4.5:1 */
+    .adm-nav-item.active { background: #f0eaf4; color: var(--arka-accent-text); font-weight: 700; }
     .adm-nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--arka-accent); border-radius: 0 2px 2px 0; }
+    .adm-nav-item:active { background: #e8e0f0; }
     .adm-nav-item i { width: 18px; text-align: center; flex-shrink: 0; font-size: 0.9rem; }
     .adm-nav-item.dimmed { opacity: 0.4; cursor: default; pointer-events: none; }
     .adm-nav-pending-bubble { margin-left: auto; background: var(--adm-danger); color: #fff; font-size: 0.66rem; font-weight: 800; border-radius: 99px; padding: 2px 7px; min-width: 20px; text-align: center; line-height: 1.4; }
 
     /* ── Hamburger (mobile only — hidden on desktop) ───────────────── */
-    .adm-hamburger { display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; background: none; cursor: pointer; color: var(--text-strong); font-size: 1.1rem; border-radius: 6px; transition: background 0.12s; flex-shrink: 0; }
-    .adm-hamburger:hover { background: var(--surface-alt); }
+    /* 44 × 44 px minimum touch target is enforced here already; the
+       mobile media query only unhides (display:flex) this element. */
+    .adm-hamburger {
+      display: none; align-items: center; justify-content: center;
+      width: 44px; height: 44px;
+      border: none; background: none; cursor: pointer;
+      color: var(--text-strong); font-size: 1.1rem;
+      border-radius: 8px; transition: background 0.12s; flex-shrink: 0;
+    }
+    .adm-hamburger:hover  { background: var(--surface-alt); }
+    .adm-hamburger:active { background: var(--border-soft); }
 
     /* ── Drawer close button (inside sidebar, mobile only) ─────────── */
     .adm-drawer-close { display: none; align-items: center; gap: 8px; width: 100%; padding: 10px 16px 10px 20px; border: none; background: none; cursor: pointer; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border-soft); margin-bottom: 4px; font-family: var(--font-body); }
-    .adm-drawer-close:hover { background: var(--surface-alt); color: var(--text-strong); }
+    .adm-drawer-close:hover  { background: var(--surface-alt); color: var(--text-strong); }
+    .adm-drawer-close:active { background: var(--border-soft); }
     .adm-drawer-close i { font-size: 1rem; }
 
     /* ── Drawer backdrop ───────────────────────────────────────────── */
@@ -96,8 +169,23 @@
     .adm-stat-card.c-danger .adm-stat-value { color: var(--adm-danger); }
 
     /* ── Buttons ───────────────────────────────────────────────────── */
-    .adm-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: none; border-radius: 7px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: opacity 0.12s; font-family: var(--font-body); white-space: nowrap; }
+    /* :active provides instant press feedback on touch — critical on mobile
+       because the CSS :hover state is unreliable and often fires with a
+       150 ms delay on touchscreen devices. The scale(0.97) gives a tactile
+       "push-in" feel without a jarring jump. */
+    .adm-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px;
+      border: none; border-radius: 7px;
+      font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; transition: opacity 0.12s, transform 0.08s;
+      font-family: var(--font-body); white-space: nowrap;
+    }
     .adm-btn:hover { opacity: 0.86; }
+    .adm-btn:active:not(:disabled) {
+      opacity: 0.72;
+      transform: scale(0.97);
+    }
     .adm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .adm-btn-accent { background: var(--arka-accent); color: #fff; }
     .adm-btn-ok     { background: var(--adm-ok);     color: #fff; }
@@ -107,18 +195,39 @@
 
     /* ── Filter tabs ───────────────────────────────────────────────── */
     .adm-filter-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-    .adm-filter-tab { padding: 5px 13px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; border: 1.5px solid var(--border-soft); background: #fff; color: var(--text-muted); cursor: pointer; transition: all 0.1s; font-family: var(--font-body); }
-    .adm-filter-tab:hover { border-color: var(--arka-accent); color: var(--arka-accent); }
+    .adm-filter-tab {
+      padding: 5px 13px; border-radius: 20px;
+      font-size: 0.78rem; font-weight: 600;
+      border: 1.5px solid var(--border-soft); background: #fff; color: var(--text-muted);
+      cursor: pointer; transition: all 0.1s; font-family: var(--font-body);
+    }
+    .adm-filter-tab:hover  { border-color: var(--arka-accent); color: var(--arka-accent-text); }
+    .adm-filter-tab:active { opacity: 0.75; transform: scale(0.97); }
     .adm-filter-tab.active { background: var(--arka-accent); color: #fff; border-color: var(--arka-accent); }
 
     /* ── Sub-tabs ──────────────────────────────────────────────────── */
     .adm-subtabs { display: flex; border-bottom: 2px solid var(--border-soft); margin-bottom: 18px; }
-    .adm-subtab { padding: 9px 16px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.1s, border-color 0.1s; font-family: var(--font-body); }
-    .adm-subtab:hover { color: var(--text-strong); }
-    .adm-subtab.active { color: var(--arka-accent); border-bottom-color: var(--arka-accent); font-weight: 700; }
+    .adm-subtab {
+      padding: 9px 16px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
+      cursor: pointer; border: none; background: none;
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      transition: color 0.1s, border-color 0.1s; font-family: var(--font-body);
+    }
+    .adm-subtab:hover  { color: var(--text-strong); }
+    .adm-subtab:active { opacity: 0.75; }
+    .adm-subtab.active { color: var(--arka-accent-text); border-bottom-color: var(--arka-accent); font-weight: 700; }
 
     /* ── Form inputs ───────────────────────────────────────────────── */
-    .adm-input, .adm-select, .adm-textarea { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-soft); border-radius: 8px; font-size: 0.85rem; color: var(--text-strong); background: #fff; outline: none; transition: border-color 0.12s; font-family: var(--font-body); }
+    /* Font-size is 0.85 rem here (desktop).  The mobile media query
+       overrides this to exactly 16 px to prevent iOS Safari from
+       automatically zooming into the viewport on input focus. */
+    .adm-input, .adm-select, .adm-textarea {
+      width: 100%; padding: 9px 12px;
+      border: 1.5px solid var(--border-soft); border-radius: 8px;
+      font-size: 0.85rem; color: var(--text-strong); background: #fff;
+      outline: none; transition: border-color 0.12s;
+      font-family: var(--font-body);
+    }
     .adm-input:focus, .adm-select:focus, .adm-textarea:focus { border-color: var(--arka-accent); }
     .adm-input-hint { font-size: 0.72rem; color: var(--text-faint); margin-top: 4px; min-height: 1em; }
     .adm-form-group { margin-bottom: 16px; }
@@ -141,7 +250,7 @@
     .adm-pill-active   { background: #e6f4ee; color: #155c3e; }
     .adm-pill-revoked  { background: #f0f0f4; color: var(--text-faint); }
     .adm-pill-system   { background: #e8f0ff; color: #1a3da6; }
-    .adm-pill-latest   { background: #f0eaf4; color: var(--arka-accent); }
+    .adm-pill-latest   { background: #f0eaf4; color: var(--arka-accent-text); }
 
     /* ── Rank + live-dot ───────────────────────────────────────────── */
     .adm-rank { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 0.7rem; font-weight: 800; background: var(--surface-alt); color: var(--text-faint); flex-shrink: 0; }
@@ -168,10 +277,32 @@
     .adm-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
     /* ── Toast ─────────────────────────────────────────────────────── */
-    #admToast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(120%); background: var(--text-strong); color: #fff; padding: 12px 22px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; z-index: 999; transition: transform 0.22s ease; max-width: 380px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.22); pointer-events: none; }
+    /* bottom is computed with safe-area inset so the toast sits above
+       the device's home indicator / gesture bar on modern phones. */
+    #admToast {
+      position: fixed;
+      bottom: calc(28px + var(--mob-safe-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      background: var(--text-strong);
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-size: 0.84rem; font-weight: 600;
+      z-index: 999;
+      transition: transform 0.22s ease;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.22);
+      pointer-events: none;
+    }
     #admToast.adm-toast-ok      { background: var(--adm-ok); }
     #admToast.adm-toast-err     { background: var(--adm-danger); }
     #admToast.adm-toast-visible { transform: translateX(-50%) translateY(0); }
+    /* Hide the toast completely when it has no message — prevents the empty
+       padded element (which keeps its background colour) from appearing as
+       a ghost pill above the bottom nav on page load. */
+    #admToast:empty { display: none !important; }
 
     /* ── Empty state ───────────────────────────────────────────────── */
     .adm-empty { padding: 36px 24px; text-align: center; color: var(--text-faint); }
@@ -190,64 +321,41 @@
     .rpt-period-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     #rptThumbnailStrip { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; -webkit-overflow-scrolling: touch; }
 
-    /* ── Mobile — slide-out drawer ─────────────────────────────────── */
-    @media (max-width: 768px) {
-      /* Show hamburger in topbar */
-      .adm-hamburger { display: flex; }
-      /* Show close button inside drawer */
-      .adm-drawer-close { display: flex; }
-
-      /* Sidebar becomes a fixed slide-in drawer from the left */
-      .adm-sidebar {
-        position: fixed;
-        top: 0; left: 0; bottom: 0; right: auto;
-        width: 260px;
-        height: 100%;
-        min-height: unset;
-        border-right: 1px solid var(--border-soft);
-        border-top: none;
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 0;
-        z-index: 400;
-        box-shadow: 4px 0 20px rgba(0,0,0,0.14);
-        transform: translateX(-100%);
-        transition: transform 0.25s ease;
-      }
-      .adm-sidebar.drawer-open { transform: translateX(0); }
-
-      /* Nav items restore full desktop appearance inside the drawer */
-      .adm-nav-group-label { display: block; }
-      .adm-nav-item { flex-direction: row; align-items: center; gap: 10px; padding: 9px 20px; min-width: unset; font-size: 0.875rem; white-space: normal; }
-      .adm-nav-item.active::before { display: block; }
-      .adm-nav-item.active { background: #f0eaf4; color: var(--arka-accent); }
-      /* Pending bubble sits inline (no absolute positioning needed in row layout) */
-      .adm-nav-pending-bubble { position: static; margin-left: auto; font-size: 0.66rem; padding: 2px 7px; }
-
-      /* Shell + content — no bottom tab strip clearance needed */
-      #admShell { padding-bottom: 0; }
-      .adm-content { padding: 16px 14px 32px; }
-      .adm-stat-grid { grid-template-columns: repeat(2, 1fr); }
-      .adm-topbar-admin-label { display: none; }
-      /* Hide non-essential announcement table columns on mobile */
-      .adm-col-meta { display: none !important; }
+    /* ══════════════════════════════════════════════════════════════════
+       SKELETON LOADER — shimmer animation for table/card loading states.
+       Use <span class="adm-skeleton adm-skeleton-line"> in empty cells
+       while async data is pending, so users see progress rather than a
+       blank frozen screen.
+       ══════════════════════════════════════════════════════════════════ */
+    @keyframes adm-shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position: 600px 0; }
     }
+    .adm-skeleton {
+      display: inline-block; height: 0.9em; border-radius: 4px;
+      background: linear-gradient(90deg, #ececec 25%, #dedede 50%, #ececec 75%);
+      background-size: 600px 100%;
+      animation: adm-shimmer 1.5s ease-in-out infinite;
+      vertical-align: middle;
+    }
+    .adm-skeleton-line  { width: 100%;  }
+    .adm-skeleton-short { width: 65%;  }
+    .adm-skeleton-xs    { width: 40%;  }
+    /* Skeleton table row: 3 cells with staggered widths */
+    .adm-skeleton-row td:nth-child(1) .adm-skeleton { width: 60%; }
+    .adm-skeleton-row td:nth-child(2) .adm-skeleton { width: 80%; }
+    .adm-skeleton-row td:nth-child(3) .adm-skeleton { width: 50%; }
 
-    /* Icon-only action button — bigger tap target than -sm */
-    .adm-btn-icon { padding: 7px 11px; min-width: 36px; justify-content: center; font-size: 0.82rem; }
+    /* ── Icon-only action button — bigger tap target than -sm ──────── */
+    /* min-width/min-height equal the mobile touch minimum so these
+       icon buttons in table action cells remain tappable on touch. */
+    .adm-btn-icon { padding: 7px 11px; min-width: 44px; min-height: 44px; justify-content: center; font-size: 0.82rem; }
 
-    /* Announcement table: mobile sub-line shown inside Title cell */
+    /* ── Announcement table: mobile sub-line shown inside Title cell ─ */
     .adm-ann-title-sub {
       display: none;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-top: 4px;
-      font-size: 0.72rem;
-      color: var(--text-faint);
-      font-weight: 400;
-      align-items: center;
+      gap: 6px; flex-wrap: wrap; margin-top: 4px;
+      font-size: 0.72rem; color: var(--text-faint); font-weight: 400; align-items: center;
     }
     @media (max-width: 768px) {
       .adm-ann-title-sub { display: flex; }
@@ -259,150 +367,80 @@
 
     /* Toggle pill (shared: scope + pin) */
     .toggle-pill {
-      position: relative;
-      width: 40px;
-      height: 22px;
-      background: var(--neutral-mid, #ccc);
-      border-radius: 11px;
-      cursor: pointer;
-      transition: background 0.2s;
-      flex-shrink: 0;
+      position: relative; width: 40px; height: 22px;
+      background: var(--neutral-mid, #ccc); border-radius: 11px;
+      cursor: pointer; transition: background 0.2s; flex-shrink: 0;
     }
     .toggle-pill.on { background: var(--arka-accent); }
     .toggle-pill::after {
-      content: '';
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 16px;
-      height: 16px;
-      background: #fff;
-      border-radius: 50%;
-      transition: transform 0.2s;
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 16px; height: 16px; background: #fff;
+      border-radius: 50%; transition: transform 0.2s;
     }
     .toggle-pill.on::after { transform: translateX(18px); }
 
     /* Type selector */
-    .ann-type-selector {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
+    .ann-type-selector { display: flex; gap: 8px; margin-bottom: 14px; }
     .ann-type-option {
-      flex: 1;
-      border: 1px solid var(--border-soft);
-      border-radius: 10px;
-      padding: 9px 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-      background: var(--surface-alt);
+      flex: 1; border: 1px solid var(--border-soft); border-radius: 10px;
+      padding: 9px 10px; text-align: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s; background: var(--surface-alt);
     }
-    .ann-type-option.selected {
-      background: #EEEDFE;
-      border-color: #7F77DD;
-      border-width: 1.5px;
-    }
-    .ann-type-option-label {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--text-strong);
-    }
+    .ann-type-option:active { opacity: 0.8; }
+    .ann-type-option.selected { background: #EEEDFE; border-color: #7F77DD; border-width: 1.5px; }
+    .ann-type-option-label { font-size: 0.78rem; font-weight: 700; color: var(--text-strong); }
     .ann-type-option.selected .ann-type-option-label { color: #3C3489; }
-    .ann-type-option-sub {
-      font-size: 0.65rem;
-      color: var(--text-faint);
-      margin-top: 2px;
-    }
+    .ann-type-option-sub { font-size: 0.65rem; color: var(--text-faint); margin-top: 2px; }
     .ann-type-option.selected .ann-type-option-sub { color: #534AB7; }
     .ann-type-hint {
-      font-size: 0.72rem;
-      color: #534AB7;
-      background: #EEEDFE;
-      border-radius: 6px;
-      padding: 6px 10px;
-      margin-bottom: 12px;
+      font-size: 0.72rem; color: #534AB7; background: #EEEDFE;
+      border-radius: 6px; padding: 6px 10px; margin-bottom: 12px;
     }
 
     /* Member picker */
     .ann-member-picker {
-      border: 1px solid var(--border-soft);
-      border-radius: 8px;
-      padding: 6px 8px;
-      background: var(--surface-alt);
-      min-height: 42px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      align-items: center;
-      cursor: text;
-      transition: border-color 0.2s;
+      border: 1px solid var(--border-soft); border-radius: 8px;
+      padding: 6px 8px; background: var(--surface-alt);
+      min-height: 44px; /* Matches touch minimum so the whole picker is tappable */
+      display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
+      cursor: text; transition: border-color 0.2s;
     }
-    .ann-member-picker:focus-within {
-      border-color: var(--arka-accent);
-      background: #fff;
-    }
+    .ann-member-picker:focus-within { border-color: var(--arka-accent); background: #fff; }
     .ann-member-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: #EEEDFE;
-      color: #534AB7;
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 12px;
-      white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #EEEDFE; color: #534AB7;
+      font-size: 0.78rem; font-weight: 600;
+      padding: 3px 8px; border-radius: 12px; white-space: nowrap;
     }
     .ann-member-pill-remove {
-      cursor: pointer;
-      font-size: 0.85rem;
-      color: #534AB7;
-      opacity: 0.6;
-      line-height: 1;
-      background: none;
-      border: none;
-      padding: 0;
-      width: auto;
-      display: inline;
+      cursor: pointer; font-size: 0.85rem; color: #534AB7; opacity: 0.6; line-height: 1;
+      background: none; border: none; padding: 0; width: auto; display: inline;
     }
-    .ann-member-pill-remove:hover { opacity: 1; }
+    .ann-member-pill-remove:hover  { opacity: 1; }
+    .ann-member-pill-remove:active { opacity: 0.9; }
     .ann-member-search {
-      border: none;
-      outline: none;
-      background: transparent;
-      font-size: 0.88rem;
-      color: var(--text-strong);
-      min-width: 120px;
-      flex: 1;
-      padding: 2px 4px;
-      font-family: inherit;
+      border: none; outline: none; background: transparent;
+      font-size: 0.88rem; color: var(--text-strong);
+      min-width: 120px; flex: 1; padding: 2px 4px; font-family: inherit;
     }
     .ann-member-dropdown {
-      position: absolute;
-      background: white;
-      border: 1px solid var(--border-soft);
-      border-radius: 8px;
+      position: absolute; background: white;
+      border: 1px solid var(--border-soft); border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      max-height: 180px;
-      overflow-y: auto;
-      z-index: 500;
-      min-width: 220px;
-      display: none;
+      max-height: 180px; overflow-y: auto;
+      z-index: 500; min-width: 220px; display: none;
     }
     .ann-member-dropdown.open { display: block; }
     .ann-member-option {
-      padding: 9px 12px;
-      font-size: 0.88rem;
-      color: var(--text-strong);
-      cursor: pointer;
-      border-bottom: 1px solid #f4f4f4;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      padding: 9px 12px; font-size: 0.88rem; color: var(--text-strong);
+      cursor: pointer; border-bottom: 1px solid #f4f4f4;
+      display: flex; align-items: center; gap: 8px;
+      /* Minimum tap height for dropdown rows */
+      min-height: 44px;
     }
-    .ann-member-option:last-child { border-bottom: none; }
-    .ann-member-option:hover { background: var(--surface-alt); }
+    .ann-member-option:last-child  { border-bottom: none; }
+    .ann-member-option:hover  { background: var(--surface-alt); }
+    .ann-member-option:active { background: var(--border-soft); }
 
     /* ── Badge image preview circles ──────────────────────────────── */
     .adm-badge-img-preview { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--arka-accent); flex-shrink: 0; }
@@ -410,60 +448,29 @@
 
     /* Scope (audience) row */
     .ann-scope-toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 0 6px;
-      border-top: 1px solid var(--border-soft);
-      margin-top: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0 6px; border-top: 1px solid var(--border-soft); margin-top: 12px;
     }
-    .ann-scope-label {
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--text-strong);
-    }
-    .ann-scope-sub {
-      font-size: 0.75rem;
-      color: var(--text-faint);
-      margin-top: 1px;
-    }
+    .ann-scope-label { font-size: 0.88rem; font-weight: 600; color: var(--text-strong); }
+    .ann-scope-sub   { font-size: 0.75rem; color: var(--text-faint); margin-top: 1px; }
 
     /* Pin row */
     .ann-pin-toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 0 4px;
-      border-top: 1px solid var(--border-soft);
-      margin-top: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0 4px; border-top: 1px solid var(--border-soft); margin-top: 14px;
     }
-    .ann-pin-toggle-label {
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--text-strong);
-    }
-    .ann-pin-toggle-sub {
-      font-size: 0.75rem;
-      color: var(--text-faint);
-      margin-top: 1px;
-    }
+    .ann-pin-toggle-label { font-size: 0.88rem; font-weight: 600; color: var(--text-strong); }
+    .ann-pin-toggle-sub   { font-size: 0.75rem; color: var(--text-faint); margin-top: 1px; }
 
     /* Scoped form label style for the compose form */
     #admAnnForm .adm-form-label {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text-faint);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 5px;
-      margin-top: 16px;
+      display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-faint);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 5px; margin-top: 16px;
     }
     #admAnnForm .adm-form-label:first-child { margin-top: 0; }
     #admAnnForm .adm-input,
-    #admAnnForm textarea.adm-input {
-      resize: vertical;
-    }
+    #admAnnForm textarea.adm-input { resize: vertical; }
 
     /* ── Card-view responsive table ──────────────────────────── */
     .adm-table-wrap.card-view .adm-table { display: block; }
@@ -483,13 +490,312 @@
 
     /* Scoped form label style for Events compose form */
     #admEvtForm .adm-form-label {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text-faint);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 5px;
-      margin-top: 16px;
+      display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-faint);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 5px; margin-top: 16px;
     }
     #admEvtForm .adm-form-label:first-child { margin-top: 0; }
+
+
+    /* ══════════════════════════════════════════════════════════════════
+       MOBILE BOTTOM NAVIGATION BAR
+       ──────────────────────────────────────────────────────────────────
+       Hidden on desktop (display:none default).  The mobile media query
+       switches it to display:flex.
+
+       Design rationale: placing the 4 primary nav items + a "More" button
+       at the bottom of the screen means all primary destinations are in
+       the natural thumb arc — the bottom 60 % of the screen — and the user
+       never has to stretch for a top-left hamburger.
+
+       The bar's height is var(--adm-bottomnav-h) plus the device's
+       safe-area-inset-bottom (home indicator on iPhone, gesture bar on
+       Android) via the padding-bottom, so content never clips behind the
+       system UI element.
+       ══════════════════════════════════════════════════════════════════ */
+    #admBottomNav {
+      display: none; /* overridden to flex inside @media (max-width:768px) */
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: calc(var(--adm-bottomnav-h) + var(--mob-safe-bottom, 0px));
+      padding-bottom: var(--mob-safe-bottom, 0px);
+      background: #fff;
+      border-top: 1.5px solid var(--border-soft);
+      box-shadow: 0 -2px 14px rgba(0,0,0,0.07);
+      z-index: 350;
+      align-items: stretch;
+    }
+
+    /* Each bottom-nav tab item */
+    .adm-bnav-item {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px; padding: 6px 4px;
+      border: none; background: none; cursor: pointer;
+      font-family: var(--font-body);
+      color: var(--text-faint);
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.01em;
+      transition: color 0.15s, background 0.1s;
+      min-height: var(--adm-bottomnav-h);
+      position: relative;
+      /* Remove the default mobile tap highlight — we provide our own :active */
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 0;
+    }
+    .adm-bnav-item i {
+      font-size: 1.2rem;
+      transition: transform 0.15s;
+    }
+
+    /* Active state — the currently selected section */
+    .adm-bnav-item.active {
+      color: var(--arka-accent-text);
+    }
+    /* Slightly lift the icon to create a subtle "selected" animation */
+    .adm-bnav-item.active i {
+      transform: translateY(-2px);
+    }
+
+    /* Press feedback */
+    .adm-bnav-item:active {
+      background: var(--surface-alt);
+    }
+
+    /* Pending count badge floated above the Approvals icon */
+    .adm-bnav-badge {
+      position: absolute;
+      top: 6px;
+      /* Sits to the right of the icon centre — adjust with right calc */
+      right: calc(50% - 22px);
+      background: var(--adm-danger);
+      color: #fff;
+      font-size: 0.58rem; font-weight: 800;
+      border-radius: 99px; padding: 1px 5px; min-width: 16px;
+      text-align: center; line-height: 1.5;
+      pointer-events: none;
+      display: none; /* shown only when count > 0 via JS */
+    }
+    .adm-bnav-badge.visible { display: block; }
+
+
+    /* ══════════════════════════════════════════════════════════════════
+       MOBILE MEDIA QUERY  ≤ 768 px
+       ──────────────────────────────────────────────────────────────────
+       Everything below is ADDITIVE or OVERRIDE — the desktop layout is
+       untouched.  Each change is annotated with the UX reason.
+       ══════════════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+      /* ── 1. Show hamburger in topbar ──────────────────────────────── */
+      .adm-hamburger { display: flex; }
+
+      /* ── 2. Hide "CONTROL PANEL" badge — saves topbar space on narrow
+              screens where it can crowd the wordmark. ──────────────── */
+      .adm-topbar-badge { display: none; }
+
+      /* ── 3. Topbar Refresh button — minimum touch target ──────────── */
+      .adm-topbar-refresh-btn {
+        min-height: var(--mob-touch-min);
+        padding: 10px 14px;
+      }
+
+      /* ── 4. Show drawer close button inside sidebar ────────────────  */
+      .adm-drawer-close { display: flex; }
+
+      /* ── 5. Sidebar → fixed slide-in drawer from the left ──────────
+              The drawer sits above the backdrop (z-index 400 vs 399) and
+              animates with transform instead of width so the browser can
+              GPU-accelerate the transition without reflowing the page. ─ */
+      .adm-sidebar {
+        position: fixed;
+        top: 0; left: 0; bottom: 0; right: auto;
+        width: 280px; height: 100%; min-height: unset;
+        border-right: 1px solid var(--border-soft); border-top: none;
+        display: flex; flex-direction: column;
+        overflow-y: auto; overflow-x: hidden;
+        padding: 0; z-index: 400;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.14);
+        /* Start fully off-screen to the left */
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        /* Add top safe area so contents are never behind a notch when
+           the drawer is open in landscape with the device rotated. */
+        padding-top: var(--mob-safe-top, 0px);
+      }
+      .adm-sidebar.drawer-open { transform: translateX(0); }
+
+      /* Restore full desktop appearance of nav items inside the drawer */
+      .adm-nav-group-label { display: block; }
+      .adm-nav-item {
+        flex-direction: row; align-items: center; gap: 10px;
+        padding: 12px 20px; /* taller rows = bigger tap targets */
+        min-width: unset; font-size: 0.9rem; white-space: normal;
+        min-height: var(--mob-touch-min);
+      }
+      .adm-nav-item.active::before { display: block; }
+      .adm-nav-item.active { background: #f0eaf4; color: var(--arka-accent-text); }
+      .adm-nav-pending-bubble { position: static; margin-left: auto; font-size: 0.66rem; padding: 2px 7px; }
+
+      /* ── 6. Bottom nav bar — activate it ─────────────────────────── */
+      #admBottomNav { display: flex; }
+
+      /* ── 7. Shell: leave room below for bottom nav + safe area ───── */
+      #admShell { padding-bottom: calc(var(--adm-bottomnav-h) + var(--mob-safe-bottom, 0px)); }
+
+      /* ── 8. Content padding — breathe on narrow screens ───────────  */
+      .adm-content { padding: 16px 14px 32px; }
+
+      /* ── 9. Stat grid — 2-column on mobile ───────────────────────── */
+      .adm-stat-grid { grid-template-columns: repeat(2, 1fr); }
+
+      /* ── 10. Hide admin label text in topbar (saves space) ─────────  */
+      .adm-topbar-admin-label { display: none; }
+
+      /* ── 11. Hide legacy adm-col-meta AND new adm-col-mob columns ──
+               adm-col-meta: pre-existing pattern (announcements, events).
+               adm-col-mob:  new pattern applied to approvals, members,
+                              badge awards, content tables via JS. ───── */
+      .adm-col-meta,
+      .adm-col-mob { display: none !important; }
+
+      /* ── 12. CRITICAL: Force 16 px on all inputs ──────────────────
+               iOS Safari auto-zooms the viewport when a focused input's
+               computed font-size is below 16 px. This zoom is jarring and
+               breaks the layout. Setting exactly 16 px prevents it while
+               keeping the visual design intact via the border/padding. ─ */
+      .adm-input,
+      .adm-select,
+      .adm-textarea,
+      .ann-member-search {
+        font-size: 16px !important;
+      }
+
+      /* ── 13. Buttons: enforce 44 px minimum touch target ───────────
+               Only non-sm buttons get the override; .adm-btn-sm is used
+               inside dense table cells where 44 px would cause layout
+               breakage — those cells already scroll horizontally. ───── */
+      .adm-btn:not(.adm-btn-sm) {
+        min-height: var(--mob-touch-min);
+        padding: 10px 16px;
+      }
+      .adm-btn-icon {
+        min-height: var(--mob-touch-min);
+        min-width:  var(--mob-touch-min);
+      }
+
+      /* ── 14. Filter tabs: slightly larger on mobile ────────────────  */
+      .adm-filter-tab {
+        min-height: 36px;
+        padding: 6px 14px;
+        font-size: 0.82rem;
+      }
+
+      /* ── 15. Filter row: stack the search input on its own line ────
+               On narrow screens the combination of several pill-tabs +
+               a max-width:240px text input overflows and squeezes the
+               pills to illegibility. Pushing the search to a new row
+               (order:10) gives both elements full width. ────────────── */
+      .adm-filter-row {
+        row-gap: 8px;
+      }
+      .adm-filter-row > input[type="text"],
+      .adm-filter-row > .adm-input {
+        max-width: 100% !important;
+        width: 100% !important;
+        order: 10; /* pushes it below the pill tabs */
+        flex-basis: 100%;
+      }
+      /* Hide the flex:1 spacer div that normally shunts the search right */
+      .adm-filter-row > div[style*="flex:1"] { display: none; }
+
+      /* ── 16. Sub-tabs: minimum 44 px touch target ──────────────────  */
+      .adm-subtab {
+        min-height: var(--mob-touch-min);
+        padding: 10px 14px;
+        font-size: 0.88rem;
+      }
+
+      /* ── 17. Section header: stack on narrow screens ───────────────  */
+      .adm-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+
+      /* ── 18. Table readability: larger font + more row padding ─────  */
+      table.adm-table { font-size: 0.88rem; }
+      .adm-table td { padding: 12px 10px; }
+      .adm-table th { font-size: 0.72rem; padding: 8px 10px; }
+
+      /* ── 19. Modal: full-width buttons, safe width on tiny phones ──
+               Stacking buttons vertically (column-reverse so the primary
+               action is on top) makes each button full-width, removing the
+               "fat-finger" risk of two small buttons side-by-side. ─────  */
+      .adm-modal {
+        max-width: calc(100vw - 32px);
+        padding: 20px 18px;
+      }
+      .adm-modal-actions {
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+      .adm-modal-actions .adm-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: var(--mob-touch-min);
+      }
+
+      /* ── 20. Toast: shift above bottom nav + safe area ─────────────  */
+      #admToast {
+        bottom: calc(var(--adm-bottomnav-h) + var(--mob-safe-bottom, 0px) + 12px);
+        max-width: calc(100vw - 32px);
+        /* On mobile, stretch edge-to-edge instead of centering with
+           translateX so the fixed left/right insets handle width. */
+        left: 16px;
+        right: 16px;
+        transform: translateY(200%);
+        width: auto;
+      }
+      #admToast.adm-toast-visible { transform: translateY(0); }
+
+      /* ── 21. Events date/time grid: 1 column on mobile ────────────
+               The original 1fr 1fr grid for start/end date+time pairs
+               produces ~140px wide inputs on a 320px phone — too narrow
+               for the dd-MMM-yyyy placeholder to read.  A single column
+               gives each input the full available width. ─────────────── */
+      .adm-evt-date-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      /* ── 22. Quick Actions card: full-width stacked buttons ────────
+               On a 360px screen, 4 flex-wrap buttons produce unequal
+               rows. Full-width stacking is more consistent and thumb-
+               friendly at the natural vertical scroll. ─────────────── */
+      #admSectionOverview .adm-card > div[style*="display:flex"] {
+        flex-direction: column;
+      }
+      #admSectionOverview .adm-card > div[style*="display:flex"] .adm-btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      /* ── 23. New Announcement / New Event CTA: full-width ──────────  */
+      #admAnnPanelActive  > div > .adm-btn,
+      #admEvtPanelList    > div > .adm-btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      /* ── 24. Announcement compose: form action row ─────────────────  */
+      #admAnnForm  > div[style*="display:flex"],
+      #admEvtForm  > div[style*="display:flex"] {
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+      #admAnnForm  > div[style*="display:flex"] .adm-btn,
+      #admEvtForm  > div[style*="display:flex"] .adm-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    } /* end @media (max-width: 768px) */

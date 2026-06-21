@@ -1901,7 +1901,7 @@ function updateMemberShelf(shelfData) {
     // Only fires for dual members when syncTo10Pages flag is set and pages genuinely
     // increased. Edit mode is intentionally excluded — editing history must not
     // corrupt the live weekly tracker.
-    if (shelfData.syncTo10Pages && !isEditMode) {
+    if (shelfData.syncTo10Pages && !isEditMode && (finalStatus !== 'Finished' || isCurrentYearFinish)) {
       try {
         // CASE 2 (progress update on existing record): recalculate delta from shelf data.
         // CASE 3 (brand new record): previous pages = 0, so delta = finalPagesRead.
@@ -9151,8 +9151,8 @@ function getCachedDb(key) {
                             .getSheetByName(APP_CONFIG_SHEET);
       if (configSheet) {
         const flagVal = configSheet.getRange(BADGE_DIRTY_ROW, 2).getValue();
-        if (String(flagVal).toLowerCase() === 'true') {
-          configSheet.getRange(BADGE_DIRTY_ROW, 2).setValue('false');
+        if (flagVal === true) {
+          configSheet.getRange(BADGE_DIRTY_ROW, 2).setValue(false);
           CacheService.getScriptCache().remove(key);
           console.log('Cache BYPASSED (badge dirty flag): ' + key);
           return null;

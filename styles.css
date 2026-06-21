@@ -2812,7 +2812,7 @@
         display: inline-block; flex-shrink: 0;
       }
       .detail-shelf-av-item {
-        flex-shrink: 0; text-align: center; width: 50px;
+        flex-shrink: 0; text-align: center; width: 60px;
       }
       /* Blurb collapse */
       .detail-blurb {
