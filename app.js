@@ -1232,10 +1232,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         //    only when the Events & Announcements view is the target.
         const annFabEl = document.getElementById('annCreateFab');
         const evtFabEl = document.getElementById('evtCreateFab');
-        const chalFabEl = document.getElementById('chalCreateFab');
         if (annFabEl) annFabEl.style.display = 'none';
         if (evtFabEl) evtFabEl.style.display = 'none';
-        if (chalFabEl) chalFabEl.style.display = 'none';
 
         // 2. Hide ALL top-level views completely
         // Null-guarded so a missing element never crashes navigation
@@ -1417,7 +1415,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           loadEventsData();
         }
         if (tabName === 'challenges') {
-          refreshChallengesViewFabVisibility();
           if (isWave2Loaded) {
             renderChallengesView();
           } else {
@@ -30835,10 +30832,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        * Declared in Part 1 as currentChallengesSubTab — already defined.
        */
     
-      /** Tracks which challenge is open in the edit form (null = create mode). */
-      let currentEditingChallengeId = null;
-    
-    
+
       // ── Navigation ──────────────────────────────────────────────────────────────
     
       /**
@@ -30890,28 +30884,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           .getLatestChallengeEnrollments();
       }
 
-    
-      /**
-       * Shows/hides the admin FAB based on whether the current user is an admin
-       * and the challengesView is the active view.
-       */
-      function refreshChallengesViewFabVisibility() {
-        const fab = document.getElementById('chalCreateFab');
-        if (!fab) return;
-        const isAdmin = ADMIN_MEMBER_IDS.includes(currentUser);
-        if (isAdmin) {
-          fab.style.display = 'flex';
-    
-          // Show extra admin sub-tabs
-          const upcomingTab = document.getElementById('tabChalUpcoming');
-          const archivedTab = document.getElementById('tabChalArchived');
-          if (upcomingTab) upcomingTab.style.display = '';
-          if (archivedTab) archivedTab.style.display = '';
-        } else {
-          fab.style.display = 'none';
-        }
-      }
-    
+
       /**
        * Switches between sub-tabs inside the Challenges view.
        * @param {'all'|'mine'|'upcoming'|'archived'} tabName
@@ -30970,9 +30943,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px 0;font-style:italic;">Loading...</p>';
           return;
         }
-    
-        const isAdmin = ADMIN_MEMBER_IDS.includes(currentUser);
-    
+
         // Filter challenges by tab
         let challenges = globalChallengesDB.filter(function(c) {
           if (tab === 'all')      return c.status === 'Active';
@@ -31037,17 +31008,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             enrollBadge = '<span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;' + style + 'margin-left:6px;">✓ ' + myEnr.enrollmentStatus + '</span>';
           }
     
-          // Admin action strip
-          let adminStrip = '';
-          if (isAdmin) {
-            adminStrip = `
-              <div class="chal-card-admin-strip">
-                <button class="chal-admin-btn" onclick="openChallengeFormSheet('${c.challengeId}')">✏️ Edit</button>
-                <button class="chal-admin-btn chal-admin-btn--archive"
-                        onclick="archiveChallengeFromUI('${c.challengeId}', '${escapeHtml(c.title)}')">🗄 Archive</button>
-              </div>`;
-          }
-    
           html += `
             <div class="chal-card${pinnedClass}" role="button" tabindex="0" data-action onclick="openChallengeDetailView('${c.challengeId}')">
 
@@ -31069,8 +31029,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   : (!isActivelyEnrolled ? '<button class="chal-enrol-btn" onclick="openChalEnrolSheet(\'' + c.challengeId + '\')">Enrol →</button>' : '')
                 }
               </div>
-
-              ${adminStrip}
             </div>`;
         });
     
@@ -31078,46 +31036,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       }
     
     
-      // ── Admin: Archive ───────────────────────────────────────────────────────────
-    
-      /**
-       * Opens a confirmation modal before archiving a challenge.
-       * The actual GAS call is delegated to _doArchiveChallenge() via the modal callback.
-       *
-       * @param {string} challengeId - ARKA_CHAL_X to archive.
-       * @param {string} title       - Challenge display name for the modal message.
-       */
-      function archiveChallengeFromUI(challengeId, title) {
-        showConfirmModal({
-          title    : `Archive "${title}"?`,
-          body     : 'It will no longer appear in the app but remains in the sheet. Existing enrollments are preserved.',
-          label    : 'Archive',
-          onConfirm: function() { _doArchiveChallenge(challengeId); }
-        });
-      }
-
-
-      /**
-       * Executes the challenge archive GAS call after user confirmation.
-       *
-       * @param {string} challengeId - ARKA_CHAL_X to archive.
-       */
-      function _doArchiveChallenge(challengeId) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            if (res.status === 'error') { showToast({ type: 'error', title: res.message || 'Could not archive challenge.' }); return; }
-
-            // Update local array so the list re-renders without a reload
-            const challenge = globalChallengesDB.find(function(c) { return c.challengeId === challengeId; });
-            if (challenge) challenge.status = 'Archived';
-
-            showToast({ type: 'info', icon: 'fa-solid fa-box-archive', title: 'Challenge archived.' });
-            renderChallengeList(currentChallengesSubTab);
-          })
-          .withFailureHandler(function() { showToast({ type: 'error', title: 'Archive failed. Please try again.' }); })
-          .archiveChallenge(challengeId);
-      }
-
       // ── Enrol flow ───────────────────────────────────────────────────────────────
     
       /**
@@ -31361,501 +31279,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             showToast({ type: 'error', title: 'Drop failed. Please try again.' });
           })
           .dropFromChallenge(challengeId);
-      }
-
-    
-    
-      // ── Admin: Create / Edit Form ─────────────────────────────────────────────────
-    
-      /**
-       * Opens the challenge creation/edit bottom sheet.
-       * Create mode: challengeId = null → blank form.
-       * Edit mode:   challengeId = ARKA_CHAL_X → pre-fills all fields.
-       *
-       * @param {string|null} challengeId
-       */
-      function openChallengeFormSheet(challengeId) {
-        currentEditingChallengeId = challengeId || null;
-    
-        const titleEl  = document.getElementById('chalFormTitle');
-        const saveBtn  = document.getElementById('chalFormSaveBtn');
-    
-        // Inject series tag datalist from existing challenges
-        const seriesTags = [...new Set(
-          globalChallengesDB.map(function(c) { return c.seriesTag; }).filter(Boolean)
-        )].sort();
-        const datalist = document.getElementById('chalSeriesTagList');
-        if (datalist) {
-          datalist.innerHTML = seriesTags
-            .map(function(t) { return '<option value="' + escapeHtml(t) + '">'; })
-            .join('');
-        }
-    
-        // Inject book options into buddy read datalist
-        const bookDatalist = document.getElementById('chalBuddyBookList');
-        if (bookDatalist) {
-          bookDatalist.innerHTML = globalBooksDB
-            .map(function(b) {
-              return '<option value="' + escapeHtml(b.title) + ' — ' + escapeHtml(b.author) + '" data-id="' + b.id + '">';
-            })
-            .join('');
-        }
-    
-        // Inject upcoming/active events into buddy read linked event select
-        const eventSelect = document.getElementById('chalBuddy-linkedEvent');
-        if (eventSelect && globalEventsDB && globalEventsDB.length) {
-          const upcomingEvents = globalEventsDB.filter(function(e) {
-            return e.status === 'Active';
-          });
-          let eventOptions = '<option value="">— Not linked to any event —</option>';
-          upcomingEvents.forEach(function(e) {
-            eventOptions += '<option value="' + e.eventId + '">' + escapeHtml(e.title) + ' · ' + e.startDate + '</option>';
-          });
-          eventSelect.innerHTML = eventOptions;
-        }
-    
-        if (challengeId) {
-          // ── Edit mode ──────────────────────────────────────────────────────────
-          const c = globalChallengesDB.find(function(ch) { return ch.challengeId === challengeId; });
-          if (!c) { showToast({ type: 'error', title: 'Challenge not found.' }); return; }
-    
-          if (titleEl) titleEl.textContent = 'Edit Challenge';
-    
-          document.getElementById('chalFormTypeSelect').value    = c.challengeType;
-          document.getElementById('chalFormTypeSelect').disabled = true; // Type locked on edit
-          document.getElementById('chalFormTitleInput').value    = c.title;
-          document.getElementById('chalFormDescInput').value     = c.description || '';
-          document.getElementById('chalFormStartDate').value     = convertToInputDateFormat(c.startDate);
-          document.getElementById('chalFormEndDate').value       = convertToInputDateFormat(c.endDate);
-          document.getElementById('chalFormSeriesTag').value     = c.seriesTag || '';
-          document.getElementById('chalFormStatusSelect').value  = c.status;
-    
-          const pinToggle  = document.getElementById('chalFormPinToggle');
-          const compToggle = document.getElementById('chalFormCompetitiveToggle');
-          if (pinToggle)  pinToggle.classList.toggle('on', c.isPinned);
-          if (compToggle) compToggle.classList.toggle('on', c.isCompetitive);
-          const enrolEl  = document.getElementById('chalFormEnrollPoints');
-          const finishEl = document.getElementById('chalFormFinishPoints');
-          const winEl    = document.getElementById('chalFormWinPoints');
-          if (enrolEl)  enrolEl.value  = c.enrollPoints  || 0;
-          if (finishEl) finishEl.value = c.finishPoints || 0;
-          if (winEl)    winEl.value    = c.winPoints    || 0;
-    
-          // Show the correct type-specific section and pre-fill it
-          showChallengeTypeSection(c.challengeType);
-          prefillTypeSpecificFields(c);
-    
-        } else {
-          // ── Create mode ────────────────────────────────────────────────────────
-          if (titleEl) titleEl.textContent = 'New Challenge';
-    
-          document.getElementById('chalFormTypeSelect').value    = '';
-          document.getElementById('chalFormTypeSelect').disabled = false;
-          document.getElementById('chalFormTitleInput').value    = '';
-          document.getElementById('chalFormDescInput').value     = '';
-          document.getElementById('chalFormStartDate').value     = '';
-          document.getElementById('chalFormEndDate').value       = '';
-          document.getElementById('chalFormSeriesTag').value     = '';
-          document.getElementById('chalFormStatusSelect').value  = 'Active';
-    
-          document.getElementById('chalFormPinToggle').classList.remove('on');
-          document.getElementById('chalFormCompetitiveToggle').classList.add('on');
-    
-          // Hide all type sections
-          document.querySelectorAll('.chal-type-section').forEach(function(el) {
-            el.classList.remove('visible');
-          });
-        }
-    
-        if (saveBtn) {
-          saveBtn.disabled  = false;
-          saveBtn.innerText = 'Save Challenge';
-        }
-    
-        document.getElementById('chalFormModal').style.display = 'flex';
-        setTimeout(function() {
-          document.getElementById('chalFormDrawer').classList.add('open');
-        }, 10);
-      }
-    
-      /**
-       * Closes the challenge form bottom sheet with slide-down animation.
-       */
-      function closeChallengeFormSheet() {
-        const drawer = document.getElementById('chalFormDrawer');
-        if (drawer) drawer.classList.remove('open');
-        setTimeout(function() {
-          const modal = document.getElementById('chalFormModal');
-          if (modal) modal.style.display = 'none';
-        }, 300);
-        currentEditingChallengeId = null;
-      }
-    
-      /**
-       * Called when the challengeType select changes.
-       * Shows the relevant type-specific config section and sets
-       * sensible isCompetitive defaults per type.
-       */
-      function onChallengeTypeChange() {
-        const selectedType = document.getElementById('chalFormTypeSelect').value;
-        showChallengeTypeSection(selectedType);
-
-        // Auto-set sensible point defaults per type
-        const pointDefaults = {
-          HABIT_STREAK   : { enrol: 100, finish: 1500, win: 3000 },
-          BINGO_GRID     : { enrol: 50, finish: 1000,  win: 3000 },
-          BUDDY_READ     : { enrol: 30,  finish: 200,  win: 0    },
-          COUNTRY_SPREAD : { enrol: 100, finish: 1500,  win: 3000 },
-          ALPHABET       : { enrol: 100, finish: 1500,  win: 5000 },
-          BOOK_COUNT     : { enrol: 30,  finish: 100,    win: 0    },
-          PAGE_COUNT     : { enrol: 30,  finish: 100,    win: 0    }
-        };
-        const pts = pointDefaults[selectedType];
-        if (pts) {
-          const enrolEl  = document.getElementById('chalFormEnrollPoints');
-          const finishEl = document.getElementById('chalFormFinishPoints');
-          const winEl    = document.getElementById('chalFormWinPoints');
-          if (enrolEl)  enrolEl.value  = pts.enrol;
-          if (finishEl) finishEl.value = pts.finish;
-          if (winEl)    winEl.value    = pts.win;
-        }
-    
-        // Set isCompetitive default: off for personal goal types
-        const nonCompetitiveTypes = ['BOOK_COUNT', 'PAGE_COUNT'];
-        const compToggle = document.getElementById('chalFormCompetitiveToggle');
-        if (compToggle) {
-          compToggle.classList.toggle('on', !nonCompetitiveTypes.includes(selectedType));
-        }
-    
-        // Build bingo cell grid when BINGO_GRID is selected
-        if (selectedType === 'BINGO_GRID') renderBingoCellBuilder();
-      }
-    
-      /**
-       * Shows the type-specific config section for the given type,
-       * hiding all others.
-       * @param {string} challengeType
-       */
-      function showChallengeTypeSection(challengeType) {
-        document.querySelectorAll('.chal-type-section').forEach(function(el) {
-          el.classList.remove('visible');
-        });
-        const target = document.getElementById('chalConfig-' + challengeType);
-        if (target) target.classList.add('visible');
-      }
-    
-      /**
-       * Builds the dynamic bingo cell input grid based on the selected grid size.
-       * Called on type change and on gridSize select change.
-       */
-      function renderBingoCellBuilder() {
-        const gridSize   = parseInt(document.getElementById('chalBingo-gridSize').value) || 3;
-        const totalCells = gridSize * gridSize;
-        const centreIdx  = Math.floor(totalCells / 2);
-        const container  = document.getElementById('chalBingo-cellBuilder');
-        if (!container) return;
-    
-        container.style.gridTemplateColumns = 'repeat(' + gridSize + ', 1fr)';
-        let html = '';
-        for (let i = 0; i < totalCells; i++) {
-          const isFree = (totalCells % 2 !== 0) && (i === centreIdx);
-          html += '<div>';
-          html += '<div class="bingo-cell-label">Cell ' + (i + 1) + (isFree ? ' (FREE)' : '') + '</div>';
-          if (isFree) {
-            html += '<input class="bingo-cell-input is-free" id="chalBingo-cell-' + i + '" value="FREE — any book you loved" readonly>';
-          } else {
-            html += '<input class="bingo-cell-input" id="chalBingo-cell-' + i + '" placeholder="Reading prompt…">';
-          }
-          html += '</div>';
-        }
-        container.innerHTML = html;
-      }
-    
-      /**
-       * Pre-fills type-specific form fields when opening an existing challenge in edit mode.
-       * Parses goalConfigJson and maps values back to the appropriate inputs.
-       *
-       * @param {ChallengeRecord} challenge
-       */
-      function prefillTypeSpecificFields(challenge) {
-        let config = {};
-        try { config = JSON.parse(challenge.goalConfigJson || '{}'); } catch (e) { config = {}; }
-    
-        const t = challenge.challengeType;
-    
-        if (t === 'HABIT_STREAK') {
-          const el = document.getElementById('chalStreak-minPages');
-          if (el) el.value = config.minPagesPerDay || 10;
-          const tog = document.getElementById('chalStreak-resetToggle');
-          if (tog) tog.classList.toggle('on', config.streakResetOnMiss !== false);
-        }
-    
-        if (t === 'BINGO_GRID') {
-          const sizeEl = document.getElementById('chalBingo-gridSize');
-          if (sizeEl) sizeEl.value = config.gridSize || 3;
-          renderBingoCellBuilder();
-          const winEl = document.getElementById('chalBingo-winCondition');
-          if (winEl) winEl.value = config.winCondition || 'ALL_CELLS';
-          const finEl = document.getElementById('chalBingo-finisherCondition');
-          if (finEl) finEl.value = config.finisherCondition || 'ANY_LINE';
-          // Pre-fill cell prompts
-          if (config.cells && Array.isArray(config.cells)) {
-            config.cells.forEach(function(cell, idx) {
-              const input = document.getElementById('chalBingo-cell-' + idx);
-              if (input && !input.readOnly) input.value = cell.prompt || '';
-            });
-          }
-        }
-    
-        if (t === 'BUDDY_READ') {
-          const bookEl = document.getElementById('chalBuddy-bookTitle');
-          if (bookEl) bookEl.value = config.bookTitle || '';
-          const bookIdEl = document.getElementById('chalBuddy-bookId');
-          if (bookIdEl) bookIdEl.value = config.bookId || '';
-          const evtEl = document.getElementById('chalBuddy-linkedEvent');
-          if (evtEl && config.linkedEventId) evtEl.value = config.linkedEventId;
-        }
-    
-        if (t === 'COUNTRY_SPREAD') {
-          const goalEl = document.getElementById('chalCountry-goalValue');
-          if (goalEl) goalEl.value = challenge.goalValue || 10;
-          const ruleEl = document.getElementById('chalCountry-qualRule');
-          if (ruleEl) ruleEl.value = config.qualificationRule || 'BOOK_SETTING_OR_AUTHOR';
-        }
-    
-        if (t === 'ALPHABET') {
-          const ruleEl = document.getElementById('chalAlpha-matchRule');
-          if (ruleEl) ruleEl.value = config.matchRule || 'TITLE_FIRST_WORD';
-          const skipTog = document.getElementById('chalAlpha-skipToggle');
-          if (skipTog) skipTog.classList.toggle('on', config.skipArticles !== false);
-          const optEl = document.getElementById('chalAlpha-optionalLetters');
-          if (optEl) optEl.value = (config.optionalLetters || ['Q','X','Z']).join(', ');
-        }
-    
-        if (t === 'BOOK_COUNT') {
-          const defEl = document.getElementById('chalBookCount-default');
-          if (defEl) defEl.value = config.defaultGoal || 24;
-          const tog = document.getElementById('chalBookCount-personalToggle');
-          if (tog) tog.classList.toggle('on', config.allowPersonalGoal !== false);
-        }
-    
-        if (t === 'PAGE_COUNT') {
-          const defEl = document.getElementById('chalPageCount-default');
-          if (defEl) defEl.value = config.defaultGoal || 5000;
-          const tog = document.getElementById('chalPageCount-personalToggle');
-          if (tog) tog.classList.toggle('on', config.allowPersonalGoal !== false);
-        }
-      }
-    
-      /**
-       * Reads type-specific form fields and assembles the goalConfigJson object.
-       * Returns the JSON as a string ready to write to the sheet.
-       *
-       * @param {string} challengeType
-       * @returns {{ goalConfigJson: string, goalValue: number, goalUnit: string }}
-       */
-      function buildChallengeGoalConfig(challengeType) {
-        let config    = {};
-        let goalValue = 0;
-        let goalUnit  = '';
-    
-        if (challengeType === 'HABIT_STREAK') {
-          const minPages = parseInt(document.getElementById('chalStreak-minPages').value) || 10;
-          goalValue  = minPages;
-          goalUnit   = 'pages';
-          config = {
-            minPagesPerDay      : minPages,
-            streakResetOnMiss   : document.getElementById('chalStreak-resetToggle').classList.contains('on'),
-            countTowardsSource  : ['ArkaClubApp']
-          };
-        }
-    
-        if (challengeType === 'BINGO_GRID') {
-          const gridSize         = parseInt(document.getElementById('chalBingo-gridSize').value) || 3;
-          const totalCells       = gridSize * gridSize;
-          const centreIdx        = Math.floor(totalCells / 2);
-          const cells            = [];
-    
-          for (let i = 0; i < totalCells; i++) {
-            const input   = document.getElementById('chalBingo-cell-' + i);
-            const row     = Math.floor(i / gridSize);
-            const col     = i % gridSize;
-            const isFree  = (totalCells % 2 !== 0) && (i === centreIdx);
-            cells.push({
-              cellId   : 'C' + (i + 1),
-              position : [row, col],
-              prompt   : input ? input.value.trim() : ''
-            });
-          }
-    
-          goalValue = totalCells;
-          goalUnit  = 'cells';
-          config = {
-            gridSize           : gridSize,
-            winCondition       : document.getElementById('chalBingo-winCondition').value,
-            finisherCondition  : document.getElementById('chalBingo-finisherCondition').value,
-            cells              : cells
-          };
-        }
-    
-        if (challengeType === 'BUDDY_READ') {
-          const bookTitleInput = document.getElementById('chalBuddy-bookTitle');
-          const bookTitle      = bookTitleInput ? bookTitleInput.value.split(' — ')[0].trim() : '';
-          const linkedEventId  = document.getElementById('chalBuddy-linkedEvent').value;
-    
-          // Try to resolve bookId from booksDB by title match
-          const matchedBook = globalBooksDB.find(function(b) {
-            return b.title.toLowerCase() === bookTitle.toLowerCase();
-          });
-    
-          goalValue = matchedBook ? (matchedBook.pages || 0) : 0;
-          goalUnit  = 'pages';
-          config = {
-            bookId                : matchedBook ? matchedBook.id : '',
-            bookTitle             : bookTitle,
-            linkedEventId         : linkedEventId || '',
-            countPagesFromShelfLog: true
-          };
-        }
-    
-        if (challengeType === 'COUNTRY_SPREAD') {
-          goalValue = parseInt(document.getElementById('chalCountry-goalValue').value) || 10;
-          goalUnit  = 'countries';
-          config = {
-            qualificationRule    : document.getElementById('chalCountry-qualRule').value,
-            requireUniqueCountries: true
-          };
-        }
-    
-        if (challengeType === 'ALPHABET') {
-          const optRaw        = document.getElementById('chalAlpha-optionalLetters').value;
-          const optionalLetters = optRaw.split(',').map(function(s) { return s.trim().toUpperCase(); }).filter(Boolean);
-          goalValue = 26 - optionalLetters.length;
-          goalUnit  = 'letters';
-          config = {
-            matchRule       : document.getElementById('chalAlpha-matchRule').value,
-            skipArticles    : document.getElementById('chalAlpha-skipToggle').classList.contains('on'),
-            optionalLetters : optionalLetters,
-            allLetters      : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
-          };
-        }
-    
-        if (challengeType === 'BOOK_COUNT') {
-          goalValue = parseInt(document.getElementById('chalBookCount-default').value) || 24;
-          goalUnit  = 'books';
-          config = {
-            allowPersonalGoal : document.getElementById('chalBookCount-personalToggle').classList.contains('on'),
-            defaultGoal       : goalValue,
-            countOnlyStatus   : 'Finished'
-          };
-        }
-    
-        if (challengeType === 'PAGE_COUNT') {
-          goalValue = parseInt(document.getElementById('chalPageCount-default').value) || 5000;
-          goalUnit  = 'pages';
-          config = {
-            allowPersonalGoal : document.getElementById('chalPageCount-personalToggle').classList.contains('on'),
-            defaultGoal       : goalValue,
-            sourceFilter      : ['ArkaClubApp']
-          };
-        }
-    
-        return {
-          goalConfigJson : JSON.stringify(config),
-          goalValue      : goalValue,
-          goalUnit       : goalUnit
-        };
-      }
-    
-      /**
-       * Validates the form, assembles the payload, and calls saveChallenge() on the backend.
-       * Handles both create and edit paths via currentEditingChallengeId.
-       */
-      function saveChallengeFromForm() {
-        const btn           = document.getElementById('chalFormSaveBtn');
-        const challengeType = document.getElementById('chalFormTypeSelect').value;
-        const title         = (document.getElementById('chalFormTitleInput').value || '').trim();
-        const description   = (document.getElementById('chalFormDescInput').value  || '').trim();
-        const startDate     = document.getElementById('chalFormStartDate').value;
-        const endDate       = document.getElementById('chalFormEndDate').value;
-        const seriesTag     = (document.getElementById('chalFormSeriesTag').value || '').trim().toUpperCase();
-        const isPinned      = document.getElementById('chalFormPinToggle').classList.contains('on');
-        const isCompetitive = document.getElementById('chalFormCompetitiveToggle').classList.contains('on');
-        const status        = document.getElementById('chalFormStatusSelect').value;
-    
-        // Frontend validation
-        if (!challengeType) { showToast({ type: 'error', title: 'Please select a challenge type.' });       return; }
-        if (!title) { showToast({ type: 'error', title: 'Please enter a challenge title.' }); highlightInvalidField('chalFormTitleInput'); return; }
-        if (!startDate)     { showToast({ type: 'error', title: 'Please set a start date.' });               return; }
-    
-        // Build type-specific config
-        const { goalConfigJson, goalValue, goalUnit } = buildChallengeGoalConfig(challengeType);
-    
-        // Convert dates from yyyy-MM-dd (input format) → dd-MMM-yyyy (storage format)
-        const startDateForStorage = startDate ? convertFromInputDateFormat(startDate) : '';
-        const endDateForStorage   = endDate   ? convertFromInputDateFormat(endDate)   : '';
-    
-        const payload = {
-          challengeId    : currentEditingChallengeId || null,
-          challengeType  : challengeType,
-          title          : title,
-          description    : description,
-          startDate      : startDateForStorage,
-          endDate        : endDateForStorage,
-          goalValue      : goalValue,
-          goalUnit       : goalUnit,
-          goalConfigJson : goalConfigJson,
-          status         : status,
-          isCompetitive  : isCompetitive,
-          seriesTag      : seriesTag,
-          isPinned       : isPinned,
-          enrollPoints  : parseInt(document.getElementById('chalFormEnrollPoints').value)  || 0,
-          finishPoints  : parseInt(document.getElementById('chalFormFinishPoints').value) || 0,
-          winPoints     : parseInt(document.getElementById('chalFormWinPoints').value)    || 0
-        };
-    
-        // ── Dual loader: top bar + button spinner ─────────────────────────
-        btn.disabled  = true;
-        btn.innerHTML = buildBtnSpinnerHtml_('Saving…');
-        arkaLoaderStart();
-
-        google.script.run
-          .withSuccessHandler(function(res) {
-            arkaLoaderDone();
-            if (res.status === 'error') {
-              showToast({ type: 'error', title: res.message || 'Could not save challenge.' });
-              btn.disabled  = false;
-              btn.innerText = 'Save Challenge';
-              return;
-            }
-
-            // Update local state immediately — no re-fetch needed
-            if (res.isUpdate) {
-              const idx = globalChallengesDB.findIndex(function(c) { return c.challengeId === res.challenge.challengeId; });
-              if (idx > -1) globalChallengesDB[idx] = res.challenge;
-              else           globalChallengesDB.push(res.challenge);
-            } else {
-              globalChallengesDB.push(res.challenge);
-            }
-
-            // Rebuild challengesMap
-            challengesMap = new Map(globalChallengesDB.map(function(c) { return [c.challengeId, c]; }));
-
-            btn.disabled  = false;
-            btn.innerText = 'Save Challenge';
-            closeChallengeFormSheet();
-            showToast(res.isUpdate
-              ? { type: 'success', icon: 'fa-solid fa-trophy', title: 'Challenge updated!' }
-              : { type: 'special', icon: 'fa-solid fa-trophy', title: 'Challenge created!', sub: 'Members can now enrol.' });
-            setTimeout(function() { renderChallengeList(currentChallengesSubTab); }, 0);
-          })
-          .withFailureHandler(function() {
-            arkaLoaderDone();
-            showToast({ type: 'error', title: 'Save failed. Please try again.' });
-            btn.disabled  = false;
-            btn.innerText = 'Save Challenge';
-          })
-          .saveChallenge(payload);
       }
 
       // ==========================================================================
