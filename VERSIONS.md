@@ -61,7 +61,7 @@ Full history lives here.
 
 ## app.js (ArkaClubApp frontend)
 
-**Current: `3.6.0`**
+**Current: `3.7.0`**
 
 | Version | Date | Summary |
 |---|---|---|
@@ -74,6 +74,7 @@ Full history lives here.
 | 3.4.0 | Jun 2025 | Library sort chips: Pages, Year Published, Reading Time, Club Activity; asc/desc toggle |
 | 3.5.0 | Jun 2025 | RSE V1 frontend stub — reads `member.stats.readingSpeed` from Col O; raw page fallback |
 | 3.6.0 | Jun 2025 | RSE V1 wired into 4 features: insight card pace, pace warning (genre/mood context), serendipity MOOD_MATCH, challenge pace table |
+| 3.7.0 | Jun 2025 | Badge proximity confidence bands — 🟢 Easy / 🟡 Stretch / 🔴 Aggressive based on moodMultiplier |
 
 ---
 

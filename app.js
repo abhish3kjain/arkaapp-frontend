@@ -1,5 +1,5 @@
 		/**
-       * ArkaClubApp — frontend    v3.6.0
+       * ArkaClubApp — frontend    v3.7.0
        * Full version history: VERSIONS.md
        *
        * T0: JS execution start time.

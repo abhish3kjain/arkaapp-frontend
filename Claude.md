@@ -37,7 +37,7 @@ Update `VERSIONS.md` with a one-line summary on every commit that changes a vers
 
 | File | Purpose | Current Version |
 |---|---|---|
-| `app.js` | Core frontend JavaScript | **v3.6.0** |
+| `app.js` | Core frontend JavaScript | **v3.7.0** |
 | `ArkaClubApp.html` | GAS HtmlService entry point | **v1.2.0** |
 | `MasterEngine.gs` | Nightly batch engine — stats, badges, RSE, email queue | **v2.5.0** |
 | `ArkaAIpass.gs` | Gemini AI narrative generation via `UrlFetchApp` | **v1.4.0** |
