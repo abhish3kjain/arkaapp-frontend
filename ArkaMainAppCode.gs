@@ -1672,7 +1672,7 @@ function updateMemberShelf(shelfData) {
         try {
           // Appends to sheet + in-memory pageLogDataRange via the shared helper.
           // newPageLogId / pageLogDelta are hoisted to function scope for the return.
-          newPageLogId = appendPageLogRow_(pagesGained, 'ArkaClubApp ' + APP_VERSION);
+          newPageLogId = appendPageLogRow_(pagesGained, 'ArkaClubApp ' + APP_VERSION + ' [shelf-form]');
           pageLogDelta = pagesGained;
         } catch (pageLogWriteErr) {
           console.warn('updateMemberShelf CASE 2: PageLogDB write failed (non-fatal):', pageLogWriteErr);
@@ -1688,7 +1688,7 @@ function updateMemberShelf(shelfData) {
         try {
           // Negative-delta correction row — appended via the shared helper so the
           // in-memory pageLogDataRange reflects it for the challenge sync below.
-          appendPageLogRow_(pagesGained, 'ArkaClubApp ' + APP_VERSION + ' [correction]');
+          appendPageLogRow_(pagesGained, 'ArkaClubApp ' + APP_VERSION + ' [shelf-form][correction]');
         } catch (correctionLogErr) {
           console.warn('updateMemberShelf CASE 2: correction PageLogDB write failed (non-fatal):', correctionLogErr);
         }
@@ -2376,8 +2376,8 @@ function logReadingProgress(progressData) {
             pageLogTimestampFormatted,     // Col B — Timestamp (client's local tz offset)
             currentMemberId,               // Col C — MemberID
             progressData.bookId,           // Col D — BookID
-            rawPageDelta,                  // Col E — PagesDelta (negative correction)
-            'ArkaClubApp ' + APP_VERSION   // Col F — Source
+            rawPageDelta,                                                    // Col E — PagesDelta (negative correction)
+            'ArkaClubApp ' + APP_VERSION + ' [reading-log][correction]'  // Col F — Source
           ]);
         }
       } catch (correctionLogErr) {
@@ -2422,8 +2422,8 @@ function logReadingProgress(progressData) {
             pageLogTimestampFormatted,     // Col B — Timestamp (client's local tz offset)
             currentMemberId,               // Col C — MemberID
             progressData.bookId,           // Col D — BookID
-            pageDelta,                     // Col E — PagesDelta
-            'ArkaClubApp ' + APP_VERSION   // Col F — Source
+            pageDelta,                                             // Col E — PagesDelta
+            'ArkaClubApp ' + APP_VERSION + ' [reading-log]'  // Col F — Source
           ]);
         }
       } catch (pageLogWriteErr) {

@@ -2185,22 +2185,16 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           activeWeekEl.textContent = activeCount;
         }
 
-        // Pages This Year — requires Wave 3 (globalShelvesDB)
-        if (!isWave3Loaded) return;
-
-        var thisYear   = new Date().getFullYear();
-        var pagesTotal = 0;
-
-        globalShelvesDB.forEach(function(shelf) {
-          if (shelf.status === 'Finished' && shelf.dateFinished) {
-            var d = parseGoogleDate(shelf.dateFinished);
-            if (d && d.getFullYear() === thisYear) {
-              pagesTotal += Number(shelf.pagesRead) || 0;
-            }
-          }
-        });
-
-        if (pagesYearEl) {
+        // Pages This Year — summed from Col O Stats JSON (member.stats[year].pages),
+        // written nightly by MasterEngine from PageLogDB. Available from Wave 1,
+        // covers all page types (Reading, Finished, DNF), year-bucketed by log
+        // timestamp rather than shelf finish date.
+        if (pagesYearEl && globalMembersDB.length > 0) {
+          var thisYear   = String(new Date().getFullYear());
+          var pagesTotal = 0;
+          globalMembersDB.forEach(function(m) {
+            pagesTotal += Number(((m.stats || {})[thisYear] || {}).pages) || 0;
+          });
           pagesYearEl.textContent = pagesTotal >= 1000
             ? (pagesTotal / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
             : pagesTotal.toLocaleString();
@@ -13494,6 +13488,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             warning.style.display =
               (total > 0 && entered > total * PAGE_DEVIATION_MULTIPLIER) ? 'block' : 'none';
           }
+          const finishStrip = document.getElementById('logReadingFinishStrip');
+          if (finishStrip) {
+            const pagesLeft = total > 0 ? total - entered : null;
+            const nearlyDone = pagesLeft !== null && pagesLeft >= 0 && pagesLeft <= total * 0.20;
+            finishStrip.style.display = nearlyDone ? 'block' : 'none';
+          }
           if (apEl) apEl.textContent = (Math.max(0, delta) * POINTS_PER_PAGE) + ' ☀️';
         } else {
           const pages = Math.max(0, parseInt(document.getElementById('logReadingPageCount').value, 10) || 0);
@@ -13560,6 +13560,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           setLogReadingContext('pages');
         }
 
+        // Reset finish strip to collapsed state on each open.
+        var _fc = document.getElementById('logReadingFinishCollapsed');
+        var _fx = document.getElementById('logReadingFinishConfirm');
+        if (_fc) _fc.style.display = 'flex';
+        if (_fx) _fx.style.display = 'none';
+
         document.getElementById('logReadingModal').style.display = 'block';
         setTimeout(function() {
           document.getElementById('logReadingDrawer').classList.add('open');
@@ -13581,20 +13587,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const shelfId = document.getElementById('logReadingShelfId').value;
         if (!bookId || !shelfId) { showToast({ type: 'error', title: 'No book selected.' }); return; }
 
-        // When the book has a known total-page count, pass null as prefilledPages so
-        // the shelf form field stays empty and handleShelfStatusChange() auto-fills it
-        // to totalBookPages on Finished select — crediting all remaining pages as the
-        // correct finish delta in CASE 2 (finalPagesRead = totalBookPages,
-        // pagesGained = totalBookPages - previousPagesRead).
-        //
-        // When totalBookPages is unknown (0), fall back to the user's current entry in
-        // the log reading form so their reading position is not silently discarded.
-        // In that case the backend also receives 0 as totalBookPages, so no override
-        // fires and the user's value is stored as-is.
-        const bookTotalPages  = Number(document.getElementById('logReadingTotalPages').value) || 0;
-        const prefilledPages  = bookTotalPages > 0
-          ? null
-          : (Number(document.getElementById('logReadingPageInput').value) || null);
+        // Carry the page position from the reading log form into the shelf modal:
+        //   - entered > total (known)  → different edition, respect what the user typed
+        //   - entered ≤ total (known)  → correct up to total (includes blank/0 entry)
+        //   - total unknown (0)        → use entered as-is; null if also blank
+        const bookTotalPages = Number(document.getElementById('logReadingTotalPages').value) || 0;
+        const enteredPage    = Number(document.getElementById('logReadingPageInput').value)  || 0;
+        const prefilledPages = bookTotalPages > 0
+          ? (enteredPage > bookTotalPages ? enteredPage : bookTotalPages)
+          : (enteredPage > 0 ? enteredPage : null);
 
         closeLogReadingSheet();
         setTimeout(function() {
@@ -13603,6 +13604,22 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           openShelfModal(bookId, 'false', '', prefilledPages);
           setTimeout(function() { selectShelfStatusTile('Finished'); }, 60);
         }, 320);
+      }
+
+      /** Expands the finish strip to show the inline confirm buttons. */
+      function logReadingFinishStripTap_() {
+        const collapsed = document.getElementById('logReadingFinishCollapsed');
+        const confirm   = document.getElementById('logReadingFinishConfirm');
+        if (collapsed) collapsed.style.display = 'none';
+        if (confirm)   confirm.style.display   = 'block';
+      }
+
+      /** Collapses the finish strip back to its default state (user cancelled). */
+      function logReadingFinishCancel_() {
+        const collapsed = document.getElementById('logReadingFinishCollapsed');
+        const confirm   = document.getElementById('logReadingFinishConfirm');
+        if (collapsed) collapsed.style.display = 'flex';
+        if (confirm)   confirm.style.display   = 'none';
       }
 
       /** Closes the Log Reading sheet with the standard slide-down animation. */
@@ -26187,6 +26204,28 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       }
 
       /**
+       * Returns the weekly page target (T) for heatmap colour bands.
+       * Uses the user's active PAGE_COUNT challenge personalGoal / 52.
+       * Falls back to 70 (10 pages/day) when no enrollment data is available yet.
+       */
+      function getHeatmapWeeklyTarget() {
+        const DEFAULT_T = 70;
+        if (!globalChallengeEnrollmentsDB || !globalChallengeEnrollmentsDB.length) return DEFAULT_T;
+        const activePageCountEnrollment = globalChallengeEnrollmentsDB.find(function(e) {
+          if (e.memberId !== currentUser) return false;
+          if (e.enrollmentStatus !== 'Active') return false;
+          const challenge = challengesMap.get(e.challengeId);
+          return challenge && challenge.challengeType === 'PAGE_COUNT';
+        });
+        if (!activePageCountEnrollment) return DEFAULT_T;
+        let state = {};
+        try { state = JSON.parse(activePageCountEnrollment.progressStateJson || '{}'); } catch (ex) {}
+        const yearlyGoal = state.personalGoal;
+        if (!yearlyGoal || yearlyGoal <= 0) return DEFAULT_T;
+        return yearlyGoal / 52;
+      }
+
+      /**
        * Renders the 52-week reading activity heatmap and calculates current-year stats.
        * This is strictly personal data and only runs for the logged-in currentUser.
        * * @param {string} memberId - The ID of the user (should always be currentUser)
@@ -26267,13 +26306,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           const pages = weeklyPages[w];
           square.title = `Week ${w}: ${pages} pages`; // Tooltip on hover
 
-          // Color Intensity Logic
-          if (pages > 0 && pages <= 50) {
-            square.classList.add('active-low');  // Light Green
-          } else if (pages > 50 && pages <= 150) {
-            square.classList.add('active-med');  // Medium Green
-          } else if (pages > 150) {
-            square.classList.add('active-high'); // Dark Green
+          // Color intensity scales with the user's weekly page target (T).
+          // T = yearlyGoal / 52 from their active PAGE_COUNT challenge, or 70 by default.
+          const T = getHeatmapWeeklyTarget();
+          if (pages > 0 && pages <= T / 2) {
+            square.classList.add('active-low');  // Light Green: logged something, below half target
+          } else if (pages > T / 2 && pages <= T) {
+            square.classList.add('active-med');  // Medium Green: approaching target
+          } else if (pages > T) {
+            square.classList.add('active-high'); // Dark Green: at or above target
           }
 
           // Highlight the current week with an Arka accent outline + visible number
@@ -32491,6 +32532,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     
         // Me tab — challenges card, personal activity feed, onboarding card (full pass)
         if (document.getElementById('meView').style.display === 'block') {
+          renderHeatmap(currentUser); // re-render now that challenge goal is known
           renderMyChallengesCard();
           renderHomeFeed(currentUser, 'meActivityFeed');
           // Full-accuracy onboarding re-render: globalActivityLogDB is now populated
