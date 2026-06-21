@@ -787,6 +787,51 @@
         justify-content: center;
       }
 
+      /* ── 25. Challenge form: action row ─────────────────────────── */
+      #admChalPanelForm > .adm-card > div[style*="display:flex"] {
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+      #admChalPanelForm > .adm-card > div[style*="display:flex"] .adm-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    } /* end @media mobile */
+
+    /* Challenge form — global (outside media query) */
+    .adm-chal-form-row       { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .adm-chal-type-section   { display: none; }
+    .adm-chal-type-section.visible { display: block; }
+    .adm-chal-section-divider {
+      font-size: 0.72rem; font-weight: 600; color: var(--arka-accent); text-transform: uppercase;
+      letter-spacing: 0.5px; margin: 16px 0 8px; padding-top: 12px;
+      border-top: 1px dashed var(--border-soft);
+    }
+    .adm-chal-toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid var(--surface-alt); gap: 12px;
+    }
+    .adm-chal-toggle-row:last-of-type { border-bottom: none; }
+    .adm-chal-toggle-label { font-size: 0.88rem; color: var(--text-strong); font-weight: 500; }
+    .adm-chal-toggle-sub   { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .adm-bingo-cell-grid   { display: grid; gap: 6px; margin-top: 8px; }
+    .adm-bingo-cell-input  {
+      width: 100%; box-sizing: border-box; border: 1px solid var(--border-soft);
+      border-radius: 6px; padding: 7px 9px; font-size: 0.82rem;
+      color: var(--text-strong); font-family: inherit; background: var(--surface-alt);
+    }
+    .adm-bingo-cell-input.is-free { background: #EEEDFE; color: #534AB7; font-style: italic; }
+    .adm-bingo-cell-label  {
+      font-size: 0.68rem; color: var(--text-faint); margin-bottom: 2px;
+      text-transform: none; letter-spacing: 0; font-weight: 400;
+    }
+    /* Status pills for challenges table */
+    .adm-chal-pill          { display:inline-block; padding:2px 8px; border-radius:20px; font-size:0.72rem; font-weight:600; }
+    .adm-chal-pill-active   { background:var(--adm-ok-bg);     color:var(--adm-ok); }
+    .adm-chal-pill-upcoming { background:var(--adm-warn-bg);   color:var(--adm-warn); }
+    .adm-chal-pill-completed{ background:var(--surface-alt);   color:var(--text-muted); }
+    .adm-chal-pill-archived { background:var(--surface-alt);   color:var(--text-faint); }
+    @media (max-width: 768px) {
       /* ── 24. Announcement compose: form action row ─────────────────  */
       #admAnnForm  > div[style*="display:flex"],
       #admEvtForm  > div[style*="display:flex"] {
