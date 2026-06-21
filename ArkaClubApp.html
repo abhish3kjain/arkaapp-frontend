@@ -3504,13 +3504,33 @@
                  style="display:none;font-size:0.78rem;color:var(--color-warning);margin-bottom:10px;line-height:1.4;">
               ⚠️ That's above the listed page count. Different edition?
             </div>
-            <!-- Finish strip — same pattern as the old progress form -->
-            <div role="button" tabindex="0" data-action onclick="logReadingMarkFinished_()"
-                 style="background:#eaf3de;border-radius:8px;padding:10px 14px;
-                        display:flex;justify-content:space-between;align-items:center;
-                        cursor:pointer;margin-top:4px;">
-              <span style="font-size:0.82rem;color:#27ae60;">Nearly done? Mark as finished</span>
-              <span style="font-size:0.82rem;font-weight:700;color:#27ae60;">Finish →</span>
+            <!-- Finish strip — shown only when user is within 20% of total pages -->
+            <div id="logReadingFinishStrip"
+                 style="background:#eaf3de;border-radius:8px;margin-top:4px;overflow:hidden;display:none;">
+              <!-- Collapsed row -->
+              <div id="logReadingFinishCollapsed"
+                   role="button" tabindex="0" data-action onclick="logReadingFinishStripTap_()"
+                   style="padding:10px 14px;display:flex;justify-content:space-between;
+                          align-items:center;cursor:pointer;">
+                <span style="font-size:0.82rem;color:#27ae60;">Nearly done? Mark as finished</span>
+                <span style="font-size:0.82rem;font-weight:700;color:#27ae60;">Finish →</span>
+              </div>
+              <!-- Expanded confirm row -->
+              <div id="logReadingFinishConfirm" style="display:none;padding:10px 14px;">
+                <div style="font-size:0.82rem;color:#27ae60;font-weight:600;margin-bottom:8px;">
+                  Mark this book as finished?
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <div role="button" tabindex="0" data-action onclick="logReadingFinishCancel_()"
+                       style="flex:1;text-align:center;padding:7px;border-radius:6px;
+                              background:#fff;border:1px solid #27ae60;
+                              font-size:0.82rem;color:#27ae60;cursor:pointer;">Cancel</div>
+                  <div role="button" tabindex="0" data-action onclick="logReadingMarkFinished_()"
+                       style="flex:1;text-align:center;padding:7px;border-radius:6px;
+                              background:#27ae60;font-size:0.82rem;font-weight:700;
+                              color:#fff;cursor:pointer;">Yes, finish it →</div>
+                </div>
+              </div>
             </div>
 
           </div><!-- end logReadingBookPanel -->
