@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=1.5">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=1.6">
 </head>
 <body>
 
@@ -166,9 +166,13 @@
           <h2><i class="fa-solid fa-medal" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Badge Management</h2>
         </div>
         <div class="adm-subtabs">
-          <button class="adm-subtab active" id="admSubTabAward" onclick="admSwitchBadgeSubTab('award')"><i class="fa-solid fa-medal"></i> Award a Badge</button>
-          <button class="adm-subtab" id="admSubTabBrowse" onclick="admSwitchBadgeSubTab('browse')"><i class="fa-solid fa-list"></i> Browse Awards</button>
+          <button class="adm-subtab active" id="admSubTabAward"     onclick="admSwitchBadgeSubTab('award')"><i class="fa-solid fa-medal"></i> Award a Badge</button>
+          <button class="adm-subtab"        id="admSubTabBrowse"    onclick="admSwitchBadgeSubTab('browse')"><i class="fa-solid fa-list"></i> Browse Awards</button>
+          <button class="adm-subtab"        id="admSubTabCreate"    onclick="admSwitchBadgeSubTab('create')"><i class="fa-solid fa-plus"></i> Create Badge</button>
+          <button class="adm-subtab"        id="admSubTabUpdateimg" onclick="admSwitchBadgeSubTab('updateimg')"><i class="fa-solid fa-image"></i> Update Image</button>
         </div>
+
+        <!-- ── Award a Badge panel ───────────────────────────────── -->
         <div id="admBadgePanelAward">
           <div class="adm-card">
             <div class="adm-card-title">Manually award a badge to a member</div>
@@ -181,8 +185,13 @@
             </div>
             <div class="adm-form-group">
               <label class="adm-form-label">Badge</label>
-              <input type="text" class="adm-input" id="admAwardBadgeInput" list="admAwardBadgeDatalist" placeholder="Type badge name or category…" oninput="admOnBadgeInputChange()" autocomplete="off">
-              <datalist id="admAwardBadgeDatalist"></datalist>
+              <div style="position:relative">
+                <input type="text" class="adm-input" id="admAwardBadgeInput"
+                       placeholder="Type to search badge…"
+                       oninput="admBadgePickerFilter('award')" onfocus="admBadgePickerOpen('award')" onblur="admBadgePickerCloseDelayed('award')"
+                       autocomplete="off">
+                <div class="ann-member-dropdown" id="admAwardBadgeDropdown"></div>
+              </div>
               <input type="hidden" id="admAwardBadgeId">
               <div class="adm-input-hint" id="admAwardBadgeHint"></div>
             </div>
@@ -193,15 +202,26 @@
             <button class="adm-btn adm-btn-accent" id="admAwardSubmitBtn" onclick="admSubmitBadgeAward()"><i class="fa-solid fa-medal"></i> Award Badge</button>
           </div>
         </div>
+
+        <!-- ── Browse Awards panel ───────────────────────────────── -->
         <div id="admBadgePanelBrowse" style="display:none">
-          <div class="adm-filter-row">
+          <div class="adm-filter-row" style="flex-wrap:wrap;gap:6px">
             <button class="adm-filter-tab active" data-award-filter="Active"  onclick="admSetAwardFilter('Active')">Active</button>
-            <button class="adm-filter-tab" data-award-filter="Revoked" onclick="admSetAwardFilter('Revoked')">Revoked</button>
-            <button class="adm-filter-tab" data-award-filter="All"     onclick="admSetAwardFilter('All')">All</button>
-            <div style="flex:1"></div>
-            <input type="text" class="adm-input" id="admAwardBrowseSearch" style="max-width:240px" placeholder="Search member or badge…" oninput="admRenderBadgeAwardsList()">
+            <button class="adm-filter-tab"        data-award-filter="Revoked" onclick="admSetAwardFilter('Revoked')">Revoked</button>
+            <button class="adm-filter-tab"        data-award-filter="All"     onclick="admSetAwardFilter('All')">All Status</button>
+            <div style="flex:1;min-width:16px"></div>
+            <input type="text" class="adm-input" id="admAwardBrowseSearch" style="max-width:240px;flex-shrink:0" placeholder="Search member or badge…" oninput="admRenderBadgeAwardsList()">
           </div>
-          <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-filter-row" style="flex-wrap:wrap;gap:6px;margin-top:8px">
+            <span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:6px 4px;white-space:nowrap">Awarder</span>
+            <button class="adm-filter-tab active" data-award-awarder="All"    onclick="admSetAwardAwarder('All')">All</button>
+            <button class="adm-filter-tab"        data-award-awarder="System" onclick="admSetAwardAwarder('System')"><i class="fa-solid fa-robot" style="margin-right:4px;font-size:0.75em"></i>System</button>
+            <button class="adm-filter-tab"        data-award-awarder="Manual" onclick="admSetAwardAwarder('Manual')"><i class="fa-solid fa-user-shield" style="margin-right:4px;font-size:0.75em"></i>Manual</button>
+          </div>
+          <div class="adm-filter-row" id="admAwardCategoryChips" style="flex-wrap:wrap;gap:6px;margin-top:8px">
+            <!-- Populated by JS after data loads -->
+          </div>
+          <div class="adm-card" style="padding:0;overflow:hidden;margin-top:12px">
             <div class="adm-table-wrap">
               <table class="adm-table">
                 <!-- Award ID, Awarded By and Notes collapse on mobile to keep
@@ -212,6 +232,80 @@
             </div>
           </div>
         </div>
+
+        <!-- ── Create Badge panel ────────────────────────────────── -->
+        <div id="admBadgePanelCreate" style="display:none">
+          <div class="adm-card">
+            <div class="adm-card-title">Create a new badge and upload its image</div>
+            <div class="adm-form-group">
+              <label class="adm-form-label">Caption <span style="color:var(--adm-danger)">*</span></label>
+              <input type="text" class="adm-input" id="admCreateBadgeCaption" placeholder="e.g. First Read, Century Reader…">
+            </div>
+            <div class="adm-form-group">
+              <label class="adm-form-label">Description <span style="font-weight:400;color:var(--text-faint)">(optional)</span></label>
+              <textarea class="adm-textarea" id="admCreateBadgeDesc" rows="2" placeholder="What achievement does this badge represent?"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div class="adm-form-group" style="margin-bottom:0">
+                <label class="adm-form-label">Club Points Awarded</label>
+                <input type="number" class="adm-input" id="admCreateBadgePoints" placeholder="e.g. 500" min="0">
+              </div>
+              <div class="adm-form-group" style="margin-bottom:0">
+                <label class="adm-form-label">Category</label>
+                <select class="adm-input" id="admCreateBadgeCategory" style="cursor:pointer">
+                  <option value="SPECIAL">Special</option>
+                  <option value="PAGES_READ">Pages Read</option>
+                  <option value="BOOKS_READ">Books Read</option>
+                  <option value="GENRE_EXPLORER">Genre Explorer</option>
+                  <option value="READING_STREAK">Reading Streak</option>
+                  <option value="YEARLY">Annual Award</option>
+                </select>
+              </div>
+            </div>
+            <div class="adm-form-group" style="margin-top:16px">
+              <label class="adm-form-label">Badge Image <span style="color:var(--adm-danger)">*</span> <span style="font-weight:400;color:var(--text-faint)">(square, min 400×400 px — auto-cropped)</span></label>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+                <img id="admCreateBadgePreview" class="adm-badge-img-preview" style="display:none" alt="preview">
+                <div id="admCreateBadgeFallback" class="adm-badge-img-fallback">🏅</div>
+                <input type="file" id="admCreateBadgeInput" accept="image/*" onchange="admHandleBadgeCreateImgSelect(this)" style="flex:1;font-size:0.82rem">
+              </div>
+            </div>
+            <button class="adm-btn adm-btn-accent" id="admCreateBadgeBtn" onclick="admSubmitCreateBadge()" style="margin-top:8px">
+              <i class="fa-solid fa-plus"></i> Create Badge
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Update Badge Image panel ──────────────────────────── -->
+        <div id="admBadgePanelUpdateimg" style="display:none">
+          <div class="adm-card">
+            <div class="adm-card-title">Replace the image for an existing badge</div>
+            <div class="adm-form-group">
+              <label class="adm-form-label">Badge to update</label>
+              <div style="position:relative">
+                <input type="text" class="adm-input" id="admUpdateBadgeInput"
+                       placeholder="Type to search badge…"
+                       oninput="admBadgePickerFilter('update')" onfocus="admBadgePickerOpen('update')" onblur="admBadgePickerCloseDelayed('update')"
+                       autocomplete="off">
+                <div class="ann-member-dropdown" id="admUpdateBadgeDropdown"></div>
+              </div>
+              <input type="hidden" id="admUpdateBadgeId">
+              <div class="adm-input-hint" id="admUpdateBadgeHint"></div>
+            </div>
+            <div class="adm-form-group">
+              <label class="adm-form-label">New image file <span style="color:var(--adm-danger)">*</span> <span style="font-weight:400;color:var(--text-faint)">(square, min 400×400 px — auto-cropped)</span></label>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+                <img id="admUpdateImgPreview" class="adm-badge-img-preview" style="display:none" alt="preview">
+                <div id="admUpdateImgFallback" class="adm-badge-img-fallback">🖼️</div>
+                <input type="file" id="admUpdateImgInput" accept="image/*" onchange="admHandleUpdateImgSelect(this)" style="flex:1;font-size:0.82rem">
+              </div>
+            </div>
+            <button class="adm-btn adm-btn-accent" id="admUpdateImgBtn" onclick="admSubmitUpdateBadgeImage()" style="margin-top:8px">
+              <i class="fa-solid fa-image"></i> Update Image
+            </button>
+          </div>
+        </div>
+
       </section>
 
       <!-- ── CONTENT MODERATION ──────────────────────────────── -->
@@ -792,6 +886,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=1.5"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=1.6"></script>
 </body>
 </html>

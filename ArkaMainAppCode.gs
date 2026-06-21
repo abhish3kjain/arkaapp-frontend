@@ -3552,9 +3552,18 @@ function getAdminPanelData() {
 
       // lastAccessedTs: unix ms timestamp — lets the HTML do 30-day
       // activity filtering with Date.now() without any date parsing.
-      const lastAccessedTs = rawLastAccessed instanceof Date
-        ? rawLastAccessed.getTime()
-        : 0;
+      // Col M is stored as a formatted string 'dd-MM-yyyy HH:mm:ss Z' by
+      // Utilities.formatDate(), so instanceof Date is always false. We parse
+      // it manually by reordering to MM/dd/yyyy which Date() can handle.
+      const lastAccessedTs = (function() {
+        if (rawLastAccessed instanceof Date) return rawLastAccessed.getTime();
+        if (!rawLastAccessed) return 0;
+        var s = rawLastAccessed.toString().trim();
+        if (!s) return 0;
+        var converted = s.replace(/^(\d{2})-(\d{2})-(\d{4})/, '$2/$1/$3');
+        var d = new Date(converted);
+        return isNaN(d.getTime()) ? 0 : d.getTime();
+      })();
 
       memberList.push({
         memberId       : memberRows[i][0].toString(),
