@@ -23504,13 +23504,20 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
             Promise.all([authorPromise, blurbPromise, coverPromise])
               .then(function(results) {
-                if (results[0]) fetched.author  = results[0];
-                if (results[1]) fetched.blurb   = results[1];
+                if (results[0]) fetched.author   = results[0];
+                if (results[1]) fetched.blurb    = results[1];
                 if (results[2]) fetched.coverB64 = results[2];
                 fetched.coverUrl = coverUrl;
 
-                status.innerText   = '';
-                showIsbnReviewPanel_(fetched);
+                status.innerText = '';
+
+                // In Add New Book mode just fill everything directly — no review panel needed
+                var isEditMode = !!(document.getElementById('workspaceBookId').value);
+                if (!isEditMode) {
+                  applyIsbnFetchDirect_(fetched);
+                } else {
+                  showIsbnReviewPanel_(fetched);
+                }
               });
           })
           .catch(function(err) {
@@ -23520,6 +23527,42 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             status.style.color = 'var(--color-danger)';
             console.error('ISBN search error:', err);
           });
+      }
+
+      /**
+       * Fills all fetched ISBN fields directly into the form with no review step.
+       * Used in Add New Book mode where there is no existing data to protect.
+       */
+      function applyIsbnFetchDirect_(fetched) {
+        var FIELD_MAP = {
+          title  : 'newBookTitle',
+          author : 'newBookAuthor',
+          pages  : 'newBookPages',
+          isbn   : 'newBookIsbn13',
+          year   : 'newBookPublishedDate',
+          blurb  : 'newBookBlurb'
+        };
+        Object.keys(FIELD_MAP).forEach(function(key) {
+          var val = fetched[key];
+          if (!val) return;
+          var el = document.getElementById(FIELD_MAP[key]);
+          if (el) el.value = val;
+        });
+        if (fetched.genres && fetched.genres.length > 0) {
+          setGenreTags(fetched.genres.join(', '));
+        }
+        if (fetched.coverB64) {
+          document.getElementById('bookCoverBase64').value    = fetched.coverB64;
+          document.getElementById('bookCoverSourceUrl').value = fetched.coverUrl || '';
+          showBookCoverPreview(fetched.coverB64, 'Cover found on Open Library. Upload from device to override.');
+        }
+        var status = document.getElementById('isbnSearchStatus');
+        if (status) {
+          status.innerText   = fetched.author
+            ? 'Found! Review and confirm the details below.'
+            : 'Partially found — please verify and fill in any missing fields.';
+          status.style.color = fetched.author ? '#27ae60' : 'var(--color-warning)';
+        }
       }
 
       /**
