@@ -19263,8 +19263,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        *
        * @type {string[]}
        */
-      var RT_MEMBER_COLORS = ['var(--color-challenge)', 'var(--color-success)', 'var(--color-gamification)', '#D4537E', '#378ADD',
-                              '#8e44ad', '#16a085', 'var(--color-warning)'];
+      var RT_MEMBER_COLORS = ['#534AB7', '#1D9E75', '#EF9F27', '#D4537E', '#378ADD',
+                              '#8e44ad', '#16a085', '#e67e22'];
 
       /**
        * _rtChartInstance_
