@@ -404,6 +404,10 @@
     .ann-member-option:last-child { border-bottom: none; }
     .ann-member-option:hover { background: var(--surface-alt); }
 
+    /* ── Badge image preview circles ──────────────────────────────── */
+    .adm-badge-img-preview { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--arka-accent); flex-shrink: 0; }
+    .adm-badge-img-fallback { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-alt); border: 2px dashed var(--border-soft); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+
     /* Scope (audience) row */
     .ann-scope-toggle-row {
       display: flex;

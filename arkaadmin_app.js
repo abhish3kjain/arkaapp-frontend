@@ -13,6 +13,14 @@
 
   /* ── Admin constants (mirror ArkaClubAppCode.gs) ──────────────────── */
   var APPROVAL_STATUS   = { PENDING: 'Pending', APPROVED: 'Approved', REJECTED: 'Rejected' };
+  var ADM_BADGE_CATEGORIES = [
+    { value: 'PAGES_READ',     label: 'Pages Read' },
+    { value: 'BOOKS_READ',     label: 'Books Read' },
+    { value: 'GENRE_EXPLORER', label: 'Genre Explorer' },
+    { value: 'READING_STREAK', label: 'Reading Streak' },
+    { value: 'YEARLY',         label: 'Annual Award' },
+    { value: 'SPECIAL',        label: 'Special' }
+  ];
   var PERF_MS_FAST      = 3000;
   var PERF_MS_SLOW      = 6000;
   var ACTIVE_WINDOW_MS  = 30 * 24 * 60 * 60 * 1000;
@@ -27,7 +35,11 @@
   var admBadgeMap          = {};
   var admApprovalFilter    = APPROVAL_STATUS.PENDING;
   var admBadgeSubTab       = 'award';
-  var admAwardBrowseFilter = 'Active';
+  var admAwardBrowseFilter    = 'Active';
+  var admAwardBrowseAwarder   = 'All'; // All | System | Manual
+  var admAwardBrowseCategory  = 'All'; // All | PAGES_READ | BOOKS_READ | ...
+  var admBadgeCreateImgB64    = '';    // base64 for create-badge form
+  var admBadgeUpdateImgB64    = '';    // base64 for update-image form
   var admMembersSort       = 'totalCp';
   var admMembersActivity   = 'all';
   var admPendingRevokeId        = null;
@@ -409,19 +421,98 @@
      ══════════════════════════════════════════════════════════════════ */
 
   function admSwitchBadgeSubTab(tab) {
-    admBadgeSubTab=tab;
-    document.getElementById('admBadgePanelAward').style.display  = tab==='award'  ? 'block':'none';
-    document.getElementById('admBadgePanelBrowse').style.display = tab==='browse' ? 'block':'none';
-    document.getElementById('admSubTabAward').classList.toggle('active',  tab==='award');
-    document.getElementById('admSubTabBrowse').classList.toggle('active', tab==='browse');
+    admBadgeSubTab = tab;
+    ['award','browse','create','updateimg'].forEach(function(t) {
+      var p = document.getElementById('admBadgePanel' + t.charAt(0).toUpperCase() + t.slice(1));
+      var b = document.getElementById('admSubTab'     + t.charAt(0).toUpperCase() + t.slice(1));
+      if (p) p.style.display = t === tab ? 'block' : 'none';
+      if (b) b.classList.toggle('active', t === tab);
+    });
   }
 
   function admPopulateBadgeFormDatasets() {
     if (!admPayload) return;
     var mdl = document.getElementById('admAwardMemberDatalist');
     if (mdl) mdl.innerHTML = (admPayload.memberList||[]).filter(function(m){return m.approvalStatus===APPROVAL_STATUS.APPROVED;}).map(function(m){ return '<option value="'+_esc(m.displayName+' ('+m.memberId+')')+'">'; }).join('');
-    var bdl = document.getElementById('admAwardBadgeDatalist');
-    if (bdl) bdl.innerHTML = (admPayload.badgeList||[]).map(function(b){ return '<option value="'+_esc(b.caption+' — '+b.badgeCategory+' ['+b.badgeId+']')+'">'; }).join('');
+    _admPopulateBadgeCategoryChips();
+  }
+
+  function _admBadgeCatLabel(cat) {
+    var found = ADM_BADGE_CATEGORIES.filter(function(c) { return c.value === cat; })[0];
+    return found ? found.label : (cat || '');
+  }
+
+  function _admPopulateBadgeCategoryChips() {
+    var container = document.getElementById('admAwardCategoryChips');
+    if (!container || !admPayload) return;
+    var html = '<span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:6px 4px;white-space:nowrap">Type</span>';
+    html += '<button class="adm-filter-tab active" data-award-category="All" onclick="admSetAwardCategory(\'All\')">All Types</button>';
+    ADM_BADGE_CATEGORIES.forEach(function(cat) {
+      var hasBadges = (admPayload.badgeList||[]).some(function(b) { return b.badgeCategory === cat.value; });
+      if (!hasBadges) return;
+      html += '<button class="adm-filter-tab" data-award-category="'+cat.value+'" onclick="admSetAwardCategory(\''+cat.value+'\')">'+cat.label+'</button>';
+    });
+    container.innerHTML = html;
+  }
+
+  /* ── Badge combobox picker (shared for Award + Update Image panels) ─ */
+
+  function admBadgePickerFilter(ctx) {
+    var inputId    = ctx === 'award' ? 'admAwardBadgeInput'    : 'admUpdateBadgeInput';
+    var dropdownId = ctx === 'award' ? 'admAwardBadgeDropdown' : 'admUpdateBadgeDropdown';
+    var search = ((document.getElementById(inputId)||{}).value||'').toLowerCase().trim();
+    var dd = document.getElementById(dropdownId);
+    if (!dd) return;
+    var matches = ((admPayload && admPayload.badgeList)||[]).filter(function(b) {
+      if (!search) return true;
+      return (b.caption||'').toLowerCase().includes(search)
+        || _admBadgeCatLabel(b.badgeCategory).toLowerCase().includes(search)
+        || (b.badgeId||'').toLowerCase().includes(search);
+    }).slice(0, 25);
+    if (!matches.length) { dd.style.display = 'none'; return; }
+    dd.innerHTML = matches.map(function(b) {
+      var catLabel = _admBadgeCatLabel(b.badgeCategory);
+      return '<div class="ann-member-option" onmousedown="admBadgePickerSelect(\''+_esc(b.badgeId)+'\',\''+ctx+'\')">'
+        + '<span style="font-weight:600">'+_esc(b.caption)+'</span>'
+        + '<span style="margin-left:8px;font-size:0.72rem;color:var(--text-faint)">'+_esc(catLabel)+' &middot; '+b.badgePoints+' CP</span>'
+        + '</div>';
+    }).join('');
+    dd.style.display = 'block';
+  }
+
+  function admBadgePickerOpen(ctx) { admBadgePickerFilter(ctx); }
+
+  function admBadgePickerCloseDelayed(ctx) {
+    var dropdownId = ctx === 'award' ? 'admAwardBadgeDropdown' : 'admUpdateBadgeDropdown';
+    setTimeout(function() {
+      var dd = document.getElementById(dropdownId);
+      if (dd) dd.style.display = 'none';
+    }, 200);
+  }
+
+  function admBadgePickerSelect(badgeId, ctx) {
+    var b = admBadgeMap[badgeId];
+    if (!b) return;
+    var catLabel = _admBadgeCatLabel(b.badgeCategory);
+    if (ctx === 'award') {
+      var inp  = document.getElementById('admAwardBadgeInput');
+      var hidEl= document.getElementById('admAwardBadgeId');
+      var hint = document.getElementById('admAwardBadgeHint');
+      var dd   = document.getElementById('admAwardBadgeDropdown');
+      if (inp)   inp.value   = b.caption;
+      if (hidEl) hidEl.value = badgeId;
+      if (hint)  { hint.textContent = '✓ '+b.caption+' — '+catLabel+' ('+b.badgePoints+' CP)'; hint.style.color = 'var(--adm-ok)'; }
+      if (dd)    dd.style.display = 'none';
+    } else {
+      var inp2   = document.getElementById('admUpdateBadgeInput');
+      var hidEl2 = document.getElementById('admUpdateBadgeId');
+      var hint2  = document.getElementById('admUpdateBadgeHint');
+      var dd2    = document.getElementById('admUpdateBadgeDropdown');
+      if (inp2)   inp2.value   = b.caption;
+      if (hidEl2) hidEl2.value = badgeId;
+      if (hint2)  { hint2.textContent = '✓ '+b.caption+' — '+catLabel; hint2.style.color = 'var(--adm-ok)'; }
+      if (dd2)    dd2.style.display = 'none';
+    }
   }
 
   function admOnMemberInputChange() {
@@ -465,8 +556,20 @@
   }
 
   function admSetAwardFilter(filter) {
-    admAwardBrowseFilter=filter;
+    admAwardBrowseFilter = filter;
     document.querySelectorAll('[data-award-filter]').forEach(function(b){b.classList.toggle('active',b.dataset.awardFilter===filter);});
+    admRenderBadgeAwardsList();
+  }
+
+  function admSetAwardAwarder(awarder) {
+    admAwardBrowseAwarder = awarder;
+    document.querySelectorAll('[data-award-awarder]').forEach(function(b){b.classList.toggle('active',b.dataset.awardAwarder===awarder);});
+    admRenderBadgeAwardsList();
+  }
+
+  function admSetAwardCategory(category) {
+    admAwardBrowseCategory = category;
+    document.querySelectorAll('[data-award-category]').forEach(function(b){b.classList.toggle('active',b.dataset.awardCategory===category);});
     admRenderBadgeAwardsList();
   }
 
@@ -474,7 +577,13 @@
     if (!admPayload) return;
     var search=((document.getElementById('admAwardBrowseSearch')||{}).value||'').toLowerCase().trim();
     var filtered=(admPayload.badgeAwardList||[]).filter(function(a){
-      var ok=admAwardBrowseFilter==='All'||a.status===admAwardBrowseFilter; if (!ok) return false;
+      if (admAwardBrowseFilter!=='All' && a.status!==admAwardBrowseFilter) return false;
+      if (admAwardBrowseAwarder==='System' && a.awardedBy!=='MasterEngine') return false;
+      if (admAwardBrowseAwarder==='Manual' && a.awardedBy==='MasterEngine') return false;
+      if (admAwardBrowseCategory!=='All') {
+        var bCat=(admBadgeMap[a.badgeId]||{}).badgeCategory;
+        if (bCat!==admAwardBrowseCategory) return false;
+      }
       if (!search) return true;
       var m=admMemberMap[a.memberId]||{}, b=admBadgeMap[a.badgeId]||{};
       return (m.displayName||'').toLowerCase().includes(search)||(b.caption||'').toLowerCase().includes(search)||(a.memberId||'').toLowerCase().includes(search)||(a.badgeId||'').toLowerCase().includes(search);
@@ -486,7 +595,8 @@
       var stPill=a.status==='Active'?'<span class="adm-pill adm-pill-active">Active</span>':'<span class="adm-pill adm-pill-revoked">Revoked</span>';
       var aBy=a.awardedBy==='MasterEngine'?'<span class="adm-pill adm-pill-system">System</span>':_esc(a.awardedBy);
       var revBtn=a.status==='Active'?'<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenRevokeModal(\''+a.awardId+'\')"><i class="fa-solid fa-ban"></i> Revoke</button>':'—';
-      return '<tr><td class="adm-td-mono">'+_esc(a.awardId)+'</td><td><strong>'+_esc(b.caption)+'</strong>'+(b.badgeCategory?'<br><span style="font-size:0.7rem;color:var(--text-faint)">'+_esc(b.badgeCategory)+'</span>':'')+'</td><td>'+_esc(m.displayName)+'<br><span class="adm-td-mono" style="font-size:0.7rem">'+_esc(a.memberId)+'</span></td><td>'+aBy+'</td><td style="white-space:nowrap">'+_esc(a.awardedDate)+'</td><td>'+stPill+'</td><td style="font-size:0.78rem;max-width:160px;color:var(--text-muted)">'+_esc(a.notes||'—')+'</td><td>'+revBtn+'</td></tr>';
+      var catLabel=b.badgeCategory?_admBadgeCatLabel(b.badgeCategory):'';
+      return '<tr><td class="adm-td-mono">'+_esc(a.awardId)+'</td><td><strong>'+_esc(b.caption)+'</strong>'+(catLabel?'<br><span style="font-size:0.7rem;color:var(--text-faint)">'+_esc(catLabel)+'</span>':'')+'</td><td>'+_esc(m.displayName)+'<br><span class="adm-td-mono" style="font-size:0.7rem">'+_esc(a.memberId)+'</span></td><td>'+aBy+'</td><td style="white-space:nowrap">'+_esc(a.awardedDate)+'</td><td>'+stPill+'</td><td style="font-size:0.78rem;max-width:160px;color:var(--text-muted)">'+_esc(a.notes||'—')+'</td><td>'+revBtn+'</td></tr>';
     }).join('');
   }
 
@@ -510,6 +620,123 @@
       .withSuccessHandler(function(r){ admCloseRevokeModal(); if (r.status!=='success'){ admShowToast('Error: '+(r.message||'Could not revoke.'),'err'); return; } var a=(admPayload.badgeAwardList||[]).filter(function(x){return x.awardId===awardId;})[0]; if(a)a.status='Revoked'; admShowToast('Badge award revoked.','ok'); admRenderBadgeAwardsList(); })
       .withFailureHandler(function(err){ admCloseRevokeModal(); admShowToast('Server error: '+((err&&err.message)||'Please retry.'),'err'); })
       .revokeBadgeAward(awardId);
+  }
+
+  /* ── Create Badge ──────────────────────────────────────────────── */
+
+  function admHandleBadgeCreateImgSelect(input) {
+    var file = input.files && input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var TARGET = 400, canvas = document.createElement('canvas');
+        canvas.width = canvas.height = TARGET;
+        var ctx = canvas.getContext('2d');
+        var minDim = Math.min(img.width, img.height);
+        ctx.drawImage(img, (img.width-minDim)/2, (img.height-minDim)/2, minDim, minDim, 0, 0, TARGET, TARGET);
+        admBadgeCreateImgB64 = canvas.toDataURL('image/jpeg', 0.9);
+        var prev = document.getElementById('admCreateBadgePreview');
+        var fall = document.getElementById('admCreateBadgeFallback');
+        if (prev) { prev.src = admBadgeCreateImgB64; prev.style.display = 'block'; }
+        if (fall) fall.style.display = 'none';
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function admSubmitCreateBadge() {
+    var caption  = (document.getElementById('admCreateBadgeCaption').value||'').trim();
+    var desc     = (document.getElementById('admCreateBadgeDesc').value   ||'').trim();
+    var points   = Number(document.getElementById('admCreateBadgePoints').value)||0;
+    var category = document.getElementById('admCreateBadgeCategory').value||'SPECIAL';
+    if (!caption)           { admShowToast('Badge caption is required.','err'); return; }
+    if (!admBadgeCreateImgB64) { admShowToast('Please upload a badge image.','err'); return; }
+    var btn = document.getElementById('admCreateBadgeBtn');
+    if (btn){btn.disabled=true; btn.textContent='Creating…';}
+    google.script.run
+      .withSuccessHandler(function(res){
+        if (btn){btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-plus"></i> Create Badge';}
+        if (res.status!=='success'){ admShowToast('Error: '+(res.message||'Could not create.'),'err'); return; }
+        var nb=res.newBadge;
+        var newEntry={badgeId:nb.id,caption:nb.caption,description:nb.description||'',imgUrl:nb.imgUrl,badgePoints:nb.badgePoints,badgeCategory:nb.badgeCategory,badgeTier:nb.badgeTier||0,badgeMeta:nb.badgeMeta||''};
+        admPayload.badgeList.push(newEntry);
+        admBadgeMap[nb.id]=newEntry;
+        document.getElementById('admCreateBadgeCaption').value='';
+        document.getElementById('admCreateBadgeDesc').value='';
+        document.getElementById('admCreateBadgePoints').value='';
+        document.getElementById('admCreateBadgeCategory').value='SPECIAL';
+        document.getElementById('admCreateBadgeInput').value='';
+        admBadgeCreateImgB64='';
+        var prev=document.getElementById('admCreateBadgePreview');
+        var fall=document.getElementById('admCreateBadgeFallback');
+        if (prev) prev.style.display='none';
+        if (fall) fall.style.display='block';
+        _admPopulateBadgeCategoryChips();
+        admShowToast('Badge created: '+nb.caption,'ok');
+      })
+      .withFailureHandler(function(err){
+        if (btn){btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-plus"></i> Create Badge';}
+        admShowToast('Server error: '+((err&&err.message)||'Please retry.'),'err');
+      })
+      .addNewBadge({caption:caption, description:desc, imageBase64:admBadgeCreateImgB64, badgePoints:points, badgeCategory:category});
+  }
+
+  /* ── Update Badge Image ────────────────────────────────────────── */
+
+  function admHandleUpdateImgSelect(input) {
+    var file = input.files && input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var TARGET = 400, canvas = document.createElement('canvas');
+        canvas.width = canvas.height = TARGET;
+        var ctx = canvas.getContext('2d');
+        var minDim = Math.min(img.width, img.height);
+        ctx.drawImage(img, (img.width-minDim)/2, (img.height-minDim)/2, minDim, minDim, 0, 0, TARGET, TARGET);
+        admBadgeUpdateImgB64 = canvas.toDataURL('image/jpeg', 0.9);
+        var prev = document.getElementById('admUpdateImgPreview');
+        var fall = document.getElementById('admUpdateImgFallback');
+        if (prev) { prev.src = admBadgeUpdateImgB64; prev.style.display = 'block'; }
+        if (fall) fall.style.display = 'none';
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function admSubmitUpdateBadgeImage() {
+    var badgeId = (document.getElementById('admUpdateBadgeId').value||'').trim();
+    if (!badgeId)              { admShowToast('Select a badge to update.','err'); return; }
+    if (!admBadgeUpdateImgB64) { admShowToast('Please choose a new image.','err'); return; }
+    var btn = document.getElementById('admUpdateImgBtn');
+    if (btn){btn.disabled=true; btn.textContent='Updating…';}
+    google.script.run
+      .withSuccessHandler(function(res){
+        if (btn){btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-image"></i> Update Image';}
+        if (res.status!=='success'){ admShowToast('Error: '+(res.message||'Update failed.'),'err'); return; }
+        var entry=admBadgeMap[badgeId]; if (entry) entry.imgUrl=res.imgUrl;
+        document.getElementById('admUpdateBadgeInput').value='';
+        document.getElementById('admUpdateBadgeId').value='';
+        document.getElementById('admUpdateImgInput').value='';
+        admBadgeUpdateImgB64='';
+        var prev=document.getElementById('admUpdateImgPreview');
+        var fall=document.getElementById('admUpdateImgFallback');
+        if (prev) prev.style.display='none';
+        if (fall) fall.style.display='block';
+        var hint=document.getElementById('admUpdateBadgeHint');
+        if (hint) hint.textContent='';
+        admShowToast('Badge image updated.','ok');
+      })
+      .withFailureHandler(function(err){
+        if (btn){btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-image"></i> Update Image';}
+        admShowToast('Server error: '+((err&&err.message)||'Please retry.'),'err');
+      })
+      .updateBadgeImage(badgeId, admBadgeUpdateImgB64);
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -1865,10 +2092,19 @@
   window.admConfirmApprovalChange       = admConfirmApprovalChange;
   window.admSwitchBadgeSubTab   = admSwitchBadgeSubTab;
   window.admOnMemberInputChange = admOnMemberInputChange;
-  window.admOnBadgeInputChange  = admOnBadgeInputChange;
   window.admSubmitBadgeAward    = admSubmitBadgeAward;
   window.admSetAwardFilter      = admSetAwardFilter;
+  window.admSetAwardAwarder     = admSetAwardAwarder;
+  window.admSetAwardCategory    = admSetAwardCategory;
   window.admRenderBadgeAwardsList = admRenderBadgeAwardsList;
+  window.admBadgePickerFilter       = admBadgePickerFilter;
+  window.admBadgePickerOpen         = admBadgePickerOpen;
+  window.admBadgePickerCloseDelayed = admBadgePickerCloseDelayed;
+  window.admBadgePickerSelect       = admBadgePickerSelect;
+  window.admHandleBadgeCreateImgSelect = admHandleBadgeCreateImgSelect;
+  window.admSubmitCreateBadge          = admSubmitCreateBadge;
+  window.admHandleUpdateImgSelect      = admHandleUpdateImgSelect;
+  window.admSubmitUpdateBadgeImage     = admSubmitUpdateBadgeImage;
   window.admOpenRevokeModal     = admOpenRevokeModal;
   window.admCloseRevokeModal    = admCloseRevokeModal;
   window.admConfirmRevoke       = admConfirmRevoke;
