@@ -893,6 +893,9 @@
       if (btn)   btn.classList.toggle('active', t === tab);
       if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
     });
+    // Always reset the compose form when leaving the compose tab so that
+    // clicking "New Announcement" after cancelling an edit starts fresh.
+    if (tab !== 'compose') { admAnnEditing = null; }
     if (tab === 'compose' && !admAnnEditing) admResetAnnForm();
   }
 
