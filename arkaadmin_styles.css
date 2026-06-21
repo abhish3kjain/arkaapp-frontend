@@ -54,6 +54,11 @@
        - overflow-x:hidden: tables with overflow-x:auto sit inside the
          layout; the body itself must not allow the page to wobble sideways
          when content briefly overflows during rendering. */
+    /* overflow-x: hidden must live on html, not body — iOS Safari treats
+       overflow:hidden on body as a scroll container, which breaks position:fixed
+       (fixed elements end up anchored to the document bottom instead of the
+       viewport, showing a grey body background at the viewport bottom). */
+    html { overflow-x: hidden; }
     body {
       font-family: var(--font-body);
       background: var(--adm-page-bg);
@@ -61,7 +66,6 @@
       min-height: 100vh;
       font-size: 15px;
       line-height: 1.5;
-      overflow-x: hidden;
     }
     a { color: var(--arka-accent-text); text-decoration: none; }
     a:hover { text-decoration: underline; }
