@@ -2897,14 +2897,20 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        * without surfacing stale shifts from earlier sessions.
        */
       var PERSONA_CELEB_WINDOW_DAYS = 7;
+      // Activities logged before this timestamp are treated as already seen.
+      // Set to the deployment date so pre-existing logs don't trigger celebration cards.
+      var CELEBRATION_CUTOVER_MS = 1782000000000; // 2026-06-21 00:00:00 UTC
+      var _celebrationData_        = null; // { badgeIds, levelName, activityIds } — set at render, read by dismiss/share
+      var _pendingPersonaActIds_   = null; // [activityIDs] — set when persona card renders, consumed on dismiss
 
       /**
        * Renders the celebration card into #meCelebrationCard if the current
-       * member has a pending celebration payload in MemberDB Col N.
+       * member has any unseen ARKA_ACTTYP_BADGEAWARD or ARKA_ACTTYP_MEMBERLEVELUP
+       * entries in globalActivityLogDB after CELEBRATION_CUTOVER_MS.
        *
-       * Called by applyWave3() — badge metadata (badgesMap) must be ready before
-       * this runs so badge names and images can be resolved. The raw celebration
-       * payload arrives in Wave 1 via member.celebration; Wave 3 makes it renderable.
+       * Called by applyWave3() — badge metadata (badgesMap) and globalActivityLogDB
+       * (Wave 2) must both be populated before this runs so badge names, images, and
+       * ActivityLog entries can be resolved.
        *
        * Visual identity: when the payload includes a level-up, the card adopts that
        * tier's palette (ring / band / text) from getTierStyle(); otherwise it falls
@@ -2918,16 +2924,72 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         var container = document.getElementById('meCelebrationCard');
         if (!container) return;
 
-        var member = membersMap.get(currentUser);
-        if (!member || !member.celebration) { container.style.display = 'none'; return; }
+        // ── Scan ActivityLog for unseen BADGEAWARD entries ────────────────────────
+        var unseenBadgeActs = globalActivityLogDB.filter(function(a) {
+          if (a.activityTypeID   !== 'ARKA_ACTTYP_BADGEAWARD') return false;
+          if (a.activityMemberID !== currentUser)               return false;
+          var d = parseGoogleDate(a.activityDate);
+          if (!d || isNaN(d.getTime()) || d.getTime() < CELEBRATION_CUTOVER_MS) return false;
+          return (a.activityDesc || '').indexOf('| SeenByMember') === -1;
+        });
 
-        var celebration   = member.celebration;
-        var awardedBadgeIds = Array.isArray(celebration.badges) ? celebration.badges : [];
-        var newLevelName    = (typeof celebration.newLevel === 'string') ? celebration.newLevel.trim() : '';
-        var hasBadges       = awardedBadgeIds.length > 0;
-        var hasLevelUp      = newLevelName !== '';
+        // ── Scan ActivityLog for unseen MEMBERLEVELUP entries ─────────────────────
+        var unseenLevelActs = globalActivityLogDB.filter(function(a) {
+          if (a.activityTypeID   !== 'ARKA_ACTTYP_MEMBERLEVELUP') return false;
+          if (a.activityMemberID !== currentUser)                  return false;
+          var d = parseGoogleDate(a.activityDate);
+          if (!d || isNaN(d.getTime()) || d.getTime() < CELEBRATION_CUTOVER_MS) return false;
+          return (a.activityDesc || '').indexOf('| SeenByMember') === -1;
+        });
 
-        if (!hasBadges && !hasLevelUp) { container.style.display = 'none'; return; }
+        if (unseenBadgeActs.length === 0 && unseenLevelActs.length === 0) {
+          container.style.display = 'none';
+          _celebrationData_ = null;
+          return;
+        }
+
+        // ── Resolve badge IDs from award IDs ──────────────────────────────────────
+        var awardedBadgeIds = [];
+        unseenBadgeActs.forEach(function(a) {
+          var awardId = (a.activityDesc || '').split('|')[0].trim();
+          var awardRecord = globalBadgeAwardsDB.find(function(aw) {
+            return aw.awardId === awardId && aw.status === 'Active';
+          });
+          if (awardRecord && awardRecord.badgeId && awardedBadgeIds.indexOf(awardRecord.badgeId) === -1) {
+            awardedBadgeIds.push(awardRecord.badgeId);
+          }
+        });
+
+        // ── Pick highest unseen level ──────────────────────────────────────────────
+        var newLevelName = '';
+        if (unseenLevelActs.length > 0) {
+          var TIER_PRIORITY = ['oracle','virtuoso','maven','luminary','sage','scribe','bibliophile','scholar','bookworm'];
+          var candidateLevels = unseenLevelActs.map(function(a) {
+            var parts = (a.activityDesc || '').split('|');
+            return parts.length >= 2 ? parts[1].replace('New Level:', '').trim() : '';
+          }).filter(Boolean);
+          var bestRank = Infinity;
+          candidateLevels.forEach(function(lvl) {
+            var lower = lvl.toLowerCase();
+            var rank = TIER_PRIORITY.length; // Page Turner default
+            for (var i = 0; i < TIER_PRIORITY.length; i++) {
+              if (lower.startsWith(TIER_PRIORITY[i])) { rank = i; break; }
+            }
+            if (rank < bestRank) { bestRank = rank; newLevelName = lvl; }
+          });
+          if (!newLevelName && candidateLevels.length > 0) newLevelName = candidateLevels[0];
+        }
+
+        var hasBadges  = awardedBadgeIds.length > 0;
+        var hasLevelUp = newLevelName !== '';
+
+        // Snapshot for dismiss and share
+        _celebrationData_ = {
+          badgeIds   : awardedBadgeIds,
+          levelName  : newLevelName,
+          activityIds: unseenBadgeActs.map(function(a) { return a.activityID; })
+                         .concat(unseenLevelActs.map(function(a) { return a.activityID; }))
+        };
 
         // ── Resolve the tier-aware palette ────────────────────────────────────────
         // Level-up dictates the colour identity; badge-only celebrations use brand.
@@ -3033,19 +3095,30 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
 
       /**
-       * Dismisses the celebration card and silently clears Col N on the server.
-       * Clears member.celebration in memory so a tab-switch does not re-render it.
-       * The server write is idempotent — a double-tap is safe.
+       * Dismisses the celebration card and silently marks all shown activities as
+       * seen in the ActivityLog. Updates globalActivityLogDB in memory so a tab-switch
+       * within the same session does not re-render the card.
        */
       function dismissCelebrationCard_() {
         var container = document.getElementById('meCelebrationCard');
         if (container) { container.style.display = 'none'; container.innerHTML = ''; }
 
-        var member = globalMembersDB.find(function(m) { return m.id === currentUser; });
-        if (member) member.celebration = null;
+        if (!_celebrationData_) return;
+        var idsToMark = _celebrationData_.activityIds.slice();
+        _celebrationData_ = null;
 
-        // Fire-and-forget — failure means the card reappears next login, which is acceptable
-        google.script.run.clearMemberCelebration();
+        // Update in-memory so same-session re-renders suppress the card without a round-trip.
+        idsToMark.forEach(function(actId) {
+          var actLog = globalActivityLogDB.find(function(a) { return a.activityID === actId; });
+          if (actLog && (actLog.activityDesc || '').indexOf('| SeenByMember') === -1) {
+            actLog.activityDesc = (actLog.activityDesc || '') + ' | SeenByMember';
+          }
+        });
+
+        // Fire-and-forget — failure means the card reappears next login (acceptable).
+        idsToMark.forEach(function(actId) {
+          google.script.run.markActivitySeen(actId);
+        });
       }
 
       /**
@@ -3072,15 +3145,13 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        * @param {HTMLElement|null} btn - The Share button element (for disable-during-capture).
        */
       function shareCelebration_(btn) {
-        var member = globalMembersDB.find(function(m) { return m.id === currentUser; });
-        if (!member || !member.celebration) { dismissCelebrationCard_(); return; }
+        if (!_celebrationData_) { dismissCelebrationCard_(); return; }
 
         // Show progress toast immediately — badge fetch + html2canvas can take several seconds.
         showProgressToast({ title: 'Preparing your share card\u2026', sub: 'Fetching badge images' });
 
-        var celebration = member.celebration;
-        var badgeIds    = Array.isArray(celebration.badges) ? celebration.badges : [];
-        var newLevel    = (typeof celebration.newLevel === 'string') ? celebration.newLevel.trim() : '';
+        var badgeIds = _celebrationData_.badgeIds;
+        var newLevel = _celebrationData_.levelName;
 
         // Compose the WhatsApp caption (same copy as the text-only share).
         var lines = ['\uD83D\uDCDA *Arka Readers Club*'];
@@ -3161,28 +3232,25 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // Badge/level celebration takes priority — never overwrite a visible card.
         if (container.style.display === 'block') return;
 
-        // ── Detect recent persona shifts ──────────────────────────────────────────
-        var cutoffMs     = Date.now() - (PERSONA_CELEB_WINDOW_DAYS * 24 * 60 * 60 * 1000);
-        var recentShifts = globalActivityLogDB.filter(function(a) {
+        // ── Detect unseen persona shifts (after cutover) ──────────
+        var windowMs     = Date.now() - (PERSONA_CELEB_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+        var cutoffMs     = Math.max(windowMs, CELEBRATION_CUTOVER_MS);
+        var unseenShifts = globalActivityLogDB.filter(function(a) {
           if (a.activityTypeID   !== 'ARKA_ACTTYP_PERSONAUPDATE') return false;
           if (a.activityMemberID !== currentUser)                  return false;
           var d = parseGoogleDate(a.activityDate);
-          return d && !isNaN(d.getTime()) && d.getTime() >= cutoffMs;
+          if (!d || isNaN(d.getTime()) || d.getTime() < cutoffMs) return false;
+          return (a.activityDesc || '').indexOf('| SeenByMember') === -1;
         });
-        if (recentShifts.length === 0) return;
+        if (unseenShifts.length === 0) return;
 
-        // Sort descending so index 0 is always the most recent shift.
-        recentShifts.sort(function(a, b) {
+        // Sort descending so index 0 is the most recent unseen shift.
+        unseenShifts.sort(function(a, b) {
           return parseGoogleDate(b.activityDate) - parseGoogleDate(a.activityDate);
         });
-        var mostRecentShiftId = recentShifts[0].activityID;
 
-        // Suppress if the member has already dismissed this exact shift.
-        // personaShiftSeen is written to MemberDB Col N by setPersonaCelebrationSeen()
-        // on dismiss and loaded into member.celebration by buildMembersList_() at Wave 1.
-        var memberRec  = globalMembersDB.find(function(m) { return m.id === currentUser; });
-        var seenId     = memberRec && memberRec.celebration ? memberRec.celebration.personaShiftSeen : null;
-        if (seenId && seenId === mostRecentShiftId) return;
+        // Store all unseen IDs so dismiss can mark every one of them.
+        _pendingPersonaActIds_ = unseenShifts.map(function(a) { return a.activityID; });
 
         // ── Require a resolved archetype ──────────────────────────────────────────
         // "Forming" profiles have no archetypeName — nothing meaningful to celebrate.
@@ -3200,7 +3268,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // Parse activityDesc format: "Axis: <name> | <oldSide> → <newSide> | Archetype: …"
         // Reuses the same regex pattern as the evolution timeline in renderPersonaStrip().
         var shiftRowsHtml = '';
-        recentShifts.forEach(function(shift) {
+        unseenShifts.forEach(function(shift) {
           var desc   = shift.activityDesc || '';
           var axisM  = desc.match(/Axis:\s*([^|]+)\|/);
           var shiftM = desc.match(/\|\s*([^|→]+)\s*→\s*([^|]+)\|/);
@@ -3262,7 +3330,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // the card is gone when the member returns to the Me tab.
         html += '<div style="display:flex;gap:9px;margin-top:14px;">';
         html +=   '<button class="celebration-action-btn celebration-close-btn"'
-                +   ' onclick="dismissPersonaCelebrationCard_(\'' + mostRecentShiftId + '\')">Dismiss</button>';
+                +   ' onclick="dismissPersonaCelebrationCard_()">Dismiss</button>';
         html +=   '<button class="celebration-action-btn celebration-share-btn"'
                 +   ' onclick="openPersonalityView(\'' + currentUser + '\', \'mePersonaContainer\');">'
                 +   '<i class="fa-solid fa-wand-magic-sparkles" style="margin-right:5px;"></i>'
@@ -3278,32 +3346,26 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       }
 
 
-      /**
-       * dismissPersonaCelebrationCard_()
-       *
-       * Hides the persona-shift celebration card, updates member.celebration in
-       * memory so re-renders within this session don't flash the card back, and
-       * fires a server write to MemberDB Col N so the card stays dismissed across
-       * sessions until the PersonaPass logs a newer PERSONAUPDATE activity.
-       *
-       * @param {string} seenActivityId - activityID of the most recent PERSONAUPDATE
-       *                                  shown on the card (stamped at render time).
-       */
-      function dismissPersonaCelebrationCard_(seenActivityId) {
+      function dismissPersonaCelebrationCard_() {
         var container = document.getElementById('meCelebrationCard');
         if (container) { container.style.display = 'none'; container.innerHTML = ''; }
 
-        // Update in-memory so any same-session re-render of the Me tab suppresses
-        // the card immediately without waiting for the server round-trip.
-        var memberRec = globalMembersDB.find(function(m) { return m.id === currentUser; });
-        if (memberRec) {
-          if (!memberRec.celebration) memberRec.celebration = {};
-          memberRec.celebration.personaShiftSeen = seenActivityId;
-        }
+        if (!_pendingPersonaActIds_ || _pendingPersonaActIds_.length === 0) return;
+        var idsToMark = _pendingPersonaActIds_.slice();
+        _pendingPersonaActIds_ = null;
 
-        // Fire-and-forget — failure means the card may reappear on next session,
-        // which is acceptable (same tolerance as dismissCelebrationCard_).
-        google.script.run.setPersonaCelebrationSeen(seenActivityId);
+        // Update in-memory so same-session re-renders suppress the card without a round-trip.
+        idsToMark.forEach(function(actId) {
+          var actLog = globalActivityLogDB.find(function(a) { return a.activityID === actId; });
+          if (actLog && (actLog.activityDesc || '').indexOf('| SeenByMember') === -1) {
+            actLog.activityDesc = (actLog.activityDesc || '') + ' | SeenByMember';
+          }
+        });
+
+        // Fire-and-forget — failure means the card may reappear next session (acceptable).
+        idsToMark.forEach(function(actId) {
+          google.script.run.markActivitySeen(actId);
+        });
       }
 
 
