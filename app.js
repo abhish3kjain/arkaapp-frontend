@@ -24402,30 +24402,22 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           const moodMult       = _rseData_.moodMultiplier;
 
           if (genreEntry && genreEntry.pace > 0 && paceOnThisBook >= genreEntry.pace * 0.7) {
-            // Pace is slow vs overall avg, but consistent with this genre — reassure not warn.
-            return {
-              theme : 'blue',
-              icon  : '📚',
-              label : `${primaryGenre} reads slower for you — that's normal`,
-              sub   : `Your ${primaryGenre} pace is ~${Math.round(genreEntry.pace)} pages/day. You're on track.${finishSuffix}`
-            };
-          }
-          if (moodMult !== null && moodMult !== undefined && moodMult < 0.7) {
-            // Global reading slump — overall pace has dropped, not book-specific.
+            // Pace matches genre norm — not a warning. Fall through to next priority silently.
+          } else if (moodMult !== null && moodMult !== undefined && moodMult < 0.7) {
             return {
               theme : 'amber',
               icon  : '🐢',
               label : 'Your reading pace has been lower lately',
               sub   : `${paceOnThisBook} pages/day here vs your usual ${overallAvgPacePerDay}. Pace dips happen.${finishSuffix}`
             };
+          } else {
+            return {
+              theme : 'amber',
+              icon  : '🐢',
+              label : 'Going slower than your usual pace',
+              sub   : `${paceOnThisBook} pages/day here vs your avg ${overallAvgPacePerDay}.${finishSuffix}`
+            };
           }
-          // Default: book is slower than both genre and overall avg.
-          return {
-            theme : 'amber',
-            icon  : '🐢',
-            label : 'Going slower than your usual pace',
-            sub   : `${paceOnThisBook} pages/day here vs your avg ${overallAvgPacePerDay}.${finishSuffix}`
-          };
         }
 
         // ── PRIORITY 4: Stuck flag ────────────────────────────────────────────────
@@ -24486,8 +24478,23 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         }
 
         // ── PRIORITY 6: Finish estimate ───────────────────────────────────────────
+        // Pace used follows the RSE fallback chain:
+        //   1. genre pace × moodMultiplier   2. genre pace
+        //   3. overall avg × moodMultiplier  4. overall avg   5. book-specific pace
         if (pagesLeft !== null && pagesLeft > 0 && overallAvgPacePerDay >= 5) {
-          const estimatePace    = paceOnThisBook > 0 ? paceOnThisBook : overallAvgPacePerDay;
+          const _p6Genre_  = book.genre ? book.genre.split(',')[0].trim() : '';
+          const _p6Gentry_ = _p6Genre_ && (_rseData_.genrePace || {})[_p6Genre_];
+          const _p6Gp_     = _p6Gentry_ && _p6Gentry_.pace > 0 ? _p6Gentry_.pace : 0;
+          const _p6Mood_   = _rseData_.moodMultiplier || null;
+          const _p6Ovr_    = overallAvgPacePerDay;
+
+          let estimatePace;
+          if (_p6Gp_ && _p6Mood_)      estimatePace = Math.round(_p6Gp_ * _p6Mood_);
+          else if (_p6Gp_)             estimatePace = Math.round(_p6Gp_);
+          else if (_p6Ovr_ && _p6Mood_) estimatePace = Math.round(_p6Ovr_ * _p6Mood_);
+          else if (_p6Ovr_)            estimatePace = _p6Ovr_;
+          else                         estimatePace = paceOnThisBook || 1;
+
           const daysToFinish    = Math.ceil(pagesLeft / estimatePace);
           const finishDate      = new Date(NOW_MS + daysToFinish * MS_PER_DAY);
           const finishDateLabel = finishDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
