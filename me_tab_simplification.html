@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Me Tab Simplification — Options</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --purple: #6c47b8;
+    --accent: #A984BA;
+    --text-strong: #2c3e50;
+    --text-muted: #5b6b6e;
+    --text-faint: #6a7878;
+    --border-soft: #ecf0f1;
+    --surface-alt: #f8f9fa;
+    --warning: #e67e22;
+    --success: #1D9E75;
+    --gamification: #EF9F27;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #e8e4f0;
+    padding: 20px 12px 40px;
+    color: var(--text-strong);
+  }
+
+  h1 { font-size: 1rem; color: #444; text-align: center; font-weight: 600; margin-bottom: 4px; }
+  .page-sub { text-align: center; font-size: 0.72rem; color: #888; margin-bottom: 28px; line-height: 1.5; }
+
+  /* ── Layout ──────────────────────────────────────────── */
+  .row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+  .phone {
+    flex: 1; min-width: 240px; max-width: 260px;
+    display: flex; flex-direction: column;
+  }
+
+  .phone-label {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 7px 12px;
+    border-radius: 8px 8px 0 0; text-align: center;
+  }
+  .label-before  { background: #d8d4e0; color: #666; }
+  .label-opt-a   { background: #2c3e50; color: #fff; }
+  .label-opt-b   { background: var(--purple); color: #fff; }
+  .label-opt-c   { background: var(--success); color: #fff; }
+
+  .phone-shell {
+    background: #f7f5fb;
+    border-radius: 0 0 14px 14px;
+    overflow-y: auto;
+    max-height: 580px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  }
+
+  /* ── Nav bar ─────────────────────────────────────────── */
+  .nav { background:#fff; border-bottom:1px solid var(--border-soft); padding:10px 12px; display:flex; align-items:center; justify-content:space-between; }
+  .nav-title { font-size:0.85rem; font-weight:700; color:var(--text-strong); }
+  .nav-icon { font-size:0.9rem; color:var(--accent); }
+
+  /* ── Shared content atoms ────────────────────────────── */
+  .content { padding: 10px 10px 16px; display:flex; flex-direction:column; gap:8px; }
+
+  /* Identity card */
+  .id-card {
+    background:#fff; border:0.5px solid var(--border-soft);
+    border-radius:10px; padding:12px;
+  }
+  .id-row { display:flex; align-items:center; justify-content:space-between; }
+  .id-name { font-size:1rem; font-weight:700; color:var(--text-strong); font-style:italic; }
+  .id-level { font-size:0.65rem; color:var(--text-muted); margin-top:2px; }
+  .avatar {
+    width:38px; height:38px; border-radius:50%; background:var(--border-soft);
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:700; color:var(--text-muted); position:relative; flex-shrink:0;
+  }
+  .avatar-dot {
+    position:absolute; bottom:0; right:0; width:13px; height:13px;
+    border-radius:50%; background:var(--warning); border:2px solid #fff;
+    display:flex; align-items:center; justify-content:center; font-size:6px; color:#fff;
+  }
+
+  /* Persona inset */
+  .persona-inset {
+    background:#EEEDFE; border-radius:8px; padding:8px 10px; margin-top:8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .persona-emoji { font-size:1.1rem; }
+  .persona-name { font-size:0.72rem; font-weight:700; color:var(--purple); }
+  .persona-sub  { font-size:0.6rem;  color:var(--accent); margin-top:1px; }
+
+  /* Chips row */
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .chip {
+    display:inline-flex; align-items:center; gap:4px;
+    border-radius:99px; padding:3px 9px; font-size:0.65rem; font-weight:600; cursor:pointer;
+  }
+  .chip-story   { background:#fff8f0; border:0.5px solid var(--warning); color:#b8640a; }
+  .chip-persona { background:#EEEDFE; border:0.5px solid var(--accent); color:var(--purple); }
+
+  /* Action band */
+  .action-band { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  .ab-tile {
+    border-radius:10px; padding:10px 8px; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer; border:0.5px solid transparent;
+  }
+  .ab-tile-primary   { background:var(--purple); color:#fff; }
+  .ab-tile-secondary { background:#fff; border-color:var(--border-soft); color:var(--text-strong); }
+  .ab-icon { font-size:1.1rem; }
+  .ab-label { font-size:0.58rem; font-weight:600; line-height:1.2; }
+  .ab-sub   { font-size:0.52rem; opacity:0.75; line-height:1.2; }
+
+  /* Section divider */
+  .divider {
+    display:flex; align-items:center; gap:6px; margin:4px 0 2px;
+  }
+  .div-line { flex:1; height:1.5px; }
+  .div-line-l { background:linear-gradient(to right, var(--text-strong), transparent); }
+  .div-line-r { background:linear-gradient(to left,  var(--text-strong), transparent); }
+  .div-label { font-size:0.6rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap; }
+
+  /* Stat pills */
+  .stat-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  .stat-pill {
+    background:#fff; border:0.5px solid var(--border-soft);
+    border-radius:8px; padding:8px 4px; text-align:center;
+  }
+  .stat-top   { font-size:1rem; font-weight:700; color:var(--text-strong); line-height:1; }
+  .stat-tl    { font-size:0.5rem; color:var(--text-muted); text-transform:uppercase; margin-top:2px; }
+  .stat-hr    { height:0.5px; background:var(--border-soft); margin:4px 3px; }
+  .stat-bot   { font-size:0.65rem; font-weight:600; color:var(--text-faint); }
+  .stat-bl    { font-size:0.5rem; color:var(--text-faint); margin-top:1px; }
+
+  /* Heatmap */
+  .heatmap-card {
+    background:#fff; border:0.5px solid var(--border-soft);
+    border-radius:10px; padding:10px;
+  }
+  .heatmap-title { font-size:0.65rem; font-weight:600; color:var(--text-muted); margin-bottom:6px; display:flex; align-items:center; gap:5px; }
+  .heatmap-grid { display:flex; gap:2px; flex-wrap:wrap; }
+  .hm-cell { width:8px; height:8px; border-radius:1.5px; background:#ede9f5; }
+  .hm-cell.lo { background:#c4b0e8; }
+  .hm-cell.md { background:#9070c8; }
+  .hm-cell.hi { background:var(--purple); }
+
+  /* Level bar */
+  .level-card {
+    background:#fff; border:0.5px solid var(--border-soft);
+    border-radius:10px; padding:10px 12px;
+  }
+  .level-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .level-name { font-size:0.72rem; font-weight:600; color:var(--text-strong); }
+  .level-pts  { font-size:0.72rem; font-weight:600; color:var(--gamification); }
+  .level-bar  { height:6px; background:#f1efe8; border-radius:3px; overflow:hidden; }
+  .level-fill { height:100%; border-radius:3px; background:var(--gamification); }
+
+  /* My reading story row */
+  .story-row {
+    background:#fff; border:0.5px solid var(--border-soft);
+    border-radius:10px; padding:11px 12px;
+    display:flex; align-items:center; gap:10px; cursor:pointer;
+  }
+  .story-icon {
+    width:32px; height:32px; border-radius:8px; background:#f5f0ff;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .story-title { font-size:0.78rem; font-weight:700; color:var(--text-strong); }
+  .story-sub   { font-size:0.6rem; color:var(--text-muted); margin-top:1px; }
+
+  /* Coach */
+  .coach-chip {
+    background:#fff; border:0.5px solid var(--border-soft);
+    border-radius:10px; padding:9px 11px;
+    display:flex; align-items:flex-start; gap:8px;
+  }
+  .coach-chip-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-top:3px; }
+  .coach-chip-text { font-size:0.65rem; color:var(--text-strong); line-height:1.45; }
+
+  /* Shelves */
+  .shelf-tiles { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  .shelf-tile {
+    background:#fff; border:0.5px solid var(--border-soft);
+    border-radius:8px; padding:8px 4px; text-align:center;
+  }
+  .shelf-val { font-size:0.95rem; font-weight:700; color:var(--purple); }
+  .shelf-lbl { font-size:0.5rem; color:var(--text-muted); margin-top:2px; }
+
+  .expand-toggle {
+    display:flex; align-items:center; justify-content:center; gap:5px;
+    padding:7px 0; border-top:0.5px solid var(--border-soft);
+    font-size:0.62rem; font-weight:600; color:var(--accent); cursor:pointer;
+  }
+
+  /* ── Option-specific atoms ───────────────────────────── */
+
+  /* Option A: merged identity+action header */
+  .header-band {
+    background: linear-gradient(135deg, #2c2050 0%, #4a2d8a 100%);
+    padding: 14px 12px 12px;
+    border-radius: 0 0 0 0;
+  }
+  .header-name { font-size:1.1rem; font-weight:700; color:#fff; font-style:italic; }
+  .header-sub  { font-size:0.62rem; color:rgba(255,255,255,0.65); margin-top:2px; margin-bottom:10px; }
+  .header-persona {
+    background:rgba(255,255,255,0.12); border-radius:8px;
+    padding:6px 8px; margin-bottom:10px;
+    display:flex; align-items:center; gap:7px;
+  }
+  .header-persona-name { font-size:0.7rem; font-weight:700; color:#fff; }
+  .header-persona-sub  { font-size:0.58rem; color:rgba(255,255,255,0.65); }
+  .header-actions { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  .ha-tile {
+    background:rgba(255,255,255,0.15); border-radius:8px;
+    padding:8px 4px; text-align:center; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+  }
+  .ha-tile-primary { background:#fff; }
+  .ha-tile-icon  { font-size:1rem; }
+  .ha-tile-label { font-size:0.55rem; font-weight:600; color:#fff; line-height:1.2; }
+  .ha-tile-primary .ha-tile-label { color:var(--purple); }
+
+  /* Option A: single momentum card */
+  .momentum-card {
+    background:#fff; border:0.5px solid var(--border-soft);
+    border-radius:10px; padding:12px;
+  }
+  .momentum-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
+  .momentum-stat { text-align:center; }
+  .momentum-val  { font-size:1.4rem; font-weight:700; color:var(--text-strong); line-height:1; }
+  .momentum-lbl  { font-size:0.58rem; color:var(--text-muted); margin-top:3px; }
+  .momentum-sub  { font-size:0.6rem; color:var(--text-faint); margin-top:2px; }
+  .momentum-header { font-size:0.7rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; display:flex; align-items:center; gap:6px; }
+
+  /* Option B: weekly card */
+  .week-card {
+    background: linear-gradient(135deg,#f5f0ff,#fff);
+    border:1px solid #d9d0ee;
+    border-radius:12px; padding:12px;
+  }
+  .week-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .week-title  { font-size:0.72rem; font-weight:700; color:var(--purple); }
+  .week-tag    { font-size:0.6rem; background:var(--purple); color:#fff; border-radius:99px; padding:2px 7px; }
+  .week-stats  { display:flex; gap:0; }
+  .week-stat   { flex:1; text-align:center; }
+  .week-val    { font-size:1.2rem; font-weight:700; color:var(--text-strong); }
+  .week-lbl    { font-size:0.55rem; color:var(--text-muted); margin-top:1px; }
+  .week-divider{ width:0.5px; background:var(--border-soft); margin:4px 0; }
+  .week-bar-wrap { margin-top:10px; }
+  .week-bar-label { font-size:0.55rem; color:var(--text-faint); margin-bottom:3px; }
+  .week-bar { height:4px; background:#ede9f5; border-radius:2px; }
+  .week-bar-fill { height:100%; border-radius:2px; background:var(--purple); }
+
+  /* Option C: progressive cards */
+  .next-card {
+    background:#fff; border:0.5px solid var(--border-soft);
+    border-radius:10px; overflow:hidden;
+  }
+  .next-header {
+    background:var(--purple); padding:8px 12px;
+    display:flex; align-items:center; gap:7px;
+  }
+  .next-header-label { font-size:0.68rem; font-weight:700; color:#fff; }
+  .next-body { padding:10px 12px; }
+  .next-book-row { display:flex; align-items:center; gap:10px; }
+  .next-cover {
+    width:36px; height:54px; border-radius:3px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.5rem; color:#fff; font-weight:700; text-align:center; padding:2px;
+    box-shadow:2px 2px 5px rgba(0,0,0,0.2);
+  }
+  .next-title { font-size:0.72rem; font-weight:700; color:var(--text-strong); line-height:1.2; }
+  .next-sub   { font-size:0.6rem; color:var(--text-muted); margin-top:2px; }
+  .next-progress { margin-top:6px; }
+  .next-prog-bar { height:3px; background:#ede9f5; border-radius:2px; margin-top:3px; }
+  .next-prog-fill{ height:100%; border-radius:2px; background:var(--success); }
+  .next-cta {
+    margin-top:8px; background:var(--purple); color:#fff;
+    border:none; border-radius:7px; padding:7px 0; width:100%;
+    font-size:0.65rem; font-weight:700; cursor:pointer; text-align:center;
+  }
+
+  /* Caption boxes */
+  .caption {
+    background:#fff; border-radius:8px; padding:10px 11px;
+    margin-top:8px; font-size:0.67rem; color:#555; line-height:1.5;
+    box-shadow:0 1px 4px rgba(0,0,0,0.07);
+  }
+  .caption strong { color:var(--text-strong); }
+  .caption ul { padding-left:14px; margin-top:3px; }
+  .caption li { margin-bottom:2px; }
+
+  /* Section title */
+  .section-title {
+    font-size:0.72rem; font-weight:700; color:var(--text-strong);
+    text-align:center; margin:24px 0 12px; text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .section-desc {
+    text-align:center; font-size:0.68rem; color:#888;
+    margin-bottom:16px; line-height:1.5; max-width:700px; margin-left:auto; margin-right:auto;
+  }
+
+  .badge-new { display:inline-block; background:var(--success); color:#fff; font-size:0.5rem; font-weight:700; border-radius:99px; padding:1px 5px; vertical-align:middle; margin-left:3px; }
+
+  .tag { display:inline-block; font-size:0.58rem; border-radius:99px; padding:2px 7px; font-weight:600; }
+  .tag-removed { background:#fde8e8; color:#c0392b; }
+  .tag-moved   { background:#fef3e0; color:#b8640a; }
+  .tag-kept    { background:#e8f5e9; color:#1a7a40; }
+</style>
+</head>
+<body>
+
+<h1>Me Tab — Simplification Options</h1>
+<p class="page-sub">
+  Root problem: Me tab has two jobs fighting — <strong>action center</strong> (action band) vs <strong>dashboard</strong> (stats + coach + shelves)<br>
+  Fix: pick one job per surface. Me tab = action + identity. Reading Story = data.
+</p>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- BEFORE -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="section-title">BEFORE — Current</div>
+<div class="section-desc">16 distinct visual elements. 4 section dividers. 3 competing action surfaces. A stat wall of 6 numbers + heatmap + level bar before reaching shelves.</div>
+
+<div class="row">
+  <div class="phone">
+    <div class="phone-label label-before">Before (scroll ↓)</div>
+    <div class="phone-shell">
+      <div class="nav"><span class="nav-title">Me</span><span class="nav-icon"><i class="fa-solid fa-bars"></i></span></div>
+      <div class="content">
+
+        <!-- Identity card -->
+        <div class="id-card">
+          <div class="id-row">
+            <div>
+              <div class="id-name">Priya</div>
+              <div class="id-level">Avid Reader · Level 12</div>
+            </div>
+            <div class="avatar">P<div class="avatar-dot">✏️</div></div>
+          </div>
+          <div class="persona-inset">
+            <div class="persona-emoji">🌙</div>
+            <div><div class="persona-name">The Midnight Scholar</div><div class="persona-sub">Only 3 members share this type</div></div>
+          </div>
+          <div class="chips">
+            <div class="chip chip-story"><i class="fa-solid fa-mountain-sun"></i> Our story</div>
+            <div class="chip chip-persona">My personality ›</div>
+          </div>
+        </div>
+
+        <!-- Action band -->
+        <div class="action-band">
+          <div class="ab-tile ab-tile-primary"><div class="ab-icon">📖</div><div class="ab-label">Log reading</div></div>
+          <div class="ab-tile ab-tile-secondary"><div class="ab-icon">▶️</div><div class="ab-label">Continue</div><div class="ab-sub">Atomic Habits</div></div>
+          <div class="ab-tile ab-tile-secondary"><div class="ab-icon">🎯</div><div class="ab-label">Next task</div><div class="ab-sub">Add a book</div></div>
+        </div>
+
+        <!-- Divider 1 -->
+        <div class="divider"><div class="div-line div-line-l"></div><div class="div-label">My 2026 Reading Journey ↗</div><div class="div-line div-line-r"></div></div>
+
+        <!-- 3 stat pills -->
+        <div class="stat-grid">
+          <div class="stat-pill"><div class="stat-top">2,140</div><div class="stat-tl">pages</div><div class="stat-hr"></div><div class="stat-bot">18,420</div><div class="stat-bl">total</div></div>
+          <div class="stat-pill"><div class="stat-top">7</div><div class="stat-tl">books</div><div class="stat-hr"></div><div class="stat-bot">54</div><div class="stat-bl">total</div></div>
+          <div class="stat-pill"><div class="stat-top">🔥4</div><div class="stat-tl">streak</div><div class="stat-hr"></div><div class="stat-bot">22</div><div class="stat-bl">wks</div></div>
+        </div>
+
+        <!-- Heatmap -->
+        <div class="heatmap-card">
+          <div class="heatmap-title"><i class="fa-regular fa-calendar-check"></i> Weekly Page Logs</div>
+          <div class="heatmap-grid">
+            <div class="hm-cell"></div><div class="hm-cell lo"></div><div class="hm-cell md"></div><div class="hm-cell hi"></div><div class="hm-cell"></div><div class="hm-cell lo"></div><div class="hm-cell md"></div><div class="hm-cell"></div><div class="hm-cell hi"></div><div class="hm-cell md"></div><div class="hm-cell lo"></div><div class="hm-cell"></div><div class="hm-cell md"></div><div class="hm-cell hi"></div><div class="hm-cell md"></div><div class="hm-cell lo"></div><div class="hm-cell"></div><div class="hm-cell md"></div><div class="hm-cell hi"></div><div class="hm-cell md"></div><div class="hm-cell hi"></div><div class="hm-cell md"></div><div class="hm-cell lo"></div><div class="hm-cell"></div>
+          </div>
+        </div>
+
+        <!-- Level bar -->
+        <div class="level-card">
+          <div class="level-row"><div class="level-name">Avid Reader · L12</div><div class="level-pts">3,840 ☀️</div></div>
+          <div class="level-bar"><div class="level-fill" style="width:62%;"></div></div>
+        </div>
+
+        <!-- Reading story row -->
+        <div class="story-row">
+          <div class="story-icon"><i class="fa-solid fa-chart-line" style="font-size:14px;color:var(--accent);"></i></div>
+          <div><div class="story-title">My reading story</div><div class="story-sub">Pace, rhythm, genres &amp; history</div></div>
+          <i class="fa-solid fa-chevron-right" style="font-size:11px;color:var(--border-soft);margin-left:auto;"></i>
+        </div>
+
+        <!-- Divider 2: Coach -->
+        <div class="divider"><div class="div-line div-line-l"></div><div class="div-label">Arka Coach</div><div class="div-line div-line-r"></div></div>
+        <div class="coach-chip"><div class="coach-chip-dot" style="background:var(--success);"></div><div class="coach-chip-text">You're 340 pages ahead of your 2025 pace — keep it up!</div></div>
+        <div class="coach-chip"><div class="coach-chip-dot" style="background:var(--warning);"></div><div class="coach-chip-text">Summer Reading Challenge ends in 8 days — 1 book to go</div></div>
+        <div class="coach-chip"><div class="coach-chip-dot" style="background:var(--purple);"></div><div class="coach-chip-text">Streak at risk — log some pages today to keep your 4-week run</div></div>
+
+        <!-- Divider 3: Shelves -->
+        <div class="divider"><div class="div-line div-line-l"></div><div class="div-label">My Shelves</div><div class="div-line div-line-r"></div></div>
+        <div class="shelf-tiles">
+          <div class="shelf-tile"><div class="shelf-val">7</div><div class="shelf-lbl">Finished</div></div>
+          <div class="shelf-tile"><div class="shelf-val">2</div><div class="shelf-lbl">Reading</div></div>
+          <div class="shelf-tile"><div class="shelf-val">14</div><div class="shelf-lbl">To Read</div></div>
+        </div>
+        <div class="expand-toggle">Show my shelf <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i></div>
+
+      </div>
+    </div>
+    <div class="caption">
+      <strong>Problems:</strong>
+      <ul>
+        <li>3 action surfaces (identity chips + action band + coach chips)</li>
+        <li>6 numbers + heatmap + level bar in one block</li>
+        <li>4 section dividers fragment attention equally</li>
+        <li>Scroll to reach shelves after all the data</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- OPTION A -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="section-title" style="color:#2c3e50;">Option A — Merged Header</div>
+<div class="section-desc">
+  Collapse identity card + action band into one dark hero header.<br>
+  Stats reduced to 2 key numbers. Heatmap + level bar → Reading Story only.<br>
+  Coach collapses to one contextual card. One divider instead of four.
+</div>
+<div style="text-align:center;margin-bottom:14px;font-size:0.68rem;color:#888;">
+  <span class="tag tag-removed">removed: heatmap, level bar, 3 dividers, 2 identity chips</span>
+  &nbsp;
+  <span class="tag tag-moved">moved: persona rarity → header · stats → 2 pills</span>
+  &nbsp;
+  <span class="tag tag-kept">kept: action band, Reading Story, Coach, Shelves</span>
+</div>
+
+<div class="row">
+  <div class="phone">
+    <div class="phone-label label-opt-a">Option A</div>
+    <div class="phone-shell">
+      <div class="nav" style="background:#2c2050;border-color:#3d2f70;"><span class="nav-title" style="color:#fff;">Me</span><span class="nav-icon" style="color:rgba(255,255,255,0.5);"><i class="fa-solid fa-bars"></i></span></div>
+
+      <!-- Merged hero header -->
+      <div class="header-band">
+        <div class="id-row" style="margin-bottom:8px;">
+          <div>
+            <div class="header-name">Priya</div>
+            <div class="header-sub">Avid Reader · Level 12 · 3,840 ☀️</div>
+          </div>
+          <div class="avatar" style="background:rgba(255,255,255,0.15);color:#fff;">P</div>
+        </div>
+        <!-- Persona inline in header -->
+        <div class="header-persona">
+          <div style="font-size:1.1rem;">🌙</div>
+          <div><div class="header-persona-name">The Midnight Scholar</div><div class="header-persona-sub">Only 3 members share this type · tap to explore</div></div>
+        </div>
+        <!-- Actions inside header -->
+        <div class="header-actions">
+          <div class="ha-tile ha-tile-primary"><div class="ha-tile-icon">📖</div><div class="ha-tile-label" style="color:var(--purple);">Log reading</div></div>
+          <div class="ha-tile"><div class="ha-tile-icon">▶️</div><div class="ha-tile-label">Continue<br>Atomic Habits</div></div>
+          <div class="ha-tile"><div class="ha-tile-icon">🎯</div><div class="ha-tile-label">Next task<br>Add a book</div></div>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- 2 key stats only -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <div class="stat-pill" style="padding:10px 6px;">
+            <div class="stat-top">7</div><div class="stat-tl">books this year</div>
+            <div class="stat-hr"></div>
+            <div class="stat-bot">54 total</div>
+          </div>
+          <div class="stat-pill" style="padding:10px 6px;">
+            <div class="stat-top">🔥 4</div><div class="stat-tl">week streak</div>
+            <div class="stat-hr"></div>
+            <div class="stat-bot">22 wks active</div>
+          </div>
+        </div>
+
+        <!-- Reading story row (prominent) -->
+        <div class="story-row" style="border-color:#d9d0ee;">
+          <div class="story-icon"><i class="fa-solid fa-chart-line" style="font-size:14px;color:var(--accent);"></i></div>
+          <div><div class="story-title">My reading story</div><div class="story-sub">Pace, rhythm, stats &amp; club comparison</div></div>
+          <i class="fa-solid fa-chevron-right" style="font-size:11px;color:var(--border-soft);margin-left:auto;"></i>
+        </div>
+
+        <!-- ONE coach card — most urgent signal only -->
+        <div class="coach-chip" style="border-color:#d9d0ee;">
+          <div class="coach-chip-dot" style="background:var(--warning);"></div>
+          <div class="coach-chip-text">
+            <strong>Summer Challenge ends in 8 days</strong> — 1 book to go. You're on track!
+          </div>
+        </div>
+
+        <!-- Shelves -->
+        <div class="divider"><div class="div-line div-line-l"></div><div class="div-label">My Shelves</div><div class="div-line div-line-r"></div></div>
+        <div class="shelf-tiles">
+          <div class="shelf-tile"><div class="shelf-val">7</div><div class="shelf-lbl">Finished</div></div>
+          <div class="shelf-tile"><div class="shelf-val">2</div><div class="shelf-lbl">Reading</div></div>
+          <div class="shelf-tile"><div class="shelf-val">14</div><div class="shelf-lbl">To Read</div></div>
+        </div>
+        <div class="expand-toggle">Show my shelf <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i></div>
+      </div>
+    </div>
+    <div class="caption">
+      <strong>Option A changes:</strong>
+      <ul>
+        <li>Identity + actions merged into dark hero header — one visual block</li>
+        <li>Stats: 6 numbers → 2 key stats (books + streak)</li>
+        <li>Heatmap + level bar removed — live in Reading Story</li>
+        <li>Coach: 3 chips → 1 most-urgent signal</li>
+        <li>Dividers: 4 → 1 (just Shelves)</li>
+        <li>Page reads faster; action is immediately clear</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- OPTION B -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="section-title" style="color:var(--purple);">Option B — Momentum Card</div>
+<div class="section-desc">
+  Keep identity card compact (no chips — move to drawer).<br>
+  Replace the stat wall with a single "This week" momentum card.<br>
+  Coach + Reading Story merge into one row.
+</div>
+<div style="text-align:center;margin-bottom:14px;font-size:0.68rem;color:#888;">
+  <span class="tag tag-removed">removed: 2 identity chips, heatmap, level bar, all 4 dividers</span>
+  &nbsp;
+  <span class="tag tag-moved">moved: 6 stats → 1 momentum card · coach chips → 1 card</span>
+  &nbsp;
+  <span class="tag tag-kept">kept: identity, persona, action band, shelves, Reading Story</span>
+</div>
+
+<div class="row">
+  <div class="phone">
+    <div class="phone-label label-opt-b">Option B</div>
+    <div class="phone-shell">
+      <div class="nav"><span class="nav-title">Me</span><span class="nav-icon"><i class="fa-solid fa-bars"></i></span></div>
+      <div class="content">
+
+        <!-- Compact identity — no chips -->
+        <div class="id-card">
+          <div class="id-row">
+            <div>
+              <div class="id-name">Priya</div>
+              <div class="id-level">Avid Reader · Level 12</div>
+            </div>
+            <div class="avatar">P<div class="avatar-dot">✏️</div></div>
+          </div>
+          <div class="persona-inset" style="margin-top:8px;">
+            <div class="persona-emoji">🌙</div>
+            <div><div class="persona-name">The Midnight Scholar</div><div class="persona-sub">Only 3 members share this type</div></div>
+          </div>
+          <!-- No Our Story + personality chips here — in drawer -->
+        </div>
+
+        <!-- Action band -->
+        <div class="action-band">
+          <div class="ab-tile ab-tile-primary"><div class="ab-icon">📖</div><div class="ab-label">Log reading</div></div>
+          <div class="ab-tile ab-tile-secondary"><div class="ab-icon">▶️</div><div class="ab-label">Continue</div><div class="ab-sub">Atomic Habits</div></div>
+          <div class="ab-tile ab-tile-secondary"><div class="ab-icon">🎯</div><div class="ab-label">Coach task</div><div class="ab-sub">Add a book</div></div>
+        </div>
+
+        <!-- Momentum card — replaces 6 pills + heatmap + level bar -->
+        <div class="week-card">
+          <div class="week-header">
+            <div class="week-title">📈 Your 2026 so far</div>
+            <div class="week-tag">Week 24 ↗ Reading Story</div>
+          </div>
+          <div class="week-stats">
+            <div class="week-stat"><div class="week-val">7</div><div class="week-lbl">books</div></div>
+            <div class="week-divider"></div>
+            <div class="week-stat"><div class="week-val">2,140</div><div class="week-lbl">pages</div></div>
+            <div class="week-divider"></div>
+            <div class="week-stat"><div class="week-val">🔥4</div><div class="week-lbl">streak</div></div>
+          </div>
+          <div class="week-bar-wrap">
+            <div class="week-bar-label">Pace vs last year ↑ 12%</div>
+            <div class="week-bar"><div class="week-bar-fill" style="width:62%;"></div></div>
+          </div>
+        </div>
+
+        <!-- Coach: one card, most urgent -->
+        <div class="coach-chip">
+          <div class="coach-chip-dot" style="background:var(--warning);"></div>
+          <div class="coach-chip-text"><strong>Summer Challenge</strong> ends in 8 days — 1 book to go</div>
+        </div>
+
+        <!-- Reading Story row -->
+        <div class="story-row">
+          <div class="story-icon"><i class="fa-solid fa-chart-line" style="font-size:14px;color:var(--accent);"></i></div>
+          <div><div class="story-title">My reading story</div><div class="story-sub">Pace, rhythm, genres &amp; club comparison</div></div>
+          <i class="fa-solid fa-chevron-right" style="font-size:11px;color:var(--border-soft);margin-left:auto;"></i>
+        </div>
+
+        <!-- Shelves -->
+        <div class="shelf-tiles">
+          <div class="shelf-tile"><div class="shelf-val">7</div><div class="shelf-lbl">Finished</div></div>
+          <div class="shelf-tile"><div class="shelf-val">2</div><div class="shelf-lbl">Reading</div></div>
+          <div class="shelf-tile"><div class="shelf-val">14</div><div class="shelf-lbl">To Read</div></div>
+        </div>
+        <div class="expand-toggle">Show my shelf <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i></div>
+
+      </div>
+    </div>
+    <div class="caption">
+      <strong>Option B changes:</strong>
+      <ul>
+        <li>Identity chips moved to drawer — card cleaner</li>
+        <li>Stat wall → single momentum card (3 numbers + pace bar)</li>
+        <li>Heatmap + level bar live in Reading Story</li>
+        <li>Coach: 3 chips → 1 most-urgent</li>
+        <li>All dividers removed — visual flow is natural</li>
+        <li>Momentum card taps to Reading Story for full detail</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- OPTION C -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="section-title" style="color:var(--success);">Option C — Action First</div>
+<div class="section-desc">
+  Most radical. Me tab has ONE job: what do I do right now?<br>
+  Identity → compact. Stats → gone (Reading Story only). Coach → gone (action band already has it).<br>
+  Shelves moved up. Everything else is ≤1 tap away.
+</div>
+<div style="text-align:center;margin-bottom:14px;font-size:0.68rem;color:#888;">
+  <span class="tag tag-removed">removed: all stats, heatmap, level bar, all dividers, coach section</span>
+  &nbsp;
+  <span class="tag tag-moved">moved: everything to Reading Story or drawer</span>
+  &nbsp;
+  <span class="tag tag-kept">kept: identity, persona, action band, next book card, shelves</span>
+</div>
+
+<div class="row">
+  <div class="phone">
+    <div class="phone-label label-opt-c">Option C</div>
+    <div class="phone-shell">
+      <div class="nav"><span class="nav-title">Me</span><span class="nav-icon"><i class="fa-solid fa-bars"></i></span></div>
+      <div class="content">
+
+        <!-- Compact identity -->
+        <div class="id-card">
+          <div class="id-row">
+            <div>
+              <div class="id-name">Priya</div>
+              <div class="id-level">Avid Reader · Level 12</div>
+            </div>
+            <div class="avatar">P<div class="avatar-dot">✏️</div></div>
+          </div>
+          <div class="persona-inset" style="margin-top:8px;">
+            <div class="persona-emoji">🌙</div>
+            <div><div class="persona-name">The Midnight Scholar</div><div class="persona-sub">Only 3 members share this type</div></div>
+          </div>
+        </div>
+
+        <!-- Action band -->
+        <div class="action-band">
+          <div class="ab-tile ab-tile-primary"><div class="ab-icon">📖</div><div class="ab-label">Log reading</div></div>
+          <div class="ab-tile ab-tile-secondary"><div class="ab-icon">▶️</div><div class="ab-label">Continue</div><div class="ab-sub">Atomic Habits</div></div>
+          <div class="ab-tile ab-tile-secondary"><div class="ab-icon">🎯</div><div class="ab-label">Coach task</div><div class="ab-sub">Add a book</div></div>
+        </div>
+
+        <!-- Next-up card: currently reading book, progress, CTA -->
+        <div class="next-card">
+          <div class="next-header">
+            <i class="fa-solid fa-bookmark" style="font-size:0.75rem;color:#fff;"></i>
+            <div class="next-header-label">Currently reading</div>
+          </div>
+          <div class="next-body">
+            <div class="next-book-row">
+              <div class="next-cover" style="background:linear-gradient(135deg,#7c5cbf,#4a3080);">Atomic<br>Habits</div>
+              <div style="flex:1;">
+                <div class="next-title">Atomic Habits</div>
+                <div class="next-sub">by James Clear</div>
+                <div class="next-progress">
+                  <div style="font-size:0.55rem;color:var(--text-faint);">Page 218 of 320 · 68% done</div>
+                  <div class="next-prog-bar"><div class="next-prog-fill" style="width:68%;"></div></div>
+                </div>
+              </div>
+            </div>
+            <button class="next-cta">📖 Log today's pages</button>
+          </div>
+        </div>
+
+        <!-- Shelf tiles — moved up, no divider needed -->
+        <div class="shelf-tiles">
+          <div class="shelf-tile"><div class="shelf-val">7</div><div class="shelf-lbl">Finished</div></div>
+          <div class="shelf-tile"><div class="shelf-val">2</div><div class="shelf-lbl">Reading</div></div>
+          <div class="shelf-tile"><div class="shelf-val">14</div><div class="shelf-lbl">To Read</div></div>
+        </div>
+        <div class="expand-toggle">Show my shelf <i class="fa-solid fa-chevron-down" style="font-size:10px;"></i></div>
+
+        <!-- Reading Story row at bottom — discovery -->
+        <div class="story-row" style="border-color:#d9d0ee;">
+          <div class="story-icon"><i class="fa-solid fa-chart-line" style="font-size:14px;color:var(--accent);"></i></div>
+          <div><div class="story-title">My reading story</div><div class="story-sub">Stats, pace, insights &amp; club comparison</div></div>
+          <i class="fa-solid fa-chevron-right" style="font-size:11px;color:var(--border-soft);margin-left:auto;"></i>
+        </div>
+
+      </div>
+    </div>
+    <div class="caption">
+      <strong>Option C changes:</strong>
+      <ul>
+        <li>No stats on Me tab at all — Reading Story is the stats home</li>
+        <li>Currently-reading card replaces the stat wall — emotional + actionable</li>
+        <li>Zero dividers — the page reads as one coherent surface</li>
+        <li>Coach section removed — action band 3rd tile already surfaces the top task</li>
+        <li>Most minimal; works best if Reading Story tab is discoverable</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Summary table -->
+<div class="section-title">What each option removes</div>
+<div style="max-width:720px;margin:0 auto;">
+  <table style="width:100%;border-collapse:collapse;font-size:0.68rem;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+    <thead>
+      <tr style="background:#2c3e50;color:#fff;">
+        <th style="padding:8px 10px;text-align:left;">Element</th>
+        <th style="padding:8px 10px;text-align:center;">Before</th>
+        <th style="padding:8px 10px;text-align:center;">A</th>
+        <th style="padding:8px 10px;text-align:center;">B</th>
+        <th style="padding:8px 10px;text-align:center;">C</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:0.5px solid #ecf0f1;"><td style="padding:7px 10px;">Identity card (name + persona)</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅ merged</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+      <tr style="border-bottom:0.5px solid #ecf0f1;background:#f9f9f9;"><td style="padding:7px 10px;">Our Story + personality chips</td><td style="text-align:center;">✅</td><td style="text-align:center;">→ drawer</td><td style="text-align:center;">→ drawer</td><td style="text-align:center;">→ drawer</td></tr>
+      <tr style="border-bottom:0.5px solid #ecf0f1;"><td style="padding:7px 10px;">Action band (3 tiles)</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+      <tr style="border-bottom:0.5px solid #ecf0f1;background:#f9f9f9;"><td style="padding:7px 10px;">6-number stat pills</td><td style="text-align:center;">✅</td><td style="text-align:center;">→ 2 pills</td><td style="text-align:center;">→ 1 card</td><td style="text-align:center;">❌ removed</td></tr>
+      <tr style="border-bottom:0.5px solid #ecf0f1;"><td style="padding:7px 10px;">Heatmap</td><td style="text-align:center;">✅</td><td style="text-align:center;">→ Story</td><td style="text-align:center;">→ Story</td><td style="text-align:center;">→ Story</td></tr>
+      <tr style="border-bottom:0.5px solid #ecf0f1;background:#f9f9f9;"><td style="padding:7px 10px;">Level progress bar</td><td style="text-align:center;">✅</td><td style="text-align:center;">→ Story</td><td style="text-align:center;">→ Story</td><td style="text-align:center;">→ Story</td></tr>
+      <tr style="border-bottom:0.5px solid #ecf0f1;"><td style="padding:7px 10px;">Reading Story row</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+      <tr style="border-bottom:0.5px solid #ecf0f1;background:#f9f9f9;"><td style="padding:7px 10px;">Coach section (3 chips + AI)</td><td style="text-align:center;">✅</td><td style="text-align:center;">→ 1 chip</td><td style="text-align:center;">→ 1 chip</td><td style="text-align:center;">❌ removed</td></tr>
+      <tr style="border-bottom:0.5px solid #ecf0f1;"><td style="padding:7px 10px;">Currently-reading card</td><td style="text-align:center;">❌</td><td style="text-align:center;">❌</td><td style="text-align:center;">❌</td><td style="text-align:center;">✅ new</td></tr>
+      <tr style="background:#f9f9f9;"><td style="padding:7px 10px;">Section dividers</td><td style="text-align:center;">4</td><td style="text-align:center;">1</td><td style="text-align:center;">0</td><td style="text-align:center;">0</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>
