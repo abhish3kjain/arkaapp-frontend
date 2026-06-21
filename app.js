@@ -15086,22 +15086,22 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           } catch(e) { return ''; }
         }
 
-        // Build a small avatar circle (38px) with initials fallback
+        // Build a small avatar circle (44px) with initials fallback
         function buildShelfAvHtml(u, bgColor, textColor) {
           const init = u.name ? u.name.charAt(0).toUpperCase() : '?';
           if (u.imageURL) {
             return `<img src="${escapeHtml(u.imageURL)}"
-                        style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;"
+                        style="width:44px;height:44px;border-radius:50%;object-fit:cover;display:block;"
                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                    <div style="display:none;width:38px;height:38px;border-radius:50%;
+                    <div style="display:none;width:44px;height:44px;border-radius:50%;
                                 background:${bgColor};color:${textColor};
                                 align-items:center;justify-content:center;
-                                font-size:0.78rem;font-weight:bold;">${init}</div>`;
+                                font-size:0.82rem;font-weight:bold;">${init}</div>`;
           }
-          return `<div style="width:38px;height:38px;border-radius:50%;
+          return `<div style="width:44px;height:44px;border-radius:50%;
                               background:${bgColor};color:${textColor};display:flex;
                               align-items:center;justify-content:center;
-                              font-size:0.78rem;font-weight:bold;">${init}</div>`;
+                              font-size:0.82rem;font-weight:bold;">${init}</div>`;
         }
 
         // Status config with dot colour, label, avatar bg/text for each status
@@ -15151,7 +15151,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 `<div class="detail-shelf-av-item"
                       onclick="showMemberProfile('${u.memberId}')"
                       style="cursor:pointer;">
-                   <div style="position:relative;display:inline-block;padding:6px 8px 0 0;">
+                   <div style="position:relative;display:inline-block;padding:8px 10px 0 0;">
                      ${buildShelfAvHtml(u, cfg.bg, cfg.fg)}
                      ${ratingBadge}
                    </div>
@@ -15159,7 +15159,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                      ${escapeHtml(shortName)}
                    </div>
-                   <div style="font-size:0.6rem;color:var(--text-faint);">${escapeHtml(dateLabel)}</div>
+                   <div style="font-size:0.6rem;color:var(--text-faint);white-space:nowrap;">${escapeHtml(dateLabel)}</div>
                  </div>`;
             } else {
               avItems +=
@@ -15183,7 +15183,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                  ${cfg.label} &nbsp;·&nbsp; ${members.length}
                </div>
                <div style="display:flex;overflow-x:auto;gap:10px;
-                           padding-bottom:4px;-ms-overflow-style:none;scrollbar-width:none;">
+                           padding-top:8px;padding-bottom:4px;-ms-overflow-style:none;scrollbar-width:none;">
                  ${avItems}
                </div>
              </div>`;
