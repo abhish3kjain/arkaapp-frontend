@@ -1325,6 +1325,7 @@
       if (btn)   btn.classList.toggle('active', t === tab);
       if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
     });
+    if (tab !== 'compose') { admEvtEditing = null; }
     if (tab === 'compose' && !admEvtEditing) admResetEvtForm();
   }
 
