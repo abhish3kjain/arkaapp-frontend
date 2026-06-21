@@ -18273,23 +18273,20 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         },
 
         // ── Strategy 11a: Mood Match — Fast Pace ──────────────────────────────
-        // Computes the user's average daily pages over the last 14 days from
-        // PageLogDB. If the user is in a reading groove (≥ 30 pages/day avg),
-        // recommend a substantial book (≥ 400 pages) to match their momentum.
-        // Split into two registry entries (11a / 11b) so each pace direction
-        // gets its own label and both can co-exist in the shuffled strategy draw.
-        // Only one will match per session since pace conditions are mutually exclusive.
+        // Uses RSE V1 moodMultiplier (recentPace / overallAvgPace) when available —
+        // fires when the user is reading ≥ 30% faster than their personal baseline.
+        // Falls back to the absolute 14-day avg threshold when RSE data is absent.
         {
           id   : 'MOOD_MATCH_FAST',
           label: '⚡ Matches your reading pace right now',
           run  : function(ctx) {
-            var MOOD_HIGH_PACE_PAGES = 30;  // avg pages/day to qualify as "high pace"
-            var MOOD_LONG_BOOK_PAGES = 400; // minimum pages for a "substantial" book
-
-            // avgDailyPages pre-computed by buildSerendipityContext_() — no second loop needed
-            var avgDailyPages = ctx.avgDailyPages;
-            if (avgDailyPages < MOOD_HIGH_PACE_PAGES) return null; // not a fast reader right now
-
+            var MOOD_LONG_BOOK_PAGES = 400;
+            var rse  = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {};
+            var mood = rse.moodMultiplier;
+            var isFast = (mood !== null && mood !== undefined)
+              ? mood >= 1.3                        // 30% faster than personal baseline
+              : ctx.avgDailyPages >= 30;           // absolute fallback when no RSE yet
+            if (!isFast) return null;
             var pool = ctx.unshelvedPool.filter(function(book) {
               return (Number(book.pages) || 0) >= MOOD_LONG_BOOK_PAGES;
             });
@@ -18298,23 +18295,19 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         },
 
         // ── Strategy 11b: Mood Match — Slow Pace ──────────────────────────────
-        // Same lookback window as 11a. If the user is in a quiet reading period
-        // (> 0 but < 15 pages/day avg), recommend a shorter book (≤ 250 pages)
-        // — something completable without pressure at their current pace.
-        // Returns null for zero-activity users (no data signal to act on) and
-        // for mid-range pace users (neither strategy fires, which is correct).
+        // Uses RSE V1 moodMultiplier when available — fires when reading ≤ 30%
+        // below personal baseline. Falls back to absolute 14-day avg threshold.
         {
           id   : 'MOOD_MATCH_SLOW',
           label: '🌿 Something you can finish at your pace',
           run  : function(ctx) {
-            var MOOD_LOW_PACE_MAX     = 15;  // avg pages/day ceiling for "slow pace"
-            var MOOD_SHORT_BOOK_PAGES = 250; // maximum pages for a "short" book
-
-            // avgDailyPages pre-computed by buildSerendipityContext_() — no second loop needed
-            var avgDailyPages = ctx.avgDailyPages;
-            // Must have some activity but below the low-pace ceiling
-            if (avgDailyPages <= 0 || avgDailyPages >= MOOD_LOW_PACE_MAX) return null;
-
+            var MOOD_SHORT_BOOK_PAGES = 250;
+            var rse  = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {};
+            var mood = rse.moodMultiplier;
+            var isSlow = (mood !== null && mood !== undefined)
+              ? mood <= 0.7                                           // 30% below personal baseline
+              : (ctx.avgDailyPages > 0 && ctx.avgDailyPages < 15);  // absolute fallback when no RSE yet
+            if (!isSlow) return null;
             var pool = ctx.unshelvedPool.filter(function(book) {
               var pages = Number(book.pages) || 0;
               return pages > 0 && pages <= MOOD_SHORT_BOOK_PAGES;
@@ -24325,13 +24318,18 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           ? Math.round(totalLoggedForBook / daysOnShelf)
           : 0;
 
-        // Overall personal pages/day avg (all books, last 90 days)
-        const cutoff90Ms   = NOW_MS - 90 * MS_PER_DAY;
-        const recentAllLog = globalMyPageLogDB.filter(function(l) {
-          return l.pagesDelta > 0 && parseGoogleDate(l.timestamp).getTime() >= cutoff90Ms;
-        });
-        const pagesLast90  = recentAllLog.reduce(function(s, l) { return s + l.pagesDelta; }, 0);
-        const overallAvgPacePerDay = Math.round(pagesLast90 / 90);
+        // Overall personal pages/day avg — use RSE V1 pre-computed value from Col O first.
+        // Falls back to a 90-day scan when RSE data is not yet available.
+        const _rseData_ = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {};
+        const overallAvgPacePerDay = _rseData_.overallAvgPace > 0
+          ? Math.round(_rseData_.overallAvgPace)
+          : (function() {
+              const cutoff90Ms = NOW_MS - 90 * MS_PER_DAY;
+              const pages90    = globalMyPageLogDB
+                .filter(function(l) { return l.pagesDelta > 0 && parseGoogleDate(l.timestamp).getTime() >= cutoff90Ms; })
+                .reduce(function(s, l) { return s + l.pagesDelta; }, 0);
+              return Math.round(pages90 / 90);
+            })();
 
         // ── PRIORITY 1: Almost done ───────────────────────────────────────────────
         if (pagesLeft !== null && pagesLeft <= 40 && pagesLeft >= 0) {
@@ -24389,19 +24387,44 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           paceOnThisBook > 0 &&
           paceOnThisBook < Math.round(overallAvgPacePerDay * 0.6)
         ) {
-          // Estimate finish date from book-specific pace
           const finishEstimate = (pagesLeft !== null && paceOnThisBook > 0)
             ? (function() {
                 const finishDate = new Date(NOW_MS + (pagesLeft / paceOnThisBook) * MS_PER_DAY);
                 return finishDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
               })()
             : null;
+          const finishSuffix = finishEstimate ? ` At this pace, done ~${finishEstimate}.` : '';
+
+          // Use RSE V1 data to explain *why* pace is slow — genre-specific or global slump.
+          const primaryGenre   = book.genre ? book.genre.split(',')[0].trim() : '';
+          const genrePaceMap   = _rseData_.genrePace || {};
+          const genreEntry     = primaryGenre && genrePaceMap[primaryGenre];
+          const moodMult       = _rseData_.moodMultiplier;
+
+          if (genreEntry && genreEntry.pace > 0 && paceOnThisBook >= genreEntry.pace * 0.7) {
+            // Pace is slow vs overall avg, but consistent with this genre — reassure not warn.
+            return {
+              theme : 'blue',
+              icon  : '📚',
+              label : `${primaryGenre} reads slower for you — that's normal`,
+              sub   : `Your ${primaryGenre} pace is ~${Math.round(genreEntry.pace)} pages/day. You're on track.${finishSuffix}`
+            };
+          }
+          if (moodMult !== null && moodMult !== undefined && moodMult < 0.7) {
+            // Global reading slump — overall pace has dropped, not book-specific.
+            return {
+              theme : 'amber',
+              icon  : '🐢',
+              label : 'Your reading pace has been lower lately',
+              sub   : `${paceOnThisBook} pages/day here vs your usual ${overallAvgPacePerDay}. Pace dips happen.${finishSuffix}`
+            };
+          }
+          // Default: book is slower than both genre and overall avg.
           return {
             theme : 'amber',
             icon  : '🐢',
             label : 'Going slower than your usual pace',
-            sub   : `${paceOnThisBook} pages/day here vs your avg ${overallAvgPacePerDay}.`
-                  + (finishEstimate ? ` At this pace, done ~${finishEstimate}.` : '')
+            sub   : `${paceOnThisBook} pages/day here vs your avg ${overallAvgPacePerDay}.${finishSuffix}`
           };
         }
 
@@ -32877,9 +32900,14 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
           const avatarHtml = buildAvatarHtml(member, 28);
 
+          // For the current user, surface recentPace from RSE V1 as pace context.
+          const rseRecent = isMe
+            ? (((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {}).recentPace || 0
+            : 0;
+
           return { isMe, name, member, memberId: enrollment.memberId,
                   personalGoal, currentTotal, projection, pct,
-                  paceIcon, paceColor, avatarHtml };
+                  paceIcon, paceColor, avatarHtml, rseRecent };
         }).sort(function(a, b) { return b.pct - a.pct; });
 
         const rowsHtml = rows.map(function(r) {
@@ -32934,7 +32962,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   ${r.paceIcon}
                 </div>
                 <div style="font-size:0.68rem;color:${r.paceColor};white-space:nowrap;">
-                  ${projStr}
+                  ${r.isMe && r.rseRecent > 0 ? Math.round(r.rseRecent) + ' pg/d' : projStr}
                 </div>
               </div>
 
