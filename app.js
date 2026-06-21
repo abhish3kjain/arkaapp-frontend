@@ -23406,135 +23406,95 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     
             var details = book.details;
     
-            // ── Fill Essential fields ────────────────────────────────────────
-            var titleEl = document.getElementById('newBookTitle');
-            if (titleEl && details.title) titleEl.value = details.title;
-    
-            var authorEl = document.getElementById('newBookAuthor');
-            if (authorEl && details.authors && details.authors.length > 0) {
-              // Structure 1 — name is inline on the edition record
+            // ── Collect all fetched values; resolve async ones, then show review panel ─
+            var fetched = { isbn: isbn };
+
+            // Title
+            if (details.title) fetched.title = details.title;
+
+            // Author — inline names first, key-ref fallback
+            var authorPromise = Promise.resolve('');
+            if (details.authors && details.authors.length > 0) {
               var inlineNames = details.authors
                 .filter(function(a) { return a.name; })
                 .map(function(a) { return a.name; });
-
               if (inlineNames.length > 0) {
-                // Names available directly — use them
-                authorEl.value = inlineNames.join(', ');
-              } else {
-                // Structure 2 — authors are key references, need a second fetch
-                // Take first author only to keep it simple
-                var authorKey = details.authors[0].key; // e.g. "/authors/OL7353479A"
-                if (authorKey) {
-                  fetch('https://openlibrary.org' + authorKey + '.json')
-                    .then(function(r) { return r.json(); })
-                    .then(function(author) {
-                      if (author.name && authorEl) {
-                        authorEl.value = author.name;
-                      }
-                    })
-                    .catch(function() {}); // Fail silently — user can type manually
-                }
+                authorPromise = Promise.resolve(inlineNames.join(', '));
+              } else if (details.authors[0].key) {
+                authorPromise = fetch('https://openlibrary.org' + details.authors[0].key + '.json')
+                  .then(function(r) { return r.json(); })
+                  .then(function(a) { return a.name || ''; })
+                  .catch(function() { return ''; });
               }
             }
-            // Structure 3 (no authors on edition) is handled by the work fetch
-            // which can be extended similarly if needed
-    
-            var pagesEl = document.getElementById('newBookPages');
-            if (pagesEl && details.number_of_pages) pagesEl.value = details.number_of_pages;
 
-            // Populate the ISBN-13 field in the Details section with the
-            // validated isbn used for the lookup — it was never written there.
-            var isbnFieldEl = document.getElementById('newBookIsbn13');
-            if (isbnFieldEl) isbnFieldEl.value = isbn;
-    
-            var yearEl = document.getElementById('newBookPublishedDate');
-            if (yearEl && details.publish_date) {
-              // Extract just the 4-digit year from strings like "May 4, 2021" or "2021"
-              var yearMatch = details.publish_date.match(/\d{4}/);
-              if (yearMatch) yearEl.value = yearMatch[0];
+            // Pages
+            if (details.number_of_pages) fetched.pages = String(details.number_of_pages);
+
+            // Year
+            if (details.publish_date) {
+              var ym = details.publish_date.match(/\d{4}/);
+              if (ym) fetched.year = ym[0];
             }
-    
-            // Try description on the edition first (occasionally present)
-            var blurbEl = document.getElementById('newBookBlurb');
+
+            // Blurb — edition first, work fallback
             var editionDesc = details.description
               ? (typeof details.description === 'string'
                   ? details.description
                   : (details.description.value || ''))
               : '';
-
-            if (blurbEl && editionDesc) {
-              // Edition has a description — use it directly
-              blurbEl.value = editionDesc.slice(0, 500);
-            } else if (details.works && details.works.length > 0) {
-              // No edition description — fetch from the parent Work record
-              var workKey = details.works[0].key; // e.g. "/works/OL45883W"
-              fetch('https://openlibrary.org' + workKey + '.json')
+            var blurbPromise = Promise.resolve(editionDesc ? editionDesc.slice(0, 500) : '');
+            if (!editionDesc && details.works && details.works.length > 0) {
+              blurbPromise = fetch('https://openlibrary.org' + details.works[0].key + '.json')
                 .then(function(r) { return r.json(); })
                 .then(function(work) {
-                  if (!work.description || !blurbEl) return;
-                  var workDesc = typeof work.description === 'string'
-                    ? work.description
-                    : (work.description.value || '');
-                  if (workDesc) blurbEl.value = workDesc.slice(0, 500);
+                  if (!work.description) return '';
+                  var d = typeof work.description === 'string'
+                    ? work.description : (work.description.value || '');
+                  return d.slice(0, 500);
                 })
-                .catch(function() {}); // Fail silently — blurb is optional
+                .catch(function() { return ''; });
             }
-    
-            // ── Genre from subjects ──────────────────────────────────────────
+
+            // Genres
             if (details.subjects && details.subjects.length > 0) {
-              // Take first 3 subjects as genre tags
-              var genreGuesses = details.subjects
+              fetched.genres = details.subjects
                 .slice(0, 3)
-                .map(function(s) {
-                  // Subjects can be long phrases — take first two words
-                  return s.split(',')[0].trim().split(' ').slice(0, 2).join(' ');
-                })
+                .map(function(s) { return s.split(',')[0].trim().split(' ').slice(0, 2).join(' '); })
                 .filter(function(s) { return s.length > 0; });
-              setGenreTags(genreGuesses.join(', '));
             }
-    
-            // ── Cover from Open Library ──────────────────────────────────────
-            var coverUrl = 'https://covers.openlibrary.org/b/isbn/' + isbn + '-M.jpg';
-            // Store the URL — we'll pass it to backend if no device upload overrides
-            document.getElementById('bookCoverSourceUrl').value = coverUrl;
-    
-            // Load the cover into the preview
-            var testImg   = new Image();
-            testImg.onload = function() {
-              // Cover found — resize to 160x240 via canvas and store as base64
-              // This way the backend always receives base64, regardless of source
-              var canvas = document.createElement('canvas');
-              canvas.width  = 240;
-              canvas.height = 360;
-              var ctx = canvas.getContext('2d');
-              ctx.fillStyle = '#f8f8f8';
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-              var scale   = Math.max(canvas.width / testImg.width, canvas.height / testImg.height);
-              var sw      = testImg.width  * scale;
-              var sh      = testImg.height * scale;
-              ctx.drawImage(testImg, (canvas.width - sw) / 2, (canvas.height - sh) / 2, sw, sh);
-              var base64 = canvas.toDataURL('image/jpeg', 0.75);
-    
-              document.getElementById('bookCoverBase64').value = base64;
-              showBookCoverPreview(
-                base64,
-                'Cover found on Open Library. Upload from device to override.'
-              );
-            };
-            testImg.onerror = function() {
-              // Open Library has no cover — show placeholder
-              clearBookCoverPreview();
-              showBookCoverPreview('', '');
-            };
-            // Open Library returns a 1px placeholder if no cover — check for it
-            testImg.crossOrigin = 'anonymous';
-            testImg.src = coverUrl + '?t=' + Date.now(); // Cache-bust
-    
-            var authorFilled = document.getElementById('newBookAuthor').value.trim();
-            status.innerText   = authorFilled
-              ? 'Found! Review and confirm the details below.'
-              : 'Partially found — please verify and fill in any missing fields.';
-            status.style.color = authorFilled ? '#27ae60' : 'var(--color-warning)';
+
+            // Cover — fetch as base64 so review panel can show thumbnail
+            var coverUrl    = 'https://covers.openlibrary.org/b/isbn/' + isbn + '-M.jpg';
+            var coverPromise = new Promise(function(resolve) {
+              var img = new Image();
+              img.crossOrigin = 'anonymous';
+              img.onload = function() {
+                var c = document.createElement('canvas');
+                c.width = 240; c.height = 360;
+                var cx = c.getContext('2d');
+                cx.fillStyle = '#f8f8f8';
+                cx.fillRect(0, 0, c.width, c.height);
+                var sc = Math.max(c.width / img.width, c.height / img.height);
+                cx.drawImage(img, (c.width - img.width * sc) / 2,
+                                  (c.height - img.height * sc) / 2,
+                                  img.width * sc, img.height * sc);
+                resolve(c.toDataURL('image/jpeg', 0.75));
+              };
+              img.onerror = function() { resolve(''); };
+              img.src = coverUrl + '?t=' + Date.now();
+            });
+
+            Promise.all([authorPromise, blurbPromise, coverPromise])
+              .then(function(results) {
+                if (results[0]) fetched.author  = results[0];
+                if (results[1]) fetched.blurb   = results[1];
+                if (results[2]) fetched.coverB64 = results[2];
+                fetched.coverUrl = coverUrl;
+
+                status.innerText   = '';
+                showIsbnReviewPanel_(fetched);
+              });
           })
           .catch(function(err) {
             btn.disabled  = false;
@@ -23544,9 +23504,175 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             console.error('ISBN search error:', err);
           });
       }
-    
-    
-      
+
+      /**
+       * Renders the ISBN review panel inside the ISBN Quick Fill box.
+       * Fields that are currently empty are auto-filled silently.
+       * Fields with existing data show a checkbox so the user can decide
+       * whether to replace them with the fetched value.
+       * The ISBN field always gets a checkbox regardless of whether it's filled.
+       */
+      function showIsbnReviewPanel_(fetched) {
+        var panel = document.getElementById('isbnReviewPanel');
+        if (!panel) return;
+
+        var FIELDS = [
+          { id: 'newBookTitle',         label: 'Title',       key: 'title'  },
+          { id: 'newBookAuthor',        label: 'Author',      key: 'author' },
+          { id: 'newBookPages',         label: 'Pages',       key: 'pages'  },
+          { id: 'newBookIsbn13',        label: 'ISBN-13',     key: 'isbn',   alwaysCheckbox: true },
+          { id: 'newBookPublishedDate', label: 'Year',        key: 'year'   },
+          { id: 'newBookBlurb',         label: 'Blurb',       key: 'blurb'  },
+        ];
+
+        var rows = '';
+        FIELDS.forEach(function(f) {
+          var val = fetched[f.key];
+          if (!val) return;
+          var cur        = (document.getElementById(f.id) ? document.getElementById(f.id).value : '').trim();
+          var hasData    = cur.length > 0;
+          var showCb     = hasData || f.alwaysCheckbox;
+          var displayVal = val.length > 60 ? val.slice(0, 57) + '…' : val;
+
+          if (showCb) {
+            rows +=
+              '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;'
+              + 'border-bottom:0.5px solid rgba(0,0,0,0.06);cursor:pointer;">'
+              + '<input type="checkbox" data-isbn-field="' + f.id + '" data-isbn-val="'
+              + escapeHtml(val) + '" checked '
+              + 'style="margin-top:2px;flex-shrink:0;accent-color:#3B6D11;">'
+              + '<span style="font-size:0.75rem;line-height:1.4;">'
+              + '<span style="font-weight:600;color:#3B6D11;">' + f.label + '</span>'
+              + (hasData
+                  ? ' <span style="color:var(--text-muted);">· replace</span>'
+                  : ' <span style="color:var(--text-muted);">· set</span>')
+              + '<br><span style="color:#333;">' + escapeHtml(displayVal) + '</span>'
+              + (hasData
+                  ? '<br><span style="color:var(--text-faint);font-size:0.68rem;">currently: '
+                    + escapeHtml(cur.length > 50 ? cur.slice(0, 47) + '…' : cur) + '</span>'
+                  : '')
+              + '</span></label>';
+          } else {
+            // Empty field — will auto-fill, just show as info
+            rows +=
+              '<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;'
+              + 'border-bottom:0.5px solid rgba(0,0,0,0.06);">'
+              + '<span style="font-size:1rem;margin-top:1px;">✓</span>'
+              + '<span style="font-size:0.75rem;line-height:1.4;">'
+              + '<span style="font-weight:600;color:#3B6D11;">' + f.label + '</span>'
+              + ' <span style="color:var(--text-muted);">· will fill</span>'
+              + '<br><span style="color:#333;">' + escapeHtml(displayVal) + '</span>'
+              + '</span></div>';
+          }
+        });
+
+        // Genres row
+        if (fetched.genres && fetched.genres.length > 0) {
+          var genreStr  = fetched.genres.join(', ');
+          var hasGenres = bookFormGenreTags.length > 0;
+          rows +=
+            '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;'
+            + 'border-bottom:0.5px solid rgba(0,0,0,0.06);cursor:pointer;">'
+            + '<input type="checkbox" data-isbn-field="_genres" data-isbn-val="'
+            + escapeHtml(genreStr) + '"' + (hasGenres ? '' : ' checked')
+            + ' style="margin-top:2px;flex-shrink:0;accent-color:#3B6D11;">'
+            + '<span style="font-size:0.75rem;line-height:1.4;">'
+            + '<span style="font-weight:600;color:#3B6D11;">Genres</span>'
+            + (hasGenres
+                ? ' <span style="color:var(--text-muted);">· replace</span>'
+                : ' <span style="color:var(--text-muted);">· will fill</span>')
+            + '<br><span style="color:#333;">' + escapeHtml(genreStr) + '</span>'
+            + (hasGenres
+                ? '<br><span style="color:var(--text-faint);font-size:0.68rem;">currently: '
+                  + escapeHtml(bookFormGenreTags.join(', ')) + '</span>'
+                : '')
+            + '</span></label>';
+        }
+
+        // Cover row
+        if (fetched.coverB64) {
+          var hasCover = !!document.getElementById('bookCoverBase64').value;
+          rows +=
+            '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;cursor:pointer;">'
+            + '<input type="checkbox" data-isbn-field="_cover" checked '
+            + 'style="margin-top:2px;flex-shrink:0;accent-color:#3B6D11;">'
+            + '<span style="font-size:0.75rem;line-height:1.4;flex:1;">'
+            + '<span style="font-weight:600;color:#3B6D11;">Cover</span>'
+            + (hasCover
+                ? ' <span style="color:var(--text-muted);">· replace</span>'
+                : ' <span style="color:var(--text-muted);">· will fill</span>')
+            + '</span>'
+            + '<img src="' + fetched.coverB64 + '" style="width:28px;height:42px;'
+            + 'object-fit:cover;border-radius:3px;flex-shrink:0;">'
+            + '</label>';
+        }
+
+        if (!rows) {
+          panel.innerHTML =
+            '<p style="font-size:0.78rem;color:var(--color-warning);margin:8px 0 0;">No fields returned by Open Library.</p>';
+          panel.style.display = 'block';
+          return;
+        }
+
+        panel.innerHTML =
+          '<div style="font-size:0.78rem;font-weight:600;color:#3B6D11;margin-bottom:8px;">'
+          + 'Review what to apply — uncheck any field to keep your current value'
+          + '</div>'
+          + '<div id="isbnReviewRows">' + rows + '</div>'
+          + '<div style="display:flex;gap:8px;margin-top:10px;">'
+          + '<button onclick="applyIsbnReview_()" '
+          + 'style="flex:1;background:#3B6D11;color:#fff;border:none;border-radius:8px;'
+          + 'padding:8px 0;font-size:0.85rem;font-weight:600;cursor:pointer;">Apply selected</button>'
+          + '<button onclick="dismissIsbnReview_()" '
+          + 'style="width:auto;padding:8px 14px;background:transparent;color:#3B6D11;'
+          + 'border:1px solid #3B6D11;border-radius:8px;font-size:0.85rem;cursor:pointer;">Dismiss</button>'
+          + '</div>';
+
+        // Stash fetched payload so applyIsbnReview_ can read coverB64/coverUrl
+        panel.dataset.fetchedJson = JSON.stringify({
+          coverB64 : fetched.coverB64  || '',
+          coverUrl : fetched.coverUrl  || ''
+        });
+        panel.style.display = 'block';
+      }
+
+      /** Applies checked ISBN review fields to the form and hides the panel. */
+      function applyIsbnReview_() {
+        var panel = document.getElementById('isbnReviewPanel');
+        if (!panel) return;
+        var extra  = {};
+        try { extra = JSON.parse(panel.dataset.fetchedJson || '{}'); } catch(e) {}
+
+        var checkboxes = panel.querySelectorAll('input[type="checkbox"][data-isbn-field]');
+        checkboxes.forEach(function(cb) {
+          if (!cb.checked) return;
+          var fieldId = cb.dataset.isbnField;
+          var val     = cb.dataset.isbnVal || '';
+
+          if (fieldId === '_genres') {
+            setGenreTags(val);
+          } else if (fieldId === '_cover') {
+            if (extra.coverB64) {
+              document.getElementById('bookCoverBase64').value    = extra.coverB64;
+              document.getElementById('bookCoverSourceUrl').value = extra.coverUrl || '';
+              showBookCoverPreview(extra.coverB64, 'Cover from Open Library. Upload to override.');
+            }
+          } else {
+            var el = document.getElementById(fieldId);
+            if (el) el.value = val;
+          }
+        });
+
+        dismissIsbnReview_();
+      }
+
+      /** Hides the ISBN review panel without applying anything. */
+      function dismissIsbnReview_() {
+        var panel = document.getElementById('isbnReviewPanel');
+        if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
+      }
+
+
 
 
       /**
@@ -23650,6 +23776,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         });
     
         document.getElementById('isbnSearchStatus').innerText = '';
+        dismissIsbnReview_();
         clearGenreTags();
         clearBookCoverPreview();
         document.getElementById('bookCoverBase64').value    = '';
