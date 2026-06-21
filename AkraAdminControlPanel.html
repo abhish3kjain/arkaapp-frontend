@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=1.9">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=2.0">
 </head>
 <body>
 
@@ -248,6 +248,7 @@
               <label class="adm-form-label">Description <span style="font-weight:400;color:var(--text-faint)">(optional)</span></label>
               <textarea class="adm-textarea" id="admCreateBadgeDesc" rows="2" placeholder="What achievement does this badge represent?"></textarea>
             </div>
+            <div class="adm-chal-section-divider">Points &amp; Category</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
               <div class="adm-form-group" style="margin-bottom:0">
                 <label class="adm-form-label">Club Points Awarded</label>
@@ -265,7 +266,8 @@
                 </select>
               </div>
             </div>
-            <div class="adm-form-group" style="margin-top:16px">
+            <div class="adm-chal-section-divider">Image</div>
+            <div class="adm-form-group">
               <label class="adm-form-label">Badge Image <span style="color:var(--adm-danger)">*</span> <span style="font-weight:400;color:var(--text-faint)">(square, min 400×400 px — auto-cropped)</span></label>
               <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
                 <img id="admCreateBadgePreview" class="adm-badge-img-preview" style="display:none" alt="preview">
@@ -295,6 +297,7 @@
               <input type="hidden" id="admUpdateBadgeId">
               <div class="adm-input-hint" id="admUpdateBadgeHint"></div>
             </div>
+            <div class="adm-chal-section-divider">Image</div>
             <div class="adm-form-group">
               <label class="adm-form-label">New image file <span style="color:var(--adm-danger)">*</span> <span style="font-weight:400;color:var(--text-faint)">(square, min 400×400 px — auto-cropped)</span></label>
               <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
@@ -1159,6 +1162,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=1.9"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=2.0"></script>
 </body>
 </html>

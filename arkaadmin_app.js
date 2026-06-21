@@ -653,7 +653,7 @@
         + '<td class="adm-col-mob">' + aBy + '</td>'
         + '<td style="white-space:nowrap">' + _esc(a.awardedDate) + '</td>'
         + '<td>' + stPill + '</td>'
-        + '<td class="adm-col-mob" style="font-size:0.78rem;max-width:160px;color:var(--text-muted)">' + _esc(a.notes || '—') + '</td>'
+        + '<td class="adm-col-mob" style="font-size:0.78rem;max-width:200px;white-space:normal;word-break:break-word;color:var(--text-muted)">' + _esc(a.notes || '—') + '</td>'
         + '<td>' + revBtn + '</td>'
         + '</tr>';
     }).join('');
