@@ -12578,11 +12578,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             return books.slice().sort(function(a, b) {
               var pa = Number(a.pages) || 0;
               var pb = Number(b.pages) || 0;
-              // books with no page count go to the end
               if (!pa && !pb) return 0;
-              if (!pa) return 1;
+              if (!pa) return 1;  // no pages → always end, regardless of direction
               if (!pb) return -1;
-              return pa - pb; // shortest first
+              return pa - pb; // shortest first (default); reversed externally for desc
             });
           }
         },
@@ -12594,7 +12593,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             return books.slice().sort(function(a, b) {
               var ya = parseInt((a.publishedDate || '').toString().trim().slice(0, 4)) || 0;
               var yb = parseInt((b.publishedDate || '').toString().trim().slice(0, 4)) || 0;
-              return yb - ya; // newest first; books with no year go to the end
+              if (!ya && !yb) return 0;
+              if (!ya) return 1;  // no year → always end, regardless of direction
+              if (!yb) return -1;
+              return yb - ya; // newest first (default); reversed externally for asc
             });
           }
         },
@@ -12607,14 +12609,14 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               var pa = Number(a.pages) || 0;
               var pb = Number(b.pages) || 0;
               if (!pa && !pb) return 0;
-              if (!pa) return 1;  // no pages → end
+              if (!pa) return 1;  // no pages → always end, regardless of direction
               if (!pb) return -1;
               var da = rseEstimateDays_(pa);
               var db = rseEstimateDays_(pb);
-              if (da === null && db === null) return pa - pb; // fallback: page count
-              if (da === null) return 1;
+              if (da === null && db === null) return pa - pb;
+              if (da === null) return 1;  // no estimate → always end
               if (db === null) return -1;
-              return da - db; // quickest read first
+              return da - db; // quickest first (default); reversed externally for desc
             });
           }
         },
@@ -12888,8 +12890,24 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // ── Step 4: Apply active sort + direction ─────────────────────────────────
         var sortOpt = LIBRARY_SORT_OPTIONS.find(function(o) { return o.key === currentLibrarySort; });
         var sorted  = sortOpt ? sortOpt.sort(shelfFiltered) : shelfFiltered;
-        // Each sort function always produces its "default" order; flip when needed.
-        if (sortOpt && currentLibrarySortAsc !== sortOpt.defaultAsc) sorted = sorted.slice().reverse();
+        // Flip direction when needed, but keep no-data books pinned to the end.
+        // nullTail sorts (pages, year, readtime) push missing-data books last in
+        // their comparator; a plain .reverse() would bring them to the front.
+        if (sortOpt && currentLibrarySortAsc !== sortOpt.defaultAsc) {
+          var NULL_TAIL_SORTS = { pages: true, year: true, readtime: true };
+          if (NULL_TAIL_SORTS[currentLibrarySort]) {
+            var nullTailPredicate = {
+              pages   : function(b) { return !(Number(b.pages) > 0); },
+              year    : function(b) { return !parseInt((b.publishedDate || '').toString().trim().slice(0, 4)); },
+              readtime: function(b) { return !(Number(b.pages) > 0); }
+            }[currentLibrarySort];
+            var withData    = sorted.filter(function(b) { return !nullTailPredicate(b); });
+            var withoutData = sorted.filter(nullTailPredicate);
+            sorted = withData.slice().reverse().concat(withoutData);
+          } else {
+            sorted = sorted.slice().reverse();
+          }
+        }
 
         // ── Step 5: Update the active genre filter chip row ────────────────────────
         // Shows a dismissible pill so members can see the active filter and understand
