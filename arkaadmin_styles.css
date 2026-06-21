@@ -299,6 +299,10 @@
     #admToast.adm-toast-ok      { background: var(--adm-ok); }
     #admToast.adm-toast-err     { background: var(--adm-danger); }
     #admToast.adm-toast-visible { transform: translateX(-50%) translateY(0); }
+    /* Hide the toast completely when it has no message — prevents the empty
+       padded element (which keeps its background colour) from appearing as
+       a ghost pill above the bottom nav on page load. */
+    #admToast:empty { display: none !important; }
 
     /* ── Empty state ───────────────────────────────────────────────── */
     .adm-empty { padding: 36px 24px; text-align: center; color: var(--text-faint); }
