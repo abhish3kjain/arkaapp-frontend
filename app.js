@@ -13993,6 +13993,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             warning.style.display =
               (total > 0 && entered > total * PAGE_DEVIATION_MULTIPLIER) ? 'block' : 'none';
           }
+          const finishStrip = document.getElementById('logReadingFinishStrip');
+          if (finishStrip) {
+            const pagesLeft = total > 0 ? total - entered : null;
+            const nearlyDone = pagesLeft !== null && pagesLeft >= 0 && pagesLeft <= total * 0.20;
+            finishStrip.style.display = nearlyDone ? 'block' : 'none';
+          }
           if (apEl) apEl.textContent = (Math.max(0, delta) * POINTS_PER_PAGE) + ' ☀️';
         } else {
           const pages = Math.max(0, parseInt(document.getElementById('logReadingPageCount').value, 10) || 0);
@@ -14059,6 +14065,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           setLogReadingContext('pages');
         }
 
+        // Reset finish strip to collapsed state on each open.
+        var _fc = document.getElementById('logReadingFinishCollapsed');
+        var _fx = document.getElementById('logReadingFinishConfirm');
+        if (_fc) _fc.style.display = 'flex';
+        if (_fx) _fx.style.display = 'none';
+
         document.getElementById('logReadingModal').style.display = 'block';
         setTimeout(function() {
           document.getElementById('logReadingDrawer').classList.add('open');
@@ -14102,6 +14114,22 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           openShelfModal(bookId, 'false', '', prefilledPages);
           setTimeout(function() { selectShelfStatusTile('Finished'); }, 60);
         }, 320);
+      }
+
+      /** Expands the finish strip to show the inline confirm buttons. */
+      function logReadingFinishStripTap_() {
+        const collapsed = document.getElementById('logReadingFinishCollapsed');
+        const confirm   = document.getElementById('logReadingFinishConfirm');
+        if (collapsed) collapsed.style.display = 'none';
+        if (confirm)   confirm.style.display   = 'block';
+      }
+
+      /** Collapses the finish strip back to its default state (user cancelled). */
+      function logReadingFinishCancel_() {
+        const collapsed = document.getElementById('logReadingFinishCollapsed');
+        const confirm   = document.getElementById('logReadingFinishConfirm');
+        if (collapsed) collapsed.style.display = 'flex';
+        if (confirm)   confirm.style.display   = 'none';
       }
 
       /** Closes the Log Reading sheet with the standard slide-down animation. */
