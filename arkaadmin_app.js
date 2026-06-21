@@ -2208,7 +2208,9 @@
     tbody.innerHTML = list.map(function(c) {
       var statusCls = 'adm-chal-pill adm-chal-pill-' + c.status.toLowerCase();
       var statusPill = '<span class="' + statusCls + '">' + _esc(c.status) + '</span>';
-      var typeLabel  = ADM_CHAL_TYPE_LABELS[c.challengeType] || _esc(c.challengeType);
+      var typeRaw   = ADM_CHAL_TYPE_LABELS[c.challengeType] || c.challengeType;
+      var typeShort = typeRaw.replace(/^\S+\s/, '');
+      var typeLabel = '<span class="chal-type-badge chal-type-' + _esc(c.challengeType) + '">' + _esc(typeShort) + '</span>';
       var dates      = _esc(c.startDate) + (c.endDate ? ' → ' + _esc(c.endDate) : ' → open');
       var goal       = c.goalValue ? (c.goalValue + ' ' + _esc(c.goalUnit)) : '—';
       var pts        = c.enrollPoints + ' / ' + c.finishPoints + ' / ' + c.winPoints;
