@@ -3912,16 +3912,6 @@
       #evtCreateFab:hover { background: #1a252f; }
       #evtCreateFab .fab-icon { color: white; font-size: 1.6rem; font-weight: 300; margin-top: -2px; }
 
-      /* ── Challenge FAB ────────────────────────────────────────────────────────── */
-      #chalCreateFab {
-        position: fixed; bottom: 80px; right: 20px; width: 52px; height: 52px;
-        background: var(--text-strong); border-radius: 50%; display: none;
-        align-items: center; justify-content: center; cursor: pointer;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.25); z-index: 300; transition: background 0.2s;
-      }
-      #chalCreateFab:hover { background: #1a252f; }
-      #chalCreateFab .fab-icon { color: white; font-size: 1.6rem; font-weight: 300; margin-top: -2px; }
-    
       /* ── Challenge type badge pills ───────────────────────────────────────────── */
       .chal-type-badge {
         display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px;
@@ -3947,70 +3937,6 @@
       .chal-card-enroll-count {
         font-size: 0.72rem; background: #EAF3DE; color: #27500A;
         padding: 2px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-      }
-      .chal-card-admin-strip {
-        display: flex; gap: 8px; margin-top: 10px; padding-top: 10px;
-        border-top: 1px solid #f0f0f0;
-      }
-      .chal-admin-btn {
-        background: none; border: 1px solid var(--border-soft); border-radius: 6px;
-        padding: 5px 10px; font-size: 0.78rem; cursor: pointer; color: var(--text-muted);
-        font-family: inherit;
-      }
-      .chal-admin-btn:hover { background: var(--surface-alt); }
-      .chal-admin-btn--archive:hover { color: #e74c3c; border-color: #e74c3c; }
-    
-      /* ── Challenge form drawer ────────────────────────────────────────────────── */
-      #chalFormDrawer label {
-        display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted);
-        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; margin-top: 14px;
-      }
-      #chalFormDrawer label:first-of-type { margin-top: 0; }
-      #chalFormDrawer input[type="text"],
-      #chalFormDrawer input[type="number"],
-      #chalFormDrawer input[type="date"],
-      #chalFormDrawer select,
-      #chalFormDrawer textarea {
-        width: 100%; box-sizing: border-box; border: 1px solid var(--border-soft);
-        border-radius: 8px; padding: 9px 11px; font-size: 0.88rem;
-        color: var(--text-strong); font-family: inherit; background: var(--surface-alt);
-      }
-      #chalFormDrawer input:focus,
-      #chalFormDrawer select:focus,
-      #chalFormDrawer textarea:focus {
-        border-color: var(--arka-accent); outline: none; background: #fff;
-      }
-      .chal-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-      .chal-type-section { display: none; }
-      .chal-type-section.visible { display: block; }
-      .chal-section-divider {
-        font-size: 0.72rem; font-weight: 600; color: var(--arka-accent); text-transform: uppercase;
-        letter-spacing: 0.5px; margin: 16px 0 8px; padding-top: 12px;
-        border-top: 1px dashed var(--border-soft);
-      }
-    
-      /* Toggle pill — reused from announcement form */
-      .chal-toggle-row {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 10px 0; border-bottom: 1px solid var(--surface-alt); gap: 12px;
-      }
-      .chal-toggle-row:last-of-type { border-bottom: none; }
-      .chal-toggle-label { font-size: 0.88rem; color: var(--text-strong); font-weight: 500; }
-      .chal-toggle-sub   { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
-    
-      /* Bingo cell grid inside the form */
-      .bingo-cell-grid { display: grid; gap: 6px; margin-top: 8px; }
-      .bingo-cell-input {
-        width: 100%; box-sizing: border-box; border: 1px solid var(--border-soft);
-        border-radius: 6px; padding: 7px 9px; font-size: 0.82rem;
-        color: var(--text-strong); font-family: inherit; background: var(--surface-alt);
-      }
-      .bingo-cell-input.is-free {
-        background: #EEEDFE; color: #534AB7; font-style: italic;
-      }
-      .bingo-cell-label {
-        font-size: 0.68rem; color: var(--text-faint); margin-bottom: 2px; text-transform: none;
-        letter-spacing: 0; font-weight: 400;
       }
 
       /* ── Enrol confirmation sheet ─────────────────────────────────────────────── */
