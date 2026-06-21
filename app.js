@@ -2188,22 +2188,16 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           activeWeekEl.textContent = activeCount;
         }
 
-        // Pages This Year — requires Wave 3 (globalShelvesDB)
-        if (!isWave3Loaded) return;
-
-        var thisYear   = new Date().getFullYear();
-        var pagesTotal = 0;
-
-        globalShelvesDB.forEach(function(shelf) {
-          if (shelf.status === 'Finished' && shelf.dateFinished) {
-            var d = parseGoogleDate(shelf.dateFinished);
-            if (d && d.getFullYear() === thisYear) {
-              pagesTotal += Number(shelf.pagesRead) || 0;
-            }
-          }
-        });
-
-        if (pagesYearEl) {
+        // Pages This Year — summed from Col O Stats JSON (member.stats[year].pages),
+        // written nightly by MasterEngine from PageLogDB. Available from Wave 1,
+        // covers all page types (Reading, Finished, DNF), year-bucketed by log
+        // timestamp rather than shelf finish date.
+        if (pagesYearEl && globalMembersDB.length > 0) {
+          var thisYear   = String(new Date().getFullYear());
+          var pagesTotal = 0;
+          globalMembersDB.forEach(function(m) {
+            pagesTotal += Number(((m.stats || {})[thisYear] || {}).pages) || 0;
+          });
           pagesYearEl.textContent = pagesTotal >= 1000
             ? (pagesTotal / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
             : pagesTotal.toLocaleString();
