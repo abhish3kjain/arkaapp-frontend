@@ -14092,20 +14092,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const shelfId = document.getElementById('logReadingShelfId').value;
         if (!bookId || !shelfId) { showToast({ type: 'error', title: 'No book selected.' }); return; }
 
-        // When the book has a known total-page count, pass null as prefilledPages so
-        // the shelf form field stays empty and handleShelfStatusChange() auto-fills it
-        // to totalBookPages on Finished select — crediting all remaining pages as the
-        // correct finish delta in CASE 2 (finalPagesRead = totalBookPages,
-        // pagesGained = totalBookPages - previousPagesRead).
-        //
-        // When totalBookPages is unknown (0), fall back to the user's current entry in
-        // the log reading form so their reading position is not silently discarded.
-        // In that case the backend also receives 0 as totalBookPages, so no override
-        // fires and the user's value is stored as-is.
-        const bookTotalPages  = Number(document.getElementById('logReadingTotalPages').value) || 0;
-        const prefilledPages  = bookTotalPages > 0
-          ? null
-          : (Number(document.getElementById('logReadingPageInput').value) || null);
+        // Carry the page position from the reading log form into the shelf modal:
+        //   - entered > total (known)  → different edition, respect what the user typed
+        //   - entered ≤ total (known)  → correct up to total (includes blank/0 entry)
+        //   - total unknown (0)        → use entered as-is; null if also blank
+        const bookTotalPages = Number(document.getElementById('logReadingTotalPages').value) || 0;
+        const enteredPage    = Number(document.getElementById('logReadingPageInput').value)  || 0;
+        const prefilledPages = bookTotalPages > 0
+          ? (enteredPage > bookTotalPages ? enteredPage : bookTotalPages)
+          : (enteredPage > 0 ? enteredPage : null);
 
         closeLogReadingSheet();
         setTimeout(function() {
