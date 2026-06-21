@@ -5399,6 +5399,50 @@ function setPersonaCelebrationSeen(seenActivityId) {
 
 
 /**
+ * Appends "| SeenByMember" to the activityDesc (Col E) of the given ActivityLog
+ * row, provided the row belongs to the calling member. Called fire-and-forget
+ * from the frontend when a celebration card is dismissed.
+ *
+ * @param {string} activityId - e.g. "ARKA_ACT_1990"
+ * @returns {{ status: string }}
+ */
+function markActivitySeen(activityId) {
+  const memberId = getVerifiedMemberId();
+  if (!memberId) return { status: 'error', message: 'Unauthorized session.' };
+
+  if (!activityId || typeof activityId !== 'string') {
+    return { status: 'error', message: 'Invalid activityId.' };
+  }
+
+  try {
+    const ss       = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const logSheet = ss.getSheetByName(ACTIVITYLOG_SHEET);
+    const data     = logSheet.getDataRange().getValues();
+
+    // Col indices (0-based): A=activityId, C=date, D=memberId, E=activityDesc
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0].toString() !== activityId) continue;
+      // Security: only the owning member may mark their own activity.
+      if (data[i][3].toString() !== memberId)   return { status: 'error', message: 'Forbidden.' };
+
+      const currentDesc = (data[i][4] || '').toString();
+      if (currentDesc.indexOf('| SeenByMember') !== -1) {
+        return { status: 'success' }; // already tagged — idempotent
+      }
+
+      logSheet.getRange(i + 1, 5).setValue(currentDesc + ' | SeenByMember');
+      return { status: 'success' };
+    }
+
+    return { status: 'error', message: 'Activity not found.' };
+  } catch (err) {
+    console.error('markActivitySeen: ' + err.toString());
+    return { status: 'error', message: 'Server error.' };
+  }
+}
+
+
+/**
  * ADMIN ONLY: Creates a new badge entry in BadgeDB and uploads the badge image
  * to the dedicated badge images Google Drive folder.
  *
