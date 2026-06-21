@@ -23534,12 +23534,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (!panel) return;
 
         var FIELDS = [
-          { id: 'newBookTitle',         label: 'Title',       key: 'title'  },
-          { id: 'newBookAuthor',        label: 'Author',      key: 'author' },
-          { id: 'newBookPages',         label: 'Pages',       key: 'pages'  },
-          { id: 'newBookIsbn13',        label: 'ISBN-13',     key: 'isbn',   alwaysCheckbox: true },
-          { id: 'newBookPublishedDate', label: 'Year',        key: 'year'   },
-          { id: 'newBookBlurb',         label: 'Blurb',       key: 'blurb'  },
+          { id: 'newBookTitle',         label: 'Title',   key: 'title'  },
+          { id: 'newBookAuthor',        label: 'Author',  key: 'author' },
+          { id: 'newBookPages',         label: 'Pages',   key: 'pages'  },
+          { id: 'newBookIsbn13',        label: 'ISBN-13', key: 'isbn'   },
+          { id: 'newBookPublishedDate', label: 'Year',    key: 'year'   },
+          { id: 'newBookBlurb',         label: 'Blurb',   key: 'blurb'  },
         ];
 
         var ROW_STYLE  = 'display:flex;align-items:flex-start;gap:10px;padding:7px 0;'
@@ -23547,32 +23547,30 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         var TEXT_STYLE = 'font-size:0.78rem;line-height:1.5;flex:1;min-width:0;word-break:break-word;';
         var CB_STYLE   = 'margin-top:3px;flex-shrink:0;accent-color:#3B6D11;width:15px;height:15px;';
 
-        var rows = '';
+        var rows     = '';
+        var autoFills = []; // fields with no existing data — applied unconditionally on Apply
+
         FIELDS.forEach(function(f) {
           var val = fetched[f.key];
           if (!val) return;
           var cur        = (document.getElementById(f.id) ? document.getElementById(f.id).value : '').trim();
           var hasData    = cur.length > 0;
-          var showCb     = hasData || f.alwaysCheckbox;
           var displayVal = val.length > 60 ? val.slice(0, 57) + '…' : val;
 
-          if (showCb) {
+          if (hasData) {
             rows +=
               '<label style="' + ROW_STYLE + 'cursor:pointer;">'
               + '<input type="checkbox" data-isbn-field="' + f.id + '" data-isbn-val="'
               + escapeHtml(val) + '" style="' + CB_STYLE + '">'
               + '<span style="' + TEXT_STYLE + '">'
               + '<span style="font-weight:600;color:#3B6D11;">' + f.label + '</span>'
-              + (hasData
-                  ? ' <span style="color:var(--text-muted);">· replace</span>'
-                  : ' <span style="color:var(--text-muted);">· set</span>')
+              + ' <span style="color:var(--text-muted);">· replace</span>'
               + '<br><span style="color:#222;">' + escapeHtml(displayVal) + '</span>'
-              + (hasData
-                  ? '<br><span style="color:#aaa;font-size:0.68rem;">currently: '
-                    + escapeHtml(cur.length > 50 ? cur.slice(0, 47) + '…' : cur) + '</span>'
-                  : '')
+              + '<br><span style="color:#aaa;font-size:0.68rem;">currently: '
+              + escapeHtml(cur.length > 50 ? cur.slice(0, 47) + '…' : cur) + '</span>'
               + '</span></label>';
           } else {
+            autoFills.push({ id: f.id, val: val });
             rows +=
               '<div style="' + ROW_STYLE + '">'
               + '<span style="color:#3B6D11;font-size:0.85rem;flex-shrink:0;margin-top:1px;">✓</span>'
@@ -23588,38 +23586,57 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (fetched.genres && fetched.genres.length > 0) {
           var genreStr  = fetched.genres.join(', ');
           var hasGenres = bookFormGenreTags.length > 0;
-          rows +=
-            '<label style="' + ROW_STYLE + 'cursor:pointer;">'
-            + '<input type="checkbox" data-isbn-field="_genres" data-isbn-val="'
-            + escapeHtml(genreStr) + '" style="' + CB_STYLE + '">'
-            + '<span style="' + TEXT_STYLE + '">'
-            + '<span style="font-weight:600;color:#3B6D11;">Genres</span>'
-            + (hasGenres
-                ? ' <span style="color:var(--text-muted);">· replace</span>'
-                : ' <span style="color:var(--text-muted);">· will fill</span>')
-            + '<br><span style="color:#222;">' + escapeHtml(genreStr) + '</span>'
-            + (hasGenres
-                ? '<br><span style="color:#aaa;font-size:0.68rem;">currently: '
-                  + escapeHtml(bookFormGenreTags.join(', ')) + '</span>'
-                : '')
-            + '</span></label>';
+          if (hasGenres) {
+            rows +=
+              '<label style="' + ROW_STYLE + 'cursor:pointer;">'
+              + '<input type="checkbox" data-isbn-field="_genres" data-isbn-val="'
+              + escapeHtml(genreStr) + '" style="' + CB_STYLE + '">'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">Genres</span>'
+              + ' <span style="color:var(--text-muted);">· replace</span>'
+              + '<br><span style="color:#222;">' + escapeHtml(genreStr) + '</span>'
+              + '<br><span style="color:#aaa;font-size:0.68rem;">currently: '
+              + escapeHtml(bookFormGenreTags.join(', ')) + '</span>'
+              + '</span></label>';
+          } else {
+            autoFills.push({ id: '_genres', val: genreStr });
+            rows +=
+              '<div style="' + ROW_STYLE + '">'
+              + '<span style="color:#3B6D11;font-size:0.85rem;flex-shrink:0;margin-top:1px;">✓</span>'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">Genres</span>'
+              + ' <span style="color:var(--text-muted);">· will fill</span>'
+              + '<br><span style="color:#222;">' + escapeHtml(genreStr) + '</span>'
+              + '</span></div>';
+          }
         }
 
-        // Cover row
+        // Cover row — checkbox only when replacing an existing cover; auto-fill otherwise
         if (fetched.coverB64) {
           var hasCover = !!document.getElementById('bookCoverBase64').value;
-          rows +=
-            '<label style="' + ROW_STYLE + 'border-bottom:none;cursor:pointer;align-items:center;">'
-            + '<input type="checkbox" data-isbn-field="_cover" style="' + CB_STYLE + '">'
-            + '<span style="' + TEXT_STYLE + '">'
-            + '<span style="font-weight:600;color:#3B6D11;">Cover</span>'
-            + (hasCover
-                ? ' <span style="color:var(--text-muted);">· replace</span>'
-                : ' <span style="color:var(--text-muted);">· will fill</span>')
-            + '</span>'
-            + '<img src="' + fetched.coverB64 + '" style="width:28px;height:42px;'
-            + 'object-fit:cover;border-radius:3px;flex-shrink:0;">'
-            + '</label>';
+          var coverThumb = '<img src="' + fetched.coverB64 + '" style="width:28px;height:42px;'
+            + 'object-fit:cover;border-radius:3px;flex-shrink:0;">';
+          if (hasCover) {
+            rows +=
+              '<label style="' + ROW_STYLE + 'border-bottom:none;cursor:pointer;align-items:center;">'
+              + '<input type="checkbox" data-isbn-field="_cover" style="' + CB_STYLE + '">'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">Cover</span>'
+              + ' <span style="color:var(--text-muted);">· replace</span>'
+              + '</span>'
+              + coverThumb
+              + '</label>';
+          } else {
+            rows +=
+              '<div style="' + ROW_STYLE + 'border-bottom:none;align-items:center;">'
+              + '<span style="color:#3B6D11;font-size:0.85rem;flex-shrink:0;">✓</span>'
+              + '<span style="' + TEXT_STYLE + '">'
+              + '<span style="font-weight:600;color:#3B6D11;">Cover</span>'
+              + ' <span style="color:var(--text-muted);">· will fill</span>'
+              + '</span>'
+              + coverThumb
+              + '</div>';
+          }
         }
 
         if (!rows) {
@@ -23643,10 +23660,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           + 'border:1px solid #3B6D11;border-radius:8px;font-size:0.85rem;cursor:pointer;">Dismiss</button>'
           + '</div>';
 
-        // Stash fetched payload so applyIsbnReview_ can read coverB64/coverUrl
+        // Stash payload so applyIsbnReview_ can apply auto-fills and cover
         panel.dataset.fetchedJson = JSON.stringify({
-          coverB64 : fetched.coverB64  || '',
-          coverUrl : fetched.coverUrl  || ''
+          coverB64     : fetched.coverB64  || '',
+          coverUrl     : fetched.coverUrl  || '',
+          autoFillCover: !!(fetched.coverB64 && !document.getElementById('bookCoverBase64').value),
+          autoFills    : autoFills
         });
         panel.style.display = 'block';
       }
@@ -23657,6 +23676,23 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (!panel) return;
         var extra  = {};
         try { extra = JSON.parse(panel.dataset.fetchedJson || '{}'); } catch(e) {}
+
+        // Apply all auto-fill fields (empty fields — no checkbox, always applied)
+        (extra.autoFills || []).forEach(function(f) {
+          if (f.id === '_genres') {
+            setGenreTags(f.val);
+          } else {
+            var el = document.getElementById(f.id);
+            if (el) el.value = f.val;
+          }
+        });
+
+        // Auto-fill cover if it was shown as ✓ (no existing cover — no checkbox)
+        if (extra.autoFillCover && extra.coverB64) {
+          document.getElementById('bookCoverBase64').value    = extra.coverB64;
+          document.getElementById('bookCoverSourceUrl').value = extra.coverUrl || '';
+          showBookCoverPreview(extra.coverB64, 'Cover from Open Library. Upload to override.');
+        }
 
         var checkboxes = panel.querySelectorAll('input[type="checkbox"][data-isbn-field]');
         checkboxes.forEach(function(cb) {
