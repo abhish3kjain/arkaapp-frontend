@@ -1795,7 +1795,12 @@
     if (admToastTimer) clearTimeout(admToastTimer);
     el.textContent=message;
     el.className='adm-toast-visible'+(type==='ok'?' adm-toast-ok':type==='err'?' adm-toast-err':'');
-    admToastTimer=setTimeout(function(){ el.className=''; }, 3000);
+    admToastTimer=setTimeout(function(){
+      el.className='';
+      // Clear text after the slide-out transition (220 ms) so :empty applies
+      // and the element is fully hidden rather than sitting as a ghost pill.
+      setTimeout(function(){ el.textContent=''; }, 260);
+    }, 3000);
   }
 
   /* ══════════════════════════════════════════════════════════════════
