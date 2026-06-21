@@ -2166,28 +2166,45 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        * Placeholders (—) remain until Wave 3 is loaded for Reading Now and Books Finished.
        */
       function _fillMembersBannerStats_() {
-        var membersEl = document.getElementById('mbrStatMembers');
-        var readingEl = document.getElementById('mbrStatReading');
-        var booksEl   = document.getElementById('mbrStatBooks');
+        var membersEl    = document.getElementById('mbrStatMembers');
+        var activeWeekEl = document.getElementById('mbrStatActiveWeek');
+        var pagesYearEl  = document.getElementById('mbrStatPagesYear');
 
         // Members count — available from Wave 1, safe to fill immediately
         if (membersEl && globalMembersDB.length > 0) {
           membersEl.textContent = globalMembersDB.length;
         }
 
-        // Reading Now + Books Finished require Wave 3 (globalShelvesDB)
+        // Active This Week — derived from member.lastAccessed (Wave 1)
+        if (activeWeekEl && globalMembersDB.length > 0) {
+          var weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+          var activeCount = globalMembersDB.filter(function(m) {
+            var d = parseGoogleDate(m.lastAccessed);
+            return d && d.getTime() >= weekAgo;
+          }).length;
+          activeWeekEl.textContent = activeCount;
+        }
+
+        // Pages This Year — requires Wave 3 (globalShelvesDB)
         if (!isWave3Loaded) return;
 
-        var readingMemberIds = new Set();
-        var finishedTotal    = 0;
+        var thisYear   = new Date().getFullYear();
+        var pagesTotal = 0;
 
         globalShelvesDB.forEach(function(shelf) {
-          if (shelf.status === 'Reading')  readingMemberIds.add(shelf.memberId);
-          if (shelf.status === 'Finished') finishedTotal++;
+          if (shelf.status === 'Finished' && shelf.dateFinished) {
+            var d = parseGoogleDate(shelf.dateFinished);
+            if (d && d.getFullYear() === thisYear) {
+              pagesTotal += Number(shelf.pagesRead) || 0;
+            }
+          }
         });
 
-        if (readingEl) readingEl.textContent = readingMemberIds.size;
-        if (booksEl)   booksEl.textContent   = finishedTotal.toLocaleString();
+        if (pagesYearEl) {
+          pagesYearEl.textContent = pagesTotal >= 1000
+            ? (pagesTotal / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+            : pagesTotal.toLocaleString();
+        }
       }
 
 
