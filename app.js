@@ -23525,6 +23525,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           { id: 'newBookBlurb',         label: 'Blurb',       key: 'blurb'  },
         ];
 
+        var ROW_STYLE  = 'display:flex;align-items:flex-start;gap:10px;padding:7px 0;'
+                       + 'border-bottom:0.5px solid rgba(0,0,0,0.06);width:100%;box-sizing:border-box;';
+        var TEXT_STYLE = 'font-size:0.78rem;line-height:1.5;flex:1;min-width:0;word-break:break-word;';
+        var CB_STYLE   = 'margin-top:3px;flex-shrink:0;accent-color:#3B6D11;width:15px;height:15px;';
+
         var rows = '';
         FIELDS.forEach(function(f) {
           var val = fetched[f.key];
@@ -23536,32 +23541,28 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
           if (showCb) {
             rows +=
-              '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;'
-              + 'border-bottom:0.5px solid rgba(0,0,0,0.06);cursor:pointer;">'
+              '<label style="' + ROW_STYLE + 'cursor:pointer;">'
               + '<input type="checkbox" data-isbn-field="' + f.id + '" data-isbn-val="'
-              + escapeHtml(val) + '" '
-              + 'style="margin-top:2px;flex-shrink:0;accent-color:#3B6D11;">'
-              + '<span style="font-size:0.75rem;line-height:1.4;">'
+              + escapeHtml(val) + '" style="' + CB_STYLE + '">'
+              + '<span style="' + TEXT_STYLE + '">'
               + '<span style="font-weight:600;color:#3B6D11;">' + f.label + '</span>'
               + (hasData
                   ? ' <span style="color:var(--text-muted);">· replace</span>'
                   : ' <span style="color:var(--text-muted);">· set</span>')
-              + '<br><span style="color:#333;">' + escapeHtml(displayVal) + '</span>'
+              + '<br><span style="color:#222;">' + escapeHtml(displayVal) + '</span>'
               + (hasData
-                  ? '<br><span style="color:var(--text-faint);font-size:0.68rem;">currently: '
+                  ? '<br><span style="color:#aaa;font-size:0.68rem;">currently: '
                     + escapeHtml(cur.length > 50 ? cur.slice(0, 47) + '…' : cur) + '</span>'
                   : '')
               + '</span></label>';
           } else {
-            // Empty field — will auto-fill, just show as info
             rows +=
-              '<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;'
-              + 'border-bottom:0.5px solid rgba(0,0,0,0.06);">'
-              + '<span style="font-size:1rem;margin-top:1px;">✓</span>'
-              + '<span style="font-size:0.75rem;line-height:1.4;">'
+              '<div style="' + ROW_STYLE + '">'
+              + '<span style="color:#3B6D11;font-size:0.85rem;flex-shrink:0;margin-top:1px;">✓</span>'
+              + '<span style="' + TEXT_STYLE + '">'
               + '<span style="font-weight:600;color:#3B6D11;">' + f.label + '</span>'
               + ' <span style="color:var(--text-muted);">· will fill</span>'
-              + '<br><span style="color:#333;">' + escapeHtml(displayVal) + '</span>'
+              + '<br><span style="color:#222;">' + escapeHtml(displayVal) + '</span>'
               + '</span></div>';
           }
         });
@@ -23571,18 +23572,17 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           var genreStr  = fetched.genres.join(', ');
           var hasGenres = bookFormGenreTags.length > 0;
           rows +=
-            '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;'
-            + 'border-bottom:0.5px solid rgba(0,0,0,0.06);cursor:pointer;">'
+            '<label style="' + ROW_STYLE + 'cursor:pointer;">'
             + '<input type="checkbox" data-isbn-field="_genres" data-isbn-val="'
-            + escapeHtml(genreStr) + '" style="margin-top:2px;flex-shrink:0;accent-color:#3B6D11;">'
-            + '<span style="font-size:0.75rem;line-height:1.4;">'
+            + escapeHtml(genreStr) + '" style="' + CB_STYLE + '">'
+            + '<span style="' + TEXT_STYLE + '">'
             + '<span style="font-weight:600;color:#3B6D11;">Genres</span>'
             + (hasGenres
                 ? ' <span style="color:var(--text-muted);">· replace</span>'
                 : ' <span style="color:var(--text-muted);">· will fill</span>')
-            + '<br><span style="color:#333;">' + escapeHtml(genreStr) + '</span>'
+            + '<br><span style="color:#222;">' + escapeHtml(genreStr) + '</span>'
             + (hasGenres
-                ? '<br><span style="color:var(--text-faint);font-size:0.68rem;">currently: '
+                ? '<br><span style="color:#aaa;font-size:0.68rem;">currently: '
                   + escapeHtml(bookFormGenreTags.join(', ')) + '</span>'
                 : '')
             + '</span></label>';
@@ -23592,10 +23592,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (fetched.coverB64) {
           var hasCover = !!document.getElementById('bookCoverBase64').value;
           rows +=
-            '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;cursor:pointer;">'
-            + '<input type="checkbox" data-isbn-field="_cover" '
-            + 'style="margin-top:2px;flex-shrink:0;accent-color:#3B6D11;">'
-            + '<span style="font-size:0.75rem;line-height:1.4;flex:1;">'
+            '<label style="' + ROW_STYLE + 'border-bottom:none;cursor:pointer;align-items:center;">'
+            + '<input type="checkbox" data-isbn-field="_cover" style="' + CB_STYLE + '">'
+            + '<span style="' + TEXT_STYLE + '">'
             + '<span style="font-weight:600;color:#3B6D11;">Cover</span>'
             + (hasCover
                 ? ' <span style="color:var(--text-muted);">· replace</span>'
