@@ -26703,6 +26703,28 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       }
 
       /**
+       * Returns the weekly page target (T) for heatmap colour bands.
+       * Uses the user's active PAGE_COUNT challenge personalGoal / 52.
+       * Falls back to 70 (10 pages/day) when no enrollment data is available yet.
+       */
+      function getHeatmapWeeklyTarget() {
+        const DEFAULT_T = 70;
+        if (!globalChallengeEnrollmentsDB || !globalChallengeEnrollmentsDB.length) return DEFAULT_T;
+        const activePageCountEnrollment = globalChallengeEnrollmentsDB.find(function(e) {
+          if (e.memberId !== currentUser) return false;
+          if (e.enrollmentStatus !== 'Active') return false;
+          const challenge = challengesMap.get(e.challengeId);
+          return challenge && challenge.challengeType === 'PAGE_COUNT';
+        });
+        if (!activePageCountEnrollment) return DEFAULT_T;
+        let state = {};
+        try { state = JSON.parse(activePageCountEnrollment.progressStateJson || '{}'); } catch (ex) {}
+        const yearlyGoal = state.personalGoal;
+        if (!yearlyGoal || yearlyGoal <= 0) return DEFAULT_T;
+        return yearlyGoal / 52;
+      }
+
+      /**
        * Renders the 52-week reading activity heatmap and calculates current-year stats.
        * This is strictly personal data and only runs for the logged-in currentUser.
        * * @param {string} memberId - The ID of the user (should always be currentUser)
@@ -26783,13 +26805,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           const pages = weeklyPages[w];
           square.title = `Week ${w}: ${pages} pages`; // Tooltip on hover
 
-          // Color Intensity Logic
-          if (pages > 0 && pages <= 50) {
-            square.classList.add('active-low');  // Light Green
-          } else if (pages > 50 && pages <= 150) {
-            square.classList.add('active-med');  // Medium Green
-          } else if (pages > 150) {
-            square.classList.add('active-high'); // Dark Green
+          // Color intensity scales with the user's weekly page target (T).
+          // T = yearlyGoal / 52 from their active PAGE_COUNT challenge, or 70 by default.
+          const T = getHeatmapWeeklyTarget();
+          if (pages > 0 && pages <= T / 2) {
+            square.classList.add('active-low');  // Light Green: logged something, below half target
+          } else if (pages > T / 2 && pages <= T) {
+            square.classList.add('active-med');  // Medium Green: approaching target
+          } else if (pages > T) {
+            square.classList.add('active-high'); // Dark Green: at or above target
           }
 
           // Highlight the current week with an Arka accent outline + visible number
@@ -33581,6 +33605,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     
         // Me tab — challenges card, personal activity feed, onboarding card (full pass)
         if (document.getElementById('meView').style.display === 'block') {
+          renderHeatmap(currentUser); // re-render now that challenge goal is known
           renderMyChallengesCard();
           renderHomeFeed(currentUser, 'meActivityFeed');
           // Full-accuracy onboarding re-render: globalActivityLogDB is now populated
