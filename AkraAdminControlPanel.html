@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=1.8">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=1.9">
 </head>
 <body>
 
@@ -166,7 +166,7 @@
       <!-- ── BADGES ────────────────────────────────────────────── -->
       <section id="admSectionBadges" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-medal" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Badge Management</h2>
+          <h2><i class="fa-solid fa-medal" style="color:var(--color-gamification);margin-right:8px;font-size:0.9em"></i>Badge Management</h2>
         </div>
         <div class="adm-subtabs">
           <button class="adm-subtab active" id="admSubTabAward"     onclick="admSwitchBadgeSubTab('award')"><i class="fa-solid fa-medal"></i> Award a Badge</button>
@@ -314,7 +314,7 @@
       <!-- ── CONTENT MODERATION ──────────────────────────────── -->
       <section id="admSectionContent" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-comment-lines" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Book Posts</h2>
+          <h2><i class="fa-solid fa-comment-lines" style="color:var(--adm-warn);margin-right:8px;font-size:0.9em"></i>Book Posts</h2>
         </div>
         <p class="adm-section-subtitle">Review and delete book posts. Uses the same data as Club Reports — first load may take a few seconds.</p>
         <div class="adm-filter-row">
@@ -421,7 +421,7 @@
       <!-- ── ANNOUNCEMENTS ────────────────────────────────────── -->
       <section id="admSectionAnnouncements" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-bullhorn" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Announcements</h2>
+          <h2><i class="fa-solid fa-bullhorn" style="color:var(--color-announcements);margin-right:8px;font-size:0.9em"></i>Announcements</h2>
         </div>
         <div class="adm-subtabs">
           <button class="adm-subtab active" id="admAnnSubTabActive"  onclick="admSwitchAnnSubTab('active')"><i class="fa-solid fa-list"></i> Active</button>
@@ -537,7 +537,7 @@
       <!-- ── EVENTS ───────────────────────────────────────────── -->
       <section id="admSectionEvents" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-calendar-days" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Events</h2>
+          <h2><i class="fa-solid fa-calendar-days" style="color:var(--adm-ok);margin-right:8px;font-size:0.9em"></i>Events</h2>
         </div>
         <div class="adm-subtabs">
           <button class="adm-subtab active" id="admEvtSubTabList"    onclick="admSwitchEvtSubTab('list')"><i class="fa-solid fa-list"></i> Events</button>
@@ -656,7 +656,7 @@
       <!-- ── CHALLENGES ───────────────────────────────────────── -->
       <section id="admSectionChallenges" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-trophy" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Challenges</h2>
+          <h2><i class="fa-solid fa-trophy" style="color:var(--color-challenge);margin-right:8px;font-size:0.9em"></i>Challenges</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" onclick="admLoadChallenges()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
         </div>
 
@@ -1159,6 +1159,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=1.8"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=1.9"></script>
 </body>
 </html>
