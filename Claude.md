@@ -7,6 +7,7 @@
 ## 0. Quick-Start Checklist (read before every response)
 
 - [ ] Do I have the current version of the relevant file open/read? If not, **ask first**.
+- [ ] After any feature or fix, has **VERSIONS.md** been updated with the new version number and a one-line summary? If not, **do it before committing**.
 - [ ] Is this a bug fix? Use the **exact fix format** in §3.
 - [ ] Does the requested feature need a new OAuth scope? If yes, **block it from the member app** (§7).
 - [ ] Is this a visual feature? **Show a mockup first** and wait for approval before writing code (§4).
@@ -30,6 +31,27 @@
 
 ## 2. File Map & Versioning
 
+Full version history for all versioned files lives in **`VERSIONS.md`**.
+Each file carries only its current version number in its header comment.
+Update `VERSIONS.md` with a one-line summary on every commit that changes a versioned file.
+
+| File | Purpose | Current Version |
+|---|---|---|
+| `app.js` | Core frontend JavaScript | **v3.7.0** |
+| `ArkaClubApp.html` | GAS HtmlService entry point | **v1.2.0** |
+| `MasterEngine.gs` | Nightly batch engine — stats, badges, RSE, email queue | **v2.5.0** |
+| `ArkaAIpass.gs` | Gemini AI narrative generation via `UrlFetchApp` | **v1.4.0** |
+| `ArkaPersonaPass.gs` | Reading personality / archetype computation | **v1.0.0** |
+| `styles.css` | Core stylesheet | (cache-busted via URL param) |
+| `ArkaMainAppCode.gs` | Backend GAS — all `google.script.run` handlers | (unversioned) |
+| `ArkaEmailPass.gs` | Email pipeline — reads queue, sends, logs | (unversioned) |
+| `ArkaAdminControlPanel.html` | Admin-only control panel | v4 |
+| `Arka_Help.html` | In-app help content | v40 |
+| `Arka_Design_Tokens.md` | Design token definitions | v1 |
+| `ArkaDatabase_Definitions.md` | Column-by-column schema for every sheet | v5 |
+| `Arka_Product_Audit_v2.md` | Product audit framework + open items | v2 |
+| `Arka_PersonaEngine_V1.md` | Formal design doc for ArkaPersonaPass | v1 |
+| `Arka_ReadingSpeedEngine_V1.md` | Formal design doc for RSE V1 | v1 |
 ### Member App
 | File | Purpose | Notes |
 |---|---|---|
@@ -60,7 +82,7 @@
 | `Arka_PersonaEngine_V1.md` | Formal design doc for ArkaPersonaPass — axes, archetypes, gating logic, frontend integration |
 | `Arka_ReadingSpeedEngine_V1.md` | Formal design doc for Reading Speed Engine — pace computation, outlier detection, genre fallback chain, frontend usage |
 
-**Version naming:** Frontend increments as `v111`, `v112`, …. Backend as `v55`, `v56`, …. MasterEngine as `v30`, `v31`, …. Never skip or reset version numbers.
+**Version scheme:** `MAJOR.MINOR.PATCH` — see `VERSIONS.md` for increment rules.
 
 **CDN cache busting:** When deploying changes to `styles.css`, `app.js`, `arkaadmin_styles.css`, or `arkaadmin_app.js`, increment the `?v=X.Y` query string in the corresponding HTML shell file.
 

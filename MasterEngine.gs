@@ -1,5 +1,7 @@
 /**
- * ARKA MASTER SYNC ENGINE (Standalone Backend)
+ * ARKA MASTER SYNC ENGINE (Standalone Backend)    v2.5.0
+ * Full version history: VERSIONS.md
+ *
  * Calculates absolute Club Points, audits for specific point farming rules,
  * issues negative corrections, and batch-updates the MemberDB.
  *

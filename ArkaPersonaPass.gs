@@ -1,4 +1,9 @@
 /**
+ * ARKA PERSONA PASS    v1.0.0
+ * Full version history: VERSIONS.md
+ *
+ * NOTE: File header is a carry-over from an earlier copy — functions below are
+ * the correct PersonaPass implementation (6-axis reading DNA, ArkaPersonaProfileDB write).
  * ARKA PERSONA PASS — Standalone Reading Personality Engine
  *
  * Responsibility: compute each active member's Reading Personality — their
