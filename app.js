@@ -3184,10 +3184,14 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         var mostRecentShiftId = recentShifts[0].activityID;
 
         // Suppress if the member has already dismissed this exact shift.
-        // personaShiftSeen is written to MemberDB Col N by setPersonaCelebrationSeen()
-        // on dismiss and loaded into member.celebration by buildMembersList_() at Wave 1.
+        // Primary: personaShiftSeen in member.celebration (loaded from MemberDB Col N at Wave 1).
+        // Fallback: localStorage — guards against Col N being wiped by clearMemberCelebration()
+        //   when a badge/level card is dismissed in the same or a prior session.
         var memberRec  = globalMembersDB.find(function(m) { return m.id === currentUser; });
         var seenId     = memberRec && memberRec.celebration ? memberRec.celebration.personaShiftSeen : null;
+        if (!seenId) {
+          try { seenId = localStorage.getItem('arka_personaShiftSeen_' + currentUser); } catch(e) {}
+        }
         if (seenId && seenId === mostRecentShiftId) return;
 
         // ── Require a resolved archetype ──────────────────────────────────────────
@@ -3306,6 +3310,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           if (!memberRec.celebration) memberRec.celebration = {};
           memberRec.celebration.personaShiftSeen = seenActivityId;
         }
+
+        // Persist to localStorage so the suppression survives Col N being cleared
+        // by clearMemberCelebration() when a badge/level card is dismissed.
+        try { localStorage.setItem('arka_personaShiftSeen_' + currentUser, seenActivityId); } catch(e) {}
 
         // Fire-and-forget — failure means the card may reappear on next session,
         // which is acceptable (same tolerance as dismissCelebrationCard_).
