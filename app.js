@@ -23539,7 +23539,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;'
               + 'border-bottom:0.5px solid rgba(0,0,0,0.06);cursor:pointer;">'
               + '<input type="checkbox" data-isbn-field="' + f.id + '" data-isbn-val="'
-              + escapeHtml(val) + '" checked '
+              + escapeHtml(val) + '" '
               + 'style="margin-top:2px;flex-shrink:0;accent-color:#3B6D11;">'
               + '<span style="font-size:0.75rem;line-height:1.4;">'
               + '<span style="font-weight:600;color:#3B6D11;">' + f.label + '</span>'
@@ -23574,8 +23574,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;'
             + 'border-bottom:0.5px solid rgba(0,0,0,0.06);cursor:pointer;">'
             + '<input type="checkbox" data-isbn-field="_genres" data-isbn-val="'
-            + escapeHtml(genreStr) + '"' + (hasGenres ? '' : ' checked')
-            + ' style="margin-top:2px;flex-shrink:0;accent-color:#3B6D11;">'
+            + escapeHtml(genreStr) + '" style="margin-top:2px;flex-shrink:0;accent-color:#3B6D11;">'
             + '<span style="font-size:0.75rem;line-height:1.4;">'
             + '<span style="font-weight:600;color:#3B6D11;">Genres</span>'
             + (hasGenres
@@ -23594,7 +23593,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           var hasCover = !!document.getElementById('bookCoverBase64').value;
           rows +=
             '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;cursor:pointer;">'
-            + '<input type="checkbox" data-isbn-field="_cover" checked '
+            + '<input type="checkbox" data-isbn-field="_cover" '
             + 'style="margin-top:2px;flex-shrink:0;accent-color:#3B6D11;">'
             + '<span style="font-size:0.75rem;line-height:1.4;flex:1;">'
             + '<span style="font-weight:600;color:#3B6D11;">Cover</span>'
@@ -23616,7 +23615,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         panel.innerHTML =
           '<div style="font-size:0.78rem;font-weight:600;color:#3B6D11;margin-bottom:8px;">'
-          + 'Review what to apply — uncheck any field to keep your current value'
+          + 'Review what to apply — check the fields you want to update'
           + '</div>'
           + '<div id="isbnReviewRows">' + rows + '</div>'
           + '<div style="display:flex;gap:8px;margin-top:10px;">'
