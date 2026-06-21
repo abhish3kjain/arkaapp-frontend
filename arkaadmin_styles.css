@@ -489,10 +489,10 @@
 
     /* ── Email queue status badges ────────────────────────────── */
     .adm-eq-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
-    .adm-eq-badge-pending    { background: var(--adm-warn-bg,#fff8e6); color: var(--adm-warn,#f59f00); }
-    .adm-eq-badge-sent       { background: var(--adm-ok-bg,#e6f7f1);   color: var(--adm-ok,#1d9e75); }
-    .adm-eq-badge-failed     { background: var(--adm-danger-bg,#fde8e8); color: var(--adm-danger,#e74c3c); }
-    .adm-eq-badge-suppressed { background: var(--adm-page-bg,#f4f7f6); color: var(--text-faint); }
+    .adm-eq-badge-pending    { background: var(--adm-warn-bg);   color: var(--adm-warn); }
+    .adm-eq-badge-sent       { background: var(--adm-ok-bg);     color: var(--adm-ok); }
+    .adm-eq-badge-failed     { background: var(--adm-danger-bg); color: var(--adm-danger); }
+    .adm-eq-badge-suppressed { background: var(--adm-page-bg);   color: var(--text-faint); }
 
     /* Scoped form label style for Events compose form */
     #admEvtForm .adm-form-label {
