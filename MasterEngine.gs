@@ -2651,6 +2651,7 @@ function syncAllMemberStats() {
         try {
           // Col D (index 3) is DisplayName — passed to the AI for personalised tone.
           var iDisplayName = (memData[ii][3] || '').toString().trim();
+          var _iStatsObj_  = _parseStatsJson_(memData[ii][14]);
           var insightJson  = generateMemberCoachInsights_(
             iMemberId,
             iDisplayName,
@@ -2666,8 +2667,9 @@ function syncAllMemberStats() {
             (memData[ii][6]  || '').toString(),  // Col G: ShortBio — profile bio (free text)
             personaProfileMap[iMemberId] || null,// PersonaProfileDB row for this member, or null
             badgeTierMap,                        // pre-built { category → { tier → { badgeId, caption } } }
-            Number(memData[ii][14]) || 0,        // Col O: TotalClubPoints — current lifetime CP
-            levelRules                           // [{ maxClubPoints, levelName }] from ClubPointLevelDB
+            (_iStatsObj_.allTime || {}).arkaPoints || 0, // lifetime CP for level proximity
+            levelRules,                          // [{ maxClubPoints, levelName }] from ClubPointLevelDB
+            _iStatsObj_.readingSpeed || null     // RSE V1 profile from Col O Stats JSON
           );
           // Ensure row is wide enough for Col S (index 18) before writing.
           while (memData[ii].length < MEMBER_DB_TARGET_COL_COUNT) memData[ii].push('');
@@ -3924,8 +3926,9 @@ function generateMemberCoachInsights_(
   memberShortBio,       // MemberDB Col G — member's profile bio (free text)
   memberPersonaData,    // PersonaProfileDB row: { archetypeName, archetypeTagline, axisVerdicts[] } or null
   badgeTierMap,         // Pre-built badge tier map: { category → { tier → { badgeId, caption } } }
-  memberTotalClubPoints,// MemberDB Col O: TotalClubPoints — lifetime CP for level proximity
-  levelRules            // ClubPointLevelDB rules: [{ maxClubPoints, levelName }]
+  memberTotalClubPoints,// lifetime ArkaPoints for level proximity (from Col O Stats JSON allTime.arkaPoints)
+  levelRules,           // ClubPointLevelDB rules: [{ maxClubPoints, levelName }]
+  memberReadingSpeed    // RSE V1 profile from Col O Stats JSON — may be null if not yet computed
 ) {
   var NOW        = new Date();
   var NOW_MS     = NOW.getTime();
@@ -5543,7 +5546,13 @@ function generateMemberCoachInsights_(
     // Exposing them here ensures both places use identical pace data for
     // daysToUnlock ranking, keeping the two "closest badge" surfaces coherent.
     badgePaceAvgPagesPerDay : nbPaceAvgPagesPerDay,
-    badgePaceAvgBooksPerDay : nbPaceAvgBooksPerDay
+    badgePaceAvgBooksPerDay : nbPaceAvgBooksPerDay,
+
+    // RSE V1 daily pace profile — null until MasterEngine has run RSE for this member.
+    // overallAvgPace: pages/day (all-time incl. unlinked), recentPace: pages/day last 30 days,
+    // moodMultiplier: recentPace / overallAvgPace clamped [0.4, 2.0],
+    // genrePace: { canonicalGenre: { pace, booksUsed } } for genres with ≥ 3 finished books.
+    memberReadingSpeed : memberReadingSpeed
   };
 
   // ── 12. PRESERVE EXISTING AI ADVICE ───────────────────────────────────────
