@@ -4141,7 +4141,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         var daysSince = (Date.now() - ts) / (1000 * 60 * 60 * 24);
 
-        if (daysSince < 7)   return { color: '#27ae60', title: 'Active this week' };
+        if (daysSince < 7)   return { color: '#27ae60', title: 'Active recently' };
         if (daysSince < 28)  return { color: '#f39c12', title: 'Active within 4 weeks' };
         if (daysSince < 180) return { color: '#bdc3c7', title: 'Not active for over 4 weeks' };
         return                      { color: 'var(--color-danger)', title: 'Not active for 6+ months' };
