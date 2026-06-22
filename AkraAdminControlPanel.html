@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=2.9">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=3.0">
 </head>
 <body>
 
@@ -107,7 +107,7 @@
       <!-- ── OVERVIEW ─────────────────────────────────────────── -->
       <section id="admSectionOverview" class="adm-section active">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-house" class="adm-section-icon"></i>Overview</h2>
+          <h2><i class="fa-solid fa-house adm-section-icon"></i>Overview</h2>
           <span class="adm-section-ts" id="admOverviewTs"></span>
         </div>
         <div class="adm-stat-grid" id="admStatGrid"></div>
@@ -129,7 +129,7 @@
       <!-- ── APPROVALS ─────────────────────────────────────────── -->
       <section id="admSectionApprovals" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-user-check" class="adm-section-icon"></i>Member Approvals</h2>
+          <h2><i class="fa-solid fa-user-check adm-section-icon"></i>Member Approvals</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" id="admApprovalCardViewBtn" onclick="admToggleApprovalsCardView()" title="Toggle card view"><i class="fa-solid fa-table-cells-large"></i> Card View</button>
         </div>
         <p class="adm-section-subtitle">New members start as Pending. Approved = full app access. Rejected records are kept for the audit trail.</p>
@@ -142,8 +142,8 @@
           <input type="text" class="adm-input adm-search-input" id="admApprovalSearch" placeholder="Search name or email…" oninput="admRenderApprovals()">
         </div>
         <!-- Bulk action bar — shown when Pending rows are selected -->
-        <div id="admBulkApproveBar" style="display:none;align-items:center;gap:12px;background:var(--adm-page-bg);border:1.5px solid var(--arka-accent);border-radius:8px;padding:10px 14px;margin-bottom:12px">
-          <span id="admBulkCountLabel" style="font-size:0.85rem;font-weight:600;color:var(--text-strong)">0 selected</span>
+        <div id="admBulkApproveBar" class="adm-bulk-bar" style="display:none">
+          <span id="admBulkCountLabel" class="adm-bulk-count">0 selected</span>
           <button class="adm-btn adm-btn-accent adm-btn-sm" id="admBulkApproveBtn" onclick="admBulkApproveSelected()">
             <i class="fa-solid fa-check-double"></i> Approve Selected
           </button>
@@ -166,7 +166,7 @@
       <!-- ── BADGES ────────────────────────────────────────────── -->
       <section id="admSectionBadges" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-medal" style="color:var(--color-gamification);margin-right:8px;font-size:0.9em"></i>Badge Management</h2>
+          <h2><i class="fa-solid fa-medal adm-section-icon adm-section-icon--gamif"></i>Badge Management</h2>
         </div>
         <div class="adm-subtabs">
           <button class="adm-subtab active" id="admSubTabAward"     onclick="admSwitchBadgeSubTab('award')"><i class="fa-solid fa-medal"></i> Award a Badge</button>
@@ -216,7 +216,7 @@
             <input type="text" class="adm-input adm-search-input" id="admAwardBrowseSearch" placeholder="Search member or badge…" oninput="admRenderBadgeAwardsList()">
           </div>
           <div class="adm-filter-row adm-mt-8">
-            <span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:6px 4px;white-space:nowrap">Awarder</span>
+            <span class="adm-filter-row-label">Awarder</span>
             <button class="adm-filter-tab active" data-award-awarder="All"    onclick="admSetAwardAwarder('All')">All</button>
             <button class="adm-filter-tab"        data-award-awarder="System" onclick="admSetAwardAwarder('System')"><i class="fa-solid fa-robot" style="margin-right:4px;font-size:0.75em"></i>System</button>
             <button class="adm-filter-tab"        data-award-awarder="Manual" onclick="admSetAwardAwarder('Manual')"><i class="fa-solid fa-user-shield" style="margin-right:4px;font-size:0.75em"></i>Manual</button>
@@ -249,12 +249,12 @@
               <textarea class="adm-textarea" id="admCreateBadgeDesc" rows="2" placeholder="What achievement does this badge represent?"></textarea>
             </div>
             <div class="adm-chal-section-divider">Points &amp; Category</div>
-            <div class="adm-grid-2col" style="gap:14px">
-              <div class="adm-form-group" style="margin-bottom:0">
+            <div class="adm-grid-2col adm-badge-form-grid">
+              <div class="adm-form-group adm-mb-0">
                 <label class="adm-form-label">Club Points Awarded</label>
                 <input type="number" class="adm-input" id="admCreateBadgePoints" placeholder="e.g. 500" min="0">
               </div>
-              <div class="adm-form-group" style="margin-bottom:0">
+              <div class="adm-form-group adm-mb-0">
                 <label class="adm-form-label">Category</label>
                 <select class="adm-input" id="admCreateBadgeCategory" style="cursor:pointer">
                   <option value="SPECIAL">Special</option>
@@ -269,10 +269,10 @@
             <div class="adm-chal-section-divider">Image</div>
             <div class="adm-form-group">
               <label class="adm-form-label">Badge Image <span style="color:var(--adm-danger)">*</span> <span class="adm-form-optional">(square, min 400×400 px — auto-cropped)</span></label>
-              <div class="adm-flex-row-tight adm-mt-8" style="gap:14px">
+              <div class="adm-flex-row-tight adm-mt-8 adm-badge-img-row">
                 <img id="admCreateBadgePreview" class="adm-badge-img-preview" style="display:none" alt="preview">
                 <div id="admCreateBadgeFallback" class="adm-badge-img-fallback">🏅</div>
-                <input type="file" id="admCreateBadgeInput" accept="image/*" onchange="admHandleBadgeCreateImgSelect(this)" style="flex:1;font-size:0.82rem">
+                <input type="file" id="admCreateBadgeInput" accept="image/*" onchange="admHandleBadgeCreateImgSelect(this)" class="adm-file-input">
               </div>
             </div>
             <button class="adm-btn adm-btn-accent adm-mt-8" id="admCreateBadgeBtn" onclick="admSubmitCreateBadge()">
@@ -300,10 +300,10 @@
             <div class="adm-chal-section-divider">Image</div>
             <div class="adm-form-group">
               <label class="adm-form-label">New image file <span style="color:var(--adm-danger)">*</span> <span class="adm-form-optional">(square, min 400×400 px — auto-cropped)</span></label>
-              <div class="adm-flex-row-tight adm-mt-8" style="gap:14px">
+              <div class="adm-flex-row-tight adm-mt-8 adm-badge-img-row">
                 <img id="admUpdateImgPreview" class="adm-badge-img-preview" style="display:none" alt="preview">
                 <div id="admUpdateImgFallback" class="adm-badge-img-fallback">🖼️</div>
-                <input type="file" id="admUpdateImgInput" accept="image/*" onchange="admHandleUpdateImgSelect(this)" style="flex:1;font-size:0.82rem">
+                <input type="file" id="admUpdateImgInput" accept="image/*" onchange="admHandleUpdateImgSelect(this)" class="adm-file-input">
               </div>
             </div>
             <button class="adm-btn adm-btn-accent adm-mt-8" id="admUpdateImgBtn" onclick="admSubmitUpdateBadgeImage()">
@@ -346,7 +346,7 @@
       <!-- ── PERFORMANCE ───────────────────────────────────────── -->
       <section id="admSectionPerformance" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-gauge-high" class="adm-section-icon"></i>App Load Performance</h2>
+          <h2><i class="fa-solid fa-gauge-high adm-section-icon"></i>App Load Performance</h2>
         </div>
         <p class="adm-section-subtitle">
           Trend left → right = oldest → newest version. Dashed lines = 3 s and 6 s thresholds.
@@ -393,7 +393,7 @@
       <!-- ── MEMBER STATS ──────────────────────────────────────── -->
       <section id="admSectionMembers" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-chart-bar" class="adm-section-icon"></i>Member Stats</h2>
+          <h2><i class="fa-solid fa-chart-bar adm-section-icon"></i>Member Stats</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" id="admMembersCardViewBtn" onclick="admToggleMembersCardView()" title="Toggle card view"><i class="fa-solid fa-table-cells-large"></i> Card View</button>
         </div>
         <p class="adm-section-subtitle">Approved members only. <span class="adm-live-dot"></span> = active in the last 30 days.</p>
@@ -927,7 +927,7 @@
       <!-- ── EMAIL QUEUE MONITOR ──────────────────────────────── -->
       <section id="admSectionEmailqueue" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-envelope-circle-check" class="adm-section-icon"></i>Email Queue</h2>
+          <h2><i class="fa-solid fa-envelope-circle-check adm-section-icon"></i>Email Queue</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" onclick="admLoadEmailQueue()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
         </div>
         <p class="adm-section-subtitle">Read-only view of the ArkaEmailPass queue. Shows the 300 most recent entries. Suppress a PENDING entry to prevent it from being sent.</p>
@@ -951,7 +951,7 @@
       <!-- ── CLUB REPORTS (merged from ArkaReports v4) ────────── -->
       <section id="admSectionReports" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-file-chart-column" class="adm-section-icon"></i>Club Reports</h2>
+          <h2><i class="fa-solid fa-file-chart-column adm-section-icon"></i>Club Reports</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" id="admRefreshReportsBtn" onclick="admLoadReportsData()" style="display:none">
             <i class="fa-solid fa-rotate-right"></i> Refresh Data
           </button>
@@ -1160,6 +1160,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=2.9"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=3.0"></script>
 </body>
 </html>

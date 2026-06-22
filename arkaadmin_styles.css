@@ -208,8 +208,34 @@
     .adm-stat-card.c-danger .adm-stat-icon { color: var(--adm-danger); }
 
     /* ── Section header icon / timestamp ──────────────────────────── */
-    .adm-section-icon { color: var(--arka-accent); margin-right: 8px; font-size: 0.9em; }
-    .adm-section-ts   { font-size: 0.75rem; color: var(--text-faint); }
+    .adm-section-icon            { color: var(--arka-accent); margin-right: 8px; font-size: 0.9em; }
+    .adm-section-icon--gamif     { color: var(--color-gamification); }
+    .adm-section-ts              { font-size: 0.75rem; color: var(--text-faint); }
+
+    /* ── Bulk approval bar ────────────────────────────────────────── */
+    .adm-bulk-bar   { display: flex; align-items: center; gap: 12px; background: var(--adm-page-bg); border: 1.5px solid var(--arka-accent); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }
+    .adm-bulk-count { font-size: 0.85rem; font-weight: 600; color: var(--text-strong); }
+
+    /* ── Filter row label (Awarder / Type chips) ──────────────────── */
+    .adm-filter-row-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-faint); padding: 6px 4px; white-space: nowrap; }
+
+    /* ── Badge form helpers ───────────────────────────────────────── */
+    .adm-badge-form-grid { gap: 14px; }
+    .adm-mb-0            { margin-bottom: 0; }
+    .adm-badge-img-row   { gap: 14px; }
+    .adm-file-input      { flex: 1; font-size: 0.82rem; }
+
+    /* ── Badge award table ────────────────────────────────────────── */
+    .adm-award-badge-cell { display: flex; align-items: center; gap: 8px; }
+    .adm-award-badge-cat  { font-size: 0.7rem; color: var(--text-faint); }
+    .adm-award-member-id  { font-size: 0.7rem; }
+    .adm-award-notes      { font-size: 0.78rem; max-width: 200px; white-space: normal; word-break: break-word; color: var(--text-muted); }
+
+    /* ── Table utility classes ────────────────────────────────────── */
+    .adm-nowrap  { white-space: nowrap; }
+    .adm-td-faint{ color: var(--text-faint); }
+    .adm-td-sm   { font-size: 0.78rem; }
+    .adm-th-cb   { width: 36px; }
 
     /* ── Pending preview rows (Overview) ──────────────────────────── */
     .adm-pending-row  { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); }

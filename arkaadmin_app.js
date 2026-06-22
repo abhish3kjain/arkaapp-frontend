@@ -270,7 +270,7 @@
     // Sync thead checkbox column
     var thead = document.getElementById('admApprovalThead');
     if (thead) {
-      thead.innerHTML = (showCb ? '<th style="width:36px"><input type="checkbox" id="admSelectAllPending" onchange="admToggleSelectAllPending(this.checked)" title="Select all pending"></th>' : '')
+      thead.innerHTML = (showCb ? '<th class="adm-th-cb"><input type="checkbox" id="admSelectAllPending" onchange="admToggleSelectAllPending(this.checked)" title="Select all pending"></th>' : '')
         + '<th>Member ID</th><th>Display Name</th><th>Full Name</th><th>Email</th><th>Join Date</th><th>Status</th><th>Actions</th>';
     }
     if (!showCb) { admBulkSelectedIds = []; _admUpdateBulkBar(); }
@@ -310,10 +310,10 @@
         + '<td data-label="ID" class="adm-td-mono adm-col-mob">'+_esc(m.memberId)+'</td>'
         + '<td data-label="Name"><strong>'+_esc(m.displayName)+'</strong>' + mobileSub + '</td>'
         + '<td data-label="Full Name" class="adm-col-mob">'+_esc(m.fullName)+'</td>'
-        + '<td data-label="Email" class="adm-col-mob" style="font-size:0.78rem;color:var(--text-faint)">'+_esc(m.email)+'</td>'
-        + '<td data-label="Joined" class="adm-col-mob" style="white-space:nowrap">'+_esc(m.joinDate)+'</td>'
+        + '<td data-label="Email" class="adm-col-mob adm-td-faint adm-td-sm">'+_esc(m.email)+'</td>'
+        + '<td data-label="Joined" class="adm-col-mob adm-nowrap">'+_esc(m.joinDate)+'</td>'
         + '<td data-label="Status">'+pill+'</td>'
-        + '<td data-label="" style="white-space:nowrap">'+actions+'</td>'
+        + '<td data-label="" class="adm-nowrap">'+actions+'</td>'
         + '</tr>';
     }).join('');
   }
@@ -477,7 +477,7 @@
   function _admPopulateBadgeCategoryChips() {
     var container = document.getElementById('admAwardCategoryChips');
     if (!container || !admPayload) return;
-    var html = '<span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:6px 4px;white-space:nowrap">Type</span>';
+    var html = '<span class="adm-filter-row-label">Type</span>';
     html += '<button class="adm-filter-tab active" data-award-category="All" onclick="admSetAwardCategory(\'All\')">All Types</button>';
     ADM_BADGE_CATEGORIES.forEach(function(cat) {
       var hasBadges = (admPayload.badgeList||[]).some(function(b) { return b.badgeCategory === cat.value; });
@@ -639,21 +639,21 @@
       return '<tr>'
         + '<td class="adm-td-mono adm-col-mob">' + _esc(a.awardId) + '</td>'
         + '<td>'
-          + '<div style="display:flex;align-items:center;gap:8px">'
+          + '<div class="adm-award-badge-cell">'
             + thumb
             + '<div><strong>' + _esc(b.caption) + '</strong>'
-              + (catLabel ? '<br><span style="font-size:0.7rem;color:var(--text-faint)">' + _esc(catLabel) + '</span>' : '')
+              + (catLabel ? '<br><span class="adm-award-badge-cat">' + _esc(catLabel) + '</span>' : '')
             + '</div>'
           + '</div>'
         + '</td>'
         + '<td>'
           + _esc(m.displayName)
-          + '<br><span class="adm-td-mono" style="font-size:0.7rem">' + _esc(a.memberId) + '</span>'
+          + '<br><span class="adm-td-mono adm-award-member-id">' + _esc(a.memberId) + '</span>'
         + '</td>'
         + '<td class="adm-col-mob">' + aBy + '</td>'
-        + '<td style="white-space:nowrap">' + _esc(a.awardedDate) + '</td>'
+        + '<td class="adm-nowrap">' + _esc(a.awardedDate) + '</td>'
         + '<td>' + stPill + '</td>'
-        + '<td class="adm-col-mob" style="font-size:0.78rem;max-width:200px;white-space:normal;word-break:break-word;color:var(--text-muted)">' + _esc(a.notes || '—') + '</td>'
+        + '<td class="adm-col-mob adm-award-notes">' + _esc(a.notes || '—') + '</td>'
         + '<td>' + revBtn + '</td>'
         + '</tr>';
     }).join('');
