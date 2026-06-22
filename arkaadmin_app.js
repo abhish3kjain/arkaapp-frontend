@@ -2266,9 +2266,9 @@
       _admSetVal('admChalFinishPoints',    c.finishPoints);
       _admSetVal('admChalWinPoints',       c.winPoints);
       var pinTog  = document.getElementById('admChalPinToggle');
-      var compTog = document.getElementById('admChalCompetitiveToggle');
-      if (pinTog)  pinTog.classList.toggle('on',  !!c.isPinned);
-      if (compTog) compTog.classList.toggle('on', !!c.isCompetitive);
+      var compSel = document.getElementById('admChalCompetitionMode');
+      if (pinTog)  pinTog.classList.toggle('on', !!c.isPinned);
+      if (compSel) compSel.value = c.competitionMode || 'NONE';
       _admChalShowTypeSection(c.challengeType);
       _admChalPrefillTypeFields(c);
     } else {
@@ -2281,9 +2281,9 @@
       _admSetVal('admChalFinishPoints', 500);
       _admSetVal('admChalWinPoints', 1500);
       var pinTog  = document.getElementById('admChalPinToggle');
-      var compTog = document.getElementById('admChalCompetitiveToggle');
+      var compSel = document.getElementById('admChalCompetitionMode');
       if (pinTog)  pinTog.classList.remove('on');
-      if (compTog) compTog.classList.add('on');
+      if (compSel) compSel.value = 'INDIVIDUAL';
       document.querySelectorAll('.adm-chal-type-section').forEach(function(el) { el.classList.remove('visible'); });
     }
 
@@ -2301,9 +2301,8 @@
       _admSetVal('admChalFinishPoints', pts.finish);
       _admSetVal('admChalWinPoints',    pts.win);
     }
-    var nonComp = ['BOOK_COUNT', 'PAGE_COUNT'];
-    var compTog = document.getElementById('admChalCompetitiveToggle');
-    if (compTog) compTog.classList.toggle('on', nonComp.indexOf(type) === -1);
+    var compSel = document.getElementById('admChalCompetitionMode');
+    if (compSel) compSel.value = (type === 'BOOK_COUNT' || type === 'PAGE_COUNT') ? 'NONE' : 'INDIVIDUAL';
     if (type === 'BINGO_GRID') admChalRenderBingoBuilder();
   }
 
@@ -2473,7 +2472,7 @@
       goalUnit      : goalCfg.goalUnit,
       goalConfigJson: goalCfg.goalConfigJson,
       status        : ((document.getElementById('admChalStatusSelect') || {}).value || 'Active'),
-      isCompetitive : !!(document.getElementById('admChalCompetitiveToggle') || {}).classList && document.getElementById('admChalCompetitiveToggle').classList.contains('on'),
+      competitionMode : ((document.getElementById('admChalCompetitionMode') || {}).value) || 'NONE',
       seriesTag     : ((document.getElementById('admChalSeriesTag') || {}).value || '').trim().toUpperCase(),
       isPinned      : !!(document.getElementById('admChalPinToggle') || {}).classList && document.getElementById('admChalPinToggle').classList.contains('on'),
       enrollPoints  : parseInt((document.getElementById('admChalEnrollPoints') || {}).value) || 0,

@@ -892,12 +892,14 @@
               </div>
               <div id="admChalPinToggle" class="toggle-pill" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
             </div>
-            <div class="adm-chal-toggle-row">
-              <div>
-                <div class="adm-chal-toggle-label">🏆 Show club leaderboard tab</div>
-                <div class="adm-chal-toggle-sub">Off for personal challenges (Book Count, Page Count)</div>
-              </div>
-              <div id="admChalCompetitiveToggle" class="toggle-pill on" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
+            <div class="adm-form-row">
+              <label class="adm-label" for="admChalCompetitionMode">🏆 Competition Mode</label>
+              <select id="admChalCompetitionMode" class="adm-input">
+                <option value="NONE">None – personal challenge, no leaderboard</option>
+                <option value="INDIVIDUAL">Individual – ranked leaderboard per member</option>
+                <option value="SHARED">Shared – whole club works toward a common goal</option>
+                <option value="TEAM" disabled>Team – subgroups compete (coming soon)</option>
+              </select>
             </div>
 
             <!-- Hidden: editing ID -->
