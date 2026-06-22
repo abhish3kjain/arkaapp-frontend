@@ -2999,31 +2999,37 @@
           </button>
 
           <div style="position:relative; z-index:2;">
-            <div class="chal-banner-icon-wrap">
-              <i class="fa-solid fa-trophy" style="color:rgba(255,255,255,0.8); font-size:1.2rem;"></i>
+
+            <!-- Top row: wordmark left, tag pills right -->
+            <div class="chal-toprow">
+              <div>
+                <div class="chal-banner-title">CHALLENGES</div>
+                <div class="chal-banner-sub">Arka Readers Club</div>
+              </div>
+              <div class="chal-toprow-tags" id="chalTopRowTags"></div>
             </div>
-            <div class="chal-banner-title">CHALLENGES</div>
-            <div class="chal-banner-sub">Arka Readers Club</div>
 
             <!-- Bento grid — populated by renderChallengesBanner() -->
             <div id="chalBentoGrid" class="chal-bento"></div>
-          </div>
 
+            <!-- Reading goals slim strip — shown when user has BOOK_COUNT / PAGE_COUNT enrolled -->
+            <div id="chalGoalsStrip" style="display:none;"></div>
+
+            <!-- Filter chips inside dark hero -->
+            <div class="chal-fchips-row">
+              <button class="chal-fc active" id="chalChipAll"        onclick="switchChallengesFilter('all')">All</button>
+              <button class="chal-fc"        id="chalChipEnrolled"   onclick="switchChallengesFilter('enrolled')">Enrolled</button>
+              <button class="chal-fc"        id="chalChipUnenrolled" onclick="switchChallengesFilter('unenrolled')">Un-enrolled</button>
+            </div>
+
+          </div>
         </div><!-- /chalBanner -->
 
         <!-- ── White content area ────────────────────────────────────────────── -->
         <div id="chalContentArea">
-
-          <div class="chal-filter-bar">
-            <div class="chal-fchip active" id="chalChipAll"        onclick="switchChallengesFilter('all')">All</div>
-            <div class="chal-fchip"        id="chalChipEnrolled"   onclick="switchChallengesFilter('enrolled')">Enrolled</div>
-            <div class="chal-fchip"        id="chalChipUnenrolled" onclick="switchChallengesFilter('unenrolled')">Un-enrolled</div>
-          </div>
-
           <div id="chalListContent">
             <p style="text-align:center; color:var(--text-muted); padding:20px 0; font-style:italic;">Loading challenges...</p>
           </div>
-
         </div><!-- /chalContentArea -->
 
         <!-- Legacy panel IDs kept for backward compatibility with existing call sites -->
