@@ -32666,7 +32666,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        */
       function updateStatRing(challengeType, seriesTag, currentValue, currentYear,
                               arcId, subId, ctaId) {
-        const CIRC = 2 * Math.PI * 42; // circumference for r=42 → ≈ 263.9
+        const CIRC = 2 * Math.PI * 46; // circumference for r=46 → ≈ 289.0
 
         const arcEl = document.getElementById(arcId);
         const subEl = document.getElementById(subId);
@@ -32681,10 +32681,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const yearChallenge = globalChallengesDB.find(function(c) {
           if (c.challengeType !== challengeType) return false;
           if (c.seriesTag !== seriesTag) return false;
-          // startDate and endDate must fall within currentYear
+          // Dates are stored as "DD-Mon-YYYY" (e.g. "01-Jan-2026") — year is the last 4 chars
           const yr = String(currentYear);
-          return c.startDate && c.startDate.startsWith(yr)
-              && c.endDate   && c.endDate.startsWith(yr);
+          return c.startDate && c.startDate.slice(-4) === yr
+              && c.endDate   && c.endDate.slice(-4)   === yr;
         });
 
         if (!yearChallenge) {
@@ -32725,7 +32725,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const yr = new Date().getFullYear();
         const c = globalChallengesDB.find(function(ch) {
           return ch.challengeType === 'PAGE_COUNT' && ch.seriesTag === 'PAGE_READING_GOAL'
-              && ch.startDate && ch.startDate.startsWith(String(yr));
+              && ch.startDate && ch.startDate.slice(-4) === String(yr);
         });
         if (c) openChallengeDetailView(c.challengeId);
       }
@@ -32735,7 +32735,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const yr = new Date().getFullYear();
         const c = globalChallengesDB.find(function(ch) {
           return ch.challengeType === 'BOOK_COUNT' && ch.seriesTag === 'BOOK_READING_GOAL'
-              && ch.startDate && ch.startDate.startsWith(String(yr));
+              && ch.startDate && ch.startDate.slice(-4) === String(yr);
         });
         if (c) openChallengeDetailView(c.challengeId);
       }
