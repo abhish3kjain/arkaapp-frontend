@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arka Book Challenge — 5 Design Options</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --arka-accent:#A984BA; --text-strong:#2c3e50; --text-muted:#5b6b6e;
+  --text-faint:#6a7878; --surface-alt:#f8f9fa; --border-soft:#ecf0f1;
+  --color-success:#1D9E75; --color-danger:#e74c3c;
+  --books-col:#EF9F27; --books-bg:#FAEEDA; --books-text:#633806;
+  --font-body:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  --font-display:'Cinzel',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-body);background:#d4d8e0;min-height:100vh;}
+
+/* PAGE CHROME */
+.page-header{background:#1a2332;color:#fff;padding:14px 20px;text-align:center;}
+.page-header h1{font-family:var(--font-display);font-size:1.1rem;letter-spacing:1px;color:#EF9F27;}
+.page-header p{font-size:0.7rem;opacity:.6;margin-top:3px;}
+
+.opt-nav{display:flex;background:#111c27;overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid #0a1018;}
+.opt-nav::-webkit-scrollbar{display:none;}
+.onb{flex:none;padding:11px 16px;background:transparent;border:none;color:rgba(255,255,255,.5);font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:all .2s;letter-spacing:.3px;}
+.onb.active{color:#EF9F27;border-bottom-color:#EF9F27;}
+
+.opt-desc{background:#fff;border-bottom:1px solid var(--border-soft);padding:10px 16px;display:flex;gap:12px;align-items:flex-start;}
+.opt-desc-icon{font-size:1.6rem;flex-shrink:0;line-height:1;}
+.opt-desc-text h3{font-size:.82rem;color:var(--text-strong);font-weight:700;}
+.opt-desc-text p{font-size:.68rem;color:var(--text-muted);line-height:1.45;margin-top:2px;}
+
+.phones-area{padding:20px;display:flex;justify-content:center;}
+.option{display:none;}
+.option.active{display:block;}
+
+/* PHONE FRAME */
+.phone{width:390px;height:800px;background:#fff;border-radius:44px;overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.35),0 4px 12px rgba(0,0,0,.2);
+  position:relative;display:flex;flex-direction:column;border:8px solid #1a1a1a;}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:110px;height:26px;background:#1a1a1a;border-radius:0 0 14px 14px;z-index:100;}
+.sbar{display:flex;justify-content:space-between;align-items:center;
+  padding:30px 20px 6px;font-size:.68rem;font-weight:700;flex-shrink:0;}
+.sbar-dark{color:rgba(255,255,255,.9);}
+.sbar-light{color:var(--text-strong);}
+.sicons{display:flex;gap:3px;align-items:center;font-size:.62rem;}
+
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.scroll::-webkit-scrollbar{display:none;}
+.scroll{-ms-overflow-style:none;scrollbar-width:none;}
+
+/* BOTTOM NAV */
+.bnav{display:flex;background:#fff;border-top:1px solid var(--border-soft);flex-shrink:0;}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px 14px;
+  gap:2px;color:var(--text-faint);font-size:.58rem;cursor:pointer;}
+.bni.a{color:var(--text-strong);}
+.bni-icon{font-size:1.25rem;line-height:1;}
+
+/* TABS */
+.ptabs{display:flex;background:#fff;border-bottom:1px solid var(--border-soft);flex-shrink:0;position:sticky;top:0;z-index:10;}
+.ptab{flex:1;padding:12px;text-align:center;font-size:.78rem;font-weight:600;
+  color:var(--text-muted);cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;}
+.ptab.a{color:var(--text-strong);border-bottom-color:var(--text-strong);}
+.tpanel{display:none;padding-bottom:12px;}
+.tpanel.a{display:block;}
+
+/* SHARED COMPONENTS */
+.back-dark{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;
+  justify-content:center;font-size:.9rem;cursor:pointer;flex-shrink:0;}
+.back-light{width:30px;height:30px;border-radius:50%;background:var(--surface-alt);
+  border:1px solid var(--border-soft);color:var(--text-strong);display:flex;align-items:center;
+  justify-content:center;font-size:.9rem;cursor:pointer;flex-shrink:0;}
+
+.active-badge{background:rgba(29,158,117,.18);color:#1D9E75;font-size:.58rem;font-weight:700;
+  padding:3px 9px;border-radius:20px;border:1px solid rgba(29,158,117,.25);}
+
+.card{background:#fff;border-radius:14px;padding:14px;border:1px solid var(--border-soft);
+  box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.sec-ttl{font-size:.75rem;font-weight:700;color:var(--text-strong);}
+.sec-meta{font-size:.63rem;color:var(--text-muted);}
+
+.bar-bg{height:7px;background:#f0f2f5;border-radius:20px;overflow:hidden;}
+.bar-fill-gold{height:100%;background:linear-gradient(90deg,#EF9F27,#f5b942);border-radius:20px;transition:width 1.2s ease;}
+
+.genre-tag{font-size:.52rem;padding:2px 6px;border-radius:10px;background:var(--surface-alt);color:var(--text-muted);font-weight:600;}
+
+/* BOOK COVER THUMBS */
+.bthumb{width:42px;height:60px;border-radius:5px;flex-shrink:0;display:flex;align-items:center;
+  justify-content:center;font-size:.42rem;color:rgba(255,255,255,.85);font-weight:800;
+  text-align:center;box-shadow:2px 3px 8px rgba(0,0,0,.25);line-height:1.2;padding:4px;}
+.bitem{display:flex;gap:11px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-soft);}
+.bitem:last-child{border:none;}
+.binfo{flex:1;}
+.btitle{font-size:.76rem;font-weight:700;color:var(--text-strong);line-height:1.2;}
+.bauthor{font-size:.63rem;color:var(--text-muted);margin-top:1px;}
+.bgenres{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px;}
+.bdate{font-size:.58rem;color:var(--text-faint);flex-shrink:0;white-space:nowrap;}
+
+/* CLUB SHARED */
+.club-intro{padding:12px 14px;font-size:.68rem;color:var(--text-muted);}
+.club-intro strong{color:var(--text-strong);}
+.cmember{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border-soft);}
+.cmember.me{background:#fdfbff;}
+.cmember:last-child{border:none;}
+.cavatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;
+  background:var(--arka-accent);display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:.7rem;font-weight:700;font-family:var(--font-display);}
+.cinfo{flex:1;min-width:0;}
+.cname{font-size:.72rem;font-weight:700;color:var(--text-strong);}
+.cname.me{color:var(--arka-accent);}
+.cprog{display:flex;justify-content:space-between;align-items:center;margin-top:2px;}
+.cprog-txt{font-size:.62rem;color:var(--text-muted);}
+.cpct{font-size:.62rem;font-weight:700;color:var(--text-strong);}
+.cbar-bg{height:4px;background:#f0f2f5;border-radius:10px;margin-top:4px;overflow:hidden;}
+.cbar-fill{height:100%;background:linear-gradient(90deg,#EF9F27,#f5b942);border-radius:10px;}
+.cbar-fill.purple{background:linear-gradient(90deg,var(--arka-accent),#c4a0d4);}
+.cpace{font-size:.6rem;font-weight:700;flex-shrink:0;width:34px;text-align:right;}
+.cpace.up{color:var(--color-success);}
+.cpace.dn{color:var(--color-danger);}
+.cpace.eq{color:var(--text-muted);}
+.club-legend{display:flex;gap:14px;justify-content:center;padding:10px;font-size:.6rem;color:var(--text-muted);}
+.leg-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:middle;}
+
+/* ========================
+   OPTION 1: LIVING BOOKSHELF
+   ======================== */
+.o1-hero{background:linear-gradient(160deg,#1a2332 0%,#2d1b4e 100%);flex-shrink:0;padding-bottom:18px;}
+.o1-nav{display:flex;align-items:center;gap:10px;padding:10px 14px 0;}
+.o1-title{flex:1;}
+.o1-title h2{font-family:var(--font-display);font-size:.9rem;color:#fff;letter-spacing:.5px;}
+.o1-title small{font-size:.6rem;color:rgba(255,255,255,.4);}
+
+.o1-shelf-wrap{margin:16px 14px 0;}
+.o1-shelf-lbl{font-size:.52rem;letter-spacing:1.5px;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:8px;}
+.o1-books-row{display:flex;gap:3px;align-items:flex-end;overflow-x:auto;padding-bottom:0;}
+.o1-books-row::-webkit-scrollbar{display:none;}
+.bspine{flex-shrink:0;width:15px;border-radius:2px 2px 0 0;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;transition:transform .15s;}
+.bspine:hover{transform:translateY(-5px);}
+.bspine-txt{font-size:.32rem;color:rgba(255,255,255,.7);writing-mode:vertical-rl;font-weight:800;padding:3px 0;}
+.bempty{flex-shrink:0;width:15px;height:54px;border-radius:2px 2px 0 0;
+  border:1px dashed rgba(255,255,255,.18);}
+.o1-shelf-base{height:3px;background:rgba(255,255,255,.15);border-radius:2px;margin-top:0;}
+.o1-shelf-caption{font-size:.58rem;color:rgba(255,255,255,.35);margin-top:6px;text-align:center;}
+
+.o1-stats{display:flex;gap:8px;margin:14px 14px 0;}
+.o1-stat{flex:1;background:rgba(255,255,255,.08);border-radius:10px;padding:10px 6px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;}
+.o1-snum{font-size:1.3rem;font-weight:800;color:#fff;line-height:1;}
+.o1-slbl{font-size:.5rem;color:rgba(255,255,255,.45);letter-spacing:1px;text-transform:uppercase;}
+.o1-stat.ahead .o1-snum{color:#5effc2;}
+
+.o1-body{padding:0 14px;}
+.o1-prog-card{margin:14px 0;padding:14px;background:#fff;border-radius:14px;border:1px solid var(--border-soft);box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.o1-prog-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.o1-pct{font-size:1.5rem;font-weight:800;color:#EF9F27;line-height:1;}
+.o1-psub{font-size:.62rem;color:var(--text-muted);margin-top:2px;}
+.o1-pace-tag{background:#eaf7f2;color:#1D9E75;font-size:.63rem;font-weight:700;padding:5px 10px;border-radius:20px;}
+.o1-bar-cap{font-size:.62rem;color:var(--text-faint);margin-top:6px;}
+
+.o1-monthly{margin-bottom:14px;}
+.o1-month-chart{display:flex;gap:5px;align-items:flex-end;height:56px;margin-top:2px;}
+.o1-mc{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.o1-mcount{font-size:.52rem;font-weight:700;color:#EF9F27;min-height:10px;}
+.o1-mbar-w{flex:1;width:100%;display:flex;align-items:flex-end;}
+.o1-mbar{width:100%;background:#EF9F27;border-radius:2px 2px 0 0;min-height:2px;opacity:.85;}
+.o1-mbar.fut{background:#eef0f3;opacity:1;}
+.o1-mlbl{font-size:.48rem;color:var(--text-faint);text-transform:uppercase;}
+
+/* ========================
+   OPTION 2: READING ODYSSEY
+   ======================== */
+.o2-hero{background:linear-gradient(135deg,#fef9f0 0%,#fdebd0 100%);flex-shrink:0;padding:10px 14px 18px;}
+.o2-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.o2-title{flex:1;}
+.o2-title h2{font-size:.88rem;font-weight:800;color:var(--text-strong);}
+.o2-title small{font-size:.6rem;color:var(--text-muted);}
+
+.o2-journey{position:relative;margin:0 4px;}
+.o2-track{position:relative;height:70px;}
+.o2-path{position:absolute;top:34px;left:16px;right:16px;height:4px;
+  background:linear-gradient(90deg,#EF9F27 77%,#e5e8ec 77%);border-radius:2px;}
+.o2-milestones{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-end;padding:0 14px;height:100%;}
+.o2-ms{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.o2-ms-dot{width:14px;height:14px;border-radius:50%;background:#e5e8ec;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+.o2-ms-dot.done{background:#EF9F27;}
+.o2-ms-dot.current{background:#EF9F27;box-shadow:0 0 0 4px rgba(239,159,39,.25),0 1px 3px rgba(0,0,0,.15);width:18px;height:18px;}
+.o2-ms-num{font-size:.5rem;color:var(--text-faint);font-weight:700;}
+.o2-ms-icon{font-size:.85rem;margin-bottom:2px;min-height:18px;}
+
+.o2-cta{margin-top:12px;background:rgba(239,159,39,.12);border-radius:12px;padding:10px 14px;
+  display:flex;align-items:center;gap:8px;border:1px solid rgba(239,159,39,.25);}
+.o2-cta-icon{font-size:1.4rem;}
+.o2-cta-txt h3{font-size:.78rem;font-weight:800;color:#633806;}
+.o2-cta-txt p{font-size:.62rem;color:#a06020;margin-top:1px;}
+
+.o2-body{padding:0 14px;}
+.o2-insight-row{display:flex;gap:8px;margin:14px 0;}
+.o2-ins{flex:1;background:#fff;border-radius:12px;padding:12px 10px;text-align:center;border:1px solid var(--border-soft);}
+.o2-ins-val{font-size:1.1rem;font-weight:800;color:var(--text-strong);line-height:1;}
+.o2-ins-lbl{font-size:.55rem;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+.o2-ins.gold .o2-ins-val{color:#EF9F27;}
+.o2-ins.green .o2-ins-val{color:#1D9E75;}
+
+.o2-timeline{margin-bottom:14px;}
+.o2-month-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-soft);}
+.o2-month-row:last-child{border:none;}
+.o2-month-lbl{font-size:.65rem;font-weight:700;color:var(--text-muted);width:28px;flex-shrink:0;}
+.o2-month-books{display:flex;gap:4px;flex:1;}
+.o2-book-dot{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#EF9F27,#f5b942);
+  display:flex;align-items:center;justify-content:center;font-size:.48rem;color:#fff;font-weight:800;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+.o2-month-count{font-size:.6rem;font-weight:700;color:#EF9F27;margin-left:2px;}
+
+/* JOURNEY CLUB */
+.o2-club-header{padding:12px 14px;background:linear-gradient(135deg,#fef9f0,#fdebd0);border-bottom:1px solid rgba(239,159,39,.2);}
+.o2-club-header h3{font-size:.75rem;font-weight:800;color:#633806;}
+.o2-club-header p{font-size:.62rem;color:#a06020;margin-top:2px;}
+.o2-trail{position:relative;margin:12px 14px;height:28px;}
+.o2-trail-line{position:absolute;top:14px;left:0;right:0;height:3px;background:#f0f2f5;border-radius:2px;}
+.o2-trail-fill{position:absolute;top:14px;left:0;height:3px;background:linear-gradient(90deg,#EF9F27,#f5b942);border-radius:2px;}
+.o2-trail-avatars{position:absolute;top:0;left:0;right:0;display:flex;}
+.o2-tav{width:28px;height:28px;border-radius:50%;background:var(--arka-accent);border:2px solid #fff;
+  display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:700;color:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.2);position:absolute;transform:translateX(-50%);}
+
+/* ========================
+   OPTION 3: SMART INSIGHTS
+   ======================== */
+.o3-hero{background:#fff;flex-shrink:0;border-bottom:1px solid var(--border-soft);}
+.o3-nav{display:flex;align-items:center;gap:10px;padding:10px 14px 0;}
+.o3-title{flex:1;}
+.o3-title h2{font-size:.88rem;font-weight:800;color:var(--text-strong);}
+.o3-title small{font-size:.6rem;color:var(--text-muted);}
+.sync-btn{background:var(--text-strong);color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:.62rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;}
+
+.o3-insight-banner{margin:12px 14px;background:linear-gradient(135deg,#eaf7f2 0%,#d4f0e7 100%);
+  border-radius:14px;padding:14px;border:1px solid rgba(29,158,117,.2);}
+.o3-ib-top{display:flex;align-items:center;gap:8px;}
+.o3-ib-icon{font-size:1.5rem;}
+.o3-ib-title{font-size:.8rem;font-weight:800;color:#145c35;}
+.o3-ib-sub{font-size:.65rem;color:#1D9E75;margin-top:2px;line-height:1.3;}
+
+.o3-ring-row{display:flex;gap:12px;margin:0 14px 14px;align-items:center;}
+.o3-ring-wrap{position:relative;width:110px;height:110px;flex-shrink:0;}
+.o3-ring-wrap svg{transform:rotate(-90deg);}
+.o3-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.o3-ring-pct{font-size:1.5rem;font-weight:800;color:var(--text-strong);line-height:1;}
+.o3-ring-lbl{font-size:.52rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+.o3-ring-stats{flex:1;display:flex;flex-direction:column;gap:8px;}
+.o3-rs{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--surface-alt);border-radius:8px;}
+.o3-rs-lbl{font-size:.62rem;color:var(--text-muted);}
+.o3-rs-val{font-size:.72rem;font-weight:800;color:var(--text-strong);}
+.o3-rs-val.gold{color:#EF9F27;}
+.o3-rs-val.green{color:#1D9E75;}
+
+.o3-charts{margin:0 14px 14px;}
+.o3-velocity{margin-bottom:14px;}
+.o3-vel-chart{display:flex;gap:4px;align-items:flex-end;height:48px;margin-top:8px;}
+.o3-vc{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.o3-vbar{width:100%;border-radius:2px 2px 0 0;min-height:2px;background:#EF9F27;opacity:.8;}
+.o3-vbar.fut{background:#f0f2f5;opacity:1;}
+.o3-vlbl{font-size:.46rem;color:var(--text-faint);text-transform:uppercase;}
+
+.o3-genres{margin-bottom:14px;}
+.o3-genre-list{margin-top:8px;display:flex;flex-direction:column;gap:7px;}
+.o3-g{display:flex;align-items:center;gap:8px;}
+.o3-g-lbl{font-size:.65rem;color:var(--text-muted);width:80px;flex-shrink:0;}
+.o3-g-bar-bg{flex:1;height:6px;background:#f0f2f5;border-radius:10px;overflow:hidden;}
+.o3-g-bar{height:100%;border-radius:10px;}
+.o3-g-count{font-size:.62rem;font-weight:700;color:var(--text-strong);width:16px;text-align:right;}
+
+.o3-projcard{margin:0 14px 14px;background:linear-gradient(135deg,#f0edf8,#e8e3f5);border-radius:14px;padding:14px;border:1px solid rgba(169,132,186,.2);}
+.o3-proj-title{font-size:.7rem;font-weight:700;color:#4a3565;margin-bottom:10px;}
+.o3-proj-dates{display:flex;justify-content:space-between;}
+.o3-pd{text-align:center;}
+.o3-pd-val{font-size:.8rem;font-weight:800;color:#4a3565;}
+.o3-pd-lbl{font-size:.55rem;color:#7a5e8e;text-transform:uppercase;margin-top:1px;}
+
+/* INSIGHTS CLUB */
+.o3-club-chart{margin:12px 14px;}
+.o3-cbr{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.o3-cbr-name{font-size:.65rem;font-weight:600;color:var(--text-strong);width:58px;flex-shrink:0;}
+.o3-cbr-bg{flex:1;height:16px;background:#f0f2f5;border-radius:4px;overflow:hidden;position:relative;}
+.o3-cbr-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#EF9F27,#f5b942);}
+.o3-cbr-fill.me{background:linear-gradient(90deg,var(--arka-accent),#c4a0d4);}
+.o3-cbr-pct{position:absolute;right:5px;top:50%;transform:translateY(-50%);font-size:.52rem;font-weight:700;color:rgba(255,255,255,.9);}
+.o3-cbr-val{font-size:.6rem;color:var(--text-muted);width:30px;text-align:right;flex-shrink:0;}
+
+/* ========================
+   OPTION 4: EDITORIAL MOSAIC
+   ======================== */
+.o4-hero{position:relative;flex-shrink:0;}
+.o4-mosaic{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;height:220px;}
+.o4-cover{display:flex;align-items:center;justify-content:center;font-size:.38rem;
+  color:rgba(255,255,255,.7);font-weight:800;text-align:center;padding:2px;line-height:1.2;}
+.o4-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.1) 0%,rgba(0,0,0,.75) 100%);}
+.o4-nav{position:absolute;top:28px;left:14px;right:14px;display:flex;align-items:center;gap:10px;z-index:10;}
+.o4-hero-content{position:absolute;bottom:16px;left:14px;right:14px;z-index:10;}
+.o4-big-num{font-size:3.5rem;font-weight:800;color:#fff;line-height:1;font-family:var(--font-display);}
+.o4-big-sub{font-size:.78rem;color:rgba(255,255,255,.75);margin-top:2px;}
+.o4-hero-chips{display:flex;gap:6px;margin-top:10px;}
+.o4-chip{background:rgba(255,255,255,.15);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.2);
+  color:#fff;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:20px;}
+.o4-chip.gold{background:rgba(239,159,39,.3);border-color:rgba(239,159,39,.5);color:#FFD580;}
+
+.o4-body{padding:0 14px;}
+.o4-recent-header{margin:14px 0 10px;font-size:.75rem;font-weight:700;color:var(--text-strong);}
+.o4-book-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;margin:0 0 14px;}
+.o4-book-scroll::-webkit-scrollbar{display:none;}
+.o4-bcard{flex-shrink:0;width:100px;background:#fff;border-radius:12px;border:1px solid var(--border-soft);overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.06);}
+.o4-bcard-cover{height:110px;display:flex;align-items:center;justify-content:center;font-size:.44rem;color:rgba(255,255,255,.8);font-weight:800;text-align:center;padding:4px;line-height:1.3;}
+.o4-bcard-body{padding:7px;}
+.o4-bcard-title{font-size:.62rem;font-weight:700;color:var(--text-strong);line-height:1.2;}
+.o4-bcard-date{font-size:.54rem;color:var(--text-faint);margin-top:2px;}
+
+.o4-stats-row{display:flex;gap:8px;margin-bottom:14px;}
+.o4-scard{flex:1;background:#fff;border-radius:12px;border:1px solid var(--border-soft);padding:12px 8px;text-align:center;}
+.o4-sval{font-size:1.2rem;font-weight:800;color:var(--text-strong);line-height:1;}
+.o4-slbl{font-size:.55rem;color:var(--text-muted);margin-top:2px;text-transform:uppercase;letter-spacing:.3px;}
+.o4-scard.gold .o4-sval{color:#EF9F27;}
+.o4-scard.green .o4-sval{color:#1D9E75;}
+
+.o4-monthly{margin-bottom:14px;}
+.o4-dots-grid{display:flex;gap:3px;flex-wrap:wrap;margin-top:8px;}
+.o4-dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.46rem;font-weight:700;color:#fff;}
+.o4-dot.read{background:linear-gradient(135deg,#EF9F27,#f5b942);}
+.o4-dot.empty{background:#f0f2f5;}
+
+/* EDITORIAL CLUB */
+.o4-club-hero{background:linear-gradient(135deg,#f0edf8,#e8e3f5);padding:14px;border-bottom:1px solid rgba(169,132,186,.15);}
+.o4-club-hero h3{font-size:.78rem;font-weight:800;color:#4a3565;}
+.o4-club-hero p{font-size:.62rem;color:#7a5e8e;margin-top:2px;}
+.o4-ccover-row{display:flex;gap:-6px;margin-top:8px;}
+.o4-cav{width:28px;height:28px;border-radius:50%;background:var(--arka-accent);border:2px solid #fff;
+  display:flex;align-items:center;justify-content:center;font-size:.58rem;font-weight:700;color:#fff;margin-left:-6px;}
+.o4-cav:first-child{margin-left:0;}
+
+/* ========================
+   OPTION 5: ACHIEVEMENT QUEST
+   ======================== */
+.o5-hero{background:linear-gradient(160deg,#1a1440 0%,#2d1b4e 50%,#1a2332 100%);flex-shrink:0;padding-bottom:16px;}
+.o5-nav{display:flex;align-items:center;gap:10px;padding:10px 14px 0;}
+.o5-title{flex:1;}
+.o5-title h2{font-family:var(--font-display);font-size:.88rem;color:#fff;letter-spacing:.5px;}
+.o5-title small{font-size:.6rem;color:rgba(255,255,255,.4);}
+
+.o5-ring-row{display:flex;align-items:center;justify-content:center;gap:0;margin:16px 14px 0;}
+.o5-ring-wrap{position:relative;width:130px;height:130px;flex-shrink:0;}
+.o5-ring-wrap svg{transform:rotate(-90deg);}
+.o5-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.o5-level{font-size:.55rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;}
+.o5-level-num{font-size:1.6rem;font-weight:800;color:#fff;line-height:1;font-family:var(--font-display);}
+.o5-level-sub{font-size:.52rem;color:#EF9F27;margin-top:1px;}
+.o5-xp-info{margin-left:20px;}
+.o5-xp-label{font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;}
+.o5-xp-bar-bg{width:120px;height:8px;background:rgba(255,255,255,.12);border-radius:20px;margin:4px 0;overflow:hidden;}
+.o5-xp-bar-fill{height:100%;background:linear-gradient(90deg,#EF9F27,#f5b942);border-radius:20px;width:75%;}
+.o5-xp-val{font-size:.6rem;color:rgba(255,255,255,.5);}
+.o5-xp-val strong{color:rgba(255,255,255,.8);font-weight:700;}
+
+.o5-badges-row{display:flex;gap:6px;margin:14px 14px 0;overflow-x:auto;padding-bottom:2px;}
+.o5-badges-row::-webkit-scrollbar{display:none;}
+.o5-badge{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:rgba(255,255,255,.08);border-radius:12px;padding:10px 8px;width:70px;border:1px solid rgba(255,255,255,.1);}
+.o5-badge.earned{background:rgba(239,159,39,.15);border-color:rgba(239,159,39,.3);}
+.o5-badge.locked{opacity:.4;}
+.o5-badge-icon{font-size:1.4rem;line-height:1;}
+.o5-badge-lbl{font-size:.46rem;color:rgba(255,255,255,.6);text-align:center;font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1.3;}
+.o5-badge.earned .o5-badge-lbl{color:#EF9F27;}
+
+.o5-body{padding:0 14px;}
+.o5-milestones{margin:14px 0;}
+.o5-ms-track{display:flex;align-items:center;gap:0;position:relative;margin-bottom:4px;}
+.o5-ms-node{display:flex;flex-direction:column;align-items:center;flex:1;}
+.o5-ms-circle{width:28px;height:28px;border-radius:50%;background:#f0f2f5;border:2px solid #e0e3e7;
+  display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:var(--text-faint);}
+.o5-ms-circle.done{background:linear-gradient(135deg,#EF9F27,#f5b942);border-color:#EF9F27;color:#fff;}
+.o5-ms-circle.current{background:linear-gradient(135deg,var(--arka-accent),#8b6ba0);border-color:var(--arka-accent);color:#fff;box-shadow:0 0 0 3px rgba(169,132,186,.25);}
+.o5-ms-lbl{font-size:.5rem;color:var(--text-faint);margin-top:3px;font-weight:600;}
+.o5-ms-lbl.done{color:#EF9F27;}
+.o5-ms-lbl.current{color:var(--arka-accent);}
+.o5-ms-line{flex:1;height:2px;background:#e0e3e7;margin:0;position:relative;top:-10px;}
+.o5-ms-line.done{background:linear-gradient(90deg,#EF9F27,#f5b942);}
+
+.o5-streak{margin-bottom:14px;background:linear-gradient(135deg,#fff8e6,#fff3d4);border-radius:14px;padding:14px;border:1px solid rgba(239,159,39,.2);}
+.o5-streak-top{display:flex;align-items:center;gap:10px;}
+.o5-streak-icon{font-size:2rem;}
+.o5-streak-val{font-size:1.8rem;font-weight:800;color:#633806;line-height:1;}
+.o5-streak-lbl{font-size:.62rem;color:#a06020;}
+.o5-streak-cal{display:flex;gap:3px;flex-wrap:wrap;margin-top:10px;}
+.o5-sday{width:16px;height:16px;border-radius:3px;background:#f0e8cc;}
+.o5-sday.on{background:#EF9F27;}
+.o5-sday.today{background:#633806;box-shadow:0 0 0 2px rgba(99,56,6,.3);}
+
+.o5-genre-badges{margin-bottom:14px;}
+.o5-gb-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.o5-gb{display:flex;align-items:center;gap:5px;background:var(--surface-alt);border-radius:20px;padding:5px 10px;border:1px solid var(--border-soft);}
+.o5-gb-icon{font-size:.85rem;}
+.o5-gb-txt{font-size:.62rem;font-weight:700;color:var(--text-strong);}
+.o5-gb-count{font-size:.58rem;color:var(--text-muted);}
+
+/* QUEST CLUB */
+.o5-guild-header{background:linear-gradient(135deg,#1a1440,#2d1b4e);padding:14px;border-bottom:1px solid rgba(169,132,186,.2);}
+.o5-guild-header h3{font-family:var(--font-display);font-size:.82rem;color:#fff;letter-spacing:.5px;}
+.o5-guild-header p{font-size:.62rem;color:rgba(255,255,255,.5);margin-top:2px;}
+.o5-rank-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border-soft);}
+.o5-rank-item.me{background:#fdfbff;}
+.o5-rank-item:last-child{border:none;}
+.o5-rank-num{width:20px;font-size:.7rem;font-weight:800;color:var(--text-faint);flex-shrink:0;text-align:center;}
+.o5-rank-num.top{color:#EF9F27;}
+.o5-rank-av{width:34px;height:34px;border-radius:50%;background:var(--arka-accent);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0;}
+.o5-rank-info{flex:1;min-width:0;}
+.o5-rank-name{font-size:.7rem;font-weight:700;color:var(--text-strong);}
+.o5-rank-name.me{color:var(--arka-accent);}
+.o5-rank-prog{font-size:.6rem;color:var(--text-muted);margin-top:1px;}
+.o5-rank-stars{font-size:.7rem;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>ARKA READERS CLUB</h1>
+  <p>Book Reading Challenge — 5 Design Concepts · Book Reading Goal 2026</p>
+</div>
+
+<div class="opt-nav">
+  <button class="onb active" onclick="showOpt(1,this)">① Bookshelf</button>
+  <button class="onb" onclick="showOpt(2,this)">② Odyssey</button>
+  <button class="onb" onclick="showOpt(3,this)">③ Insights</button>
+  <button class="onb" onclick="showOpt(4,this)">④ Editorial</button>
+  <button class="onb" onclick="showOpt(5,this)">⑤ Quest</button>
+</div>
+
+<div id="desc-panel"></div>
+
+<div class="phones-area">
+
+<!-- ======================== OPTION 1 ======================== -->
+<div id="opt-1" class="option active">
+  <div class="phone">
+    <div class="notch"></div>
+    <!-- HERO -->
+    <div class="o1-hero">
+      <div class="sbar sbar-dark">
+        <span>9:41</span>
+        <div class="sicons">▲ ◆ ■ 🔋55%</div>
+      </div>
+      <div class="o1-nav">
+        <div class="back-dark">←</div>
+        <div class="o1-title">
+          <h2>Book Reading Goal</h2>
+          <small>2026 · Personal goals</small>
+        </div>
+        <span class="active-badge">Active</span>
+      </div>
+      <!-- Bookshelf -->
+      <div class="o1-shelf-wrap">
+        <div class="o1-shelf-lbl">Your Reading Shelf</div>
+        <div class="o1-books-row" id="bshelf"></div>
+        <div class="o1-shelf-base"></div>
+        <div class="o1-shelf-caption">15 read · 5 remaining</div>
+      </div>
+      <!-- Stats -->
+      <div class="o1-stats">
+        <div class="o1-stat"><span class="o1-snum">15</span><span class="o1-slbl">Books Read</span></div>
+        <div class="o1-stat"><span class="o1-snum">20</span><span class="o1-slbl">Your Goal</span></div>
+        <div class="o1-stat ahead"><span class="o1-snum">6 wks</span><span class="o1-slbl">Ahead</span></div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="ptabs">
+      <button class="ptab a" onclick="switchTab(this,'o1p','o1-prog')">My Progress</button>
+      <button class="ptab" onclick="switchTab(this,'o1p','o1-club')">Club</button>
+    </div>
+
+    <div class="scroll">
+      <!-- MY PROGRESS -->
+      <div id="o1-prog" class="tpanel a o1-body">
+        <div class="o1-prog-card">
+          <div class="o1-prog-top">
+            <div><div class="o1-pct">75%</div><div class="o1-psub">15 of 20 books complete</div></div>
+            <div class="o1-pace-tag">📈 Pace 34/yr</div>
+          </div>
+          <div class="bar-bg"><div class="bar-fill-gold o1-bar-fill" style="width:0" data-w="75%"></div></div>
+          <div class="o1-bar-cap">5 more books to reach your 2026 goal</div>
+        </div>
+        <div class="card o1-monthly">
+          <div class="sec-hdr"><span class="sec-ttl">Monthly Rhythm</span><span class="sec-meta">15 books · best: Jan (4)</span></div>
+          <div class="o1-month-chart">
+            <div class="o1-mc"><div class="o1-mcount">4</div><div class="o1-mbar-w"><div class="o1-mbar" style="height:100%"></div></div><div class="o1-mlbl">Jan</div></div>
+            <div class="o1-mc"><div class="o1-mcount">2</div><div class="o1-mbar-w"><div class="o1-mbar" style="height:50%"></div></div><div class="o1-mlbl">Feb</div></div>
+            <div class="o1-mc"><div class="o1-mcount">3</div><div class="o1-mbar-w"><div class="o1-mbar" style="height:75%"></div></div><div class="o1-mlbl">Mar</div></div>
+            <div class="o1-mc"><div class="o1-mcount">1</div><div class="o1-mbar-w"><div class="o1-mbar" style="height:25%"></div></div><div class="o1-mlbl">Apr</div></div>
+            <div class="o1-mc"><div class="o1-mcount">2</div><div class="o1-mbar-w"><div class="o1-mbar" style="height:50%"></div></div><div class="o1-mlbl">May</div></div>
+            <div class="o1-mc"><div class="o1-mcount">3</div><div class="o1-mbar-w"><div class="o1-mbar" style="height:75%"></div></div><div class="o1-mlbl">Jun</div></div>
+            <div class="o1-mc"><div class="o1-mcount"></div><div class="o1-mbar-w"><div class="o1-mbar fut" style="height:100%"></div></div><div class="o1-mlbl">Jul</div></div>
+            <div class="o1-mc"><div class="o1-mcount"></div><div class="o1-mbar-w"><div class="o1-mbar fut" style="height:100%"></div></div><div class="o1-mlbl">Aug</div></div>
+            <div class="o1-mc"><div class="o1-mcount"></div><div class="o1-mbar-w"><div class="o1-mbar fut" style="height:100%"></div></div><div class="o1-mlbl">Sep</div></div>
+            <div class="o1-mc"><div class="o1-mcount"></div><div class="o1-mbar-w"><div class="o1-mbar fut" style="height:100%"></div></div><div class="o1-mlbl">Oct</div></div>
+            <div class="o1-mc"><div class="o1-mcount"></div><div class="o1-mbar-w"><div class="o1-mbar fut" style="height:100%"></div></div><div class="o1-mlbl">Nov</div></div>
+            <div class="o1-mc"><div class="o1-mcount"></div><div class="o1-mbar-w"><div class="o1-mbar fut" style="height:100%"></div></div><div class="o1-mlbl">Dec</div></div>
+          </div>
+        </div>
+        <div class="sec-hdr"><span class="sec-ttl">Books Read</span><span class="sec-meta">15 books</span></div>
+        <div id="o1-booklist"></div>
+      </div>
+
+      <!-- CLUB -->
+      <div id="o1-club" class="tpanel">
+        <div class="club-intro">
+          <strong>7 members enrolled</strong> · Personal goals · No ranking
+        </div>
+        <div id="o1-clublist"></div>
+        <div class="club-legend">
+          <span><span class="leg-dot" style="background:#1D9E75"></span>ahead</span>
+          <span><span class="leg-dot" style="background:#EF9F27"></span>on track</span>
+          <span><span class="leg-dot" style="background:#e74c3c"></span>behind</span>
+        </div>
+      </div>
+    </div>
+    <div class="bnav" id="o1-bnav"></div>
+  </div>
+</div><!-- /opt1 -->
+
+<!-- ======================== OPTION 2 ======================== -->
+<div id="opt-2" class="option">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="o2-hero">
+      <div class="sbar sbar-light"><span>9:41</span><div class="sicons" style="color:var(--text-strong)">▲ ◆ ■ 🔋55%</div></div>
+      <div class="o2-nav">
+        <div class="back-light">←</div>
+        <div class="o2-title"><h2>Book Reading Goal 2026</h2><small>Your reading adventure</small></div>
+        <span class="active-badge">Active</span>
+      </div>
+      <!-- Journey track -->
+      <div class="o2-journey" style="margin-top:14px;">
+        <div class="o2-track">
+          <div class="o2-path"></div>
+          <div class="o2-milestones">
+            <div class="o2-ms">
+              <div class="o2-ms-icon">🏁</div>
+              <div class="o2-ms-dot done"></div>
+              <div class="o2-ms-num">0</div>
+            </div>
+            <div class="o2-ms">
+              <div class="o2-ms-icon">📗</div>
+              <div class="o2-ms-dot done"></div>
+              <div class="o2-ms-num">5</div>
+            </div>
+            <div class="o2-ms">
+              <div class="o2-ms-icon">📘</div>
+              <div class="o2-ms-dot done"></div>
+              <div class="o2-ms-num">10</div>
+            </div>
+            <div class="o2-ms" style="position:relative;">
+              <div class="o2-ms-icon">⭐</div>
+              <div class="o2-ms-dot current"></div>
+              <div class="o2-ms-num" style="color:#EF9F27;font-weight:800;">15 ←you</div>
+            </div>
+            <div class="o2-ms">
+              <div class="o2-ms-icon" style="opacity:.3;">🏆</div>
+              <div class="o2-ms-dot"></div>
+              <div class="o2-ms-num">20</div>
+            </div>
+          </div>
+        </div>
+        <div class="o2-cta">
+          <div class="o2-cta-icon">🚀</div>
+          <div class="o2-cta-txt">
+            <h3>5 books to the finish line!</h3>
+            <p>At your pace you'll finish by mid-August 2026</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ptabs">
+      <button class="ptab a" onclick="switchTab(this,'o2p','o2-prog')">My Progress</button>
+      <button class="ptab" onclick="switchTab(this,'o2p','o2-club')">Club</button>
+    </div>
+
+    <div class="scroll">
+      <div id="o2-prog" class="tpanel a o2-body">
+        <div class="o2-insight-row">
+          <div class="o2-ins gold"><div class="o2-ins-val">34</div><div class="o2-ins-lbl">Yearly Pace</div></div>
+          <div class="o2-ins"><div class="o2-ins-val">2.5</div><div class="o2-ins-lbl">Avg/Month</div></div>
+          <div class="o2-ins green"><div class="o2-ins-val">6 wks</div><div class="o2-ins-lbl">Ahead</div></div>
+        </div>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="sec-hdr"><span class="sec-ttl">Progress</span><span class="sec-meta">75% complete</span></div>
+          <div class="bar-bg" style="height:8px;"><div class="bar-fill-gold o1-bar-fill" style="width:0" data-w="75%"></div></div>
+          <div style="font-size:.62rem;color:var(--text-faint);margin-top:6px;">15 of 20 books · 5 to go</div>
+        </div>
+        <div class="card o2-timeline">
+          <div class="sec-hdr"><span class="sec-ttl">Your Journey by Month</span></div>
+          <div class="o2-month-row">
+            <div class="o2-month-lbl">Jan</div>
+            <div class="o2-month-books">
+              <div class="o2-book-dot">B1</div><div class="o2-book-dot">B2</div><div class="o2-book-dot">B3</div><div class="o2-book-dot">B4</div>
+            </div><span class="o2-month-count">4</span>
+          </div>
+          <div class="o2-month-row">
+            <div class="o2-month-lbl">Feb</div>
+            <div class="o2-month-books"><div class="o2-book-dot">B5</div><div class="o2-book-dot">B6</div></div><span class="o2-month-count">2</span>
+          </div>
+          <div class="o2-month-row">
+            <div class="o2-month-lbl">Mar</div>
+            <div class="o2-month-books"><div class="o2-book-dot">B7</div><div class="o2-book-dot">B8</div><div class="o2-book-dot">B9</div></div><span class="o2-month-count">3</span>
+          </div>
+          <div class="o2-month-row">
+            <div class="o2-month-lbl">Apr</div>
+            <div class="o2-month-books"><div class="o2-book-dot">B10</div></div><span class="o2-month-count">1</span>
+          </div>
+          <div class="o2-month-row">
+            <div class="o2-month-lbl">May</div>
+            <div class="o2-month-books"><div class="o2-book-dot" title="Elephant Whisperer">EW</div><div class="o2-book-dot" title="Dear Debbie">DD</div></div><span class="o2-month-count">2</span>
+          </div>
+          <div class="o2-month-row">
+            <div class="o2-month-lbl">Jun</div>
+            <div class="o2-month-books">
+              <div class="o2-book-dot" title="Heart of Darkness">HoD</div>
+              <div class="o2-book-dot" title="5 Love Languages">5LL</div>
+              <div class="o2-book-dot" title="Four Thousand Weeks">FTW</div>
+            </div><span class="o2-month-count">3</span>
+          </div>
+          <div class="o2-month-row" style="opacity:.35;">
+            <div class="o2-month-lbl">Jul–</div>
+            <div class="o2-month-books" style="font-size:.6rem;color:var(--text-faint);padding:6px 0;">Upcoming · need ~1 book/month</div>
+          </div>
+        </div>
+        <div id="o2-booklist"></div>
+      </div>
+      <div id="o2-club" class="tpanel">
+        <div class="o2-club-header">
+          <h3>🗺️ Who's on the trail?</h3>
+          <p>7 readers · each on their own journey</p>
+        </div>
+        <div id="o2-clublist"></div>
+        <div class="club-legend">
+          <span><span class="leg-dot" style="background:#1D9E75"></span>ahead</span>
+          <span><span class="leg-dot" style="background:#EF9F27"></span>on track</span>
+          <span><span class="leg-dot" style="background:#e74c3c"></span>behind</span>
+        </div>
+      </div>
+    </div>
+    <div class="bnav" id="o2-bnav"></div>
+  </div>
+</div><!-- /opt2 -->
+
+<!-- ======================== OPTION 3 ======================== -->
+<div id="opt-3" class="option">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="o3-hero">
+      <div class="sbar sbar-light"><span>9:41</span><div class="sicons" style="color:var(--text-strong)">▲ ◆ ■ 🔋55%</div></div>
+      <div class="o3-nav">
+        <div class="back-light">←</div>
+        <div class="o3-title"><h2>Book Reading Goal 2026</h2><small>Reading analytics</small></div>
+        <button class="sync-btn">⚡ Sync</button>
+      </div>
+      <div style="height:10px;"></div>
+    </div>
+
+    <div class="ptabs">
+      <button class="ptab a" onclick="switchTab(this,'o3p','o3-prog')">My Progress</button>
+      <button class="ptab" onclick="switchTab(this,'o3p','o3-club')">Club</button>
+    </div>
+
+    <div class="scroll">
+      <div id="o3-prog" class="tpanel a" style="padding:0 14px 14px;">
+        <!-- Insight Banner -->
+        <div class="o3-insight-banner" style="margin-top:14px;">
+          <div class="o3-ib-top">
+            <div class="o3-ib-icon">🎯</div>
+            <div>
+              <div class="o3-ib-title">You'll finish by August 2026</div>
+              <div class="o3-ib-sub">At your current pace of 2.5 books/month,<br>you'll hit 20 with 4 months to spare.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ring + Stats -->
+        <div class="o3-ring-row" style="margin-top:14px;">
+          <div class="o3-ring-wrap">
+            <svg width="110" height="110" viewBox="0 0 110 110">
+              <circle cx="55" cy="55" r="45" fill="none" stroke="#f0f2f5" stroke-width="10"/>
+              <circle cx="55" cy="55" r="45" fill="none" stroke="#EF9F27" stroke-width="10"
+                stroke-dasharray="212.06 282.74" stroke-linecap="round"
+                class="ring-anim"/>
+            </svg>
+            <div class="o3-ring-center">
+              <div class="o3-ring-pct">75%</div>
+              <div class="o3-ring-lbl">of goal</div>
+            </div>
+          </div>
+          <div class="o3-ring-stats">
+            <div class="o3-rs"><span class="o3-rs-lbl">Books read</span><span class="o3-rs-val gold">15 / 20</span></div>
+            <div class="o3-rs"><span class="o3-rs-lbl">Yearly pace</span><span class="o3-rs-val">34 books</span></div>
+            <div class="o3-rs"><span class="o3-rs-lbl">Status</span><span class="o3-rs-val green">6 wks ahead</span></div>
+            <div class="o3-rs"><span class="o3-rs-lbl">Best month</span><span class="o3-rs-val">Jan (4 📚)</span></div>
+          </div>
+        </div>
+
+        <!-- Velocity Chart -->
+        <div class="card o3-velocity" style="margin-top:14px;">
+          <div class="sec-hdr"><span class="sec-ttl">Reading Velocity</span><span class="sec-meta">books per month</span></div>
+          <div class="o3-vel-chart">
+            <div class="o3-vc"><div class="o3-vbar" style="height:100%"></div><div class="o3-vlbl">J</div></div>
+            <div class="o3-vc"><div class="o3-vbar" style="height:50%"></div><div class="o3-vlbl">F</div></div>
+            <div class="o3-vc"><div class="o3-vbar" style="height:75%"></div><div class="o3-vlbl">M</div></div>
+            <div class="o3-vc"><div class="o3-vbar" style="height:25%"></div><div class="o3-vlbl">A</div></div>
+            <div class="o3-vc"><div class="o3-vbar" style="height:50%"></div><div class="o3-vlbl">M</div></div>
+            <div class="o3-vc"><div class="o3-vbar" style="height:75%"></div><div class="o3-vlbl">J</div></div>
+            <div class="o3-vc"><div class="o3-vbar fut" style="height:100%"></div><div class="o3-vlbl">J</div></div>
+            <div class="o3-vc"><div class="o3-vbar fut" style="height:100%"></div><div class="o3-vlbl">A</div></div>
+            <div class="o3-vc"><div class="o3-vbar fut" style="height:100%"></div><div class="o3-vlbl">S</div></div>
+            <div class="o3-vc"><div class="o3-vbar fut" style="height:100%"></div><div class="o3-vlbl">O</div></div>
+            <div class="o3-vc"><div class="o3-vbar fut" style="height:100%"></div><div class="o3-vlbl">N</div></div>
+            <div class="o3-vc"><div class="o3-vbar fut" style="height:100%"></div><div class="o3-vlbl">D</div></div>
+          </div>
+        </div>
+
+        <!-- Genre Breakdown -->
+        <div class="card o3-genres" style="margin-top:14px;">
+          <div class="sec-hdr"><span class="sec-ttl">Genre Mix</span><span class="sec-meta">15 books</span></div>
+          <div class="o3-genre-list">
+            <div class="o3-g"><span class="o3-g-lbl">Nonfiction</span><div class="o3-g-bar-bg"><div class="o3-g-bar" style="width:53%;background:#EF9F27;height:100%"></div></div><span class="o3-g-count">8</span></div>
+            <div class="o3-g"><span class="o3-g-lbl">Fiction</span><div class="o3-g-bar-bg"><div class="o3-g-bar" style="width:40%;background:#A984BA;height:100%"></div></div><span class="o3-g-count">6</span></div>
+            <div class="o3-g"><span class="o3-g-lbl">Self Help</span><div class="o3-g-bar-bg"><div class="o3-g-bar" style="width:27%;background:#534AB7;height:100%"></div></div><span class="o3-g-count">4</span></div>
+            <div class="o3-g"><span class="o3-g-lbl">Thriller</span><div class="o3-g-bar-bg"><div class="o3-g-bar" style="width:13%;background:#1D9E75;height:100%"></div></div><span class="o3-g-count">2</span></div>
+            <div class="o3-g"><span class="o3-g-lbl">Fantasy</span><div class="o3-g-bar-bg"><div class="o3-g-bar" style="width:7%;background:#e74c3c;height:100%"></div></div><span class="o3-g-count">1</span></div>
+          </div>
+        </div>
+
+        <!-- Projection -->
+        <div class="o3-projcard" style="margin-top:14px;">
+          <div class="o3-proj-title">📅 Finish Date Projection</div>
+          <div class="o3-proj-dates">
+            <div class="o3-pd"><div class="o3-pd-val">Aug '26</div><div class="o3-pd-lbl">At current pace</div></div>
+            <div class="o3-pd"><div class="o3-pd-val">Sep '26</div><div class="o3-pd-lbl">Conservative</div></div>
+            <div class="o3-pd"><div class="o3-pd-val">Dec '26</div><div class="o3-pd-lbl">Goal deadline</div></div>
+          </div>
+        </div>
+
+        <div id="o3-booklist" style="margin-top:14px;"></div>
+      </div>
+
+      <!-- CLUB -->
+      <div id="o3-club" class="tpanel" style="padding:12px 0;">
+        <div style="padding:0 14px 8px;">
+          <div class="sec-ttl">Progress Comparison</div>
+          <div style="font-size:.62rem;color:var(--text-muted);margin-top:2px;">7 members · personal goals</div>
+        </div>
+        <div class="o3-club-chart">
+          <div class="o3-cbr"><span class="o3-cbr-name" style="color:var(--arka-accent);font-weight:800;">Abhishek</span><div class="o3-cbr-bg"><div class="o3-cbr-fill me" style="width:75%"><span class="o3-cbr-pct">75%</span></div></div><span class="o3-cbr-val">15/20</span></div>
+          <div class="o3-cbr"><span class="o3-cbr-name">Sushma</span><div class="o3-cbr-bg"><div class="o3-cbr-fill" style="width:25%"><span class="o3-cbr-pct">25%</span></div></div><span class="o3-cbr-val">3/12</span></div>
+          <div class="o3-cbr"><span class="o3-cbr-name">Santhosh</span><div class="o3-cbr-bg"><div class="o3-cbr-fill" style="width:20%"></div></div><span class="o3-cbr-val">3/15</span></div>
+          <div class="o3-cbr"><span class="o3-cbr-name">Viswamo.</span><div class="o3-cbr-bg"><div class="o3-cbr-fill" style="width:17%"></div></div><span class="o3-cbr-val">2/12</span></div>
+          <div class="o3-cbr"><span class="o3-cbr-name">Meghana</span><div class="o3-cbr-bg"><div class="o3-cbr-fill" style="width:0%"></div></div><span class="o3-cbr-val">0/24</span></div>
+          <div class="o3-cbr"><span class="o3-cbr-name">Akhtar</span><div class="o3-cbr-bg"><div class="o3-cbr-fill" style="width:0%"></div></div><span class="o3-cbr-val">0/8</span></div>
+          <div class="o3-cbr"><span class="o3-cbr-name">Raksha</span><div class="o3-cbr-bg"><div class="o3-cbr-fill" style="width:0%"></div></div><span class="o3-cbr-val">0/12</span></div>
+        </div>
+        <div class="club-legend">
+          <span><span class="leg-dot" style="background:var(--arka-accent)"></span>you</span>
+          <span><span class="leg-dot" style="background:#EF9F27"></span>others</span>
+        </div>
+        <div id="o3-clublist"></div>
+      </div>
+    </div>
+    <div class="bnav" id="o3-bnav"></div>
+  </div>
+</div><!-- /opt3 -->
+
+<!-- ======================== OPTION 4 ======================== -->
+<div id="opt-4" class="option">
+  <div class="phone">
+    <div class="notch"></div>
+    <!-- MOSAIC HERO -->
+    <div class="o4-hero">
+      <div class="o4-mosaic" id="o4-mosaic"></div>
+      <div class="o4-overlay"></div>
+      <div class="o4-nav">
+        <div class="back-dark">←</div>
+        <div style="flex:1;"></div>
+        <span class="active-badge">Active</span>
+      </div>
+      <div class="o4-hero-content">
+        <div class="sbar sbar-dark" style="padding:0 0 4px;font-size:.65rem;"></div>
+        <div class="o4-big-num">15</div>
+        <div class="o4-big-sub">books read in 2026 · goal: 20</div>
+        <div class="o4-hero-chips">
+          <div class="o4-chip gold">📈 75% done</div>
+          <div class="o4-chip">⚡ 6 wks ahead</div>
+          <div class="o4-chip">📚 Pace: 34</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ptabs">
+      <button class="ptab a" onclick="switchTab(this,'o4p','o4-prog')">My Books</button>
+      <button class="ptab" onclick="switchTab(this,'o4p','o4-club')">Club</button>
+    </div>
+
+    <div class="scroll">
+      <div id="o4-prog" class="tpanel a o4-body">
+        <div class="o4-recent-header">Recently Finished</div>
+        <div class="o4-book-scroll" id="o4-scroll"></div>
+
+        <div class="o4-stats-row">
+          <div class="o4-scard gold"><div class="o4-sval">15</div><div class="o4-slbl">Read</div></div>
+          <div class="o4-scard"><div class="o4-sval">5</div><div class="o4-slbl">To Go</div></div>
+          <div class="o4-scard green"><div class="o4-sval">34</div><div class="o4-slbl">Yr Pace</div></div>
+          <div class="o4-scard"><div class="o4-sval">~840</div><div class="o4-slbl">Avg Pages</div></div>
+        </div>
+
+        <div class="card o4-monthly" style="margin-bottom:14px;">
+          <div class="sec-hdr"><span class="sec-ttl">Reading Moments</span><span class="sec-meta">15 books this year</span></div>
+          <div class="o4-dots-grid" id="o4-dots"></div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px;">
+          <div class="sec-hdr"><span class="sec-ttl">Monthly Pace</span><span class="sec-meta">75% · 5 to go</span></div>
+          <div class="bar-bg" style="margin-bottom:6px;"><div class="bar-fill-gold" style="width:0" data-w="75%"></div></div>
+          <div style="font-size:.62rem;color:var(--text-faint);">On track to finish by August 2026</div>
+        </div>
+
+        <div style="font-size:.75rem;font-weight:700;color:var(--text-strong);margin-bottom:10px;">All Books</div>
+        <div id="o4-booklist"></div>
+      </div>
+
+      <div id="o4-club" class="tpanel">
+        <div class="o4-club-hero">
+          <h3>📚 Arka Readers Club</h3>
+          <p>7 members · each reading toward their own goal</p>
+          <div class="o4-ccover-row">
+            <div class="o4-cav" style="background:#A984BA;">A</div>
+            <div class="o4-cav" style="background:#1D9E75;">S</div>
+            <div class="o4-cav" style="background:#534AB7;">S</div>
+            <div class="o4-cav" style="background:#EF9F27;">V</div>
+            <div class="o4-cav" style="background:#e74c3c;">M</div>
+            <div class="o4-cav" style="background:#607D8B;">A</div>
+            <div class="o4-cav" style="background:#8B4513;">R</div>
+          </div>
+        </div>
+        <div id="o4-clublist"></div>
+        <div class="club-legend">
+          <span><span class="leg-dot" style="background:#1D9E75"></span>ahead</span>
+          <span><span class="leg-dot" style="background:#EF9F27"></span>on track</span>
+          <span><span class="leg-dot" style="background:#e74c3c"></span>behind</span>
+        </div>
+      </div>
+    </div>
+    <div class="bnav" id="o4-bnav"></div>
+  </div>
+</div><!-- /opt4 -->
+
+<!-- ======================== OPTION 5 ======================== -->
+<div id="opt-5" class="option">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="o5-hero">
+      <div class="sbar sbar-dark"><span>9:41</span><div class="sicons">▲ ◆ ■ 🔋55%</div></div>
+      <div class="o5-nav">
+        <div class="back-dark">←</div>
+        <div class="o5-title"><h2>Book Quest 2026</h2><small>Reading achievement tracker</small></div>
+        <span class="active-badge">Active</span>
+      </div>
+      <!-- Ring + XP -->
+      <div class="o5-ring-row">
+        <div class="o5-ring-wrap">
+          <svg width="130" height="130" viewBox="0 0 130 130">
+            <circle cx="65" cy="65" r="52" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="12"/>
+            <circle cx="65" cy="65" r="52" fill="none" stroke="#EF9F27" stroke-width="12"
+              stroke-dasharray="245.04 326.73" stroke-linecap="round" class="ring-anim"/>
+          </svg>
+          <div class="o5-ring-center">
+            <div class="o5-level">Level</div>
+            <div class="o5-level-num">3</div>
+            <div class="o5-level-sub">Avid Reader</div>
+          </div>
+        </div>
+        <div class="o5-xp-info">
+          <div class="o5-xp-label">XP Progress</div>
+          <div class="o5-xp-bar-bg"><div class="o5-xp-bar-fill"></div></div>
+          <div class="o5-xp-val"><strong>750 XP</strong> · 250 to Level 4</div>
+          <div style="margin-top:8px;font-size:.6rem;color:rgba(255,255,255,.5);">15 books × 50 XP each</div>
+          <div style="font-size:.6rem;color:#EF9F27;margin-top:3px;font-weight:700;">🔥 6 weeks ahead of pace!</div>
+        </div>
+      </div>
+      <!-- Badges -->
+      <div class="o5-badges-row">
+        <div class="o5-badge earned"><div class="o5-badge-icon">🌱</div><div class="o5-badge-lbl">Early Starter</div></div>
+        <div class="o5-badge earned"><div class="o5-badge-icon">⚡</div><div class="o5-badge-lbl">Half Way</div></div>
+        <div class="o5-badge earned"><div class="o5-badge-icon">🔥</div><div class="o5-badge-lbl">Power Reader</div></div>
+        <div class="o5-badge locked"><div class="o5-badge-icon">🏆</div><div class="o5-badge-lbl">Goal Crusher</div></div>
+        <div class="o5-badge locked"><div class="o5-badge-icon">📖</div><div class="o5-badge-lbl">Bookworm</div></div>
+      </div>
+    </div>
+
+    <div class="ptabs">
+      <button class="ptab a" onclick="switchTab(this,'o5p','o5-prog')">My Quest</button>
+      <button class="ptab" onclick="switchTab(this,'o5p','o5-club')">Guild</button>
+    </div>
+
+    <div class="scroll">
+      <div id="o5-prog" class="tpanel a o5-body">
+        <!-- Milestones -->
+        <div class="card o5-milestones">
+          <div class="sec-hdr"><span class="sec-ttl">Reading Milestones</span><span class="sec-meta">15 of 20 reached</span></div>
+          <div class="o5-ms-track">
+            <div class="o5-ms-node"><div class="o5-ms-circle done">✓</div><div class="o5-ms-lbl done">5 📚</div></div>
+            <div class="o5-ms-line done"></div>
+            <div class="o5-ms-node"><div class="o5-ms-circle done">✓</div><div class="o5-ms-lbl done">10 📚</div></div>
+            <div class="o5-ms-line done"></div>
+            <div class="o5-ms-node"><div class="o5-ms-circle current">15</div><div class="o5-ms-lbl current">15 ⭐</div></div>
+            <div class="o5-ms-line"></div>
+            <div class="o5-ms-node"><div class="o5-ms-circle">20</div><div class="o5-ms-lbl">20 🏆</div></div>
+          </div>
+          <div style="margin-top:10px;">
+            <div class="bar-bg"><div class="bar-fill-gold" style="width:0" data-w="75%"></div></div>
+            <div style="font-size:.62rem;color:var(--text-faint);margin-top:5px;">5 more books to unlock "Goal Crusher" badge 🏆</div>
+          </div>
+        </div>
+
+        <!-- Streak -->
+        <div class="o5-streak">
+          <div class="o5-streak-top">
+            <div class="o5-streak-icon">🔥</div>
+            <div>
+              <div class="o5-streak-val">22</div>
+              <div class="o5-streak-lbl">day reading streak</div>
+            </div>
+            <div style="margin-left:auto;text-align:right;">
+              <div style="font-size:.7rem;font-weight:800;color:#633806;">Best: 31 days</div>
+              <div style="font-size:.58rem;color:#a06020;">in February</div>
+            </div>
+          </div>
+          <div class="o5-streak-cal" id="o5-cal"></div>
+        </div>
+
+        <!-- Genre badges -->
+        <div class="card o5-genre-badges">
+          <div class="sec-hdr"><span class="sec-ttl">Genre Collection</span><span class="sec-meta">5 genres explored</span></div>
+          <div class="o5-gb-row">
+            <div class="o5-gb"><span class="o5-gb-icon">🧠</span><span class="o5-gb-txt">Nonfiction</span><span class="o5-gb-count">8</span></div>
+            <div class="o5-gb"><span class="o5-gb-icon">📖</span><span class="o5-gb-txt">Fiction</span><span class="o5-gb-count">6</span></div>
+            <div class="o5-gb"><span class="o5-gb-icon">💡</span><span class="o5-gb-txt">Self Help</span><span class="o5-gb-count">4</span></div>
+            <div class="o5-gb"><span class="o5-gb-icon">🔪</span><span class="o5-gb-txt">Thriller</span><span class="o5-gb-count">2</span></div>
+            <div class="o5-gb"><span class="o5-gb-icon">🐉</span><span class="o5-gb-txt">Fantasy</span><span class="o5-gb-count">1</span></div>
+          </div>
+        </div>
+
+        <div style="font-size:.75rem;font-weight:700;color:var(--text-strong);margin-bottom:10px;">Books Earned</div>
+        <div id="o5-booklist"></div>
+      </div>
+
+      <!-- GUILD / CLUB -->
+      <div id="o5-club" class="tpanel" style="padding-bottom:12px;">
+        <div class="o5-guild-header">
+          <h3>⚔️ Arka Book Guild</h3>
+          <p>7 readers · Personal goals · No ranking</p>
+        </div>
+        <div id="o5-clublist"></div>
+      </div>
+    </div>
+    <div class="bnav" id="o5-bnav"></div>
+  </div>
+</div><!-- /opt5 -->
+
+</div><!-- /phones-area -->
+
+<script>
+/* ==================== DATA ==================== */
+const BOOKS = [
+  {title:'Four Thousand Weeks',author:'Oliver Burkeman',genres:['nonfiction','self help'],date:'12-Jun-2026',color:'#8B4513',abbr:'FTW'},
+  {title:'The 5 Love Languages',author:'Gary Chapman',genres:['nonfiction','self help','psychology'],date:'02-Jun-2026',color:'#C0392B',abbr:'5LL'},
+  {title:'Heart of Darkness',author:'Joseph Conrad',genres:['fiction','classics'],date:'01-Jun-2026',color:'#2C3E50',abbr:'HoD'},
+  {title:'Dear Debbie',author:'Freida McFadden',genres:['fiction','thriller','suspense'],date:'27-May-2026',color:'#27AE60',abbr:'DD'},
+  {title:'The Elephant Whisperer',author:'Lawrence Anthony',genres:['nonfiction','memoir','adventure'],date:'26-May-2026',color:'#D35400',abbr:'EW'},
+  {title:'The Tower of Swallows',author:'Andrzej Sapkowski',genres:['fantasy','fiction','adventure'],date:'18-May-2026',color:'#6C3483',abbr:'ToS'},
+  {title:'Atomic Habits',author:'James Clear',genres:['nonfiction','self help'],date:'30-Apr-2026',color:'#1A5276',abbr:'AH'},
+  {title:'The Midnight Library',author:'Matt Haig',genres:['fiction','fantasy'],date:'20-Mar-2026',color:'#1B4F72',abbr:'ML'},
+  {title:'Sapiens',author:'Yuval Noah Harari',genres:['nonfiction','history'],date:'10-Mar-2026',color:'#7B241C',abbr:'Sap'},
+  {title:'The Alchemist',author:'Paulo Coelho',genres:['fiction','philosophy'],date:'01-Mar-2026',color:'#B7950B',abbr:'Alch'},
+  {title:'Ikigai',author:'Héctor García',genres:['nonfiction','self help'],date:'25-Feb-2026',color:'#0E6655',abbr:'Ikai'},
+  {title:'The Kite Runner',author:'Khaled Hosseini',genres:['fiction','drama'],date:'10-Feb-2026',color:'#6E2F2F',abbr:'KR'},
+  {title:'Quiet',author:'Susan Cain',genres:['nonfiction','psychology'],date:'28-Jan-2026',color:'#4A235A',abbr:'Quiet'},
+  {title:'Rich Dad Poor Dad',author:'Robert Kiyosaki',genres:['nonfiction','finance'],date:'18-Jan-2026',color:'#145A32',abbr:'RDPD'},
+  {title:'The Hitchhiker\'s Guide',author:'Douglas Adams',genres:['fiction','sci-fi','humor'],date:'05-Jan-2026',color:'#1A237E',abbr:'HHG'},
+];
+
+const CLUB = [
+  {name:'Abhishek',read:15,goal:20,pace:48,paceDir:'up',avatarBg:'#A984BA',isMe:true},
+  {name:'Sushma',read:3,goal:12,pace:-7,paceDir:'dn',avatarBg:'#1D9E75'},
+  {name:'Santhosh',read:3,goal:15,pace:-7,paceDir:'dn',avatarBg:'#534AB7'},
+  {name:'Viswamo.',read:2,goal:12,pace:-5,paceDir:'dn',avatarBg:'#EF9F27'},
+  {name:'Meghana',read:0,goal:24,pace:0,paceDir:'eq',avatarBg:'#e74c3c'},
+  {name:'Akhtar',read:0,goal:8,pace:0,paceDir:'eq',avatarBg:'#607D8B'},
+  {name:'Raksha',read:0,goal:12,pace:0,paceDir:'eq',avatarBg:'#8B4513'},
+];
+
+const SPINE_HEIGHTS = [75,70,80,65,72,78,60,75,68,80,70,65,72,78,68];
+
+/* ==================== DESCRIPTIONS ==================== */
+const DESCS = {
+  1:{icon:'📚',title:'Option 1 — The Living Bookshelf',text:'Psychology: Ownership & Pride. Users see their reading as a physical growing collection. The hero transforms abstract numbers into a visual shelf of colored book spines — 15 read, 5 empty. Taps into collector psychology and makes progress tangible.'},
+  2:{icon:'🗺️',title:'Option 2 — Reading Odyssey (Journey Map)',text:'Psychology: Progress as adventure. A horizontal road with milestone markers replaces the boring progress bar. You see WHERE you are on a journey with a clear destination. Motivational and narrative-driven — "5 books to the finish line!"'},
+  3:{icon:'📊',title:'Option 3 — Smart Insights Dashboard',text:'Psychology: Empowerment through data. Leads with an actionable insight ("You\'ll finish by August!") before any numbers. Progress ring + velocity chart + genre breakdown + finish projection. For analytical users who want to understand their reading patterns.'},
+  4:{icon:'🎨',title:'Option 4 — Editorial Mosaic Spotlight',text:'Psychology: Celebration & Visual Beauty. Books ARE the hero — a full-bleed cover mosaic is the background. The giant "15" typography is a trophy. Swipeable book cards make browsing the collection a joy. Design-forward, inspired by premium reading apps.'},
+  5:{icon:'⚔️',title:'Option 5 — Achievement Quest (Gamified)',text:'Psychology: Dopamine & Achievement. Reading = leveling up. XP bar, achievement badges, milestones, reading streak calendar, and genre collection badges. Every book matters. Turns a passive goal into an active game. The "5 more books to unlock Goal Crusher" hook keeps users coming back.'},
+};
+
+/* ==================== RENDER HELPERS ==================== */
+function bookItem(b) {
+  return `<div class="bitem">
+    <div class="bthumb" style="background:linear-gradient(135deg,${b.color},${b.color}cc)">${b.abbr}</div>
+    <div class="binfo">
+      <div class="btitle">${b.title}</div>
+      <div class="bauthor">${b.author}</div>
+      <div class="bgenres">${b.genres.map(g=>`<span class="genre-tag">${g}</span>`).join('')}</div>
+    </div>
+    <div class="bdate">${b.date}</div>
+  </div>`;
+}
+
+function clubItem(m, variant) {
+  const pct = Math.round(m.read/m.goal*100);
+  const paceStr = m.paceDir==='eq' ? '→ —' : (m.paceDir==='up'?`↑ ${m.pace}`:`↓ ${Math.abs(m.pace)}`);
+  const barClass = m.isMe ? 'cbar-fill purple' : 'cbar-fill';
+  const nameClass = m.isMe ? 'cname me' : 'cname';
+  const paceClass = m.paceDir==='up'?'cpace up':(m.paceDir==='dn'?'cpace dn':'cpace eq');
+  const initial = m.name[0];
+  return `<div class="cmember${m.isMe?' me':''}">
+    <div class="cavatar" style="background:${m.avatarBg}">${initial}</div>
+    <div class="cinfo">
+      <div class="${nameClass}">${m.name}</div>
+      <div class="cprog"><span class="cprog-txt">${m.read} / ${m.goal}</span><span class="cpct">${pct}%</span></div>
+      <div class="cbar-bg"><div class="${barClass}" style="width:${pct}%"></div></div>
+    </div>
+    <div class="${paceClass}">${paceStr}</div>
+  </div>`;
+}
+
+function bottomNav() {
+  return `
+    <div class="bni a"><div class="bni-icon">🏠</div>Home</div>
+    <div class="bni"><div class="bni-icon">📚</div>Library</div>
+    <div class="bni"><div class="bni-icon">👥</div>Members</div>
+    <div class="bni"><div class="bni-icon">👤</div>Me</div>
+    <div class="bni"><div class="bni-icon">⋯</div>More</div>`;
+}
+
+/* ==================== POPULATE ==================== */
+function populate() {
+  // Option 1 - Bookshelf
+  const shelf = document.getElementById('bshelf');
+  BOOKS.forEach((b,i) => {
+    const h = SPINE_HEIGHTS[i] || 65;
+    shelf.innerHTML += `<div class="bspine" style="height:${h}px;background:linear-gradient(180deg,${b.color}dd,${b.color})" title="${b.title}"><span class="bspine-txt">${b.abbr}</span></div>`;
+  });
+  for(let i=0;i<5;i++) shelf.innerHTML += `<div class="bempty"></div>`;
+  document.getElementById('o1-booklist').innerHTML = BOOKS.slice(0,5).map(bookItem).join('') + `<div style="text-align:center;padding:10px;font-size:.68rem;color:var(--text-muted);">+ 10 more books</div>`;
+  document.getElementById('o1-clublist').innerHTML = CLUB.map(m=>clubItem(m)).join('');
+  document.getElementById('o1-bnav').innerHTML = bottomNav();
+
+  // Option 2
+  document.getElementById('o2-booklist').innerHTML = `<div class="sec-hdr"><span class="sec-ttl">Books Read</span><span class="sec-meta">15 books</span></div>` + BOOKS.slice(0,4).map(bookItem).join('') + `<div style="text-align:center;padding:10px;font-size:.68rem;color:var(--text-muted);">+ 11 more books</div>`;
+  document.getElementById('o2-clublist').innerHTML = CLUB.map(m=>clubItem(m)).join('');
+  document.getElementById('o2-bnav').innerHTML = bottomNav();
+
+  // Option 3
+  document.getElementById('o3-booklist').innerHTML = `<div class="sec-hdr"><span class="sec-ttl">Books Read</span><span class="sec-meta">15 books</span></div>` + BOOKS.slice(0,4).map(bookItem).join('') + `<div style="text-align:center;padding:10px;font-size:.68rem;color:var(--text-muted);">+ 11 more books</div>`;
+  document.getElementById('o3-clublist').innerHTML = CLUB.map(m=>clubItem(m)).join('');
+  document.getElementById('o3-bnav').innerHTML = bottomNav();
+
+  // Option 4 - Mosaic
+  const mosaic = document.getElementById('o4-mosaic');
+  BOOKS.forEach(b => {
+    mosaic.innerHTML += `<div class="o4-cover" style="background:linear-gradient(135deg,${b.color},${b.color}88)">${b.abbr}</div>`;
+  });
+  for(let i=0;i<10;i++) mosaic.innerHTML += `<div class="o4-cover" style="background:rgba(0,0,0,.3)"></div>`;
+
+  const o4scroll = document.getElementById('o4-scroll');
+  BOOKS.slice(0,6).forEach(b => {
+    o4scroll.innerHTML += `<div class="o4-bcard">
+      <div class="o4-bcard-cover" style="background:linear-gradient(135deg,${b.color},${b.color}88)">${b.abbr}<br><span style="font-size:.36rem;opacity:.7">${b.title}</span></div>
+      <div class="o4-bcard-body"><div class="o4-bcard-title">${b.title}</div><div class="o4-bcard-date">${b.date}</div></div>
+    </div>`;
+  });
+
+  // Dots grid for option 4
+  const dotsg = document.getElementById('o4-dots');
+  const monthData = [{m:'Jan',n:4},{m:'Feb',n:2},{m:'Mar',n:3},{m:'Apr',n:1},{m:'May',n:2},{m:'Jun',n:3}];
+  monthData.forEach(({m,n}) => {
+    for(let i=0;i<n;i++) dotsg.innerHTML += `<div class="o4-dot read" title="${m}">${m[0]}</div>`;
+  });
+  for(let i=0;i<20;i++) dotsg.innerHTML += `<div class="o4-dot empty"></div>`;
+
+  document.getElementById('o4-booklist').innerHTML = BOOKS.slice(0,4).map(bookItem).join('') + `<div style="text-align:center;padding:10px;font-size:.68rem;color:var(--text-muted);">+ 11 more books</div>`;
+  document.getElementById('o4-clublist').innerHTML = CLUB.map(m=>clubItem(m)).join('');
+  document.getElementById('o4-bnav').innerHTML = bottomNav();
+
+  // Option 5 - Quest
+  const cal = document.getElementById('o5-cal');
+  for(let i=0;i<30;i++) {
+    const on = i < 22;
+    const today = i === 21;
+    cal.innerHTML += `<div class="o5-sday${on?' on':''}${today?' today':''}"></div>`;
+  }
+
+  // Rank club items for option 5
+  const o5club = document.getElementById('o5-clublist');
+  CLUB.forEach((m,i) => {
+    const pct = Math.round(m.read/m.goal*100);
+    const stars = m.read >= 15 ? '⭐⭐⭐' : m.read >= 10 ? '⭐⭐' : m.read >= 5 ? '⭐' : '';
+    const rankClass = i===0 ? 'top' : '';
+    o5club.innerHTML += `<div class="o5-rank-item${m.isMe?' me':''}">
+      <div class="o5-rank-num ${rankClass}">${i+1}</div>
+      <div class="o5-rank-av" style="background:${m.avatarBg}">${m.name[0]}</div>
+      <div class="o5-rank-info">
+        <div class="o5-rank-name${m.isMe?' me':''}">${m.name}</div>
+        <div class="o5-rank-prog">${m.read}/${m.goal} books · ${pct}% complete</div>
+        <div style="height:3px;background:#f0f2f5;border-radius:10px;margin-top:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${m.isMe?'var(--arka-accent)':'#EF9F27'};border-radius:10px;"></div>
+        </div>
+      </div>
+      <div class="o5-rank-stars">${stars}</div>
+    </div>`;
+  });
+  document.getElementById('o5-booklist').innerHTML = BOOKS.slice(0,4).map(bookItem).join('') + `<div style="text-align:center;padding:10px;font-size:.68rem;color:var(--text-muted);">+ 11 more books</div>`;
+  document.getElementById('o5-bnav').innerHTML = bottomNav();
+}
+
+/* ==================== INTERACTIVITY ==================== */
+const TAB_GROUPS = {};
+
+function switchTab(btn, group, panelId) {
+  const phone = btn.closest('.phone');
+  phone.querySelectorAll('.ptab').forEach(t=>t.classList.remove('a'));
+  btn.classList.add('a');
+  phone.querySelectorAll('.tpanel').forEach(p=>p.classList.remove('a'));
+  phone.querySelector('#'+panelId).classList.add('a');
+}
+
+function showOpt(n, btn) {
+  document.querySelectorAll('.option').forEach(o=>o.classList.remove('active'));
+  document.getElementById('opt-'+n).classList.add('active');
+  document.querySelectorAll('.onb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = DESCS[n];
+  document.getElementById('desc-panel').innerHTML = `<div class="opt-desc"><div class="opt-desc-icon">${d.icon}</div><div class="opt-desc-text"><h3>${d.title}</h3><p>${d.text}</p></div></div>`;
+  animateBars();
+}
+
+function animateBars() {
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill-gold[data-w]').forEach(el => {
+      el.style.width = el.dataset.w;
+    });
+  }, 100);
+}
+
+/* ==================== INIT ==================== */
+populate();
+showOpt(1, document.querySelector('.onb.active'));
+</script>
+</body>
+</html>
