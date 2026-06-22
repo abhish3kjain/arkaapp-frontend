@@ -99,7 +99,7 @@
  * @property {string}  goalConfigJson  - Type-specific config as JSON string   (Col I)
  * @property {string}  status          - Active | Upcoming | Completed |       (Col J)
  *                                       Archived
- * @property {boolean} isCompetitive   - Show Club leaderboard tab?            (Col K)
+ * @property {string}  competitionMode  - NONE | INDIVIDUAL | SHARED | TEAM     (Col K)
  * @property {string}  seriesTag       - Groups editions e.g. BOOK_BINGO       (Col L)
  * @property {boolean} isPinned        - Pin to top of Challenges list         (Col M)
  * @property {string}  createdBy       - ARKA_MEMBER_X                         (Col N)
@@ -5890,13 +5890,26 @@ function dismissAnnouncementPermanently(announcementId) {
  *   A=0  challengeId       B=1  challengeType     C=2  title
  *   D=3  description       E=4  startDate         F=5  endDate
  *   G=6  goalValue         H=7  goalUnit          I=8  goalConfigJson
- *   J=9  status            K=10 isCompetitive     L=11 seriesTag
+ *   J=9  status            K=10 competitionMode  L=11 seriesTag
  *   M=12 isPinned          N=13 createdBy         O=14 createdOn
  *   P=15 enrollPoints      Q=16 finishPoints      R=17 winPoints
  *
  * @param {GoogleAppsScript.Spreadsheet.Spreadsheet} ss
  * @returns {ChallengeRecord[]}
  */
+
+/**
+ * Parses Col K of ChallengeDB into a competitionMode string.
+ * Accepts legacy TRUE/FALSE values (back-compat) and the new enum strings.
+ */
+function parseCompetitionMode_(val) {
+  const s = (val || '').toString().trim().toUpperCase();
+  if (s === 'TRUE')  return 'INDIVIDUAL';
+  if (s === 'FALSE') return 'NONE';
+  if (['NONE', 'INDIVIDUAL', 'SHARED', 'TEAM'].includes(s)) return s;
+  return 'NONE';
+}
+
 function fetchChallenges(ss) {
   const sheet = ss.getSheetByName(CHALLENGE_SHEET);
   if (!sheet) return [];
@@ -5936,7 +5949,7 @@ function fetchChallenges(ss) {
       goalUnit       : row[7].toString(),
       goalConfigJson : row[8].toString(),
       status         : row[9].toString(),
-      isCompetitive  : row[10].toString().toUpperCase() === 'TRUE',
+      competitionMode: parseCompetitionMode_(row[10]),
       seriesTag      : row[11] ? row[11].toString() : '',
       isPinned       : row[12].toString().toUpperCase() === 'TRUE',
       createdBy      : row[13].toString(),
@@ -6498,7 +6511,7 @@ function fetchChallengeEnrollments(ss) {
  * @param {string}  data.goalUnit
  * @param {string}  data.goalConfigJson
  * @param {string}  data.status
- * @param {boolean} data.isCompetitive
+ * @param {string}  data.competitionMode  - NONE | INDIVIDUAL | SHARED | TEAM
  * @param {string}  [data.seriesTag]
  * @param {boolean} data.isPinned
  * @param {number}  data.enrollPoints      - ☀️ for enrolling
@@ -6540,7 +6553,7 @@ function saveChallenge(data) {
   const timestamp     = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MM-yyyy HH:mm:ss Z');
   const status        = (data.status    || 'Active').trim();
   const isPinned      = data.isPinned      === true || data.isPinned      === 'TRUE';
-  const isCompetitive = data.isCompetitive === true || data.isCompetitive === 'TRUE';
+  const competitionMode = parseCompetitionMode_(data.competitionMode);
   const seriesTag     = (data.seriesTag  || '').trim();
   const endDate       = (data.endDate    || '').trim();
   const goalValue     = Number(data.goalValue)    || 0;
@@ -6577,15 +6590,15 @@ function saveChallenge(data) {
       challengeSheet.getRange(targetRow, 1, 1, 18).setValues([[
         data.challengeId, challengeType, title,     description, startDate,
         endDate,          goalValue,     goalUnit,  goalConfigJsonStr,
-        status,           isCompetitive, seriesTag, isPinned,
+        status,           competitionMode, seriesTag, isPinned,
         originalCreatedBy, originalCreatedOn,
         enrollPoints,     finishPoints,  winPoints
       ]]);
-  
+
       const updatedChallenge = {
         challengeId: data.challengeId, challengeType, title, description,
         startDate, endDate, goalValue, goalUnit, goalConfigJson: goalConfigJsonStr,
-        status, isCompetitive, seriesTag, isPinned,
+        status, competitionMode, seriesTag, isPinned,
         createdBy: originalCreatedBy, createdOn: originalCreatedOn,
         enrollPoints, finishPoints, winPoints
       };
@@ -6616,17 +6629,17 @@ function saveChallenge(data) {
     const newRow = [
       challengeId,    challengeType,  title,     description,   startDate,
       endDate,        goalValue,      goalUnit,  goalConfigJsonStr,
-      status,         isCompetitive,  seriesTag, isPinned,
+      status,         competitionMode, seriesTag, isPinned,
       currentMemberId, timestamp,
       enrollPoints,   finishPoints,   winPoints
     ];
-  
+
     challengeSheet.appendRow(newRow);
-  
+
     const newChallenge = {
       challengeId, challengeType, title, description,
       startDate, endDate, goalValue, goalUnit, goalConfigJson: goalConfigJsonStr,
-      status, isCompetitive, seriesTag, isPinned,
+      status, competitionMode, seriesTag, isPinned,
       createdBy: currentMemberId, createdOn: timestamp,
       enrollPoints, finishPoints, winPoints
     };
@@ -7036,7 +7049,7 @@ function saveChallengeProgress(data) {
       challengeType  : challengeRows[i][1].toString(),
       goalValue      : Number(challengeRows[i][6]) || 0,
       goalConfigJson : challengeRows[i][8].toString(),
-      isCompetitive  : challengeRows[i][10].toString().toUpperCase() === 'TRUE',
+      competitionMode: parseCompetitionMode_(challengeRows[i][10]),
       finishPoints   : Number(challengeRows[i][16]) || 0,  // Col Q
       winPoints      : Number(challengeRows[i][17]) || 0   // Col R
     };
@@ -9818,7 +9831,7 @@ function getAdminChallengesData() {
         goalUnit      : (r[7] || '').toString().trim(),
         goalConfigJson: (r[8] || '{}').toString().trim(),
         status        : (r[9] || 'Active').toString().trim(),
-        isCompetitive : r[10] === true || r[10] === 'TRUE',
+        competitionMode: parseCompetitionMode_(r[10]),
         seriesTag     : (r[11] || '').toString().trim(),
         isPinned      : r[12] === true || r[12] === 'TRUE',
         createdBy     : (r[13] || '').toString().trim(),

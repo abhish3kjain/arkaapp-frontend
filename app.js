@@ -31962,11 +31962,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       /**
        * Renders the Club tab for a challenge.
        *
-       * COMPETITIVE challenges (isCompetitive = true):
+       * COMPETITIVE challenges (competitionMode = INDIVIDUAL | SHARED | TEAM):
        *   Ranked leaderboard — members sorted by currentProgressValue, with
        *   gold/silver/bronze medals, coloured progress bars, your row highlighted.
        *
-       * NON-COMPETITIVE challenges (isCompetitive = false):
+       * NON-COMPETITIVE challenges (competitionMode = NONE):
        *   Pace table — each member's goal, current progress, and year-end
        *   projection. No rank numbers. Pace indicator (↑ ahead / → on track /
        *   ↓ behind) calculated per-person against their own target.
@@ -31992,7 +31992,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           return;
         }
     
-        if (challenge.isCompetitive) {
+        if (challenge.competitionMode && challenge.competitionMode !== 'NONE') {
           container.innerHTML = renderCompetitiveLeaderboard(challenge, challEnrollments);
         } else {
           container.innerHTML = renderPaceTable(challenge, challEnrollments);

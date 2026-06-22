@@ -387,7 +387,7 @@
 | H | GoalUnit | `pages`, `books`, `letters`, `countries`, etc. | Unit of the goal metric. Drives progress bar label. |
 | I | GoalConfigJson | JSON string or blank | Type-specific configuration. e.g. Bingo grid square definitions. Format varies by ChallengeType. |
 | J | Status | `Active`, `Upcoming`, `Completed`, `Archived` | Drives visibility in Challenges tab. `Active` = enrollable and in progress. |
-| K | IsCompetitive | `TRUE`/`FALSE` | If TRUE, shows a leaderboard tab within the challenge card. |
+| K | CompetitionMode | `NONE`, `INDIVIDUAL`, `SHARED`, `TEAM` | Controls leaderboard and scoring behaviour. `NONE` = personal challenge, no leaderboard. `INDIVIDUAL` = ranked per-member leaderboard. `SHARED` = whole club works toward a common goal with individual contribution tracking. `TEAM` = subgroups compete (reserved, not yet implemented). Legacy `TRUE`/`FALSE` values are accepted and mapped to `INDIVIDUAL`/`NONE` respectively. |
 | L | SeriesTag | string or blank | Groups multiple editions of the same challenge. e.g. `BOOK_BINGO` groups all annual Bingo editions. |
 | M | IsPinned | `TRUE`/`FALSE` | If TRUE, challenge is pinned to the top of the Challenges list. |
 | N | CreatedBy | `ARKA_MEMBER_X` | Who created the challenge. Admin only. |
