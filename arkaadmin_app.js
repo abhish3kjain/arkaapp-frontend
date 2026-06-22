@@ -875,7 +875,7 @@
       summaryGrid.innerHTML = cards.map(function(c) {
         return '<div class="adm-stat-card ' + c.cls + '">' +
           '<div class="adm-stat-icon"><i class="fa-solid ' + c.icon + '"></i></div>' +
-          '<div class="adm-stat-value" style="font-size:1.3rem">' + _esc(String(c.value)) + '</div>' +
+          '<div class="adm-stat-value adm-stat-value--sm">' + _esc(String(c.value)) + '</div>' +
           '<div class="adm-stat-label">' + _esc(c.label) + '</div>' +
         '</div>';
       }).join('');
@@ -1075,13 +1075,13 @@
         + '</div>';
       return '<tr>'
         + '<td data-label="Rank"><span class="adm-rank '+rcls+'">'+rank+'</span></td>'
-        + '<td data-label="Member"><div style="font-weight:700">'+dot+_esc(m.displayName)+'</div><div class="adm-td-mono">'+_esc(m.memberId)+'</div>' + memberSub + '</td>'
-        + '<td data-label="Country" class="adm-col-mob" style="font-size:0.78rem;color:var(--text-muted)">'+_esc(m.country||'—')+'</td>'
+        + '<td data-label="Member"><div class="adm-member-name">'+dot+_esc(m.displayName)+'</div><div class="adm-td-mono">'+_esc(m.memberId)+'</div>' + memberSub + '</td>'
+        + '<td data-label="Country" class="adm-col-mob adm-td-muted adm-td-sm">'+_esc(m.country||'—')+'</td>'
         + '<td data-label="CP"><strong>'+_numFmt(m.totalCp)+'</strong></td>'
         + '<td data-label="Pages" class="adm-col-mob">'+_numFmt(m.totalPages)+'</td>'
         + '<td data-label="Books" class="adm-col-mob">'+m.totalBooks+'</td>'
-        + '<td data-label="Joined" class="adm-col-mob" style="font-size:0.78rem;white-space:nowrap">'+_esc(m.joinDate)+'</td>'
-        + '<td data-label="Last Active" style="font-size:0.78rem;white-space:nowrap;color:var(--text-faint)">'+(m.lastAccessed||'—')+'</td>'
+        + '<td data-label="Joined" class="adm-col-mob adm-td-sm adm-nowrap">'+_esc(m.joinDate)+'</td>'
+        + '<td data-label="Last Active" class="adm-td-sm adm-nowrap adm-td-faint">'+(m.lastAccessed||'—')+'</td>'
         + '<td data-label="Status">'+_approvalPill(m.approvalStatus)+'</td>'
         + '</tr>';
     }).join('');

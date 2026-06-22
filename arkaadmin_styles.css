@@ -210,7 +210,37 @@
     /* ── Section header icon / timestamp ──────────────────────────── */
     .adm-section-icon            { color: var(--arka-accent); margin-right: 8px; font-size: 0.9em; }
     .adm-section-icon--gamif     { color: var(--color-gamification); }
+    .adm-section-icon--warn      { color: var(--adm-warn); }
+    .adm-section-icon--ok        { color: var(--adm-ok); }
+    .adm-section-icon--ann       { color: var(--color-announcements); }
     .adm-section-ts              { font-size: 0.75rem; color: var(--text-faint); }
+
+    /* ── Table card modifier ──────────────────────────────────────── */
+    .adm-card--table { padding: 0; overflow: hidden; }
+
+    /* ── List action row (New button aligned right) ───────────────── */
+    .adm-list-actions { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+
+    /* ── Layout helpers ───────────────────────────────────────────── */
+    .adm-flex-spacer     { flex: 1; }
+    .adm-mb-16           { margin-bottom: 16px; }
+    .adm-btn--grow       { flex: 1; }
+
+    /* ── Member table cells ───────────────────────────────────────── */
+    .adm-member-name     { font-weight: 700; }
+    .adm-td-muted        { color: var(--text-muted); }
+    .adm-filter-sort-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+    .adm-th-narrow       { width: 36px; }
+
+    /* ── Stat card size variant (Performance summary) ─────────────── */
+    .adm-stat-value--sm  { font-size: 1.3rem; }
+
+    /* ── Performance section ──────────────────────────────────────── */
+    .adm-perf-summary-grid   { grid-template-columns: repeat(auto-fill, minmax(145px,1fr)); margin-bottom: 16px; }
+    .adm-perf-chart-wrap     { height: 300px; }
+    .adm-perf-wave-chart-wrap{ height: 280px; }
+    .adm-perf-wave-hint      { font-size: 0.75rem; color: var(--text-faint); margin-bottom: 12px; }
+    .adm-perf-wave-grid      { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 10px; margin-top: 4px; }
 
     /* ── Bulk approval bar ────────────────────────────────────────── */
     .adm-bulk-bar   { display: flex; align-items: center; gap: 12px; background: var(--adm-page-bg); border: 1.5px solid var(--arka-accent); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }
