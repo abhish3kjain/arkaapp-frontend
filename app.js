@@ -27584,27 +27584,27 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         }
 
         // ── Update the streak stat circle ─────────────────────────────────────────
-        const streakPillValEl  = document.getElementById('meStatStreakValue');
-        const streakPillTileEl = document.getElementById('meStatStreakTile');
-        const streakPillLblEl  = document.getElementById('meStatStreakLabel');
+        const streakPillValEl   = document.getElementById('meStatStreakValue');
+        const streakPillFireEl  = document.getElementById('meStatStreakFire');
+        const streakPillTileEl  = document.getElementById('meStatStreakTile');
+        const streakPillLblEl   = document.getElementById('meStatStreakLabel');
+        const weeksActiveEl     = document.getElementById('meStatWeeksActive');
 
-        if (streakPillValEl) {
-          streakPillValEl.innerText = currentStreak > 0 ? currentStreak : '–';
-        }
-        if (streakPillLblEl) {
-          streakPillLblEl.innerHTML = currentStreak > 0
-            ? '<span>🔥</span><span>streak</span>'
-            : 'streak';
-        }
+        if (streakPillValEl) streakPillValEl.innerText = currentStreak > 0 ? currentStreak : '–';
+        if (streakPillFireEl) streakPillFireEl.style.display = currentStreak > 0 ? '' : 'none';
+        if (weeksActiveEl) weeksActiveEl.innerText = totalWeeksActive > 0 ? totalWeeksActive + ' wks' : '–';
+
         if (streakPillTileEl) {
           if (currentStreak > 0) {
-            streakPillTileEl.style.background   = '#fff8f0';
-            streakPillTileEl.style.borderColor  = '#f0c070';
+            streakPillTileEl.style.background  = '#fff8f0';
+            streakPillTileEl.style.borderColor = '#f0c070';
             if (streakPillValEl) streakPillValEl.style.color = 'var(--color-warning)';
-            if (streakPillLblEl) streakPillLblEl.style.color = '#854F0B';
+            if (streakPillFireEl) streakPillFireEl.style.color = 'var(--color-warning)';
+            if (streakPillLblEl) streakPillLblEl.style.color  = '#854F0B';
+            if (weeksActiveEl)   weeksActiveEl.style.color    = '#854F0B';
           } else {
-            streakPillTileEl.style.background   = 'var(--surface-alt)';
-            streakPillTileEl.style.borderColor  = 'var(--border-soft)';
+            streakPillTileEl.style.background  = 'var(--surface-alt)';
+            streakPillTileEl.style.borderColor = 'var(--border-soft)';
           }
         }
 
@@ -32666,7 +32666,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        */
       function updateStatRing(challengeType, seriesTag, currentValue, currentYear,
                               arcId, subId, ctaId) {
-        const CIRC = 2 * Math.PI * 46; // circumference for r=46 → ≈ 289.0
+        const CIRC = 2 * Math.PI * 44; // circumference for r=44 → ≈ 276.5
 
         const arcEl = document.getElementById(arcId);
         const subEl = document.getElementById(subId);
