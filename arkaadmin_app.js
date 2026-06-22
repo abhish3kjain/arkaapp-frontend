@@ -2234,7 +2234,17 @@
     var formBtn = document.getElementById('admChalSubTabForm');
     if (listBtn) listBtn.classList.toggle('active', tab === 'list');
     if (formBtn) formBtn.classList.toggle('active', tab === 'form');
-    if (tab === 'list') admRenderChallengeList();
+    if (tab === 'list') {
+      admRenderChallengeList();
+      // Reset form tab label and editing state so it reads "New Challenge" next time
+      admChalEditingId = null;
+      var hiddenId = document.getElementById('admChalEditingId');
+      if (hiddenId) hiddenId.value = '';
+      var labelEl = document.getElementById('admChalFormTabLabel');
+      if (labelEl) labelEl.textContent = 'New Challenge';
+      var typeEl = document.getElementById('admChalTypeSelect');
+      if (typeEl) typeEl.disabled = false;
+    }
   }
 
   function admSwitchChalStatusFilter(status) {
@@ -2438,6 +2448,8 @@
   function admBingoCellGenreSelect(idx, genre) {
     var inp = document.getElementById('admChalBingo-cell-' + idx);
     if (inp) inp.value = genre;
+    var box = document.getElementById('admBingoCellSug-' + idx);
+    if (box) box.classList.remove('open');
     admBingoCellGenreHide(idx);
   }
 
