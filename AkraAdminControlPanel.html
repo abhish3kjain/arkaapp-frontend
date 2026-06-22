@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=2.4">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=2.5">
 </head>
 <body>
 
@@ -64,7 +64,7 @@
       <button class="adm-nav-item active" data-section="overview" onclick="admSwitchSection('overview')">
         <i class="fa-solid fa-house"></i><span>Overview</span>
       </button>
-      <button class="adm-nav-item" data-section="approvals" onclick="admSwitchSection('approvals')" style="position:relative">
+      <button class="adm-nav-item adm-pos-relative" data-section="approvals" onclick="admSwitchSection('approvals')">
         <i class="fa-solid fa-user-check"></i><span>Approvals</span>
         <span class="adm-nav-pending-bubble" id="admNavPendingBubble" style="display:none">0</span>
       </button>
@@ -113,7 +113,7 @@
         <div class="adm-stat-grid" id="admStatGrid"></div>
         <div class="adm-card">
           <div class="adm-card-title">Quick Actions</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div class="adm-flex-row">
             <button class="adm-btn adm-btn-accent" onclick="admSwitchSection('approvals')"><i class="fa-solid fa-user-check"></i> Review Approvals</button>
             <button class="adm-btn adm-btn-light" onclick="admSwitchSection('badges')"><i class="fa-solid fa-medal"></i> Award a Badge</button>
             <button class="adm-btn adm-btn-light" onclick="admSwitchSection('performance')"><i class="fa-solid fa-gauge-high"></i> App Performance</button>
@@ -121,7 +121,7 @@
           </div>
         </div>
         <div class="adm-card" id="admPendingPreviewCard" style="display:none">
-          <div class="adm-card-title">Pending Approvals <a href="#" onclick="admSwitchSection('approvals');return false" style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:8px;font-size:0.78rem">View all →</a></div>
+          <div class="adm-card-title">Pending Approvals <a href="#" onclick="admSwitchSection('approvals');return false" class="adm-form-optional" style="margin-left:8px;font-size:0.78rem">View all →</a></div>
           <div id="admPendingPreviewList"></div>
         </div>
       </section>
@@ -139,7 +139,7 @@
           <button class="adm-filter-tab" data-appr-filter="Rejected" onclick="admFilterApprovals('Rejected')">Rejected</button>
           <button class="adm-filter-tab" data-appr-filter="All"      onclick="admFilterApprovals('All')">All Members</button>
           <div style="flex:1"></div>
-          <input type="text" class="adm-input" id="admApprovalSearch" style="max-width:240px" placeholder="Search name or email…" oninput="admRenderApprovals()">
+          <input type="text" class="adm-input adm-search-input" id="admApprovalSearch" placeholder="Search name or email…" oninput="admRenderApprovals()">
         </div>
         <!-- Bulk action bar — shown when Pending rows are selected -->
         <div id="admBulkApproveBar" style="display:none;align-items:center;gap:12px;background:var(--adm-page-bg);border:1.5px solid var(--arka-accent);border-radius:8px;padding:10px 14px;margin-bottom:12px">
@@ -188,7 +188,7 @@
             </div>
             <div class="adm-form-group">
               <label class="adm-form-label">Badge</label>
-              <div style="position:relative">
+              <div class="adm-pos-relative">
                 <input type="text" class="adm-input" id="admAwardBadgeInput"
                        placeholder="Type to search badge…"
                        oninput="admBadgePickerFilter('award')" onfocus="admBadgePickerOpen('award')" onblur="admBadgePickerCloseDelayed('award')"
@@ -199,7 +199,7 @@
               <div class="adm-input-hint" id="admAwardBadgeHint"></div>
             </div>
             <div class="adm-form-group">
-              <label class="adm-form-label">Admin Note <span style="font-weight:400;color:var(--text-faint)">(optional)</span></label>
+              <label class="adm-form-label">Admin Note <span class="adm-form-optional">(optional)</span></label>
               <textarea class="adm-textarea" id="admAwardNotesInput" rows="2" placeholder="Reason, event context, or any relevant note…"></textarea>
             </div>
             <button class="adm-btn adm-btn-accent" id="admAwardSubmitBtn" onclick="admSubmitBadgeAward()"><i class="fa-solid fa-medal"></i> Award Badge</button>
@@ -208,20 +208,20 @@
 
         <!-- ── Browse Awards panel ───────────────────────────────── -->
         <div id="admBadgePanelBrowse" style="display:none">
-          <div class="adm-filter-row" style="flex-wrap:wrap;gap:6px">
+          <div class="adm-filter-row">
             <button class="adm-filter-tab active" data-award-filter="Active"  onclick="admSetAwardFilter('Active')">Active</button>
             <button class="adm-filter-tab"        data-award-filter="Revoked" onclick="admSetAwardFilter('Revoked')">Revoked</button>
             <button class="adm-filter-tab"        data-award-filter="All"     onclick="admSetAwardFilter('All')">All Status</button>
             <div style="flex:1;min-width:16px"></div>
-            <input type="text" class="adm-input" id="admAwardBrowseSearch" style="max-width:240px;flex-shrink:0" placeholder="Search member or badge…" oninput="admRenderBadgeAwardsList()">
+            <input type="text" class="adm-input adm-search-input" id="admAwardBrowseSearch" placeholder="Search member or badge…" oninput="admRenderBadgeAwardsList()">
           </div>
-          <div class="adm-filter-row" style="flex-wrap:wrap;gap:6px;margin-top:8px">
+          <div class="adm-filter-row adm-mt-8">
             <span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:6px 4px;white-space:nowrap">Awarder</span>
             <button class="adm-filter-tab active" data-award-awarder="All"    onclick="admSetAwardAwarder('All')">All</button>
             <button class="adm-filter-tab"        data-award-awarder="System" onclick="admSetAwardAwarder('System')"><i class="fa-solid fa-robot" style="margin-right:4px;font-size:0.75em"></i>System</button>
             <button class="adm-filter-tab"        data-award-awarder="Manual" onclick="admSetAwardAwarder('Manual')"><i class="fa-solid fa-user-shield" style="margin-right:4px;font-size:0.75em"></i>Manual</button>
           </div>
-          <div class="adm-filter-row" id="admAwardCategoryChips" style="flex-wrap:wrap;gap:6px;margin-top:8px">
+          <div class="adm-filter-row adm-mt-8" id="admAwardCategoryChips">
             <!-- Populated by JS after data loads -->
           </div>
           <div class="adm-card" style="padding:0;overflow:hidden;margin-top:12px">
@@ -245,11 +245,11 @@
               <input type="text" class="adm-input" id="admCreateBadgeCaption" placeholder="e.g. First Read, Century Reader…">
             </div>
             <div class="adm-form-group">
-              <label class="adm-form-label">Description <span style="font-weight:400;color:var(--text-faint)">(optional)</span></label>
+              <label class="adm-form-label">Description <span class="adm-form-optional">(optional)</span></label>
               <textarea class="adm-textarea" id="admCreateBadgeDesc" rows="2" placeholder="What achievement does this badge represent?"></textarea>
             </div>
             <div class="adm-chal-section-divider">Points &amp; Category</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="adm-grid-2col" style="gap:14px">
               <div class="adm-form-group" style="margin-bottom:0">
                 <label class="adm-form-label">Club Points Awarded</label>
                 <input type="number" class="adm-input" id="admCreateBadgePoints" placeholder="e.g. 500" min="0">
@@ -268,14 +268,14 @@
             </div>
             <div class="adm-chal-section-divider">Image</div>
             <div class="adm-form-group">
-              <label class="adm-form-label">Badge Image <span style="color:var(--adm-danger)">*</span> <span style="font-weight:400;color:var(--text-faint)">(square, min 400×400 px — auto-cropped)</span></label>
-              <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+              <label class="adm-form-label">Badge Image <span style="color:var(--adm-danger)">*</span> <span class="adm-form-optional">(square, min 400×400 px — auto-cropped)</span></label>
+              <div class="adm-flex-row-tight adm-mt-8" style="gap:14px">
                 <img id="admCreateBadgePreview" class="adm-badge-img-preview" style="display:none" alt="preview">
                 <div id="admCreateBadgeFallback" class="adm-badge-img-fallback">🏅</div>
                 <input type="file" id="admCreateBadgeInput" accept="image/*" onchange="admHandleBadgeCreateImgSelect(this)" style="flex:1;font-size:0.82rem">
               </div>
             </div>
-            <button class="adm-btn adm-btn-accent" id="admCreateBadgeBtn" onclick="admSubmitCreateBadge()" style="margin-top:8px">
+            <button class="adm-btn adm-btn-accent adm-mt-8" id="admCreateBadgeBtn" onclick="admSubmitCreateBadge()">
               <i class="fa-solid fa-plus"></i> Create Badge
             </button>
           </div>
@@ -287,7 +287,7 @@
             <div class="adm-card-title">Replace the image for an existing badge</div>
             <div class="adm-form-group">
               <label class="adm-form-label">Badge to update</label>
-              <div style="position:relative">
+              <div class="adm-pos-relative">
                 <input type="text" class="adm-input" id="admUpdateBadgeInput"
                        placeholder="Type to search badge…"
                        oninput="admBadgePickerFilter('update')" onfocus="admBadgePickerOpen('update')" onblur="admBadgePickerCloseDelayed('update')"
@@ -299,14 +299,14 @@
             </div>
             <div class="adm-chal-section-divider">Image</div>
             <div class="adm-form-group">
-              <label class="adm-form-label">New image file <span style="color:var(--adm-danger)">*</span> <span style="font-weight:400;color:var(--text-faint)">(square, min 400×400 px — auto-cropped)</span></label>
-              <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+              <label class="adm-form-label">New image file <span style="color:var(--adm-danger)">*</span> <span class="adm-form-optional">(square, min 400×400 px — auto-cropped)</span></label>
+              <div class="adm-flex-row-tight adm-mt-8" style="gap:14px">
                 <img id="admUpdateImgPreview" class="adm-badge-img-preview" style="display:none" alt="preview">
                 <div id="admUpdateImgFallback" class="adm-badge-img-fallback">🖼️</div>
                 <input type="file" id="admUpdateImgInput" accept="image/*" onchange="admHandleUpdateImgSelect(this)" style="flex:1;font-size:0.82rem">
               </div>
             </div>
-            <button class="adm-btn adm-btn-accent" id="admUpdateImgBtn" onclick="admSubmitUpdateBadgeImage()" style="margin-top:8px">
+            <button class="adm-btn adm-btn-accent adm-mt-8" id="admUpdateImgBtn" onclick="admSubmitUpdateBadgeImage()">
               <i class="fa-solid fa-image"></i> Update Image
             </button>
           </div>
@@ -326,7 +326,7 @@
           <button class="adm-filter-tab"        data-posts-type="Quote I Loved" onclick="admFilterPostsType('Quote I Loved')">Quote</button>
           <button class="adm-filter-tab"        data-posts-type="Fan Cast"     onclick="admFilterPostsType('Fan Cast')">Fan Cast</button>
           <div style="flex:1"></div>
-          <input type="text" class="adm-input" id="admPostsSearch" style="max-width:240px" placeholder="Search member or text…" oninput="admRenderContent()">
+          <input type="text" class="adm-input adm-search-input" id="admPostsSearch" placeholder="Search member or text…" oninput="admRenderContent()">
         </div>
         <div class="adm-card" style="padding:0;overflow:hidden">
           <div class="adm-table-wrap">
@@ -338,7 +338,7 @@
             </table>
           </div>
         </div>
-        <div id="admContentShowMore" style="text-align:center;padding:16px;display:none">
+        <div id="admContentShowMore" class="adm-paginator-row" style="display:none">
           <button class="adm-btn adm-btn-light" onclick="admShowMorePosts()"><i class="fa-solid fa-chevron-down"></i> Show More</button>
         </div>
       </section>
@@ -362,7 +362,7 @@
         <!-- Chart A: Total load trend -->
         <div class="adm-card">
           <div class="adm-card-title">Total Load Time Trend (end-to-end, <em>_ALL</em> rows)</div>
-          <div style="position:relative;height:300px" id="admPerfChartWrap">
+          <div class="adm-pos-relative" style="height:300px" id="admPerfChartWrap">
             <canvas id="admPerfChartCanvas"></canvas>
           </div>
           <div id="admPerfEmptyState" class="adm-empty" style="display:none">
@@ -377,7 +377,7 @@
             Each line = one wave's avg GAS round-trip across versions. Gap = wave didn't exist yet.
             <strong>init</strong> = initializeUser() overhead before any wave fires.
           </p>
-          <div style="position:relative;height:280px">
+          <div class="adm-pos-relative" style="height:280px">
             <canvas id="admWaveTrendChartCanvas"></canvas>
           </div>
         </div>
@@ -485,7 +485,7 @@
               <input type="text" class="adm-input" id="admAnnTitleInput" placeholder="Short, clear headline…" maxlength="120">
 
               <label class="adm-form-label" for="admAnnBodyInput">Body <span style="color:var(--adm-danger)">*</span></label>
-              <textarea class="adm-input" id="admAnnBodyInput" rows="5" placeholder="Full announcement text…" style="resize:vertical"></textarea>
+              <textarea class="adm-input adm-textarea" id="admAnnBodyInput" rows="5" placeholder="Full announcement text…"></textarea>
 
               <!-- Audience (hidden for WHATS_NEW) -->
               <div id="admAnnAudienceSection">
@@ -497,7 +497,7 @@
                   <div id="admAnnScopeToggle" class="toggle-pill" role="button" tabindex="0" onclick="admAnnToggleScope()"></div>
                 </div>
                 <!-- Member picker — shown when scope is Specific Members -->
-                <div id="admAnnMemberPickerSection" style="display:none;margin-top:10px;position:relative">
+                <div id="admAnnMemberPickerSection" class="adm-pos-relative" style="display:none;margin-top:10px">
                   <label class="adm-form-label" style="margin-top:0">Select Members</label>
                   <div class="ann-member-picker" onclick="document.getElementById('admAnnMemberSearch').focus()">
                     <div id="admAnnMemberPills" style="display:contents"></div>
@@ -512,7 +512,7 @@
               </div>
 
               <!-- Expiry -->
-              <label class="adm-form-label" for="admAnnExpiryInput">Expiry date <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional — dd-MMM-yyyy, e.g. 31-Dec-2026)</span></label>
+              <label class="adm-form-label" for="admAnnExpiryInput">Expiry date <span class="adm-form-optional">(optional — dd-MMM-yyyy, e.g. 31-Dec-2026)</span></label>
               <input type="text" class="adm-input" id="admAnnExpiryInput" placeholder="dd-MMM-yyyy">
 
               <!-- Pin (hidden for WHATS_NEW and specific-member scope) -->
@@ -526,7 +526,7 @@
                 </div>
               </div>
 
-              <div style="display:flex;gap:10px;margin-top:20px">
+              <div class="adm-form-actions">
                 <button class="adm-btn adm-btn-accent" id="admAnnSaveBtn" onclick="admSubmitAnn()" style="flex:1">
                   <i class="fa-solid fa-paper-plane"></i> Save Announcement
                 </button>
@@ -583,10 +583,10 @@
               <input type="text" class="adm-input" id="admEvtTitleInput" placeholder="Event title…" maxlength="120">
 
               <label class="adm-form-label" for="admEvtDescInput">Description</label>
-              <textarea class="adm-input" id="admEvtDescInput" rows="4" placeholder="Details, agenda, or notes…" style="resize:vertical"></textarea>
+              <textarea class="adm-input adm-textarea" id="admEvtDescInput" rows="4" placeholder="Details, agenda, or notes…"></textarea>
 
-              <label class="adm-form-label">Host Member <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
-              <div style="position:relative">
+              <label class="adm-form-label">Host Member <span class="adm-form-optional">(optional)</span></label>
+              <div class="adm-pos-relative">
                 <div class="ann-member-picker" onclick="document.getElementById('admEvtHostSearch').focus()">
                   <div id="admEvtHostPills" style="display:contents"></div>
                   <input type="text" id="admEvtHostSearch" class="ann-member-search"
@@ -645,7 +645,7 @@
                 <div id="admEvtPinToggle" class="toggle-pill" role="button" tabindex="0" onclick="admEvtTogglePin()"></div>
               </div>
 
-              <div style="display:flex;gap:10px;margin-top:20px">
+              <div class="adm-form-actions">
                 <button class="adm-btn adm-btn-accent" id="admEvtSaveBtn" onclick="admSubmitEvt()" style="flex:1">
                   <i class="fa-solid fa-paper-plane"></i> Save Event
                 </button>
@@ -705,7 +705,7 @@
             <input type="text" id="admChalTitleInput" class="adm-input" placeholder="e.g. Arka Book Bingo 2027" maxlength="120">
 
             <label for="admChalDescInput" style="margin-top:12px;">Description</label>
-            <textarea id="admChalDescInput" class="adm-input" rows="2" placeholder="What do members need to do?" style="resize:vertical"></textarea>
+            <textarea id="admChalDescInput" class="adm-input adm-textarea" rows="2" placeholder="What do members need to do?"></textarea>
 
             <!-- Dates + Status -->
             <div class="adm-chal-form-row" style="margin-top:14px;">
@@ -714,7 +714,7 @@
                 <input type="date" id="admChalStartDate" class="adm-input">
               </div>
               <div>
-                <label for="admChalEndDate">End date <span style="font-weight:400;text-transform:none;">(blank = open-ended)</span></label>
+                <label for="admChalEndDate">End date <span class="adm-form-optional">(blank = open-ended)</span></label>
                 <input type="date" id="admChalEndDate" class="adm-input">
               </div>
             </div>
@@ -728,7 +728,7 @@
             </select>
 
             <!-- Series Tag -->
-            <label for="admChalSeriesTag" style="margin-top:12px;">Series tag <span style="font-weight:400;text-transform:none;">(blank = one-off)</span></label>
+            <label for="admChalSeriesTag" style="margin-top:12px;">Series tag <span class="adm-form-optional">(blank = one-off)</span></label>
             <input type="text" id="admChalSeriesTag" class="adm-input" list="admChalSeriesTagList"
                    placeholder="e.g. BOOK_BINGO — links editions across years">
             <datalist id="admChalSeriesTagList"></datalist>
@@ -792,7 +792,7 @@
               <div class="adm-chal-section-divider">Book &amp; event</div>
               <label for="admChalBuddy-bookTitle">Book title</label>
               <input type="text" id="admChalBuddy-bookTitle" class="adm-input" placeholder="Enter book title…">
-              <label for="admChalBuddy-linkedEvent" style="margin-top:10px;">Linked club event <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+              <label for="admChalBuddy-linkedEvent" style="margin-top:10px;">Linked club event <span class="adm-form-optional">(optional)</span></label>
               <select id="admChalBuddy-linkedEvent" class="adm-input">
                 <option value="">— Not linked to any event —</option>
               </select>
@@ -875,7 +875,7 @@
               </div>
             </div>
             <div style="margin-top:10px;">
-              <label for="admChalWinPoints">Win points <span style="font-weight:400;text-transform:none;">(0 = no winner concept)</span></label>
+              <label for="admChalWinPoints">Win points <span class="adm-form-optional">(0 = no winner concept)</span></label>
               <input type="number" id="admChalWinPoints" class="adm-input" value="1500" min="0" step="100">
             </div>
 
@@ -902,7 +902,7 @@
             <input type="hidden" id="admChalEditingId">
 
             <!-- Actions -->
-            <div style="display:flex;gap:10px;margin-top:20px;">
+            <div class="adm-form-actions">
               <button id="admChalSaveBtn" class="adm-btn adm-btn-ok" style="flex:1;" onclick="admSubmitChallenge()">
                 <i class="fa-solid fa-floppy-disk"></i> Save Challenge
               </button>
@@ -1008,7 +1008,7 @@
               <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptShiftPeriod(+1)">&#8250;</button>
             </div>
             <div id="rptSlideCountLabel" style="font-size:0.75rem;color:var(--text-faint);text-align:center;margin-bottom:12px">— slides</div>
-            <div style="display:flex;gap:10px">
+            <div class="adm-flex-row" style="flex-wrap:nowrap">
               <button id="rptShareImagesBtn" class="adm-btn adm-btn-light" style="flex:1" onclick="rptExportImages()">📲 Share Images</button>
               <button id="rptExportPdfBtn"   class="adm-btn adm-btn-accent" style="flex:1" onclick="rptExportPdf()">📄 Export PDF</button>
             </div>
@@ -1160,6 +1160,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=2.4"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=2.5"></script>
 </body>
 </html>

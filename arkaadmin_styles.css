@@ -10,26 +10,41 @@
          Use --arka-accent-text wherever accent colour sits on a white or
          light background as running text (nav labels, links, etc.). */
       --arka-accent-text:  #7a5e8e;
-      --text-strong:       #2c3e50;
-      --text-muted:        #5b6b6e;
-      --surface-alt:       #f8f9fa;
-      --border-soft:       #ecf0f1;
-      --text-faint:        #6a7878;
-      --neutral-mid:       #bdc3c7;
+      --text-strong:       var(--text-strong);
+      --text-muted:        var(--text-muted);
+      --surface-alt:       var(--surface-alt);
+      --border-soft:       var(--border-soft);
+      --text-faint:        var(--text-faint);
+      --neutral-mid:       var(--neutral-mid);
       --font-body:         'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       /* Admin semantic tokens */
       --adm-sidebar-w:     220px;
       --adm-topbar-h:      56px;
-      --adm-ok:            #1d9e75;
+      --adm-ok:            var(--adm-ok);
       --adm-ok-bg:         #e6f7f1;
-      --adm-warn:          #f59f00;
+      --adm-warn:          var(--adm-warn);
       --adm-warn-bg:       #fff8e6;
-      --adm-danger:        #e74c3c;
-      --adm-danger-bg:     #fde8e8;
-      --adm-page-bg:       #f4f7f6;
+      --adm-danger:        var(--adm-danger);
+      --adm-danger-bg:     var(--adm-danger-bg);
+      --adm-page-bg:       var(--adm-page-bg);
       --color-gamification:   #EF9F27;
       --color-challenge:     #534AB7;
       --color-announcements: #2980b9;
+
+      /* Extended palette — replaces all raw hex literals below */
+      --adm-challenge-bg:       #EEEDFE;
+      --adm-challenge-border:   #7F77DD;
+      --adm-challenge-text:     #534AB7;
+      --adm-ann-notice-bg:      #EAF4FD;
+      --adm-ann-notice-text:    #1565a8;
+      --adm-ann-new-bg:         #F3EDF7;
+      --adm-ann-new-text:       #6a3d85;
+      --adm-pill-approved-bg:   #e6f4ee;
+      --adm-pill-approved-text: #155c3e;
+      --adm-pill-pending-bg:    #fff4e0;
+      --adm-pill-pending-text:  #7c4a0e;
+      --adm-pill-rejected-bg:   #fce8e8;
+      --adm-pill-rejected-text: #8b1c1c;
 
       /* ── Mobile layout tokens ─────────────────────────────────────── */
       /* Height of the sticky bottom navigation bar shown only on mobile.
@@ -49,6 +64,16 @@
          min-width so the standard is enforced consistently. */
       --mob-touch-min:   44px;
     }
+
+    /* ── Keyboard focus ring — WCAG AA ────────────────────────────── */
+    :focus-visible {
+      outline: 2px solid var(--arka-accent);
+      outline-offset: 2px;
+    }
+    /* Remove focus-visible from elements that have their own focus style */
+    .adm-input:focus-visible,
+    .adm-select:focus-visible,
+    .adm-textarea:focus-visible { outline: none; }
 
     /* ── Global reset ──────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -98,7 +123,7 @@
     }
     .adm-topbar-wordmark { font-size: 0.95rem; font-weight: 800; color: var(--text-strong); letter-spacing: -0.02em; }
     .adm-topbar-wordmark i { color: var(--arka-accent); margin-right: 6px; }
-    .adm-topbar-badge { font-size: 0.6rem; font-weight: 700; background: #fef3e2; color: #854f0b; border: 1px solid var(--adm-warn); border-radius: 4px; padding: 2px 7px; letter-spacing: 0.04em; }
+    .adm-topbar-badge { font-size: 0.6rem; font-weight: 700; background: var(--adm-warn-bg); color: #854f0b; border: 1px solid var(--adm-warn); border-radius: 4px; padding: 2px 7px; letter-spacing: 0.04em; }
     .adm-topbar-spacer { flex: 1; }
     .adm-topbar-admin-label { font-size: 0.78rem; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
     .adm-topbar-refresh-btn {
@@ -234,7 +259,7 @@
       outline: none; transition: border-color 0.12s;
       font-family: var(--font-body);
     }
-    .adm-input:focus, .adm-select:focus, .adm-textarea:focus { border-color: var(--arka-accent); }
+    .adm-input:focus, .adm-select:focus, .adm-textarea:focus { border-color: var(--arka-accent); box-shadow: 0 0 0 3px rgba(169, 132, 186, 0.15); }
     .adm-input-hint { font-size: 0.72rem; color: var(--text-faint); margin-top: 4px; min-height: 1em; }
     .adm-form-group { margin-bottom: 16px; }
     .adm-form-label { display: block; font-size: 0.77rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; }
@@ -250,17 +275,17 @@
 
     /* ── Status pills ──────────────────────────────────────────────── */
     .adm-pill { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
-    .adm-pill-approved { background: #e6f4ee; color: #155c3e; }
-    .adm-pill-pending  { background: #fef3e2; color: #7c4a0e; }
-    .adm-pill-rejected { background: #fde8e8; color: #7c1e1e; }
-    .adm-pill-active   { background: #e6f4ee; color: #155c3e; }
+    .adm-pill-approved { background: var(--adm-pill-approved-bg); color: var(--adm-pill-approved-text); }
+    .adm-pill-pending  { background: var(--adm-warn-bg);         color: var(--adm-pill-pending-text); }
+    .adm-pill-rejected { background: var(--adm-danger-bg);       color: var(--adm-pill-rejected-text); }
+    .adm-pill-active   { background: var(--adm-pill-approved-bg); color: var(--adm-pill-approved-text); }
     .adm-pill-revoked  { background: #f0f0f4; color: var(--text-faint); }
     .adm-pill-system   { background: #e8f0ff; color: #1a3da6; }
     .adm-pill-latest   { background: #f0eaf4; color: var(--arka-accent-text); }
 
     /* ── Rank + live-dot ───────────────────────────────────────────── */
     .adm-rank { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 0.7rem; font-weight: 800; background: var(--surface-alt); color: var(--text-faint); flex-shrink: 0; }
-    .adm-rank.gold   { background: #fef3e2; color: #854f0b; }
+    .adm-rank.gold   { background: var(--adm-warn-bg); color: #854f0b; }
     .adm-rank.silver { background: #f0f0f4; color: #4a4a5a; }
     .adm-rank.bronze { background: #fdf0e8; color: #7c4420; }
     .adm-live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--adm-ok); margin-right: 4px; vertical-align: middle; }
@@ -393,13 +418,13 @@
       transition: border-color 0.15s, background 0.15s; background: var(--surface-alt);
     }
     .ann-type-option:active { opacity: 0.8; }
-    .ann-type-option.selected { background: #EEEDFE; border-color: #7F77DD; border-width: 1.5px; }
+    .ann-type-option.selected { background: var(--adm-challenge-bg); border-color: var(--adm-challenge-border); border-width: 1.5px; }
     .ann-type-option-label { font-size: 0.78rem; font-weight: 700; color: var(--text-strong); }
-    .ann-type-option.selected .ann-type-option-label { color: #3C3489; }
+    .ann-type-option.selected .ann-type-option-label { color: var(--adm-challenge-text); }
     .ann-type-option-sub { font-size: 0.65rem; color: var(--text-faint); margin-top: 2px; }
-    .ann-type-option.selected .ann-type-option-sub { color: #534AB7; }
+    .ann-type-option.selected .ann-type-option-sub { color: var(--adm-challenge-text); }
     .ann-type-hint {
-      font-size: 0.72rem; color: #534AB7; background: #EEEDFE;
+      font-size: 0.72rem; color: var(--adm-challenge-text); background: var(--adm-challenge-bg);
       border-radius: 6px; padding: 6px 10px; margin-bottom: 12px;
     }
 
@@ -414,12 +439,12 @@
     .ann-member-picker:focus-within { border-color: var(--arka-accent); background: #fff; }
     .ann-member-pill {
       display: inline-flex; align-items: center; gap: 4px;
-      background: #EEEDFE; color: #534AB7;
+      background: var(--adm-challenge-bg); color: var(--adm-challenge-text);
       font-size: 0.78rem; font-weight: 600;
       padding: 3px 8px; border-radius: 12px; white-space: nowrap;
     }
     .ann-member-pill-remove {
-      cursor: pointer; font-size: 0.85rem; color: #534AB7; opacity: 0.6; line-height: 1;
+      cursor: pointer; font-size: 0.85rem; color: var(--adm-challenge-text); opacity: 0.6; line-height: 1;
       background: none; border: none; padding: 0; width: auto; display: inline;
     }
     .ann-member-pill-remove:hover  { opacity: 1; }
@@ -661,6 +686,7 @@
 
       /* ── 9. Stat grid — 2-column on mobile ───────────────────────── */
       .adm-stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .adm-grid-2col { grid-template-columns: 1fr; }
 
       /* ── 10. Hide admin label text in topbar (saves space) ─────────  */
       .adm-topbar-admin-label { display: none; }
@@ -812,6 +838,23 @@
       }
     } /* end @media mobile */
 
+    /* ── Layout utilities (replaces inline styles in HTML) ──────────── */
+    .adm-flex-row          { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .adm-flex-row-tight    { display: flex; align-items: center; gap: 6px; }
+    .adm-flex-col          { display: flex; flex-direction: column; gap: 8px; }
+    .adm-grid-2col         { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .adm-grid-2col > *     { min-width: 0; }
+    .adm-form-actions      { display: flex; gap: 10px; margin-top: 20px; }
+    .adm-form-optional     { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-faint); font-size: 0.82em; }
+    .adm-pos-relative      { position: relative; }
+    .adm-text-center       { text-align: center; }
+    .adm-mt-8              { margin-top: 8px; }
+    .adm-mt-16             { margin-top: 16px; }
+    .adm-mt-20             { margin-top: 20px; }
+    .adm-paginator-row     { text-align: center; padding: 16px; }
+    .adm-search-input      { max-width: 240px; }
+    .adm-textarea          { resize: vertical; }
+
     /* Challenge form — global (outside media query) */
     .adm-chal-form-row       { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .adm-chal-type-section   { display: none; }
@@ -834,7 +877,7 @@
       border-radius: 6px; padding: 7px 9px; font-size: 0.82rem;
       color: var(--text-strong); font-family: inherit; background: var(--surface-alt);
     }
-    .adm-bingo-cell-input.is-free { background: #EEEDFE; color: #534AB7; font-style: italic; }
+    .adm-bingo-cell-input.is-free { background: var(--adm-challenge-bg); color: var(--adm-challenge-text); font-style: italic; }
     .adm-bingo-cell-label  {
       font-size: 0.68rem; color: var(--text-faint); margin-bottom: 2px;
       text-transform: none; letter-spacing: 0; font-weight: 400;
@@ -902,7 +945,7 @@
     .badge-cat-BOOKS_READ     { background: #FAEEDA; color: #633806; }
     .badge-cat-GENRE_EXPLORER { background: #E1F5EE; color: #085041; }
     .badge-cat-READING_STREAK { background: #FBEAF0; color: #72243E; }
-    .badge-cat-YEARLY         { background: #EEEDFE; color: var(--color-challenge); }
+    .badge-cat-YEARLY         { background: var(--adm-challenge-bg); color: var(--color-challenge); }
     .badge-cat-SPECIAL        { background: #f0eaf4; color: var(--arka-accent-text); }
 
     /* Challenge type colour pills — ported from member app styles.css */
@@ -911,7 +954,7 @@
       border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px;
     }
     .chal-type-HABIT_STREAK   { background: #FAEEDA; color: #633806; }
-    .chal-type-BINGO_GRID     { background: #EEEDFE; color: var(--color-challenge); }
+    .chal-type-BINGO_GRID     { background: var(--adm-challenge-bg); color: var(--color-challenge); }
     .chal-type-BUDDY_READ     { background: #FBEAF0; color: #72243E; }
     .chal-type-COUNTRY_SPREAD { background: #E1F5EE; color: #085041; }
     .chal-type-ALPHABET       { background: #E6F1FB; color: #0C447C; }
