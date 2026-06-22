@@ -5934,4 +5934,15 @@ function testInsightsForMe_() {
 
   console.log('\n── Full JSON (paste into jsonformatter.org) ──');
   console.log(result);
+
+  // Write to Col S so testAIPassForMe_() picks up the fresh statSnapshot
+  var memSheet = ss.getSheetByName(MEMBERS_SHEET_NAME);
+  var allRows  = memSheet.getDataRange().getValues();
+  for (var wi = 1; wi < allRows.length; wi++) {
+    if ((allRows[wi][0] || '').toString() === TEST_MEMBER_ID) {
+      memSheet.getRange(wi + 1, 19).setValue(result); // Col S = column 19
+      console.log('\n✓ Written to Col S (row ' + (wi + 1) + ') — ready for testAIPassForMe_()');
+      break;
+    }
+  }
 }
