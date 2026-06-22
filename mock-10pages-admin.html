@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mock — 10 Pages a Day · Admin Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ── Design tokens (mirrored from arkaadmin_styles.css) ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --arka-accent:        #A984BA;
+      --arka-accent-hover:  #8b6ba0;
+      --arka-accent-text:   #7a5e8e;
+      --text-strong:        #2c3e50;
+      --text-muted:         #5b6b6e;
+      --text-faint:         #6a7878;
+      --border-soft:        #ecf0f1;
+      --surface-alt:        #f7f9f9;
+      --neutral-mid:        #aab5b5;
+      --adm-ok:             #1d9e75;
+      --adm-ok-bg:          #e6f7f1;
+      --adm-warn:           #f59f00;
+      --adm-warn-bg:        #fff8e6;
+      --adm-danger:         #e74c3c;
+      --adm-danger-bg:      #fde8e8;
+      --adm-page-bg:        #f4f7f6;
+      --color-challenge:    #534AB7;
+      --adm-challenge-bg:   #EBEBF9;
+      --font-body:          'Segoe UI', system-ui, sans-serif;
+    }
+    body {
+      font-family: var(--font-body);
+      background: var(--adm-page-bg);
+      color: var(--text-strong);
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    /* ── Mock chrome ── */
+    .mock-chrome { background: #fff; border-bottom: 1px solid var(--border-soft); padding: 10px 24px; display: flex; align-items: center; gap: 10px; }
+    .mock-chrome .logo { font-size: 0.95rem; font-weight: 800; color: var(--text-strong); }
+    .mock-chrome .logo i { color: var(--arka-accent); margin-right: 6px; }
+    .mock-chrome .badge-admin { font-size: 0.6rem; font-weight: 700; background: var(--adm-warn-bg); color: #854f0b; border: 1px solid var(--adm-warn); border-radius: 4px; padding: 2px 7px; }
+    .mock-chrome .breadcrumb { margin-left: auto; font-size: 0.78rem; color: var(--text-faint); }
+
+    /* ── Layout ── */
+    .mock-body { display: flex; gap: 0; min-height: calc(100vh - 48px); }
+    .mock-sidebar { width: 200px; background: #fff; border-right: 1px solid var(--border-soft); padding: 12px 0 24px; flex-shrink: 0; }
+    .mock-nav-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 20px; font-size: 0.875rem; font-weight: 500; color: var(--text-muted); cursor: pointer; }
+    .mock-nav-item.active { background: #f0eaf4; color: var(--arka-accent-text); font-weight: 700; border-left: 3px solid var(--arka-accent); }
+    .mock-nav-item i { width: 16px; text-align: center; }
+    .main { flex: 1; padding: 24px; max-width: 760px; }
+
+    /* ── Shared card ── */
+    .adm-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); padding: 20px; margin-bottom: 16px; }
+    .adm-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .adm-section-header h2 { font-size: 1.15rem; font-weight: 800; color: var(--text-strong); }
+    .adm-section-subtitle { font-size: 0.78rem; color: var(--text-faint); margin-bottom: 18px; }
+    .adm-section-icon { color: var(--arka-accent); margin-right: 8px; font-size: 0.9em; }
+    .adm-section-icon--challenge { color: var(--color-challenge); }
+
+    /* ── Sub tabs ── */
+    .adm-subtabs { display: flex; border-bottom: 2px solid var(--border-soft); margin-bottom: 18px; }
+    .adm-subtab { padding: 8px 16px; font-size: 0.82rem; font-weight: 600; border: none; background: none; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; display: flex; align-items: center; gap: 6px; }
+    .adm-subtab.active { color: var(--arka-accent-text); border-bottom-color: var(--arka-accent); font-weight: 700; }
+
+    /* ── Filter row ── */
+    .adm-filter-row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .adm-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; border: none; cursor: pointer; font-family: var(--font-body); transition: opacity 0.15s; }
+    .adm-btn:hover { opacity: 0.86; }
+    .adm-btn-accent { background: var(--arka-accent); color: #fff; }
+    .adm-btn-ok     { background: var(--adm-ok); color: #fff; }
+    .adm-btn-danger { background: var(--adm-danger); color: #fff; }
+    .adm-btn-light  { background: var(--surface-alt); border: 1px solid var(--border-soft); color: var(--text-strong); }
+    .adm-btn-sm     { padding: 5px 10px; font-size: 0.75rem; }
+    .adm-btn-icon   { padding: 7px 11px; min-width: 36px; min-height: 36px; justify-content: center; font-size: 0.82rem; }
+    .adm-btn.active { background: var(--arka-accent); color: #fff; }
+    .adm-btn--grow  { flex: 1; }
+
+    /* ── Challenge cards ── */
+    .adm-chal-cards { display: flex; flex-direction: column; gap: 10px; }
+    .adm-chal-card {
+      background: #fff; border-radius: 10px; border: 1.5px solid var(--border-soft);
+      border-left: 4px solid var(--border-soft);
+      padding: 14px 16px; transition: box-shadow 0.15s;
+    }
+    .adm-chal-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.11); }
+    .adm-chal-card.is-pinned  { border-left-color: var(--arka-accent); }
+    .adm-chal-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+    .adm-chal-card-type { flex: 1; min-width: 0; }
+    .adm-chal-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .adm-chal-card-title { font-size: 0.95rem; font-weight: 700; color: var(--text-strong); margin-bottom: 4px; }
+    .adm-chal-card-meta { font-size: 0.75rem; color: var(--text-faint); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .adm-chal-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 2px; }
+    .adm-chal-dot-active    { background: var(--adm-ok); }
+    .adm-chal-dot-upcoming  { background: var(--adm-warn); }
+    .adm-chal-dot-completed { background: var(--neutral-mid); }
+    .adm-chal-card-meta-sep { color: var(--neutral-mid); }
+    .chal-type-badge { display: inline-block; font-size: 0.68rem; font-weight: 700; border-radius: 6px; padding: 2px 8px; letter-spacing: 0.03em; }
+    .chal-type-HABIT_STREAK   { background: #FAEEDA; color: #633806; }
+    .chal-type-BINGO_GRID     { background: var(--adm-challenge-bg); color: var(--color-challenge); }
+    .chal-type-BUDDY_READ     { background: #FBEAF0; color: #72243E; }
+    .chal-type-COUNTRY_SPREAD { background: #E1F5EE; color: #085041; }
+    .chal-type-ALPHABET       { background: #E6F1FB; color: #0C447C; }
+    .chal-type-BOOK_COUNT     { background: #FAEEDA; color: #633806; }
+    .chal-type-PAGE_COUNT     { background: #E6F1FB; color: #0C447C; }
+    .chal-type-10PAGESADAY    { background: #FFF0E0; color: #7A3000; }
+
+    /* ── "Award Badges" row on card ── */
+    .adm-mt-10 { margin-top: 10px; }
+    .adm-mt-12 { margin-top: 12px; }
+    .adm-mt-16 { margin-top: 16px; }
+    .adm-award-divider { border: none; border-top: 1px solid var(--border-soft); margin: 10px 0 10px; }
+
+    /* ── Form ── */
+    .adm-form-card { max-width: 680px; }
+    .adm-form-label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 16px; margin-bottom: 5px; }
+    .adm-form-label--no-top { margin-top: 0; }
+    .adm-form-optional { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-faint); font-size: 0.82em; }
+    .adm-input, .adm-select {
+      display: block; width: 100%; border: 1.5px solid var(--border-soft); border-radius: 8px;
+      padding: 9px 12px; font-size: 0.88rem; color: var(--text-strong); background: #fff;
+      font-family: var(--font-body); appearance: none;
+    }
+    .adm-input:focus, .adm-select:focus { border-color: var(--arka-accent); box-shadow: 0 0 0 3px rgba(169,132,186,0.15); outline: none; }
+    .adm-chal-section-divider {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-faint); border-bottom: 1px solid var(--border-soft);
+      padding-bottom: 6px; margin: 22px 0 14px;
+    }
+    .adm-chal-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .adm-chal-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+    .adm-points-hint { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; }
+    .adm-form-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+    /* Toggle pill */
+    .toggle-pill { width: 40px; height: 22px; border-radius: 11px; background: var(--border-soft); position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+    .toggle-pill.on { background: var(--arka-accent); }
+    .toggle-pill::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .toggle-pill.on::after { transform: translateX(18px); }
+    .adm-chal-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-soft); gap: 12px; }
+    .adm-chal-toggle-label { font-size: 0.88rem; color: var(--text-strong); font-weight: 500; }
+    .adm-chal-toggle-sub   { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Modal ── */
+    .adm-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 500; align-items: center; justify-content: center; padding: 16px; }
+    .adm-modal-overlay.open { display: flex; }
+    .adm-modal { background: #fff; border-radius: 14px; padding: 24px; width: 100%; max-width: 440px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+    .adm-modal-title { font-size: 1rem; font-weight: 800; margin-bottom: 8px; }
+    .adm-modal-body  { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 22px; line-height: 1.6; }
+    .adm-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* Award modal specific */
+    .award-badge-list { margin: 12px 0; display: flex; flex-direction: column; gap: 8px; }
+    .award-badge-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: var(--adm-page-bg); border-radius: 8px; padding: 10px 12px;
+    }
+    .award-badge-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+    .award-badge-name { font-size: 0.85rem; font-weight: 700; color: var(--text-strong); }
+    .award-badge-rule { font-size: 0.75rem; color: var(--text-faint); margin-top: 2px; }
+    .award-badge-id   { font-size: 0.7rem; font-family: monospace; color: var(--arka-accent-text); margin-top: 2px; }
+
+    /* ── Result toast ── */
+    .mock-toast {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--adm-ok); color: #fff; border-radius: 10px;
+      padding: 12px 18px; font-size: 0.84rem; font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15); margin-top: 16px;
+    }
+    .mock-toast i { font-size: 1rem; }
+
+    /* ── Section labels ── */
+    .mock-section-label {
+      font-size: 0.65rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-faint); padding: 10px 0 6px; border-bottom: 1px solid var(--border-soft);
+      margin-bottom: 14px;
+    }
+
+    /* ── Tabs between panels ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* responsive */
+    @media(max-width: 600px) {
+      .mock-sidebar { display: none; }
+      .main { padding: 16px; }
+      .adm-chal-form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Chrome -->
+<div class="mock-chrome">
+  <div class="logo"><i class="fa-solid fa-shield-halved"></i>ArkaAdmin</div>
+  <span class="badge-admin">ADMIN</span>
+  <div class="breadcrumb">Challenges → 10 Pages a Day</div>
+</div>
+
+<div class="mock-body">
+
+  <!-- Sidebar -->
+  <nav class="mock-sidebar">
+    <div class="mock-nav-item"><i class="fa-solid fa-house"></i> Overview</div>
+    <div class="mock-nav-item"><i class="fa-solid fa-medal"></i> Badges</div>
+    <div class="mock-nav-item"><i class="fa-solid fa-trophy adm-section-icon--challenge"></i> <strong style="color:var(--color-challenge)">Challenges</strong></div>
+    <div class="mock-nav-item"><i class="fa-solid fa-users"></i> Members</div>
+    <div class="mock-nav-item"><i class="fa-solid fa-envelope-circle-check"></i> Email Queue</div>
+    <div class="mock-nav-item"><i class="fa-solid fa-file-chart-column"></i> Reports</div>
+  </nav>
+
+  <!-- Main content -->
+  <div class="main">
+
+    <div class="adm-section-header">
+      <h2><i class="fa-solid fa-trophy adm-section-icon adm-section-icon--challenge"></i>Challenges</h2>
+    </div>
+    <p class="adm-section-subtitle">Create and manage reading challenges · 2 active</p>
+
+    <!-- Sub-tabs -->
+    <div class="adm-subtabs">
+      <button class="adm-subtab active" id="tabList" onclick="showPanel('list')">
+        <i class="fa-solid fa-list"></i> All Challenges
+      </button>
+      <button class="adm-subtab" id="tabForm" onclick="showPanel('form')">
+        <i class="fa-solid fa-plus"></i> <span id="formTabLabel">New Challenge</span>
+      </button>
+    </div>
+
+    <!-- ══════════════════════ PANEL: LIST ══════════════════════ -->
+    <div id="panelList" class="panel active">
+
+      <!-- Filter bar -->
+      <div class="adm-filter-row" style="margin-bottom:14px;">
+        <button class="adm-btn adm-btn-sm active">All</button>
+        <button class="adm-btn adm-btn-sm adm-btn-light">Active</button>
+        <button class="adm-btn adm-btn-sm adm-btn-light">Upcoming</button>
+        <button class="adm-btn adm-btn-sm adm-btn-light">Completed</button>
+        <button class="adm-btn adm-btn-sm adm-btn-light">Archived</button>
+      </div>
+
+      <div class="adm-chal-cards">
+
+        <!-- ── 10 Pages a Day card (PINNED / ACTIVE) ── -->
+        <div class="adm-chal-card is-pinned">
+          <div class="adm-chal-card-top">
+            <div class="adm-chal-card-type">
+              <span class="chal-type-badge chal-type-10PAGESADAY">🔥 10 Pages a Day</span>
+            </div>
+            <div class="adm-chal-card-actions">
+              <button class="adm-btn adm-btn-light adm-btn-icon adm-btn-sm" title="Edit" onclick="showPanel('form', true)">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="adm-btn adm-btn-danger adm-btn-icon adm-btn-sm" title="Archive">
+                <i class="fa-solid fa-box-archive"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="adm-chal-card-title">
+            10 Pages a Day Challenge 2026
+            <i class="fa-solid fa-thumbtack" style="color:var(--arka-accent);font-size:0.65rem;margin-left:4px" title="Pinned"></i>
+          </div>
+
+          <div class="adm-chal-card-meta">
+            <span class="adm-chal-dot adm-chal-dot-active"></span> Active
+            <span class="adm-chal-card-meta-sep"> · </span>
+            01-Jan-2026 → 31-Dec-2026
+            <span class="adm-chal-card-meta-sep"> · </span>
+            18 enrolled
+            <span class="adm-chal-card-meta-sep"> · </span>
+            3650 pages
+          </div>
+
+          <!-- Award Badges row -->
+          <hr class="adm-award-divider">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div style="font-size:0.75rem;color:var(--text-faint);">
+              <i class="fa-solid fa-medal" style="color:var(--adm-warn);margin-right:4px;"></i>
+              3 badge tiers · Challenger · Finisher · Page Turner
+            </div>
+            <button class="adm-btn adm-btn-accent adm-btn-sm" onclick="openAwardModal()">
+              <i class="fa-solid fa-medal"></i> Award Badges
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Regular BINGO card for contrast ── -->
+        <div class="adm-chal-card">
+          <div class="adm-chal-card-top">
+            <div class="adm-chal-card-type">
+              <span class="chal-type-badge chal-type-BINGO_GRID">🎲 Bingo Grid</span>
+            </div>
+            <div class="adm-chal-card-actions">
+              <button class="adm-btn adm-btn-light adm-btn-icon adm-btn-sm"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button class="adm-btn adm-btn-danger adm-btn-icon adm-btn-sm"><i class="fa-solid fa-box-archive"></i></button>
+            </div>
+          </div>
+          <div class="adm-chal-card-title">Arka Book Bingo 2026</div>
+          <div class="adm-chal-card-meta">
+            <span class="adm-chal-dot adm-chal-dot-active"></span> Active
+            <span class="adm-chal-card-meta-sep"> · </span>
+            01-Jan-2026 → open
+            <span class="adm-chal-card-meta-sep"> · </span>
+            24 enrolled
+          </div>
+        </div>
+
+        <!-- ── HABIT_STREAK upcoming ── -->
+        <div class="adm-chal-card">
+          <div class="adm-chal-card-top">
+            <div class="adm-chal-card-type">
+              <span class="chal-type-badge chal-type-HABIT_STREAK">📅 Habit Streak</span>
+            </div>
+            <div class="adm-chal-card-actions">
+              <button class="adm-btn adm-btn-light adm-btn-icon adm-btn-sm"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button class="adm-btn adm-btn-danger adm-btn-icon adm-btn-sm"><i class="fa-solid fa-box-archive"></i></button>
+            </div>
+          </div>
+          <div class="adm-chal-card-title">Summer Reading Streak</div>
+          <div class="adm-chal-card-meta">
+            <span class="adm-chal-dot adm-chal-dot-upcoming"></span> Upcoming
+            <span class="adm-chal-card-meta-sep"> · </span>
+            01-Jul-2026 → 31-Aug-2026
+          </div>
+        </div>
+
+      </div><!-- /.adm-chal-cards -->
+    </div><!-- /#panelList -->
+
+    <!-- ══════════════════════ PANEL: FORM ══════════════════════ -->
+    <div id="panelForm" class="panel">
+      <div class="adm-card adm-form-card">
+
+        <!-- Type -->
+        <label class="adm-form-label adm-form-label--no-top">Challenge Type <span style="color:var(--adm-danger)">*</span></label>
+        <select class="adm-select adm-input" style="pointer-events:none;opacity:0.75;">
+          <option>🔥 10 Pages a Day</option>
+        </select>
+
+        <!-- Title -->
+        <label class="adm-form-label">Title <span style="color:var(--adm-danger)">*</span></label>
+        <input class="adm-input" type="text" value="10 Pages a Day Challenge 2026">
+
+        <!-- Description -->
+        <label class="adm-form-label">Description</label>
+        <textarea class="adm-input" rows="2" style="resize:vertical;">Read at least 10 pages every day throughout 2026. Log your pages in the Arka app — your progress is tracked automatically.</textarea>
+
+        <!-- Dates -->
+        <div class="adm-chal-form-row adm-mt-16">
+          <div>
+            <label class="adm-form-label adm-form-label--no-top">Start date <span style="color:var(--adm-danger)">*</span></label>
+            <input class="adm-input" type="date" value="2026-01-01">
+          </div>
+          <div>
+            <label class="adm-form-label adm-form-label--no-top">End date <span class="adm-form-optional">(blank = open-ended)</span></label>
+            <input class="adm-input" type="date" value="2026-12-31">
+          </div>
+        </div>
+
+        <!-- Status -->
+        <label class="adm-form-label">Status</label>
+        <select class="adm-select adm-input">
+          <option selected>Active</option>
+          <option>Upcoming</option>
+          <option>Completed</option>
+          <option>Archived</option>
+        </select>
+
+        <!-- ── 10PAGESADAY config ── -->
+        <div class="adm-chal-section-divider">10 Pages a Day — Year config</div>
+
+        <div class="adm-chal-form-row">
+          <div>
+            <label class="adm-form-label adm-form-label--no-top">Challenge year</label>
+            <input class="adm-input" type="number" value="2026">
+          </div>
+          <div>
+            <label class="adm-form-label adm-form-label--no-top">Daily page goal</label>
+            <input class="adm-input" type="number" value="10">
+          </div>
+        </div>
+
+        <div class="adm-chal-section-divider">Badge IDs</div>
+
+        <label class="adm-form-label adm-form-label--no-top">Challenger badge ID <span class="adm-form-optional">(enrolled)</span></label>
+        <input class="adm-input" type="text" value="ARKA_BADGE_233">
+        <p class="adm-chal-hint"><i class="fa-solid fa-circle-info" style="color:var(--arka-accent);margin-right:4px;"></i>Awarded to every enrolled member — participation badge</p>
+
+        <label class="adm-form-label">Finisher badge ID <span class="adm-form-optional">(avg ≥ daily goal)</span></label>
+        <input class="adm-input" type="text" value="ARKA_BADGE_234">
+        <p class="adm-chal-hint"><i class="fa-solid fa-circle-info" style="color:var(--arka-accent);margin-right:4px;"></i>Awarded to members whose daily average pages ≥ 10 for the year</p>
+
+        <label class="adm-form-label">Winner badge ID <span class="adm-form-optional">(highest total — Page Turner)</span></label>
+        <input class="adm-input" type="text" value="ARKA_BADGE_235">
+        <p class="adm-chal-hint"><i class="fa-solid fa-circle-info" style="color:var(--arka-accent);margin-right:4px;"></i>Awarded to the single member with the highest cumulative pages</p>
+
+        <!-- Points -->
+        <div class="adm-chal-section-divider">Points ☀️</div>
+        <p class="adm-points-hint">Enrol points awarded on sign-up. Finish points trigger when the Finisher badge is awarded at year end.</p>
+        <div class="adm-chal-form-row">
+          <div>
+            <label class="adm-form-label adm-form-label--no-top">Enrol points</label>
+            <input class="adm-input" type="number" value="100">
+          </div>
+          <div>
+            <label class="adm-form-label adm-form-label--no-top">Finish points</label>
+            <input class="adm-input" type="number" value="1000">
+          </div>
+        </div>
+        <div class="adm-mt-10">
+          <label class="adm-form-label">Win points <span class="adm-form-optional">(Page Turner winner)</span></label>
+          <input class="adm-input" type="number" value="3000">
+        </div>
+
+        <!-- Visibility -->
+        <div class="adm-chal-section-divider">Visibility</div>
+        <div class="adm-chal-toggle-row">
+          <div>
+            <div class="adm-chal-toggle-label">📌 Pin to challenges list</div>
+            <div class="adm-chal-toggle-sub">Pinned challenges appear at the top for all members</div>
+          </div>
+          <div class="toggle-pill on"></div>
+        </div>
+        <div class="adm-mt-12">
+          <label class="adm-form-label">🏆 Competition Mode</label>
+          <select class="adm-select adm-input">
+            <option selected>None – personal challenge, no leaderboard</option>
+          </select>
+        </div>
+
+        <!-- Actions -->
+        <div class="adm-form-actions">
+          <button class="adm-btn adm-btn-ok adm-btn--grow">
+            <i class="fa-solid fa-floppy-disk"></i> Save Challenge
+          </button>
+          <button class="adm-btn adm-btn-light" onclick="showPanel('list')">Cancel</button>
+        </div>
+
+      </div>
+    </div><!-- /#panelForm -->
+
+  </div><!-- /.main -->
+</div><!-- /.mock-body -->
+
+
+<!-- ════════════════════════════════════════════════════════
+     AWARD BADGES MODAL
+  ════════════════════════════════════════════════════════ -->
+<div class="adm-modal-overlay" id="awardModal">
+  <div class="adm-modal">
+
+    <!-- Default state: confirmation -->
+    <div id="awardConfirm">
+      <div class="adm-modal-title">
+        <i class="fa-solid fa-medal" style="color:var(--adm-warn);margin-right:8px;"></i>
+        Award Year-End Badges
+      </div>
+      <div class="adm-modal-body">
+        <strong style="color:var(--text-strong);">10 Pages a Day Challenge 2026</strong><br>
+        Pages are read from PageLogDB for the year 2026. Badges already held are skipped automatically.
+        <div class="award-badge-list">
+          <div class="award-badge-row">
+            <div class="award-badge-icon">📘</div>
+            <div>
+              <div class="award-badge-name">Challenger</div>
+              <div class="award-badge-rule">All enrolled members · participation badge</div>
+              <div class="award-badge-id">ARKA_BADGE_233</div>
+            </div>
+          </div>
+          <div class="award-badge-row">
+            <div class="award-badge-icon">🔥</div>
+            <div>
+              <div class="award-badge-name">Finisher</div>
+              <div class="award-badge-rule">Members whose avg pages/day ≥ 10 in 2026</div>
+              <div class="award-badge-id">ARKA_BADGE_234</div>
+            </div>
+          </div>
+          <div class="award-badge-row">
+            <div class="award-badge-icon">🏆</div>
+            <div>
+              <div class="award-badge-name">Page Turner (Winner)</div>
+              <div class="award-badge-rule">Single member with highest cumulative pages</div>
+              <div class="award-badge-id">ARKA_BADGE_235</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:0.78rem;color:var(--adm-danger);margin-top:4px;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          This action is not reversible — awarded badges must be revoked individually.
+        </p>
+      </div>
+      <div class="adm-modal-actions">
+        <button class="adm-btn adm-btn-light" onclick="closeAwardModal()">Cancel</button>
+        <button class="adm-btn adm-btn-accent" onclick="runAward()">
+          <i class="fa-solid fa-medal"></i> Award Now
+        </button>
+      </div>
+    </div>
+
+    <!-- In-progress state -->
+    <div id="awardProgress" style="display:none;text-align:center;padding:20px 0;">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:var(--arka-accent);margin-bottom:14px;display:block;"></i>
+      <div style="font-weight:700;color:var(--text-strong);margin-bottom:6px;">Computing standings…</div>
+      <div style="font-size:0.8rem;color:var(--text-faint);">Reading PageLogDB · Checking 18 members</div>
+    </div>
+
+    <!-- Success state -->
+    <div id="awardSuccess" style="display:none;text-align:center;padding:8px 0;">
+      <div style="font-size:2.5rem;margin-bottom:10px;">🎉</div>
+      <div style="font-size:1rem;font-weight:800;color:var(--text-strong);margin-bottom:6px;">Badges Awarded!</div>
+      <div style="font-size:0.83rem;color:var(--text-muted);margin-bottom:20px;line-height:1.7;">
+        <span style="display:inline-flex;align-items:center;gap:6px;background:#f0eaf4;border-radius:8px;padding:4px 12px;margin:3px;">
+          📘 Challenger <strong>18</strong>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;background:#e6f7f1;border-radius:8px;padding:4px 12px;margin:3px;">
+          🔥 Finisher <strong>11</strong>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;background:#fff8e6;border-radius:8px;padding:4px 12px;margin:3px;">
+          🏆 Page Turner <strong>1</strong>
+        </span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-faint);">7 Finisher-eligible members already held this badge and were skipped.</div>
+      <div class="adm-modal-actions" style="justify-content:center;margin-top:20px;">
+        <button class="adm-btn adm-btn-ok" onclick="closeAwardModal()">Done</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+  function showPanel(name, editMode) {
+    document.getElementById('panelList').classList.toggle('active', name === 'list');
+    document.getElementById('panelForm').classList.toggle('active', name === 'form');
+    document.getElementById('tabList').classList.toggle('active', name === 'list');
+    document.getElementById('tabForm').classList.toggle('active', name === 'form');
+    document.getElementById('formTabLabel').textContent = editMode ? 'Edit Challenge' : 'New Challenge';
+  }
+
+  function openAwardModal() {
+    document.getElementById('awardConfirm').style.display = '';
+    document.getElementById('awardProgress').style.display = 'none';
+    document.getElementById('awardSuccess').style.display = 'none';
+    document.getElementById('awardModal').classList.add('open');
+  }
+
+  function closeAwardModal() {
+    document.getElementById('awardModal').classList.remove('open');
+  }
+
+  function runAward() {
+    document.getElementById('awardConfirm').style.display = 'none';
+    document.getElementById('awardProgress').style.display = '';
+    // Simulate async call
+    setTimeout(function() {
+      document.getElementById('awardProgress').style.display = 'none';
+      document.getElementById('awardSuccess').style.display = '';
+    }, 2000);
+  }
+
+  // Close on overlay click
+  document.getElementById('awardModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAwardModal();
+  });
+</script>
+
+</body>
+</html>
