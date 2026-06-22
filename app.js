@@ -27564,55 +27564,13 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         }
 
-        // ── Build "this week" day-tick banner ─────────────────────────────────────
-        // Determine which days of the current ISO week had at least one page log.
-        const thisWeekStr = getISOWeekString_(new Date());
-        const loggedDays  = new Set(); // 0=Mon … 6=Sun (ISO day − 1)
-        allUserLogs.forEach(function(log) {
-          if ((Number(log.pagesDelta) || 0) <= 0) return;
-          const d = parseGoogleDate(log.timestamp);
-          if (isNaN(d.getTime())) return;
-          if (getISOWeekString_(d) !== thisWeekStr) return;
-          // JS getDay(): 0=Sun,1=Mon…6=Sat → convert to ISO 0=Mon…6=Sun
-          const isoDay = (d.getDay() + 6) % 7;
-          loggedDays.add(isoDay);
-        });
-
-        // Today's ISO day index (0=Mon … 6=Sun)
-        const todayIso = (new Date().getDay() + 6) % 7;
-        const DAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-
+        // ── "This week" line ──────────────────────────────────────────────────────
         const pagesThisWeek = weeklyPagesCurrentYear[getISOWeekNumber(new Date())] || 0;
-
-        const dayChips = DAY_LABELS.map(function(lbl, i) {
-          const isToday   = i === todayIso;
-          const isLogged  = loggedDays.has(i);
-          // Days after today haven't happened yet — show as neutral dot
-          const isFuture  = i > todayIso;
-          const icon      = isFuture ? '·' : (isLogged ? '✓' : '✕');
-          const iconColor = isFuture ? '#ccc'
-                          : isLogged ? '#15803d'
-                          : '#d1d5db';
-          const lblColor  = isToday ? 'var(--arka-accent)' : (isLogged ? '#15803d' : 'var(--text-faint)');
-          const todayRing = isToday
-            ? 'border:1.5px solid var(--arka-accent);border-radius:50%;padding:1px 2px;line-height:1;display:inline-block;'
-            : '';
-          return `
-            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-              <div style="font-size:9px;font-weight:700;color:${lblColor};text-transform:uppercase;line-height:1;">${lbl}</div>
-              <div style="${todayRing}font-size:11px;color:${iconColor};line-height:1;">${icon}</div>
-            </div>`;
-        }).join('');
 
         container.style.display = 'block';
         container.innerHTML = `
-          <div style="background:var(--accent-light,#ede9fe);border-radius:10px;padding:9px 12px;">
-            <div style="font-size:12px;font-weight:600;color:var(--arka-accent);margin-bottom:7px;">
-              You logged <strong>${pagesThisWeek.toLocaleString()}</strong> pages this week
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              ${dayChips}
-            </div>
+          <div style="font-size:15px;font-weight:600;color:var(--arka-accent);margin-bottom:4px;">
+            You logged <strong>${pagesThisWeek.toLocaleString()}</strong> pages this week
           </div>`;
       }
 
