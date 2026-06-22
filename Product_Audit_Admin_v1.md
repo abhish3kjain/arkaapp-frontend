@@ -3,7 +3,7 @@
 **App Build Audited:** v127  
 **Panel File:** `AkraAdminControlPanel.html` (note: "Akra" typo in filename — actual panel, correct title)  
 **Audit Date:** June 2026  
-**Last Updated:** June 2026 (post-P1 implementation — see §0)  
+**Last Updated:** June 2026 (post-P3 implementation — see §0)  
 **Auditor:** Multi-disciplinary review — UX, Architecture, Mobile, Operations  
 
 ---
@@ -18,22 +18,44 @@
 | P1-4 | Approvals: Confirmation modal for Reject and Revoke Access | ✅ Shipped |
 | P1-5 | Content moderation: Book post feed + delete UI using new `adminDeleteBookPost()` backend function | ✅ Shipped |
 | P2-1 | Announcements: create/edit/archive/pin with audience picker (entire club or specific members); new `getAdminAnnouncementsData()` backend fn | ✅ Shipped |
+| P2-2 | Events management section (create/edit/delete via `saveEvent()`); Events nav section | ✅ Shipped |
+| P2-3 | Email queue monitor — read-only EmailQueueDB viewer with status filter tabs and SUPPRESSED action | ✅ Shipped |
+| P2-4 | Mobile card-view toggle for Approvals and Member Stats tables | ✅ Shipped |
+| P2-5 | Approvals: bulk-select + bulk-approve via `admBulkApproveSelected()` | ✅ Shipped |
 | CSS/JS extraction | Inline `<style>` → `arkaadmin_styles.css`; inline `<script>` → `arkaadmin_app.js`; both served via GitHub CDN — same pattern as member app | ✅ Shipped |
+| UI-P1 | Fix Challenges sub-tab CSS class name mismatch (`adm-sub-tab` → `adm-subtab`) | ✅ Shipped |
+| UI-P2 | Define missing background tokens (`--adm-ok-bg`, `--adm-warn-bg`, `--adm-danger-bg`, `--color-gamification`, `--color-challenge`) in admin `:root` | ✅ Shipped |
+| UI-P3 | Add `adm-form-label` class to all Challenge and Badge form `<label>` elements | ✅ Shipped |
+| UI-P4 | Port challenge type colour pills from member `styles.css` to admin panel | ✅ Shipped |
+| UI-P5 | Add badge image thumbnail to Browse Awards table | ✅ Shipped |
+| UI-P6 | Pin indicator + row-level status tinting in challenge table | ✅ Shipped |
+| UI-P7 | Scope challenge form input styling (`#admChalPanelForm .adm-input` focus rules) | ✅ Shipped |
+| UI-P8 | Category colour chips in badge award combobox dropdown | ✅ Shipped |
+| UI-P9 | Per-section icon colours (challenges = indigo, badges = amber, etc.) | ✅ Shipped |
+| UI-P10 | Unify `--adm-warn` with `--color-warning` (`#e67e22`) | ✅ Shipped |
+| UI-P11 | Fix Notes column in Browse Awards (`white-space:normal; word-break:break-word`) | ✅ Shipped |
+| UI-P12 | Visual section dividers in Badge Create / Update Image forms | ✅ Shipped |
+| P3-1 | Challenge management section (create/edit/archive/pin; `getAdminChallengesData()` backend) | ✅ Shipped |
+| P3-2 | Library management section (searchable table, add/edit book modal; `getAdminLibraryData()` backend; reuses `addBookToLibrary()` / `updateLibraryBook()`) | ✅ Shipped |
+| P3-3 | Member Stats click-through to member detail edit panel; `adminUpdateMemberProfile()` backend with display-name uniqueness check and LockService | ✅ Shipped |
+| P3-4 | System/Diagnostics section (MasterEngine + ArkaAIPass run logs) | ⛔ Blocked — neither MasterEngine nor ArkaAIPass write run logs to any sheet; no data source to read |
+| P3-5 | Reports: mobile text-summary fallback (stat grid + top-readers list at ≤768px; canvas/thumbnail hidden) | ✅ Shipped |
+| P3-6 | Unify admin chart colour constants (`CHART_COLORS` JS object replacing raw hex in Chart.js datasets) | ✅ Shipped |
 
 ---
 
 ## Executive Summary
 
-*Scores reflect state **after** P1-1 through P1-5 + P2-1 implementation.*
+*Scores reflect state **after** full P1 + P2 + P3 implementation (P3-4 blocked).*
 
 | Dimension | Score (at audit) | Score (now) | Notes |
 |---|---|---|---|
-| UX & Ease of Use | 6.5 / 10 | 7.0 / 10 | Confirmation modals close the accidental-rejection risk |
-| Logic Correctness | 7.5 / 10 | 7.5 / 10 | Unchanged |
-| Layout & Visual Design | 5.5 / 10 | 5.5 / 10 | Unchanged — desktop gaps remain |
-| Mobile Usability | 3.0 / 10 | 6.5 / 10 | Drawer + toast + topbar fixes make mobile workable; wide tables and reports canvas still P2/P3 |
-| Operational Coverage | 4.5 / 10 | 5.5 / 10 | Content moderation section adds book post delete capability |
-| **Overall** | **5.4 / 10** | **6.6 / 10** | All P1 items shipped; P2 sprint is next |
+| UX & Ease of Use | 6.5 / 10 | 8.0 / 10 | Member detail edit, bulk approve, confirmation modals, card-view mobile tables |
+| Logic Correctness | 7.5 / 10 | 8.0 / 10 | New admin-gated backend functions follow established patterns; LockService on write paths |
+| Layout & Visual Design | 5.5 / 10 | 7.5 / 10 | All UI-P1–P12 visual polish shipped; token system unified; per-section icon colours added |
+| Mobile Usability | 3.0 / 10 | 7.5 / 10 | Drawer nav + card-view tables + reports mobile summary fallback together make the panel fully usable on phone |
+| Operational Coverage | 4.5 / 10 | 8.5 / 10 | Announcements, Events, Challenges, Library, Email Queue, Member Edit all shipped; only Diagnostics blocked |
+| **Overall** | **5.4 / 10** | **7.9 / 10** | All P1/P2/P3 items shipped except P3-4 (no run-log data source exists yet) |
 
 ---
 
@@ -322,23 +344,23 @@ Low risk to fix; low priority but creates brand inconsistency in version control
 | P1-5 | ✅ Done | Content moderation: Book post feed + delete UI; new `adminDeleteBookPost()` backend fn; "Posts" nav section | 4 hrs | Enables removal of problematic posts |
 
 ### Priority 2 — High (next development sprint)
-| # | Issue | Effort | Impact |
-|---|---|---|---|
+| # | Status | Issue | Effort | Impact |
+|---|---|---|---|---|
 | P2-1 | ✅ Done | Announcements section: create/edit/archive/pin UI with full member picker; new `getAdminAnnouncementsData()` backend | 2 days | Eliminates sheet-editing for announcements |
-| P2-2 | Events management section using existing `saveEvent()` | 1.5 days | Admin-controlled event creation |
-| P2-3 | Email queue monitor (read-only) | 4 hrs | Visibility into ArkaEmailPass pipeline |
-| P2-4 | Mobile table card-view toggle for Approvals and Member Stats | 1 day | Core admin tables usable on mobile |
-| P2-5 | Approvals: Bulk-select + bulk-approve for multi-registration events | 4 hrs | Major time-saver for club onboarding days |
+| P2-2 | ✅ Done | Events management section using existing `saveEvent()` | 1.5 days | Admin-controlled event creation |
+| P2-3 | ✅ Done | Email queue monitor (read-only) | 4 hrs | Visibility into ArkaEmailPass pipeline |
+| P2-4 | ✅ Done | Mobile table card-view toggle for Approvals and Member Stats | 1 day | Core admin tables usable on mobile |
+| P2-5 | ✅ Done | Approvals: Bulk-select + bulk-approve for multi-registration events | 4 hrs | Major time-saver for club onboarding days |
 
 ### Priority 3 — Medium (quarterly roadmap)
-| # | Issue | Effort | Impact |
-|---|---|---|---|
-| P3-1 | Challenge management section | 3 days | Admin-controlled challenge creation |
-| P3-2 | Library management section | 3 days | Book additions without sheet access |
-| P3-3 | Member Stats: click-through to member detail + edit panel | 2 days | Single-source member management |
-| P3-4 | System/Diagnostics section (MasterEngine + ArkaAIPass run logs) | 2 days | Operational transparency |
-| P3-5 | Reports: mobile text-summary fallback for slide canvas | 2 days | Reports accessible on phone |
-| P3-6 | Unify admin chart color constants with design token system | 2 hrs | Token consistency |
+| # | Status | Issue | Effort | Impact |
+|---|---|---|---|---|
+| P3-1 | ✅ Done | Challenge management section | 3 days | Admin-controlled challenge creation |
+| P3-2 | ✅ Done | Library management section (`getAdminLibraryData()` backend; add/edit modal reusing existing GAS fns) | 3 days | Book additions without sheet access |
+| P3-3 | ✅ Done | Member Stats: click-through to member detail + edit panel (`adminUpdateMemberProfile()` backend) | 2 days | Single-source member management |
+| P3-4 | ⛔ Blocked | System/Diagnostics section (MasterEngine + ArkaAIPass run logs) — blocked until a run-log sheet exists | 2 days | Operational transparency |
+| P3-5 | ✅ Done | Reports: mobile text-summary fallback for slide canvas (`_rptRenderMobileSummary()`) | 2 days | Reports accessible on phone |
+| P3-6 | ✅ Done | Unify admin chart colour constants with design token system (`CHART_COLORS` JS constant) | 2 hrs | Token consistency |
 
 ### Priority 4 — Nice to Have
 | # | Issue | Effort | Impact |
@@ -469,22 +491,20 @@ The `max-width: 160px` on the Notes column causes ugly truncation on mid-width s
 
 ### 9.5 Prioritised Fix List (UI-P series)
 
-| # | Fix | Files | Effort | Impact |
-|---|-----|-------|--------|--------|
-| **UI-P1** | **Fix Challenges sub-tab CSS class name** — rename `adm-sub-tab` / `adm-sub-tabs` in HTML to match existing `adm-subtab` / `adm-subtabs` CSS (or vice-versa; pick one and make it consistent everywhere) | HTML, CSS | 15 min | Restores functioning sub-tab bar on Challenges |
-| **UI-P2** | **Define missing background tokens** — add `--adm-ok-bg`, `--adm-warn-bg`, `--adm-danger-bg`, `--color-gamification`, `--color-challenge` to admin `:root`; replace inline fallbacks | CSS | 30 min | Fixes transparent challenge status pills; enables consistent tint usage |
-| **UI-P3** | **Add `adm-form-label` class to Challenge and Badge form `<label>` elements** — scoped treatment matching Events / Announcements pattern | HTML | 45 min | Restores label hierarchy — biggest contributor to "washed out" feel |
-| **UI-P4** | **Port challenge type colour pills** from `styles.css` lines 3930–3936 to `arkaadmin_styles.css`; apply `.chal-type-badge .chal-type-X` on the Type column in the admin challenge table | CSS, JS render function | 1 hr | Immediate colour in challenge table — single biggest visual improvement |
-| **UI-P5** | **Add badge image thumbnail to Browse Awards table** — 36 px circle using existing `admBadgeMap[badgeId].imgUrl`; fallback to medal icon if no URL | JS render function | 1 hr | Scannability of award rows |
-| **UI-P6** | **Add pin indicator and row-level status tinting to challenge table** — pinned rows get left accent border; Archived rows get `opacity: 0.6`; Active rows get no change | CSS, JS render function | 1 hr | Visual differentiation between row states |
-| **UI-P7** | **Scope challenge form input styling** — add `#admChalPanelForm .adm-input` rules matching Events/Announcements scoped form rules; ensure focus border accent fires | CSS | 30 min | Consistent form field feel across all admin forms |
-| **UI-P8** | **Add category colour chips to badge award combobox dropdown items** — port the `.chal-type-badge` pattern to badge categories using `ADM_BADGE_CATEGORIES` | CSS, JS combobox render | 1.5 hrs | Award form badge picker becomes scannable |
-| **UI-P9** | **Add section-level icon colours** — Challenges = `--color-challenge` indigo; Badges = `--color-gamification` amber; Events = green; Announcements = blue; Posts = orange | HTML (inline style on each icon) | 30 min | Each section instantly distinguishable at a glance |
-| **UI-P10** | **Unify `--adm-warn` with `--color-warning`** — decide on one amber (`#f59f00` vs `#e67e22`) and apply consistently across both panels | CSS | 15 min | Token system convergence |
-| **UI-P11** | **Fix Notes column in Browse Awards** — remove `max-width:160px`, add `white-space:normal; word-break:break-word; max-width:200px` | JS render function | 15 min | Notes readable without truncation |
-| **UI-P12** | **Add visual section dividers to Badge Create / Update Image forms** — group fields under "Image", "Metadata", "Points" dividers using `.adm-chal-section-divider` pattern | HTML | 30 min | Badge admin forms feel structured, not flat |
+| # | Status | Fix | Files | Effort | Impact |
+|---|---|-----|-------|--------|--------|
+| **UI-P1** | ✅ Done | Fix Challenges sub-tab CSS class name mismatch | HTML, CSS | 15 min | Restores functioning sub-tab bar on Challenges |
+| **UI-P2** | ✅ Done | Define missing background tokens (`--adm-ok-bg`, `--adm-warn-bg`, `--adm-danger-bg`, `--color-gamification`, `--color-challenge`) | CSS | 30 min | Fixes transparent challenge status pills |
+| **UI-P3** | ✅ Done | Add `adm-form-label` class to Challenge and Badge form `<label>` elements | HTML | 45 min | Restores label hierarchy |
+| **UI-P4** | ✅ Done | Port challenge type colour pills from member `styles.css` to admin panel | CSS, JS | 1 hr | Immediate colour in challenge table |
+| **UI-P5** | ✅ Done | Add badge image thumbnail to Browse Awards table | JS | 1 hr | Scannability of award rows |
+| **UI-P6** | ✅ Done | Pin indicator + row-level status tinting in challenge table | CSS, JS | 1 hr | Visual differentiation between row states |
+| **UI-P7** | ✅ Done | Scope challenge form input styling (`#admChalPanelForm .adm-input` focus rules) | CSS | 30 min | Consistent form field feel across all admin forms |
+| **UI-P8** | ✅ Done | Category colour chips in badge award combobox dropdown | CSS, JS | 1.5 hrs | Award form badge picker becomes scannable |
+| **UI-P9** | ✅ Done | Per-section icon colours (challenges = indigo, badges = amber, etc.) | HTML | 30 min | Each section instantly distinguishable at a glance |
+| **UI-P10** | ✅ Done | Unify `--adm-warn` with `--color-warning` (`#e67e22`) | CSS | 15 min | Token system convergence |
+| **UI-P11** | ✅ Done | Fix Notes column in Browse Awards (`white-space:normal; word-break:break-word`) | JS | 15 min | Notes readable without truncation |
+| **UI-P12** | ✅ Done | Visual section dividers in Badge Create / Update Image forms | HTML | 30 min | Badge admin forms feel structured |
 
-**Total estimated effort for UI-P1–P12: ~8 hours**
-
-Items UI-P1 through UI-P4 address the "washed out" report directly. UI-P1 is a bug fix that should ship immediately. UI-P2 through P4 require less than 2 hours combined and produce the most visible improvement.
+**All UI-P1–P12 items shipped.**
 
