@@ -3992,7 +3992,28 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               + 'Check out who’s at the top of our leaderboard 📚'
               + (url ? '\n👉 ' + url : '');
           },
-          notReadyMsg: 'Ranking card not available yet.'
+          notReadyMsg: 'Ranking card not available yet.',
+          // Drive thumbnail URLs are CORS-blocked by html2canvas.
+          // Replace every avatar <img> in the cloned doc with an initials div
+          // using the data-* attributes stamped by buildPodiumAvatar().
+          onCloneExtra: function(clonedDoc) {
+            var podium = clonedDoc.getElementById('leaderboardPodium');
+            if (!podium) return;
+            var imgs = podium.querySelectorAll('img[data-initial]');
+            imgs.forEach(function(img) {
+              var sz   = img.getAttribute('data-size')      || '40';
+              var fill = img.getAttribute('data-fill')      || '#ccc';
+              var tc   = img.getAttribute('data-textcolor') || '#444';
+              var init = img.getAttribute('data-initial')   || '?';
+              var div  = clonedDoc.createElement('div');
+              div.style.cssText = img.style.cssText
+                + 'background:' + fill + ';display:flex;align-items:center;'
+                + 'justify-content:center;font-size:' + Math.floor(Number(sz) * 0.38) + 'px;'
+                + 'font-weight:500;color:' + tc + ';';
+              div.textContent = init;
+              img.parentNode.replaceChild(div, img);
+            });
+          }
         }
         // Future cards: discoveryCard, readingTogether, etc. — add entries here.
       };
@@ -4021,6 +4042,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           waText       : config.waText(),         // evaluate at share-time
           btn          : btn,
           notReadyMsg  : config.notReadyMsg,
+          onCloneExtra : config.onCloneExtra || null,
           // Hide the icon during capture — its live spinner animation was being
           // rendered by html2canvas as a hazy frame over the card (same reason
           // the original shareWeeklyPulseCard() had this guard).
@@ -11691,7 +11713,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                             border:2px solid ${borderColor}; margin:0 auto 6px; display:block;`;
       
         if (member.imageURL) {
-          return `<img src="${member.imageURL}" style="${sharedStyle} object-fit:cover;">`;
+          return `<img src="${member.imageURL}"
+            data-initial="${initLetter}" data-fill="${fillColor}"
+            data-textcolor="${textColor}" data-size="${sizePx}"
+            style="${sharedStyle} object-fit:cover;">`;
         }
       
         return `
