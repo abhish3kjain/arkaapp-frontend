@@ -30555,20 +30555,36 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       }
 
       /**
-       * Builds the bento banner tiles and injects them into #chalBentoGrid.
-       * Left column (spans 2 rows): mini bingo grid for active enrolled bingo challenge.
-       * Top right: 10ppa fire tile (streak + total pages).
-       * Bottom right: club-points tile.
-       * Falls back to placeholder tiles when no matching active challenge is enrolled.
+       * Builds the bento hero banner: toprow tags, bingo full-width tile,
+       * fire + points row, goals strip.
+       * Matches the Option 2 mockup exactly.
        */
       function renderChallengesBanner() {
+        if (!isAppDataLoaded) return;
+
+        // ── Toprow tags ───────────────────────────────────────────────────────────
+        const enrolledActive = globalChallengesDB.filter(function(c) {
+          const enr = myEnrollmentsMap.get(c.challengeId);
+          return c.status === 'Active' && enr && enr.enrollmentStatus !== 'Dropped';
+        }).length;
+        const openCount = globalChallengesDB.filter(function(c) {
+          return c.status === 'Active' && !myEnrollmentsMap.has(c.challengeId);
+        }).length;
+
+        const tagsEl = document.getElementById('chalTopRowTags');
+        if (tagsEl) {
+          tagsEl.innerHTML =
+            '<span class="chal-toprow-tag accent">' + enrolledActive + ' enrolled</span>' +
+            (openCount > 0 ? '<span class="chal-toprow-tag">' + openCount + ' open</span>' : '');
+        }
+
+        // ── Bento grid ────────────────────────────────────────────────────────────
         const bentoEl = document.getElementById('chalBentoGrid');
         if (!bentoEl) return;
-        if (!isAppDataLoaded) { bentoEl.innerHTML = ''; return; }
 
         let html = '';
 
-        // ── Bingo tile ────────────────────────────────────────────────────────────
+        // Bingo tile — full width (grid-column: 1/-1), horizontal flex
         const bingoChal = globalChallengesDB.find(function(c) {
           const enr = myEnrollmentsMap.get(c.challengeId);
           return c.challengeType === 'BINGO_GRID' && c.status === 'Active' &&
@@ -30582,38 +30598,51 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           let bingoState = {};
           try { bingoState = JSON.parse(bingoEnr.progressStateJson || '{}'); } catch(e) {}
 
-          const gridSize   = bingoCfg.gridSize || 3;
-          const cells      = bingoCfg.cells || [];
-          const cellsDone  = new Set(bingoState.cellsCompleted || []);
-          const totalCells = cells.length;
+          const gridSize    = bingoCfg.gridSize || 3;
+          const cells       = bingoCfg.cells || [];
+          const cellsDone   = new Set(bingoState.cellsCompleted || []);
+          const linesCount  = (bingoState.linesCompleted || []).length;
+          const totalCells  = cells.length;
           const squareCells = gridSize * gridSize;
-          const centreIdx  = Math.floor(squareCells / 2);
+          const centreIdx   = Math.floor(squareCells / 2);
+          const donePct     = totalCells > 0 ? Math.round((cellsDone.size / totalCells) * 100) : 0;
+
+          // Compute days remaining
+          let daysLeftStr = '';
+          if (bingoChal.endDate) {
+            const ms = grExport_parseArkaDateClient_(bingoChal.endDate) - Date.now();
+            const days = Math.ceil(ms / 86400000);
+            daysLeftStr = days > 0 ? '⏱ ' + days + ' days remaining' : 'Challenge ended';
+          }
 
           let miniCellsHtml = '';
           cells.forEach(function(cell, idx) {
             const isFree = (squareCells % 2 !== 0) && (idx === centreIdx);
             const isDone = cellsDone.has(cell.cellId);
             const cls    = isFree ? 'free' : (isDone ? 'done' : '');
-            const label  = (isFree || isDone) ? '' : escapeHtml((cell.prompt || '').substring(0, 8));
-            miniCellsHtml += '<div class="chal-mg-cell ' + cls + '">' + label + '</div>';
+            miniCellsHtml += '<div class="chal-mg-cell ' + cls + '"></div>';
           });
 
-          const donePct = totalCells > 0 ? Math.round((cellsDone.size / totalCells) * 100) : 0;
+          const pinMark = bingoChal.isPinned ? '📌 ' : '';
 
           html += '<div class="chal-bingo-tile">' +
-            '<div class="chal-bingo-tile-label">Book Bingo</div>' +
-            '<div class="chal-mg" style="grid-template-columns:repeat(' + gridSize + ',1fr);">' +
+            '<div class="chal-mg" style="grid-template-columns:repeat(' + gridSize + ',18px);">' +
               miniCellsHtml +
             '</div>' +
-            '<div class="chal-bingo-progress">' + cellsDone.size + '/' + totalCells + ' cells · ' + donePct + '%</div>' +
+            '<div class="chal-bingo-right">' +
+              '<div class="chal-bingo-title">' + pinMark + escapeHtml(bingoChal.title) + '</div>' +
+              '<div class="chal-bingo-sub">' + cellsDone.size + '/' + totalCells + ' cells · ' + linesCount + ' line' + (linesCount !== 1 ? 's' : '') + ' complete</div>' +
+              '<div class="chal-bingo-pct">' + donePct + '%</div>' +
+              (daysLeftStr ? '<div class="chal-bingo-pct-sub">' + daysLeftStr + '</div>' : '') +
+            '</div>' +
           '</div>';
         } else {
-          html += '<div class="chal-bento-placeholder" style="grid-column:1;grid-row:1/3;">' +
-            '<span>No active<br>Bingo<br>challenge</span>' +
+          html += '<div class="chal-bento-placeholder" style="grid-column:1/-1;">' +
+            '<span>No active Bingo challenge enrolled</span>' +
           '</div>';
         }
 
-        // ── Fire / 10ppa tile ─────────────────────────────────────────────────────
+        // Fire / 10ppa tile
         const fireChal = globalChallengesDB.find(function(c) {
           const enr = myEnrollmentsMap.get(c.challengeId);
           return c.challengeType === '10PAGESADAY' && c.status === 'Active' &&
@@ -30627,48 +30656,105 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           let fireCfg = {};
           try { fireCfg = JSON.parse(fireChal.goalConfigJson || '{}'); } catch(e) {}
 
-          const streak     = fireState.currentStreak || 0;
-          const totalPages = fireState.totalPages    || 0;
-          const daysActive = fireState.daysActive    || 0;
-          const daysGoal   = fireCfg.durationDays    || 0;
-          const barPct     = daysGoal > 0 ? Math.min(100, Math.round(daysActive / daysGoal * 100)) : 0;
+          const totalPages  = fireState.totalPages  || 0;
+          const targetPages = fireCfg.targetPages   || fireCfg.durationDays * 10 || 1;
+          const barPct      = Math.min(100, Math.round(totalPages / targetPages * 100));
+          const statText    = barPct + '%' + (fireState.aheadBehindTarget ? ' · ' + fireState.aheadBehindTarget : '');
 
           html += '<div class="chal-fire-tile">' +
-            '<div>' +
-              '<div class="chal-fire-tile-label">🔥 10 Pages a Day</div>' +
-              '<div class="chal-fire-tile-num">' + streak + '<span style="font-size:0.8rem;font-family:inherit;font-weight:400;"> day streak</span></div>' +
-              '<div class="chal-fire-tile-sub">' + totalPages + ' pages total</div>' +
-            '</div>' +
-            '<div class="chal-mini-bar-bg"><div class="chal-mini-bar-fill" style="width:' + barPct + '%;background:#E05A47;"></div></div>' +
+            '<div class="chal-tile-label">🔥 10 Pages/Day</div>' +
+            '<div class="chal-tile-title">' + escapeHtml(fireChal.title) + '</div>' +
+            '<div class="chal-fire-big">' + totalPages.toLocaleString() + '</div>' +
+            '<div class="chal-fire-sub">pages this year</div>' +
+            '<div class="chal-tile-bar"><div class="chal-tile-bar-fill" style="width:' + barPct + '%;background:#E05A47;"></div></div>' +
+            '<div class="chal-tile-stat">' + statText + '</div>' +
           '</div>';
         } else {
-          html += '<div class="chal-bento-placeholder" style="grid-column:2;grid-row:1;">' +
-            '<span>No active<br>10ppa</span>' +
-          '</div>';
+          html += '<div class="chal-bento-placeholder"><span>No active<br>10ppa enrolled</span></div>';
         }
 
-        // ── Points tile ───────────────────────────────────────────────────────────
-        html += _buildChalPointsTile();
+        // Points tile
+        const member  = membersMap ? membersMap.get(currentUser) : null;
+        const pts     = member ? (Number(member.clubPoints) || 0) : 0;
+        const winnerCount   = globalChallengeEnrollmentsDB.filter(function(e) {
+          return e.memberId === currentUser && e.enrollmentStatus === 'Winner';
+        }).length;
+        const finisherCount = globalChallengeEnrollmentsDB.filter(function(e) {
+          return e.memberId === currentUser && e.enrollmentStatus === 'Finisher';
+        }).length;
+
+        html += '<div class="chal-pts-tile">' +
+          '<div>' +
+            '<div class="chal-tile-label">🏅 My Points</div>' +
+            '<div class="chal-pts-big">' + pts.toLocaleString() + '</div>' +
+            '<div class="chal-pts-lbl">earned from challenges</div>' +
+          '</div>' +
+          '<div class="chal-pts-row">' +
+            '<div class="chal-pts-stat">' +
+              '<span class="chal-pts-stat-val">' + winnerCount + '</span>' +
+              '<span class="chal-pts-stat-label">winner</span>' +
+            '</div>' +
+            '<div class="chal-pts-divider"></div>' +
+            '<div class="chal-pts-stat">' +
+              '<span class="chal-pts-stat-val">' + finisherCount + '</span>' +
+              '<span class="chal-pts-stat-label">finisher</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
 
         bentoEl.innerHTML = html;
+
+        // ── Goals strip ───────────────────────────────────────────────────────────
+        _renderChallengesGoalsStrip();
       }
 
       /**
-       * Builds the club-points bento tile (bottom-right).
-       * @returns {string} HTML string
+       * Builds the slim reading goals strip for BOOK_COUNT and PAGE_COUNT challenges.
+       * Shown only when user has at least one enrolled goal-type challenge.
        */
-      function _buildChalPointsTile() {
-        const member   = membersMap ? membersMap.get(currentUser) : null;
-        const pts      = member ? (Number(member.clubPoints) || 0) : 0;
-        const enrolled = myEnrollmentsMap ? myEnrollmentsMap.size : 0;
+      function _renderChallengesGoalsStrip() {
+        const stripEl = document.getElementById('chalGoalsStrip');
+        if (!stripEl) return;
 
-        return '<div class="chal-pts-tile">' +
-          '<div>' +
-            '<div class="chal-pts-tile-label">⭐ Club Points</div>' +
-            '<div class="chal-pts-tile-num">' + pts.toLocaleString() + '</div>' +
-            '<div class="chal-pts-tile-sub">' + enrolled + ' challenge' + (enrolled !== 1 ? 's' : '') + ' enrolled</div>' +
-          '</div>' +
-        '</div>';
+        const goalChals = globalChallengesDB.filter(function(c) {
+          const enr = myEnrollmentsMap.get(c.challengeId);
+          return (c.challengeType === 'BOOK_COUNT' || c.challengeType === 'PAGE_COUNT') &&
+                 c.status === 'Active' && enr && enr.enrollmentStatus !== 'Dropped';
+        });
+
+        if (goalChals.length === 0) { stripEl.style.display = 'none'; return; }
+
+        let itemsHtml = '';
+        goalChals.forEach(function(c, i) {
+          const enr = myEnrollmentsMap.get(c.challengeId);
+          let state = {};
+          try { state = JSON.parse(enr.progressStateJson || '{}'); } catch(e) {}
+
+          const isPages  = c.challengeType === 'PAGE_COUNT';
+          const total    = isPages ? (state.totalPages || 0) : (state.totalBooks || 0);
+          const goal     = state.personalGoal || c.goalValue || 1;
+          const pct      = Math.min(100, Math.round(total / goal * 100));
+          const colour   = isPages ? '#378ADD' : '#EF9F27';
+          const icon     = isPages ? '📄' : '📚';
+          const label    = isPages ? 'Pages Goal' : 'Books Goal';
+          const valStr   = isPages
+            ? (total >= 1000 ? (Math.round(total / 100) / 10) + 'k' : total) + ' / ' +
+              (goal >= 1000 ? (Math.round(goal / 100) / 10) + 'k' : goal)
+            : total + ' / ' + goal;
+
+          if (i > 0) itemsHtml += '<div class="chal-gi-sep"></div>';
+          itemsHtml += '<div class="chal-gi">' +
+            '<div class="chal-gi-icon">' + icon + '</div>' +
+            '<div class="chal-gi-body">' +
+              '<div class="chal-gi-row"><span>' + label + '</span><span>' + valStr + '</span></div>' +
+              '<div class="chal-gi-bar"><div class="chal-gi-fill" style="width:' + pct + '%;background:' + colour + ';"></div></div>' +
+            '</div>' +
+          '</div>';
+        });
+
+        stripEl.className = 'chal-goals';
+        stripEl.style.display = '';
+        stripEl.innerHTML = itemsHtml;
       }
 
       /**
@@ -30694,7 +30780,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           enrolledCountMap[enr.challengeId] = (enrolledCountMap[enr.challengeId] || 0) + 1;
         });
 
-        // Bucket challenges by state + my enrolment
+        // Bucket challenges
         const myActive    = [];
         const otherActive = [];
         const upcoming    = [];
@@ -30723,48 +30809,112 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         }
         sortChal(myActive); sortChal(otherActive); sortChal(upcoming); sortChal(archived);
 
+        // Compute days remaining from an endDate string
+        function daysLeft(endDate) {
+          if (!endDate) return null;
+          const ms = grExport_parseArkaDateClient_(endDate) - Date.now();
+          return Math.ceil(ms / 86400000);
+        }
+
+        // Compute inline progress bar for enrolled card
+        function progressBar(c, myEnr) {
+          if (!myEnr) return '';
+          let state = {};
+          try { state = JSON.parse(myEnr.progressStateJson || '{}'); } catch(e) {}
+          let cfg = {};
+          try { cfg = JSON.parse(c.goalConfigJson || '{}'); } catch(e) {}
+
+          let done = 0, total = 1, unit = '', colour = '#7F77DD';
+
+          if (c.challengeType === 'BINGO_GRID') {
+            const cells    = cfg.cells || [];
+            const doneSet  = new Set(state.cellsCompleted || []);
+            done  = doneSet.size; total = cells.length || 1;
+            unit  = done + ' / ' + total + ' cells done'; colour = '#7F77DD';
+          } else if (c.challengeType === '10PAGESADAY') {
+            const target = cfg.targetPages || (cfg.durationDays * 10) || 1;
+            done  = state.totalPages || 0; total = target;
+            unit  = (done).toLocaleString() + ' / ' + target.toLocaleString() + ' pages';
+            colour = '#E05A47';
+          } else if (c.challengeType === 'BOOK_COUNT') {
+            done  = state.totalBooks || 0;
+            total = state.personalGoal || c.goalValue || 1;
+            unit  = done + ' / ' + total + ' books'; colour = '#EF9F27';
+          } else if (c.challengeType === 'PAGE_COUNT') {
+            done  = state.totalPages || 0;
+            total = state.personalGoal || c.goalValue || 1;
+            unit  = (done).toLocaleString() + ' / ' + total.toLocaleString() + ' pages';
+            colour = '#378ADD';
+          } else {
+            return '';
+          }
+
+          const pct = Math.min(100, Math.round(done / total * 100));
+          return '<div class="cc-bar-lbl"><span>' + unit + '</span><b style="color:' + colour + ';">' + pct + '%</b></div>' +
+                 '<div class="cc-bar-bg"><div class="cc-bar-fill" style="width:' + pct + '%;background:' + colour + ';"></div></div>';
+        }
+
+        // Build a single card HTML string
         function buildCard(c) {
           const myEnr              = myEnrollmentsMap.get(c.challengeId);
           const isActivelyEnrolled = !!(myEnr && myEnr.enrollmentStatus !== 'Dropped');
           const enrolledCount      = enrolledCountMap[c.challengeId] || 0;
-          const pinnedClass        = c.isPinned ? ' chal-card-pinned' : '';
-          const pinBadge           = c.isPinned ? '<span style="font-size:0.7rem;color:var(--arka-accent);margin-right:6px;">📌</span>' : '';
           const dateStr            = c.endDate ? c.startDate + ' – ' + c.endDate : c.startDate + ' · Open-ended';
 
-          let enrollBadge = '';
           if (isActivelyEnrolled) {
-            const statusColours = {
-              Active  : 'background:#EAF3DE;color:#27500A;',
-              Winner  : 'background:#FAEEDA;color:#633806;',
-              Finisher: 'background:#E1F5EE;color:#085041;'
-            };
-            const sty = statusColours[myEnr.enrollmentStatus] || 'background:var(--border-soft);color:var(--text-muted);';
-            enrollBadge = '<span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;' + sty + 'margin-left:6px;">✓ ' + myEnr.enrollmentStatus + '</span>';
-          }
+            // ── Enrolled card ──────────────────────────────────────────────────
+            const pinnedClass = c.isPinned ? ' chal-card-pinned' : '';
+            const pinMark     = c.isPinned ? '📌 ' : '';
 
-          const statusBanner = c.status !== 'Active'
-            ? '<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">' + escapeHtml(c.status) + '</div>'
-            : '';
+            const statusColours = { Active: 'background:#EAF3DE;color:#27500A;', Winner: 'background:#FAEEDA;color:#633806;', Finisher: 'background:#E1F5EE;color:#085041;' };
+            const sty        = statusColours[myEnr.enrollmentStatus] || 'background:var(--border-soft);color:var(--text-muted);';
+            const statusPill = '<span style="font-size:0.6rem;font-weight:600;padding:3px 9px;border-radius:20px;' + sty + 'display:inline-flex;align-items:center;gap:4px;"><i class=\'fa-solid fa-check\' style=\'font-size:0.55rem;\'></i> ' + myEnr.enrollmentStatus + '</span>';
 
-          const actionBtn = isActivelyEnrolled && myEnr.enrollmentStatus === 'Active'
-            ? '<button class="chal-drop-btn" onclick="event.stopPropagation(); openDropChallengeConfirm(\'' + c.challengeId + '\', \'' + escapeHtml(c.title) + '\')">Drop</button>'
-            : (!isActivelyEnrolled && c.status === 'Active'
-                ? '<button class="chal-enrol-btn" onclick="openChalEnrolSheet(\'' + c.challengeId + '\')">Enrol →</button>'
-                : '');
+            const bar = progressBar(c, myEnr);
 
-          return '<div class="chal-card' + pinnedClass + '" role="button" tabindex="0" data-action onclick="openChallengeDetailView(\'' + c.challengeId + '\')">' +
-            '<div class="chal-card-header">' +
-              '<div style="flex:1;">' +
-                statusBanner +
-                '<div class="chal-card-title">' + pinBadge + escapeHtml(c.title) + enrollBadge + '</div>' +
-                '<div style="margin-top:4px;"><span class="chal-type-badge chal-type-' + c.challengeType + '">' + c.challengeType.replace(/_/g,' ') + '</span></div>' +
-                '<div class="chal-card-meta">' + dateStr + '</div>' +
-                (c.description ? '<div class="chal-card-meta" style="margin-top:3px;">' + escapeHtml(c.description) + '</div>' : '') +
+            const days = daysLeft(c.endDate);
+            const daysChip = days !== null
+              ? '<span class="cc-days' + (days > 0 ? '' : '') + '">' + (days > 0 ? days + ' days left' : 'Ended') + '</span>'
+              : '<span class="cc-days">' + (c.endDate ? 'Open-ended' : '') + '</span>';
+
+            const dropBtn = myEnr.enrollmentStatus === 'Active'
+              ? '<button class="chal-drop-btn" onclick="event.stopPropagation(); openDropChallengeConfirm(\'' + c.challengeId + '\', \'' + escapeHtml(c.title) + '\')">Drop</button>'
+              : '';
+
+            return '<div class="chal-card' + pinnedClass + '" role="button" tabindex="0" data-action onclick="openChallengeDetailView(\'' + c.challengeId + '\')">' +
+              '<div class="cc-top" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;">' +
+                '<span class="chal-type-badge chal-type-' + c.challengeType + '">' + c.challengeType.replace(/_/g,' ') + '</span>' +
+                statusPill +
               '</div>' +
-              '<div class="chal-card-enroll-count">' + enrolledCount + ' enrolled</div>' +
-            '</div>' +
-            '<div style="display:flex;justify-content:flex-end;margin-top:10px;">' + actionBtn + '</div>' +
-          '</div>';
+              '<div class="chal-card-title">' + pinMark + escapeHtml(c.title) + '</div>' +
+              '<div class="chal-card-meta">' + dateStr + '</div>' +
+              bar +
+              '<div class="cc-foot">' + daysChip + dropBtn + '</div>' +
+            '</div>';
+
+          } else {
+            // ── Unenrolled card (dashed border, grey bg) ───────────────────────
+            const statusBanner = c.status !== 'Active'
+              ? '<div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">' + escapeHtml(c.status) + '</div>'
+              : '';
+
+            const enrolBtn = c.status === 'Active'
+              ? '<button class="btn-enrol" onclick="openChalEnrolSheet(\'' + c.challengeId + '\')" style="font-size:0.72rem;font-weight:700;background:var(--text-strong);color:white;border:none;padding:6px 14px;border-radius:9px;cursor:pointer;">Enrol →</button>'
+              : '';
+
+            return '<div class="chal-card chal-card-unenrolled" role="button" tabindex="0" data-action onclick="openChallengeDetailView(\'' + c.challengeId + '\')">' +
+              statusBanner +
+              '<span class="chal-type-badge chal-type-' + c.challengeType + '">' + c.challengeType.replace(/_/g,' ') + '</span>' +
+              '<div class="chal-card-title" style="margin:6px 0 3px;">' + escapeHtml(c.title) + '</div>' +
+              '<div class="chal-card-meta">' + dateStr + '</div>' +
+              '<div class="uc-foot" style="display:flex;justify-content:space-between;align-items:center;">' +
+                '<div class="cc-mini-chips">' +
+                  '<span class="cc-mini-chip">👥 ' + enrolledCount + ' joined</span>' +
+                '</div>' +
+                enrolBtn +
+              '</div>' +
+            '</div>';
+          }
         }
 
         let html = '';
@@ -30792,13 +30942,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
 
         } else {
-          // 'all' — enrolled first, then others, then upcoming, then archived
           if (myActive.length > 0) {
             html += '<div class="chal-section-hdr">Your Challenges</div>';
             myActive.forEach(function(c) { html += buildCard(c); });
           }
           if (otherActive.length > 0) {
-            html += '<div class="chal-section-hdr">Active</div>';
+            html += '<div class="chal-section-hdr">Open to Join</div>';
             otherActive.forEach(function(c) { html += buildCard(c); });
           }
           if (upcoming.length > 0) {
