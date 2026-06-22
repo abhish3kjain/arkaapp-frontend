@@ -1066,9 +1066,16 @@
       var dot = isActive ? '<span class="adm-live-dot"></span>' : '';
       /* Mobile: Country, Pages, Books, Joined are hidden (adm-col-mob).
          data-label attrs are kept for card-view CSS (main branch feature). */
+      var memberSub = '<div class="adm-ann-title-sub">'
+        + (m.country ? '<span>' + _esc(m.country) + '</span><span style="opacity:0.4">·</span>' : '')
+        + '<span>' + _numFmt(m.totalPages) + ' p</span>'
+        + '<span style="opacity:0.4">·</span>'
+        + '<span>' + m.totalBooks + ' bk</span>'
+        + (m.joinDate ? '<span style="opacity:0.4">·</span><span>' + _esc(m.joinDate) + '</span>' : '')
+        + '</div>';
       return '<tr>'
         + '<td data-label="Rank"><span class="adm-rank '+rcls+'">'+rank+'</span></td>'
-        + '<td data-label="Member"><div style="font-weight:700">'+dot+_esc(m.displayName)+'</div><div class="adm-td-mono" style="font-size:0.7rem">'+_esc(m.memberId)+'</div></td>'
+        + '<td data-label="Member"><div style="font-weight:700">'+dot+_esc(m.displayName)+'</div><div class="adm-td-mono">'+_esc(m.memberId)+'</div>' + memberSub + '</td>'
         + '<td data-label="Country" class="adm-col-mob" style="font-size:0.78rem;color:var(--text-muted)">'+_esc(m.country||'—')+'</td>'
         + '<td data-label="CP"><strong>'+_numFmt(m.totalCp)+'</strong></td>'
         + '<td data-label="Pages" class="adm-col-mob">'+_numFmt(m.totalPages)+'</td>'
@@ -2106,8 +2113,12 @@
       var scheduled = e.scheduledDate ? _esc(e.scheduledDate).substring(0, 16) : '—';
       var sentAt    = e.sentAt        ? _esc(e.sentAt).substring(0, 16)        : '—';
       var clicked   = e.clickedAt     ? _esc(e.clickedAt).substring(0, 16)     : '—';
+      var eqSub = '<div class="adm-ann-title-sub">'
+        + '<span>' + _esc(e.emailType) + '</span>'
+        + (scheduled !== '—' ? '<span style="opacity:0.4">·</span><span>' + scheduled + '</span>' : '')
+        + '</div>';
       return '<tr>'
-        + '<td data-label="Member"><strong>' + _esc(e.displayName) + '</strong><div class="adm-td-mono" style="font-size:0.7rem;color:var(--text-faint)">' + _esc(e.memberId) + '</div></td>'
+        + '<td data-label="Member"><strong>' + _esc(e.displayName) + '</strong><div class="adm-td-mono">' + _esc(e.memberId) + '</div>' + eqSub + '</td>'
         + '<td data-label="Type" class="adm-col-meta" style="font-size:0.78rem">' + _esc(e.emailType) + '</td>'
         + '<td data-label="Scheduled" class="adm-col-meta" style="font-size:0.78rem;white-space:nowrap">' + scheduled + '</td>'
         + '<td data-label="Status">' + badge + '</td>'
