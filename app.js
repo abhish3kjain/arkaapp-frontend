@@ -1103,14 +1103,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         }
 
-        // ── Stat pills — lifetime totals go into the bottom half of each split pill.
-        //    Current-year values are populated later by renderHeatmap() once page log
-        //    data has been processed.
-        const meStatPagesTotalEl = document.getElementById('meStatPagesTotal');
-        if (meStatPagesTotalEl) meStatPagesTotalEl.innerText = (Number(member.pages) || 0).toLocaleString();
-
-        const meStatBooksTotalEl = document.getElementById('meStatBooksTotal');
-        if (meStatBooksTotalEl) meStatBooksTotalEl.innerText = member.books || 0;
+        // Stat circles — current-year values + ring arcs are set by renderHeatmap()
+        // and updateBooksThisYearPill() once wave-2/3 data is available.
+        // (Lifetime totals are no longer shown in the new circle design.)
 
         // ── Level progress bar ────────────────────────────────────────────────
         const lvls = globalMemberLevelsDB;
@@ -3393,10 +3388,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         var pagesYear    = (document.getElementById('meStatPagesYear')   || {}).innerText || '–';
         var booksYear    = (document.getElementById('meStatBooksYear')   || {}).innerText || '–';
         var streakRaw    = (document.getElementById('meStatStreakValue') || {}).innerText || '–';
-        var pagesTotal   = (document.getElementById('meStatPagesTotal')  || {}).innerText || '–';
-        var booksTotal   = (document.getElementById('meStatBooksTotal')  || {}).innerText || '–';
-        // Strip emoji from streak display value (e.g. "9 🔥" → "9")
-        var streak       = streakRaw.replace(/\s*🔥/, '').trim();
+        var me2          = globalMembersDB.find(function(m) { return m.id === currentUser; });
+        var pagesTotal   = me2 ? (Number(me2.pages) || 0).toLocaleString() : '–';
+        var booksTotal   = me2 ? (me2.books || '–') : '–';
+        var streak       = streakRaw.trim();
 
         // ── Read member identity from globals ───────────────────────────────
         var me          = globalMembersDB.find(function(m) { return m.id === currentUser; });
@@ -26388,20 +26383,14 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         let booksThisYear = 0; // Will be updated accurately in Wave 3
         // Leave as 0 here — updateBooksThisYearPill() fills it when ShelfDB loads
 
-        // Populate the top half of the split stat pills with current-year data.
-        // The bottom halves (lifetime totals) are set earlier by populateMePage().
+        // Populate stat circles with current-year page count and drive the ring arc.
         const meStatPagesYearEl = document.getElementById('meStatPagesYear');
         if (meStatPagesYearEl) meStatPagesYearEl.innerText = pagesThisYear.toLocaleString();
+        updateStatRing('PAGE_COUNT', 'PAGE_READING_GOAL', pagesThisYear, currentYear,
+                       'meStatPagesRingArc', 'meStatPagesGoalSub', 'meStatPagesAddGoalCta');
 
         const meStatBooksYearEl = document.getElementById('meStatBooksYear');
         if (meStatBooksYearEl) meStatBooksYearEl.innerText = booksThisYear;
-
-        // Update the sub-labels to show the actual year (e.g. "2026 pages")
-        const meStatPagesYearLabelEl = document.getElementById('meStatPagesYearLabel');
-        if (meStatPagesYearLabelEl) meStatPagesYearLabelEl.innerText = currentYear + ' pages';
-
-        const meStatBooksYearLabelEl = document.getElementById('meStatBooksYearLabel');
-        if (meStatBooksYearLabelEl) meStatBooksYearLabelEl.innerText = currentYear + ' books';
 
         // 6. Draw the 52 Squares in the CSS Grid
         grid.innerHTML = '';
@@ -27594,33 +27583,29 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           bestStreakEndYear = parseInt(sortedWeeks[bestEndIdx].split('-W')[0], 10);
         }
 
-        // ── Update the streak stat pill ───────────────────────────────────────────
-        // Top half: current streak value.
-        // Bottom half: all-time unique weeks active (no year suffix — it's all-time).
+        // ── Update the streak stat circle ─────────────────────────────────────────
         const streakPillValEl  = document.getElementById('meStatStreakValue');
         const streakPillTileEl = document.getElementById('meStatStreakTile');
         const streakPillLblEl  = document.getElementById('meStatStreakLabel');
-        const weeksActiveEl    = document.getElementById('meStatWeeksActive');
-        const weeksLabelEl     = document.getElementById('meStatWeeksLabel');
 
         if (streakPillValEl) {
-          streakPillValEl.innerText = currentStreak > 0 ? currentStreak + ' 🔥' : '–';
+          streakPillValEl.innerText = currentStreak > 0 ? currentStreak : '–';
         }
-        if (currentStreak > 0 && streakPillTileEl) {
-          streakPillTileEl.style.background  = '#fff8f0';
-          streakPillTileEl.style.borderColor = '#f0c070';
-          if (streakPillValEl) streakPillValEl.style.color = 'var(--color-warning)';
-          if (streakPillLblEl) streakPillLblEl.style.color = '#854F0B';
+        if (streakPillLblEl) {
+          streakPillLblEl.innerHTML = currentStreak > 0
+            ? '<span>🔥</span><span>streak</span>'
+            : 'streak';
         }
-
-        // All-time weeks active — aligns with PLogger badge; no denominator needed.
-        if (weeksActiveEl) {
-          weeksActiveEl.innerText = totalWeeksActive;
-          if (currentStreak > 0) weeksActiveEl.style.color = '#854F0B';
-        }
-        if (weeksLabelEl) {
-          weeksLabelEl.innerText = 'wks logged';   // removed year suffix — this is now all-time
-          if (currentStreak > 0) weeksLabelEl.style.color = 'var(--color-warning)';
+        if (streakPillTileEl) {
+          if (currentStreak > 0) {
+            streakPillTileEl.style.background   = '#fff8f0';
+            streakPillTileEl.style.borderColor  = '#f0c070';
+            if (streakPillValEl) streakPillValEl.style.color = 'var(--color-warning)';
+            if (streakPillLblEl) streakPillLblEl.style.color = '#854F0B';
+          } else {
+            streakPillTileEl.style.background   = 'var(--surface-alt)';
+            streakPillTileEl.style.borderColor  = 'var(--border-soft)';
+          }
         }
 
         // ── Build the best-streak badge (right side of card) ─────────────────────
@@ -32663,9 +32648,105 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         return count;
       }
 
+      /**
+       * Drives a stat circle's SVG ring arc and goal CTA based on challenge enrollment.
+       *
+       * @param {string} challengeType  - 'PAGE_COUNT' or 'BOOK_COUNT'
+       * @param {string} seriesTag      - 'PAGE_READING_GOAL' or 'BOOK_READING_GOAL'
+       * @param {number} currentValue   - pages or books logged so far this year
+       * @param {number} currentYear    - e.g. 2026
+       * @param {string} arcId          - id of the <circle> ring arc element
+       * @param {string} subId          - id of the "of N" sub-label element
+       * @param {string} ctaId          - id of the "+ Add goal" anchor element
+       *
+       * Three states:
+       *  1. Enrolled in matching challenge → fill ring proportionally, show "of N" sub-label
+       *  2. Not enrolled, but challenge exists this year → empty ring, show "+ Add goal"
+       *  3. No challenge exists this year → empty ring, no CTA
+       */
+      function updateStatRing(challengeType, seriesTag, currentValue, currentYear,
+                              arcId, subId, ctaId) {
+        const CIRC = 2 * Math.PI * 42; // circumference for r=42 → ≈ 263.9
+
+        const arcEl = document.getElementById(arcId);
+        const subEl = document.getElementById(subId);
+        const ctaEl = document.getElementById(ctaId);
+        if (!arcEl) return;
+
+        // Hide optional elements by default
+        if (subEl) subEl.style.display = 'none';
+        if (ctaEl) ctaEl.style.display = 'none';
+
+        // Find the challenge for this year with the matching seriesTag
+        const yearChallenge = globalChallengesDB.find(function(c) {
+          if (c.challengeType !== challengeType) return false;
+          if (c.seriesTag !== seriesTag) return false;
+          // startDate and endDate must fall within currentYear
+          const yr = String(currentYear);
+          return c.startDate && c.startDate.startsWith(yr)
+              && c.endDate   && c.endDate.startsWith(yr);
+        });
+
+        if (!yearChallenge) {
+          // State 3: no challenge configured for this year — empty ring, no CTA
+          arcEl.setAttribute('stroke-dasharray', '0 ' + CIRC);
+          return;
+        }
+
+        // Check if the current user is enrolled
+        const enrollment = globalChallengeEnrollmentsDB.find(function(e) {
+          return e.memberId === currentUser
+              && e.challengeId === yearChallenge.challengeId
+              && e.enrollmentStatus === 'Active';
+        });
+
+        if (!enrollment) {
+          // State 2: challenge exists but user not enrolled — empty ring, show CTA
+          arcEl.setAttribute('stroke-dasharray', '0 ' + CIRC);
+          if (ctaEl) ctaEl.style.display = '';
+          return;
+        }
+
+        // State 1: enrolled — compute progress and fill ring
+        let state = {};
+        try { state = JSON.parse(enrollment.progressStateJson || '{}'); } catch (ex) {}
+        const goal = state.personalGoal || yearChallenge.goalValue || 1;
+        const pct  = Math.min(currentValue / goal, 1);
+        const fill = (pct * CIRC).toFixed(1);
+        arcEl.setAttribute('stroke-dasharray', fill + ' ' + CIRC);
+        if (subEl) {
+          subEl.textContent = 'of ' + goal.toLocaleString();
+          subEl.style.display = '';
+        }
+      }
+
+      /** Navigates to the PAGE_READING_GOAL challenge enrollment page. */
+      function openPageGoalEnroll() {
+        const yr = new Date().getFullYear();
+        const c = globalChallengesDB.find(function(ch) {
+          return ch.challengeType === 'PAGE_COUNT' && ch.seriesTag === 'PAGE_READING_GOAL'
+              && ch.startDate && ch.startDate.startsWith(String(yr));
+        });
+        if (c) openChallengeDetailView(c.challengeId);
+      }
+
+      /** Navigates to the BOOK_READING_GOAL challenge enrollment page. */
+      function openBookGoalEnroll() {
+        const yr = new Date().getFullYear();
+        const c = globalChallengesDB.find(function(ch) {
+          return ch.challengeType === 'BOOK_COUNT' && ch.seriesTag === 'BOOK_READING_GOAL'
+              && ch.startDate && ch.startDate.startsWith(String(yr));
+        });
+        if (c) openChallengeDetailView(c.challengeId);
+      }
+
       function updateBooksThisYearPill(memberId) {
+        var yr = new Date().getFullYear();
+        var count = _getFinishedBooksCountForYear(memberId, yr);
         var el = document.getElementById('meStatBooksYear');
-        if (el) el.innerText = _getFinishedBooksCountForYear(memberId, new Date().getFullYear());
+        if (el) el.innerText = count;
+        updateStatRing('BOOK_COUNT', 'BOOK_READING_GOAL', count, yr,
+                       'meStatBooksRingArc', 'meStatBooksGoalSub', 'meStatBooksAddGoalCta');
       }
 
     // ── Auto-hide app header on scroll ────────────────────────────────────────
