@@ -30,6 +30,7 @@ Full history lives here.
 | 2.3.0 | 2025 | Week-position context (`daysIntoWeek`, `projectedWeeklyPace`, `weeklyPagesTrend`) |
 | 2.4.0 | Jun 2026 | RSE V1 (`computeMemberReadingSpeed_`); `readingSpeed` written to Col O Stats JSON |
 | 2.5.0 | Jun 2026 | RSE V1 wired into `statSnapshot.memberReadingSpeed` for AI coach; `memberTotalClubPoints` bug fix |
+| 2.5.1 | Jun 2026 | BOOK_PACE_SLOWING + GENRE_PACE_MISMATCH insights switch to pages/day (RSE V1); session fallback retained |
 
 ---
 
@@ -44,6 +45,7 @@ Full history lives here.
 | 1.2.0 | 2025 | Layer 1 Persona DNA (`personaDNA`); archetype-aware coaching brief |
 | 1.3.0 | 2025 | Week-position blindness fix; projected weekly pace; 8-week trend in brief |
 | 1.4.0 | Jun 2026 | RSE V1 Layer 3 enrichment: daily pace (overall + recent), `moodMultiplier` mood label, genre pg/day alongside per-book velocity |
+| 1.4.1 | Jun 2026 | Per-book velocity note switches to pages/day (RSE V1) with session fallback |
 
 ---
 
