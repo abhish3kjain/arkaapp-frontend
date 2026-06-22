@@ -26423,14 +26423,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           grid.appendChild(square);
         }
 
-        // ── Heatmap footer: populate "X pages this week" label ────────────────
-        // weeklyPages is already fully built above; just read the current-week bucket.
-        // currentWeekNum is declared above the grid loop — no re-declaration needed.
-        const pagesThisWeekVal  = weeklyPages[currentWeekNum] || 0;
-        const heatmapThisWeekEl = document.getElementById('meHeatmapThisWeekPages');
-        if (heatmapThisWeekEl) {
-          heatmapThisWeekEl.innerText = pagesThisWeekVal.toLocaleString();
-        }
+        // pagesThisWeek is passed to renderStreakRow() which renders the banner line
+        const pagesThisWeekVal = weeklyPages[currentWeekNum] || 0;
 
         // Render streak row above the heatmap
         renderStreakRow(weeklyPages, userLogs);
