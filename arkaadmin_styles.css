@@ -1069,6 +1069,8 @@
     .chal-type-ALPHABET       { background: #E6F1FB; color: #0C447C; }
     .chal-type-BOOK_COUNT     { background: #FAEEDA; color: #633806; }
     .chal-type-PAGE_COUNT     { background: #E6F1FB; color: #0C447C; }
+    .chal-type-10PAGESADAY    { background: #FFF0E0; color: #7A3000; }
+    .chal-type-BOOK_HUNT      { background: #E8F5E9; color: #1B5E20; }
     @media (max-width: 768px) {
       /* ── 24. Announcement / Event compose: form action row ───────────  */
       #admAnnForm  > .adm-form-actions,

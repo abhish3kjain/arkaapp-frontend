@@ -6535,7 +6535,7 @@ function saveChallenge(data) {
  
   const validTypes = [
     'HABIT_STREAK', 'BINGO_GRID', 'BUDDY_READ',
-    'COUNTRY_SPREAD', 'ALPHABET', 'BOOK_COUNT', 'PAGE_COUNT', '10PAGESADAY'
+    'COUNTRY_SPREAD', 'ALPHABET', 'BOOK_COUNT', 'PAGE_COUNT', '10PAGESADAY', 'BOOK_HUNT'
   ];
   if (!validTypes.includes(challengeType)) {
     return { status: 'error', message: 'Invalid challenge type: ' + challengeType };
@@ -6944,6 +6944,15 @@ function buildInitialProgressState(challengeType, config, goalValue, personalGoa
       monthlyBreakdown: {},
       avgPagesPerDay : 0,
       isFinisher     : false
+    };
+  }
+
+  if (challengeType === 'BOOK_HUNT') {
+    return {
+      claims        : {},   // { clueId: { shelfId, bookTitle, claimedOn, status } }
+      completedCount: 0,
+      isFinisher    : false,
+      finishedOn    : ''
     };
   }
 

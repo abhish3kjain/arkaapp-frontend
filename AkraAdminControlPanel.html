@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=3.3">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=3.4">
 </head>
 <body>
 
@@ -697,6 +697,7 @@
               <option value="BOOK_COUNT">📚 Annual Book Count</option>
               <option value="PAGE_COUNT">📄 Annual Page Count</option>
               <option value="10PAGESADAY">🔥 10 Pages a Day</option>
+              <option value="BOOK_HUNT">🔍 Book Hunt</option>
             </select>
 
             <!-- Title + Description -->
@@ -872,6 +873,68 @@
               <input type="text" id="admChal10pad-finisherBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_234">
               <label class="adm-form-label" for="admChal10pad-winnerBadge">Winner badge ID <span class="adm-form-optional">(highest total — Page Turner)</span></label>
               <input type="text" id="admChal10pad-winnerBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_235">
+            </div>
+
+            <!-- BOOK_HUNT -->
+            <div id="admChalConfig-BOOK_HUNT" class="adm-chal-type-section">
+              <div class="adm-chal-section-divider">Clue rules</div>
+
+              <div class="adm-flex-row-tight adm-mb-14" style="align-items:flex-end;gap:10px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:120px;">
+                  <label class="adm-form-label adm-form-label--no-top" for="admChalHunt-finisherThreshold">Clues to finish <span class="adm-form-optional">(Finisher badge)</span></label>
+                  <input type="number" id="admChalHunt-finisherThreshold" class="adm-input" value="15" min="1" max="100">
+                </div>
+                <div style="flex:1;min-width:120px;">
+                  <label class="adm-form-label adm-form-label--no-top" for="admChalHunt-totalClues">Total clues</label>
+                  <input type="number" id="admChalHunt-totalClues" class="adm-input" value="20" min="1" max="100" readonly tabindex="-1" style="background:var(--surface-alt);color:var(--text-faint);">
+                </div>
+              </div>
+
+              <div class="adm-chal-toggle-row adm-mt-12">
+                <div>
+                  <div class="adm-chal-toggle-label">One book per clue per member</div>
+                  <div class="adm-chal-toggle-sub">A member's shelf record can satisfy only one clue; other members may use the same book</div>
+                </div>
+                <div id="admChalHunt-multiToggle" class="toggle-pill on" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
+              </div>
+
+              <div class="adm-chal-section-divider">Badge IDs</div>
+              <label class="adm-form-label adm-form-label--no-top" for="admChalHunt-challengerBadge">Challenger badge ID <span class="adm-form-optional">(enrolled)</span></label>
+              <input type="text" id="admChalHunt-challengerBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_240">
+              <label class="adm-form-label" for="admChalHunt-finisherBadge">Finisher badge ID <span class="adm-form-optional">(completed N clues)</span></label>
+              <input type="text" id="admChalHunt-finisherBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_241">
+              <label class="adm-form-label" for="admChalHunt-winnerBadge">Winner badge ID <span class="adm-form-optional">(most clues at end date)</span></label>
+              <input type="text" id="admChalHunt-winnerBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_242">
+
+              <div class="adm-chal-section-divider">Clues</div>
+
+              <!-- CSV bulk upload -->
+              <div class="adm-flex-row-tight adm-mb-14" style="gap:8px;flex-wrap:wrap;align-items:center;">
+                <label class="adm-btn adm-btn-light adm-btn-sm" style="cursor:pointer;margin:0;">
+                  <i class="fa-solid fa-file-csv"></i> Upload CSV
+                  <input type="file" id="admChalHunt-csvInput" accept=".csv,text/csv" style="display:none" onchange="admHuntImportCSV(this)">
+                </label>
+                <span class="adm-chal-hint" style="margin:0;">CSV columns: <code>Order, Prompt, Hint</code> — Hint is optional</span>
+              </div>
+
+              <!-- Clue table -->
+              <div id="admChalHunt-clueTableWrap">
+                <table class="adm-table" style="width:100%;font-size:0.82rem;" id="admChalHunt-clueTable">
+                  <thead>
+                    <tr>
+                      <th style="width:36px;">#</th>
+                      <th>Prompt <span style="color:var(--adm-danger)">*</span></th>
+                      <th>Hint <span class="adm-form-optional">(optional)</span></th>
+                      <th style="width:36px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="admChalHunt-clueBody"></tbody>
+                </table>
+              </div>
+              <button class="adm-btn adm-btn-light adm-btn-sm adm-mt-10" type="button" onclick="admHuntAddClueRow()">
+                <i class="fa-solid fa-plus"></i> Add clue
+              </button>
+              <p class="adm-chal-hint adm-mt-8" id="admChalHunt-clueCount">0 clues defined</p>
             </div>
 
             <!-- Points -->
@@ -1175,6 +1238,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=3.3"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=3.4"></script>
 </body>
 </html>

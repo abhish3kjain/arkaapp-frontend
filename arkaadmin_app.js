@@ -2163,7 +2163,8 @@
     ALPHABET      : '🔤 Alphabet',
     BOOK_COUNT    : '📚 Book Count',
     PAGE_COUNT    : '📄 Page Count',
-    '10PAGESADAY' : '🔥 10 Pages a Day'
+    '10PAGESADAY' : '🔥 10 Pages a Day',
+    BOOK_HUNT     : '🔍 Book Hunt'
   };
 
   // Full canonical genre list (mirrors app.js CANONICAL_GENRE_LIST)
@@ -2212,7 +2213,8 @@
     ALPHABET      : { enrol: 100, finish: 1500, win: 5000 },
     BOOK_COUNT    : { enrol:  30, finish:  100, win:    0 },
     PAGE_COUNT    : { enrol:  30, finish:  100, win:    0 },
-    '10PAGESADAY' : { enrol: 100, finish: 1000, win: 3000 }
+    '10PAGESADAY' : { enrol: 100, finish: 1000, win: 3000 },
+    BOOK_HUNT     : { enrol:  50, finish:  750, win: 2000 }
   };
 
   function admLoadChallenges() {
@@ -2369,6 +2371,7 @@
     }
     _admChalUpdateCompetitionModeOptions(type);
     if (type === 'BINGO_GRID') admChalRenderBingoBuilder();
+    if (type === 'BOOK_HUNT') admHuntRefreshClueCount();
   }
 
   function _admChalUpdateCompetitionModeOptions(type) {
@@ -2376,15 +2379,11 @@
     if (!compSel) return;
     // Rebuild option list based on what makes sense for this type
     var isPersonal = (type === 'BOOK_COUNT' || type === 'PAGE_COUNT' || type === '10PAGESADAY');
-    var isShared   = (type === 'BOOK_HUNT');
     compSel.innerHTML = isPersonal
       ? '<option value="NONE">None – personal challenge, no leaderboard</option>'
-      : isShared
-        ? '<option value="SHARED">Shared – whole club works toward a common goal</option>'
-          + '<option value="TEAM" disabled>Team – subgroups compete (coming soon)</option>'
-        : '<option value="NONE">None – no leaderboard</option>'
-          + '<option value="INDIVIDUAL">Individual – ranked leaderboard per member</option>';
-    compSel.value = isPersonal ? 'NONE' : isShared ? 'SHARED' : 'INDIVIDUAL';
+      : '<option value="NONE">None – no leaderboard</option>'
+        + '<option value="INDIVIDUAL">Individual – ranked leaderboard per member</option>';
+    compSel.value = isPersonal ? 'NONE' : 'INDIVIDUAL';
   }
 
   function _admChalShowTypeSection(type) {
@@ -2539,6 +2538,15 @@
       _admSetVal('admChal10pad-finisherBadge',   config.finisherBadge   || '');
       _admSetVal('admChal10pad-winnerBadge',     config.winnerBadge     || '');
     }
+    if (t === 'BOOK_HUNT') {
+      _admSetVal('admChalHunt-finisherThreshold', config.finisherThreshold || 15);
+      _admSetVal('admChalHunt-challengerBadge',   config.challengerBadge || '');
+      _admSetVal('admChalHunt-finisherBadge',     config.finisherBadge   || '');
+      _admSetVal('admChalHunt-winnerBadge',       config.winnerBadge     || '');
+      var multiTog = document.getElementById('admChalHunt-multiToggle');
+      if (multiTog) multiTog.classList.toggle('on', config.allowMultiClaim === false || config.allowMultiClaim === undefined);
+      admHuntLoadClues(config.clues || []);
+    }
   }
 
   function _admChalBuildGoalConfig(type) {
@@ -2619,6 +2627,24 @@
         challengerBadge: ((document.getElementById('admChal10pad-challengerBadge') || {}).value || '').trim(),
         finisherBadge  : ((document.getElementById('admChal10pad-finisherBadge')   || {}).value || '').trim(),
         winnerBadge    : ((document.getElementById('admChal10pad-winnerBadge')     || {}).value || '').trim()
+      };
+    }
+    if (type === 'BOOK_HUNT') {
+      var clues = admHuntReadClues();
+      var threshold = parseInt((document.getElementById('admChalHunt-finisherThreshold') || {}).value) || 1;
+      var multiTog  = document.getElementById('admChalHunt-multiToggle');
+      goalValue = clues.length; goalUnit = 'clues';
+      config = {
+        clues              : clues,
+        totalClues         : clues.length,
+        finisherCondition  : 'N_CLUES',
+        finisherThreshold  : Math.min(threshold, clues.length),
+        winCondition       : 'MOST_CLUES',
+        allowMultiClaim    : !(multiTog && multiTog.classList.contains('on')),
+        requireApproval    : false,
+        challengerBadge    : ((document.getElementById('admChalHunt-challengerBadge') || {}).value || '').trim(),
+        finisherBadge      : ((document.getElementById('admChalHunt-finisherBadge')   || {}).value || '').trim(),
+        winnerBadge        : ((document.getElementById('admChalHunt-winnerBadge')     || {}).value || '').trim()
       };
     }
     return { goalConfigJson: JSON.stringify(config), goalValue: goalValue, goalUnit: goalUnit };
@@ -2722,6 +2748,104 @@
       })
       .withFailureHandler(function() { admShowToast('Server error archiving challenge.', 'err'); })
       .archiveChallenge(id);
+  }
+
+  /* ── BOOK_HUNT clue builder ──────────────────────────────────── */
+
+  function admHuntAddClueRow(order, prompt, hint) {
+    var tbody = document.getElementById('admChalHunt-clueBody');
+    if (!tbody) return;
+    var idx = tbody.rows.length + 1;
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td class="adm-td-center adm-td-faint" style="width:36px;">' + (order || idx) + '</td>'
+      + '<td><input type="text" class="adm-input adm-hunt-prompt" placeholder="e.g. A book with a color in the title" value="' + _esc(prompt || '') + '" oninput="admHuntRefreshClueCount()"></td>'
+      + '<td><input type="text" class="adm-input adm-hunt-hint" placeholder="Optional hint…" value="' + _esc(hint || '') + '"></td>'
+      + '<td><button type="button" class="adm-btn adm-btn-danger adm-btn-icon adm-btn-sm" onclick="admHuntDeleteRow(this)" title="Remove"><i class="fa-solid fa-trash"></i></button></td>';
+    tbody.appendChild(tr);
+    admHuntRefreshClueCount();
+  }
+
+  function admHuntDeleteRow(btn) {
+    var tr = btn.closest('tr');
+    if (tr) tr.remove();
+    admHuntRefreshNumbers();
+    admHuntRefreshClueCount();
+  }
+
+  function admHuntRefreshNumbers() {
+    var rows = document.querySelectorAll('#admChalHunt-clueBody tr');
+    rows.forEach(function(tr, i) {
+      var numCell = tr.cells[0];
+      if (numCell) numCell.textContent = i + 1;
+    });
+  }
+
+  function admHuntRefreshClueCount() {
+    var count = document.querySelectorAll('#admChalHunt-clueBody tr').length;
+    var hint  = document.getElementById('admChalHunt-clueCount');
+    if (hint) hint.textContent = count + ' clue' + (count !== 1 ? 's' : '') + ' defined';
+    var totalEl = document.getElementById('admChalHunt-totalClues');
+    if (totalEl) totalEl.value = count;
+  }
+
+  function admHuntLoadClues(clues) {
+    var tbody = document.getElementById('admChalHunt-clueBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    (clues || []).forEach(function(cl) {
+      admHuntAddClueRow(cl.order, cl.prompt, cl.hint);
+    });
+    admHuntRefreshClueCount();
+  }
+
+  function admHuntReadClues() {
+    var rows = document.querySelectorAll('#admChalHunt-clueBody tr');
+    var clues = [];
+    rows.forEach(function(tr, i) {
+      var prompt = (tr.querySelector('.adm-hunt-prompt') || {}).value || '';
+      var hint   = (tr.querySelector('.adm-hunt-hint')   || {}).value || '';
+      if (prompt.trim()) {
+        clues.push({ clueId: 'C' + (i + 1), order: i + 1, prompt: prompt.trim(), hint: hint.trim() });
+      }
+    });
+    return clues;
+  }
+
+  function admHuntImportCSV(inputEl) {
+    var file = inputEl.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var lines = (e.target.result || '').split(/\r?\n/).filter(function(l) { return l.trim(); });
+      // Skip header row if first cell looks like "Order" or "#"
+      var start = 0;
+      if (lines.length && /^(order|#|no\.?)/i.test(lines[0].split(',')[0].trim())) start = 1;
+      var tbody = document.getElementById('admChalHunt-clueBody');
+      if (tbody) tbody.innerHTML = '';
+      for (var i = start; i < lines.length; i++) {
+        var parts = _admCSVSplit(lines[i]);
+        var order  = parts[0] ? parseInt(parts[0]) || (i - start + 1) : (i - start + 1);
+        var prompt = parts[1] || '';
+        var hint   = parts[2] || '';
+        if (prompt.trim()) admHuntAddClueRow(order, prompt.trim(), hint.trim());
+      }
+      admHuntRefreshNumbers();
+      admHuntRefreshClueCount();
+      inputEl.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  function _admCSVSplit(line) {
+    var result = [], cur = '', inQuote = false;
+    for (var i = 0; i < line.length; i++) {
+      var ch = line[i];
+      if (ch === '"') { inQuote = !inQuote; }
+      else if (ch === ',' && !inQuote) { result.push(cur); cur = ''; }
+      else { cur += ch; }
+    }
+    result.push(cur);
+    return result;
   }
 
   function admAward10PadBadges(challengeId) {
@@ -2912,6 +3036,10 @@
   window.admCloseChalArchiveModal   = admCloseChalArchiveModal;
   window.admConfirmChalArchive      = admConfirmChalArchive;
   window.admAward10PadBadges        = admAward10PadBadges;
+  window.admHuntAddClueRow          = admHuntAddClueRow;
+  window.admHuntDeleteRow           = admHuntDeleteRow;
+  window.admHuntRefreshClueCount    = admHuntRefreshClueCount;
+  window.admHuntImportCSV           = admHuntImportCSV;
 
   /* ── Bootstrap ─────────────────────────────────────────────────── */
   window.addEventListener('DOMContentLoaded', admInit);
