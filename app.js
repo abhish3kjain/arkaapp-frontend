@@ -3982,7 +3982,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               + (url ? '\n\uD83D\uDC49 ' + url : '');
           },
           notReadyMsg: 'Quote card not available yet.'
-        }
+        },
         rankingPodium: {
           elementId  : 'leaderboardPodium',
           fileName   : 'arka-ranking.jpg',
