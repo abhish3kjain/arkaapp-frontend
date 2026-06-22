@@ -223,6 +223,7 @@
     .adm-btn-danger { background: var(--adm-danger);  color: #fff; }
     .adm-btn-light  { background: var(--surface-alt); border: 1px solid var(--border-soft); color: var(--text-strong); }
     .adm-btn-sm     { padding: 5px 10px; font-size: 0.75rem; }
+    .adm-btn + .adm-btn { margin-left: 4px; }
 
     /* ── Filter tabs ───────────────────────────────────────────────── */
     .adm-filter-row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
@@ -262,7 +263,19 @@
     .adm-input:focus, .adm-select:focus, .adm-textarea:focus { border-color: var(--arka-accent); box-shadow: 0 0 0 3px rgba(169, 132, 186, 0.15); }
     .adm-input-hint { font-size: 0.72rem; color: var(--text-faint); margin-top: 4px; min-height: 1em; }
     .adm-form-group { margin-bottom: 16px; }
-    .adm-form-label { display: block; font-size: 0.77rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; }
+    /* ── Shared form label — used across ALL admin forms ────────────── */
+    .adm-form-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.45px;
+      margin-bottom: 5px;
+      margin-top: 16px;
+    }
+    .adm-form-label:first-child,
+    .adm-form-label--no-top { margin-top: 0; }
 
     /* ── Data tables ───────────────────────────────────────────────── */
     .adm-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -503,13 +516,6 @@
     .ann-pin-toggle-label { font-size: 0.88rem; font-weight: 600; color: var(--text-strong); }
     .ann-pin-toggle-sub   { font-size: 0.75rem; color: var(--text-faint); margin-top: 1px; }
 
-    /* Scoped form label style for the compose form */
-    #admAnnForm .adm-form-label {
-      display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-faint);
-      text-transform: uppercase; letter-spacing: 0.5px;
-      margin-bottom: 5px; margin-top: 16px;
-    }
-    #admAnnForm .adm-form-label:first-child { margin-top: 0; }
     #admAnnForm .adm-input,
     #admAnnForm textarea.adm-input { resize: vertical; }
 
@@ -529,19 +535,7 @@
     .adm-eq-badge-failed     { background: var(--adm-danger-bg); color: var(--adm-danger); }
     .adm-eq-badge-suppressed { background: var(--adm-page-bg);   color: var(--text-faint); }
 
-    /* Scoped form label style for Events compose form */
-    #admEvtForm .adm-form-label {
-      display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-faint);
-      text-transform: uppercase; letter-spacing: 0.5px;
-      margin-bottom: 5px; margin-top: 16px;
-    }
-    #admEvtForm .adm-form-label:first-child { margin-top: 0; }
-
-    /* Scoped label + input style for Challenge create/edit form */
-    #admChalPanelForm label {
-      display: block; font-size: 0.77rem; font-weight: 700; color: var(--text-muted);
-      margin-bottom: 5px; margin-top: 14px;
-    }
+    /* Scoped input style for Challenge create/edit form */
     #admChalPanelForm textarea.adm-input { resize: vertical; }
     #admChalPanelForm select.adm-input   { cursor: pointer; }
 
@@ -838,11 +832,11 @@
       }
 
       /* ── 25. Challenge form: action row ─────────────────────────── */
-      #admChalPanelForm > .adm-card > div[style*="display:flex"] {
+      #admChalPanelForm > .adm-card > .adm-form-actions {
         flex-direction: column-reverse;
         gap: 8px;
       }
-      #admChalPanelForm > .adm-card > div[style*="display:flex"] .adm-btn {
+      #admChalPanelForm > .adm-card > .adm-form-actions .adm-btn {
         width: 100%;
         justify-content: center;
       }
@@ -864,6 +858,8 @@
     .adm-paginator-row     { text-align: center; padding: 16px; }
     .adm-search-input      { max-width: 240px; }
     .adm-textarea          { resize: vertical; }
+    .adm-form-card         { max-width: 680px; }
+    .adm-evt-date-grid     { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
 
     /* Challenge form — global (outside media query) */
     .adm-chal-form-row       { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -971,14 +967,14 @@
     .chal-type-BOOK_COUNT     { background: #FAEEDA; color: #633806; }
     .chal-type-PAGE_COUNT     { background: #E6F1FB; color: #0C447C; }
     @media (max-width: 768px) {
-      /* ── 24. Announcement compose: form action row ─────────────────  */
-      #admAnnForm  > div[style*="display:flex"],
-      #admEvtForm  > div[style*="display:flex"] {
+      /* ── 24. Announcement / Event compose: form action row ───────────  */
+      #admAnnForm  > .adm-form-actions,
+      #admEvtForm  > .adm-form-actions {
         flex-direction: column-reverse;
         gap: 8px;
       }
-      #admAnnForm  > div[style*="display:flex"] .adm-btn,
-      #admEvtForm  > div[style*="display:flex"] .adm-btn {
+      #admAnnForm  > .adm-form-actions .adm-btn,
+      #admEvtForm  > .adm-form-actions .adm-btn {
         width: 100%;
         justify-content: center;
       }
