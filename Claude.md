@@ -522,6 +522,10 @@ Ideas that have been considered but explicitly deferred. Do not implement withou
 - When providing code that goes into production, state the new version number..
 - Never suggest reverting to a prior version as a fix strategy.
 - The `help-whats-new` article in `Arka_Help` should be updated whenever user-facing features ship.
+- When bumping `APP_VERSION` in `ArkaMainAppCode.gs`, always update `VERSION.md` in the same commit:
+- Add a new row to the table with the version number, date (YYYY-MM-DD), and a brief summary of what changed.
+- The version in `ArkaMainAppCode.gs` is the single source of truth. The HTML display element reads it dynamically from the backend — no separate HTML change is needed.
+
 
 ---
 
