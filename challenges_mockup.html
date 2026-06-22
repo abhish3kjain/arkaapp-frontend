@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Challenges Page — Design Mockups · Arka Club</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: #dde1e7;
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── TOP HEADER ── */
+    .page-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.12em;
+      color: #5b6b6e;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    /* ── OPTION SWITCHER ── */
+    .switcher {
+      display: flex;
+      gap: 6px;
+      background: white;
+      padding: 5px;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      margin-bottom: 8px;
+    }
+    .sw-btn {
+      padding: 8px 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #8a9aaa;
+      background: transparent;
+      transition: all 0.18s;
+      font-family: 'Inter', sans-serif;
+    }
+    .sw-btn.active { background: #534AB7; color: white; }
+
+    /* ── OPTION LABEL ── */
+    .opt-label {
+      font-size: 0.73rem;
+      color: #8a9aaa;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+      max-width: 340px;
+    }
+    .opt-label strong { color: #534AB7; font-weight: 700; }
+
+    /* ── PHONE SHELL ── */
+    .phone {
+      width: 390px;
+      height: 780px;
+      background: #f8f9fa;
+      border-radius: 44px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,0.06),
+        0 0 0 8px rgba(0,0,0,0.04),
+        0 32px 80px rgba(0,0,0,0.28);
+      position: relative;
+    }
+    .screen {
+      height: 780px;
+      overflow-y: scroll;
+      scrollbar-width: none;
+    }
+    .screen::-webkit-scrollbar { display: none; }
+
+    /* ── SCREEN VISIBILITY ── */
+    .mockup { display: none; }
+    .mockup.active { display: block; }
+
+    /* ── SHARED DESIGN TOKENS ── */
+    :root {
+      --navy:          #2c3e50;
+      --accent:        #A984BA;
+      --challenge:     #534AB7;
+      --gamification:  #EF9F27;
+      --success:       #1D9E75;
+      --danger:        #e74c3c;
+      --bingo-col:     #7F77DD;
+      --bingo-bg:      #EEEDFE;
+      --bingo-text:    #3C3489;
+      --fire-col:      #E05A47;
+      --fire-bg:       #FEF0EE;
+      --books-col:     #EF9F27;
+      --books-bg:      #FAEEDA;
+      --pages-col:     #378ADD;
+      --pages-bg:      #E6F1FB;
+      --hunt-col:      #1D9E75;
+      --hunt-bg:       #EAFAF1;
+    }
+
+    /* ── SHARED COMPONENTS ── */
+    .sec-hdr {
+      padding: 16px 16px 6px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #a0aab4;
+    }
+
+    /* standard challenge card */
+    .cc {
+      margin: 0 12px 10px;
+      background: white;
+      border-radius: 14px;
+      border: 1px solid #eaecef;
+      padding: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .cc.pinned { border-left: 3px solid var(--challenge); }
+    .cc.dim { background: #f9fafb; }
+
+    .cc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 7px; }
+    .type-pill {
+      font-size: 0.58rem; font-weight: 700; letter-spacing: 0.05em;
+      text-transform: uppercase; padding: 3px 9px; border-radius: 20px;
+    }
+    .status-pill {
+      font-size: 0.6rem; font-weight: 600; padding: 3px 9px;
+      border-radius: 20px; background: #EAF3DE; color: #27500A;
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .cc-title { font-size: 0.88rem; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+    .cc-meta { font-size: 0.65rem; color: #a0aab4; margin-bottom: 10px; }
+
+    .bar-lbl { display: flex; justify-content: space-between; font-size: 0.65rem; color: #a0aab4; margin-bottom: 4px; }
+    .bar-lbl b { font-weight: 700; }
+    .bar-bg { background: #f0f2f5; border-radius: 20px; height: 6px; overflow: hidden; margin-bottom: 8px; }
+    .bar-fill { height: 100%; border-radius: 20px; }
+
+    .cc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+    .days { font-size: 0.62rem; font-weight: 600; background: #f0f2f5; color: #666; padding: 3px 9px; border-radius: 10px; }
+    .days.ahead { background: #E1F5EE; color: #085041; }
+    .btn-drop {
+      font-size: 0.68rem; font-weight: 600; color: var(--danger);
+      background: transparent; border: 1px solid var(--danger);
+      padding: 4px 10px; border-radius: 8px; cursor: pointer;
+    }
+    .btn-enrol {
+      font-size: 0.72rem; font-weight: 700; background: var(--navy);
+      color: white; border: none; padding: 6px 14px; border-radius: 9px; cursor: pointer;
+    }
+
+    /* unenrolled card */
+    .uc {
+      margin: 0 12px 10px;
+      background: #f9fafb;
+      border-radius: 14px;
+      border: 1.5px dashed #dde1e7;
+      padding: 14px;
+    }
+    .uc-title { font-size: 0.88rem; font-weight: 700; color: var(--navy); margin: 6px 0 3px; }
+    .uc-meta { font-size: 0.65rem; color: #a0aab4; margin-bottom: 10px; }
+    .uc-foot { display: flex; justify-content: space-between; align-items: center; }
+    .mini-chips { display: flex; gap: 6px; }
+    .mini-chip { font-size: 0.62rem; background: #eaecef; color: #6a7878; padding: 3px 8px; border-radius: 8px; }
+
+    .spacer { height: 40px; }
+
+    /* filter chips row */
+    .fchips {
+      display: flex; gap: 8px; padding: 10px 14px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .fchips::-webkit-scrollbar { display: none; }
+    .fchip {
+      white-space: nowrap; font-size: 0.7rem; font-weight: 600;
+      padding: 6px 15px; border-radius: 20px; cursor: pointer; flex-shrink: 0;
+    }
+
+
+    /* ════════════════════════════════════════
+       OPTION 1 — PROGRESS RINGS HERO
+    ════════════════════════════════════════ */
+
+    .o1-hero {
+      background: linear-gradient(150deg, #141830 0%, #2a2360 100%);
+      padding: 18px 16px 0;
+    }
+    .o1-toprow {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 18px;
+    }
+    .o1-wordmark {
+      font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 600;
+      color: white; letter-spacing: 0.1em;
+    }
+    .o1-sub {
+      font-size: 0.58rem; color: rgba(255,255,255,0.4);
+      text-transform: uppercase; letter-spacing: 0.07em; margin-top: 1px;
+    }
+    .o1-enrolled-tag {
+      background: rgba(255,255,255,0.1); border-radius: 20px;
+      padding: 5px 12px; font-size: 0.68rem; font-weight: 600;
+      color: rgba(255,255,255,0.75);
+    }
+
+    /* Two ring cards side by side */
+    .o1-rings { display: flex; gap: 10px; margin-bottom: 12px; }
+    .o1-ring-card {
+      flex: 1; background: rgba(255,255,255,0.07); border-radius: 14px;
+      padding: 12px 10px; display: flex; align-items: center; gap: 10px;
+    }
+    .ring-wrap { position: relative; width: 54px; height: 54px; flex-shrink: 0; }
+    .ring-svg { transform: rotate(-90deg); }
+    .ring-track { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 5; }
+    .ring-fill  { fill: none; stroke-width: 5; stroke-linecap: round; }
+    .ring-label {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-size: 0.68rem; font-weight: 800; color: white; text-align: center; line-height: 1;
+    }
+    .ring-info .ri-name { font-size: 0.7rem; font-weight: 700; color: white; margin-bottom: 3px; }
+    .ring-info .ri-stat { font-size: 0.6rem; color: rgba(255,255,255,0.5); line-height: 1.5; }
+    .ri-chip {
+      display: inline-block; margin-top: 4px; font-size: 0.56rem; font-weight: 600;
+      padding: 2px 8px; border-radius: 10px;
+    }
+    .ri-chip.neutral { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.65); }
+    .ri-chip.ok      { background: rgba(29,158,117,0.3);  color: #6df5c8; }
+
+    /* Reading goals strip */
+    .o1-goals {
+      background: rgba(255,255,255,0.05); padding: 10px 12px;
+      display: flex; gap: 10px;
+    }
+    .o1-gp {
+      flex: 1; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 8px 10px;
+    }
+    .o1-gp-row1 {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;
+    }
+    .o1-gp-name { font-size: 0.58rem; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.04em; }
+    .o1-gp-pct  { font-size: 0.62rem; font-weight: 800; color: rgba(255,255,255,0.8); }
+    .o1-gp-bar  { height: 4px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+    .o1-gp-fill { height: 100%; border-radius: 4px; }
+    .o1-gp-lbl  { font-size: 0.56rem; color: rgba(255,255,255,0.35); }
+
+    /* Filter row on dark bg */
+    .dark-fchips {
+      display: flex; gap: 8px; padding: 10px 14px 14px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .dark-fchips::-webkit-scrollbar { display: none; }
+    .dark-fc {
+      white-space: nowrap; font-size: 0.7rem; font-weight: 600;
+      padding: 6px 15px; border-radius: 20px; cursor: pointer; flex-shrink: 0;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      background: transparent; color: rgba(255,255,255,0.6);
+    }
+    .dark-fc.active { background: var(--bingo-col); color: white; border-color: var(--bingo-col); }
+
+
+    /* ════════════════════════════════════════
+       OPTION 2 — BENTO GRID HERO
+    ════════════════════════════════════════ */
+
+    .o2-hero { background: var(--navy); padding: 16px 14px 0; }
+    .o2-toprow {
+      display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;
+    }
+    .o2-wordmark {
+      font-family: 'Cinzel', serif; font-size: 1.05rem; font-weight: 600;
+      color: white; letter-spacing: 0.08em;
+    }
+    .o2-sub { font-size: 0.57rem; color: rgba(255,255,255,0.38); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+    .o2-tags { display: flex; gap: 6px; }
+    .o2-tag {
+      padding: 4px 10px; border-radius: 20px; font-size: 0.64rem; font-weight: 600;
+      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
+    }
+    .o2-tag.accent { background: var(--accent); color: white; }
+
+    /* Bento layout */
+    .o2-bento { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .o2-bento-tile {
+      border-radius: 14px; padding: 12px; overflow: hidden; position: relative;
+    }
+    .o2-tile-label {
+      font-size: 0.54rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.07em; color: rgba(255,255,255,0.45); margin-bottom: 6px;
+    }
+    .o2-tile-title { font-size: 0.72rem; font-weight: 700; color: white; line-height: 1.3; margin-bottom: 8px; }
+
+    /* Bingo tile — full width */
+    .o2-bingo-tile {
+      grid-column: 1 / -1;
+      background: rgba(127,119,221,0.15);
+      border: 1px solid rgba(127,119,221,0.28);
+      border-radius: 14px; padding: 12px 14px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    /* mini 5x5 grid */
+    .mini-grid-5 {
+      display: grid; grid-template-columns: repeat(5, 18px);
+      grid-template-rows: repeat(5, 18px); gap: 2px; flex-shrink: 0;
+    }
+    .mg-cell { width: 18px; height: 18px; border-radius: 3px; background: rgba(255,255,255,0.07); }
+    .mg-cell.done { background: var(--bingo-col); }
+    .mg-cell.line { background: var(--challenge); }
+    .mg-cell.free { background: var(--gamification); }
+
+    .o2-bingo-right { flex: 1; }
+    .o2-bingo-title { font-size: 0.8rem; font-weight: 700; color: white; margin-bottom: 3px; }
+    .o2-bingo-sub   { font-size: 0.62rem; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+    .o2-bingo-pct   { font-size: 1.5rem; font-weight: 800; color: var(--bingo-col); line-height: 1; }
+    .o2-bingo-pct-sub { font-size: 0.57rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+    /* 10ppa tile */
+    .o2-fire-tile {
+      background: rgba(224,90,71,0.12);
+      border: 1px solid rgba(224,90,71,0.22);
+      border-radius: 14px; padding: 12px;
+    }
+    .o2-fire-big { font-size: 1.4rem; font-weight: 800; color: var(--fire-col); line-height: 1; margin-bottom: 1px; }
+    .o2-fire-sub { font-size: 0.58rem; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+    .tile-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+    .tile-bar-fill { height: 100%; border-radius: 4px; }
+    .tile-stat { font-size: 0.58rem; color: rgba(255,255,255,0.38); margin-top: 5px; }
+
+    /* Points tile */
+    .o2-pts-tile {
+      background: rgba(239,159,39,0.1);
+      border: 1px solid rgba(239,159,39,0.2);
+      border-radius: 14px; padding: 12px;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .o2-pts-big { font-size: 1.5rem; font-weight: 800; color: var(--gamification); line-height: 1; }
+    .o2-pts-lbl { font-size: 0.58rem; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+    .o2-pts-row { display: flex; gap: 0; }
+    .o2-pts-stat { flex: 1; text-align: center; }
+    .o2-pts-stat-val { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.8); display: block; }
+    .o2-pts-stat-label { font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.35); }
+    .o2-pts-divider { width: 1px; background: rgba(255,255,255,0.1); margin: 0 4px; }
+
+    /* Goals strip */
+    .o2-goals {
+      background: rgba(255,255,255,0.05); border-radius: 10px;
+      padding: 9px 12px; display: flex; gap: 10px; margin-bottom: 12px;
+    }
+    .o2-gi { flex: 1; display: flex; align-items: center; gap: 8px; }
+    .o2-gi-icon { font-size: 0.85rem; }
+    .o2-gi-body { flex: 1; }
+    .o2-gi-row { display: flex; justify-content: space-between; font-size: 0.6rem; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 4px; }
+    .o2-gi-bar { height: 3px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+    .o2-gi-fill { height: 100%; border-radius: 3px; }
+    .o2-gi-sep { width: 1px; background: rgba(255,255,255,0.08); }
+
+    .o2-fchips {
+      display: flex; gap: 8px; padding: 2px 0 14px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .o2-fchips::-webkit-scrollbar { display: none; }
+    .o2-fc {
+      white-space: nowrap; font-size: 0.68rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 20px; cursor: pointer; flex-shrink: 0;
+      border: 1.5px solid rgba(255,255,255,0.18);
+      background: transparent; color: rgba(255,255,255,0.6);
+    }
+    .o2-fc.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+
+    /* ════════════════════════════════════════
+       OPTION 3 — SLIM HEADER + RICH CARDS
+    ════════════════════════════════════════ */
+
+    .o3-header {
+      background: var(--navy); padding: 16px 16px 0;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .o3-toprow {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+    }
+    .o3-left { display: flex; align-items: center; gap: 8px; }
+    .o3-wordmark {
+      font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600;
+      color: white; letter-spacing: 0.08em;
+    }
+    .o3-badge {
+      background: var(--challenge); color: white; font-size: 0.6rem; font-weight: 700;
+      padding: 2px 9px; border-radius: 20px;
+    }
+    .o3-pts {
+      display: flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 600;
+      color: var(--gamification); background: rgba(239,159,39,0.15);
+      padding: 5px 10px; border-radius: 20px;
+    }
+    .o3-fchips {
+      display: flex; gap: 8px; padding: 0 0 12px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .o3-fchips::-webkit-scrollbar { display: none; }
+    .o3-fc {
+      white-space: nowrap; font-size: 0.68rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 20px; cursor: pointer; flex-shrink: 0;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      background: transparent; color: rgba(255,255,255,0.65);
+    }
+    .o3-fc.active { background: white; color: var(--navy); border-color: white; font-weight: 700; }
+
+    /* Rich Bingo card */
+    .o3-bingo {
+      margin: 0 12px 10px;
+      background: white; border-radius: 16px;
+      border: 1px solid rgba(127,119,221,0.2);
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(83,74,183,0.09);
+    }
+    .o3-bingo-top {
+      background: linear-gradient(135deg, #edeafc 0%, #e0dbf8 100%);
+      padding: 12px 14px 10px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .o3-bt-left {}
+    .o3-bt-title { font-size: 0.9rem; font-weight: 700; color: var(--bingo-text); }
+    .o3-bt-badges { display: flex; gap: 5px; margin-top: 5px; }
+    .o3-mini-badge {
+      font-size: 0.56rem; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+    }
+    .o3-mini-badge.type  { background: rgba(83,74,183,0.12); color: var(--bingo-text); }
+    .o3-mini-badge.stat  { background: #EAF3DE; color: #27500A; }
+    .o3-mini-badge.pin   { background: rgba(83,74,183,0.1); color: var(--challenge); }
+    .o3-bt-pct { text-align: right; }
+    .o3-bt-pct-num { font-size: 1.6rem; font-weight: 800; color: var(--bingo-col); line-height: 1; }
+    .o3-bt-pct-lbl { font-size: 0.54rem; color: rgba(60,52,137,0.55); }
+
+    .o3-bingo-body {
+      padding: 12px 14px; display: flex; align-items: center; gap: 14px;
+    }
+    /* bigger mini grid for option 3 */
+    .mini-grid-5b {
+      display: grid; grid-template-columns: repeat(5, 22px);
+      grid-template-rows: repeat(5, 22px); gap: 2px; flex-shrink: 0;
+    }
+    .mgb-cell { width: 22px; height: 22px; border-radius: 3px; background: #f0f2f5; }
+    .mgb-cell.done { background: var(--bingo-col); }
+    .mgb-cell.line { background: var(--challenge); }
+    .mgb-cell.free { background: var(--gamification); }
+
+    .o3-bingo-stats { flex: 1; }
+    .o3-bs-line {
+      font-size: 0.7rem; color: #5b6b6e; margin-bottom: 5px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .o3-bs-line i { color: var(--bingo-col); width: 13px; text-align: center; }
+
+    .o3-bingo-foot {
+      padding: 8px 14px; border-top: 1px solid rgba(127,119,221,0.1);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .o3-tag-chip {
+      font-size: 0.6rem; font-weight: 600; padding: 4px 10px; border-radius: 10px;
+    }
+    .o3-tag-chip.bingo { background: #f0eefb; color: var(--bingo-text); }
+    .o3-tag-chip.ahead { background: #E1F5EE; color: #085041; }
+
+    /* Rich 10ppa card */
+    .o3-fire {
+      margin: 0 12px 10px;
+      background: white; border-radius: 16px;
+      border: 1px solid rgba(224,90,71,0.15);
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(224,90,71,0.07);
+    }
+    .o3-fire-top {
+      background: linear-gradient(135deg, #fdecea 0%, #fcd9d4 100%);
+      padding: 12px 14px 10px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .o3-ft-title { font-size: 0.9rem; font-weight: 700; color: #5a1f14; }
+    .o3-ft-badges { display: flex; gap: 5px; margin-top: 5px; }
+    .o3-mini-badge.fire-type { background: rgba(224,90,71,0.14); color: #5a1f14; }
+    .o3-ft-big { text-align: right; }
+    .o3-ft-pages { font-size: 1.6rem; font-weight: 800; color: var(--fire-col); line-height: 1; }
+    .o3-ft-lbl   { font-size: 0.54rem; color: rgba(90,31,20,0.55); }
+
+    .o3-fire-body { padding: 12px 14px; }
+    /* month dots */
+    .month-dots { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+    .md {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.42rem; font-weight: 700; text-transform: uppercase;
+    }
+    .md.met     { background: var(--fire-col); color: white; }
+    .md.partial { background: rgba(224,90,71,0.25); color: var(--fire-col); }
+    .md.future  { background: #f0f2f5; color: #ccc; }
+
+    .fire-bar-row { display: flex; justify-content: space-between; font-size: 0.64rem; color: #a0aab4; margin-bottom: 4px; }
+    .fire-bar-row .ok { color: var(--success); font-weight: 600; }
+    .o3-fire-foot {
+      padding: 8px 14px; border-top: 1px solid rgba(224,90,71,0.1);
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.63rem; color: #a0aab4;
+    }
+
+    /* Reading goal pair cards */
+    .goals-pair { display: flex; gap: 8px; margin: 0 12px 10px; }
+    .gcard {
+      flex: 1; border-radius: 12px; border: 1px solid #eaecef; padding: 11px 12px; background: white;
+    }
+    .gcard.bk { border-color: rgba(239,159,39,0.3); background: #fffdf6; }
+    .gcard.pg { border-color: rgba(55,138,221,0.3); background: #f6faff; }
+    .gc-type { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #b0bac4; margin-bottom: 4px; }
+    .gc-main { font-size: 1.1rem; font-weight: 800; color: var(--navy); line-height: 1; }
+    .gc-main span { font-size: 0.7rem; font-weight: 500; color: #b0bac4; }
+    .gc-sub  { font-size: 0.58rem; color: #b0bac4; margin: 3px 0 7px; }
+    .gc-bar  { height: 5px; background: #f0f2f5; border-radius: 5px; overflow: hidden; }
+    .gc-fill { height: 100%; border-radius: 5px; }
+
+  </style>
+</head>
+<body>
+
+  <div class="page-title">Challenges Page · Design Mockups</div>
+
+  <!-- Switcher -->
+  <div class="switcher">
+    <button class="sw-btn active" onclick="show(1,this)">Option 1 · Rings</button>
+    <button class="sw-btn"        onclick="show(2,this)">Option 2 · Bento</button>
+    <button class="sw-btn"        onclick="show(3,this)">Option 3 · No Banner</button>
+  </div>
+
+  <div class="opt-label" id="opt-desc">
+    <strong>Option 1 — Progress Rings:</strong> Dark deep-navy hero. Two SVG rings show Bingo + 10ppa progress front-and-centre. Reading goals demoted to a slim strip below.
+  </div>
+
+  <!-- Phone -->
+  <div class="phone">
+    <div class="screen">
+
+
+      <!-- ══════════════════════════════════════════
+           OPTION 1  ·  PROGRESS RINGS
+      ══════════════════════════════════════════ -->
+      <div class="mockup active" id="m1">
+
+        <div class="o1-hero">
+          <div class="o1-toprow">
+            <div>
+              <div class="o1-wordmark">CHALLENGES</div>
+              <div class="o1-sub">Arka Readers Club</div>
+            </div>
+            <div class="o1-enrolled-tag">4 enrolled</div>
+          </div>
+
+          <!-- Progress rings for active challenges -->
+          <div class="o1-rings">
+
+            <!-- Bingo ring — 44% -->
+            <div class="o1-ring-card">
+              <div class="ring-wrap">
+                <svg class="ring-svg" width="54" height="54" viewBox="0 0 54 54">
+                  <circle class="ring-track" cx="27" cy="27" r="22"/>
+                  <!-- 2π×22 ≈ 138.2 | offset for 44% done = 138.2×0.56 = 77.4 -->
+                  <circle class="ring-fill" cx="27" cy="27" r="22"
+                    stroke="#7F77DD"
+                    stroke-dasharray="138.2"
+                    stroke-dashoffset="77.4"/>
+                </svg>
+                <div class="ring-label">44%</div>
+              </div>
+              <div class="ring-info">
+                <div class="ri-name">Book Bingo</div>
+                <div class="ri-stat">11/25 cells<br>2 lines done</div>
+                <span class="ri-chip neutral">⏱ 192 days</span>
+              </div>
+            </div>
+
+            <!-- 10ppa ring — 59% -->
+            <div class="o1-ring-card">
+              <div class="ring-wrap">
+                <svg class="ring-svg" width="54" height="54" viewBox="0 0 54 54">
+                  <circle class="ring-track" cx="27" cy="27" r="22"/>
+                  <!-- offset for 59% done = 138.2×0.41 = 56.7 -->
+                  <circle class="ring-fill" cx="27" cy="27" r="22"
+                    stroke="#E05A47"
+                    stroke-dasharray="138.2"
+                    stroke-dashoffset="56.7"/>
+                </svg>
+                <div class="ring-label">59%</div>
+              </div>
+              <div class="ring-info">
+                <div class="ri-name">10 Pages/Day</div>
+                <div class="ri-stat">2,150 / 3,660<br>pages this year</div>
+                <span class="ri-chip ok">✓ On track</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Reading goals — de-emphasised strip -->
+          <div class="o1-goals">
+            <div class="o1-gp">
+              <div class="o1-gp-row1">
+                <span class="o1-gp-name">📚 Books Goal</span>
+                <span class="o1-gp-pct">58%</span>
+              </div>
+              <div class="o1-gp-bar">
+                <div class="o1-gp-fill" style="width:58%;background:var(--books-col);"></div>
+              </div>
+              <div class="o1-gp-lbl">14 / 24 books</div>
+            </div>
+            <div class="o1-gp">
+              <div class="o1-gp-row1">
+                <span class="o1-gp-name">📄 Pages Goal</span>
+                <span class="o1-gp-pct">52%</span>
+              </div>
+              <div class="o1-gp-bar">
+                <div class="o1-gp-fill" style="width:52%;background:var(--pages-col);"></div>
+              </div>
+              <div class="o1-gp-lbl">5,200 / 10,000 pages</div>
+            </div>
+          </div>
+
+          <!-- Filter chips -->
+          <div class="dark-fchips">
+            <button class="dark-fc active">All</button>
+            <button class="dark-fc">Enrolled</button>
+            <button class="dark-fc">Un-enrolled</button>
+          </div>
+        </div><!-- /o1-hero -->
+
+        <!-- Cards -->
+        <div class="sec-hdr">Your Active Challenges</div>
+
+        <div class="cc pinned">
+          <div class="cc-top">
+            <span class="type-pill" style="background:var(--bingo-bg);color:var(--bingo-text);">🎲 Bingo Grid</span>
+            <span class="status-pill"><i class="fa-solid fa-check"></i> Active</span>
+          </div>
+          <div class="cc-title">Book Bingo 2026</div>
+          <div class="cc-meta">01 Jan – 31 Dec 2026 · 5×5 · Line Bingo win condition</div>
+          <div class="bar-lbl"><span>11 / 25 cells done</span><b style="color:var(--bingo-col);">44%</b></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:44%;background:var(--bingo-col);"></div></div>
+          <div class="cc-foot">
+            <span class="days">192 days left</span>
+            <button class="btn-drop">Drop</button>
+          </div>
+        </div>
+
+        <div class="cc">
+          <div class="cc-top">
+            <span class="type-pill" style="background:var(--fire-bg);color:#5a1f14;">🔥 10 Pages/Day</span>
+            <span class="status-pill"><i class="fa-solid fa-check"></i> Active</span>
+          </div>
+          <div class="cc-title">10 Pages a Day 2026</div>
+          <div class="cc-meta">01 Jan – 31 Dec 2026 · 3,660 pages target</div>
+          <div class="bar-lbl"><span>2,150 / 3,660 pages</span><b style="color:var(--fire-col);">59%</b></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:59%;background:var(--fire-col);"></div></div>
+          <div class="cc-foot">
+            <span class="days ahead">✓ 12 days ahead</span>
+            <button class="btn-drop">Drop</button>
+          </div>
+        </div>
+
+        <div class="sec-hdr">Reading Goals</div>
+
+        <div class="cc">
+          <div class="cc-top">
+            <span class="type-pill" style="background:var(--books-bg);color:#633806;">📚 Book Count</span>
+            <span class="status-pill"><i class="fa-solid fa-check"></i> Active</span>
+          </div>
+          <div class="cc-title">Reading Goal 2026</div>
+          <div class="cc-meta">Personal goal · 01 Jan – 31 Dec 2026</div>
+          <div class="bar-lbl"><span>14 / 24 books</span><b style="color:var(--books-col);">58%</b></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:58%;background:var(--books-col);"></div></div>
+          <div class="cc-foot">
+            <span class="days">192 days left</span>
+            <button class="btn-drop">Drop</button>
+          </div>
+        </div>
+
+        <div class="cc">
+          <div class="cc-top">
+            <span class="type-pill" style="background:var(--pages-bg);color:#0C447C;">📄 Page Count</span>
+            <span class="status-pill"><i class="fa-solid fa-check"></i> Active</span>
+          </div>
+          <div class="cc-title">Pages Goal 2026</div>
+          <div class="cc-meta">Personal goal · 01 Jan – 31 Dec 2026</div>
+          <div class="bar-lbl"><span>5,200 / 10,000 pages</span><b style="color:var(--pages-col);">52%</b></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:52%;background:var(--pages-col);"></div></div>
+          <div class="cc-foot">
+            <span class="days">192 days left</span>
+            <button class="btn-drop">Drop</button>
+          </div>
+        </div>
+
+        <div class="sec-hdr">Open to Join</div>
+
+        <div class="uc">
+          <span class="type-pill" style="background:var(--hunt-bg);color:#145c35;font-size:0.58rem;padding:3px 9px;border-radius:20px;">🔍 Book Hunt</span>
+          <div class="uc-title">Arka Book Hunt 2026</div>
+          <div class="uc-meta">23 Mar – 30 Sep 2026 · 23 clues</div>
+          <div class="uc-foot">
+            <div class="mini-chips">
+              <span class="mini-chip">👥 23 joined</span>
+              <span class="mini-chip">🏅 Up to 2,750 pts</span>
+            </div>
+            <button class="btn-enrol">Enrol →</button>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+      </div><!-- /m1 -->
+
+
+      <!-- ══════════════════════════════════════════
+           OPTION 2  ·  BENTO GRID HERO
+      ══════════════════════════════════════════ -->
+      <div class="mockup" id="m2">
+
+        <div class="o2-hero">
+          <div class="o2-toprow">
+            <div>
+              <div class="o2-wordmark">CHALLENGES</div>
+              <div class="o2-sub">Arka Readers Club</div>
+            </div>
+            <div class="o2-tags">
+              <span class="o2-tag accent">4 enrolled</span>
+              <span class="o2-tag">1 open</span>
+            </div>
+          </div>
+
+          <!-- Bento grid -->
+          <div class="o2-bento">
+
+            <!-- Bingo — full width, mini grid visible -->
+            <div class="o2-bingo-tile">
+              <div class="mini-grid-5">
+                <!-- Row 1: all complete (line) -->
+                <div class="mg-cell line"></div><div class="mg-cell line"></div><div class="mg-cell line"></div><div class="mg-cell line"></div><div class="mg-cell line"></div>
+                <!-- Row 2 -->
+                <div class="mg-cell done"></div><div class="mg-cell done"></div><div class="mg-cell free"></div><div class="mg-cell"></div><div class="mg-cell"></div>
+                <!-- Row 3 -->
+                <div class="mg-cell done"></div><div class="mg-cell"></div><div class="mg-cell done"></div><div class="mg-cell done"></div><div class="mg-cell"></div>
+                <!-- Row 4 -->
+                <div class="mg-cell"></div><div class="mg-cell done"></div><div class="mg-cell"></div><div class="mg-cell"></div><div class="mg-cell"></div>
+                <!-- Row 5 -->
+                <div class="mg-cell"></div><div class="mg-cell"></div><div class="mg-cell done"></div><div class="mg-cell"></div><div class="mg-cell"></div>
+              </div>
+              <div class="o2-bingo-right">
+                <div class="o2-bingo-title">📌 Book Bingo 2026</div>
+                <div class="o2-bingo-sub">11/25 cells · 2 lines complete</div>
+                <div class="o2-bingo-pct">44%</div>
+                <div class="o2-bingo-pct-sub">⏱ 192 days remaining</div>
+              </div>
+            </div>
+
+            <!-- 10ppa -->
+            <div class="o2-fire-tile">
+              <div class="o2-tile-label">🔥 10 Pages/Day</div>
+              <div class="o2-tile-title">10 Pages a Day 2026</div>
+              <div class="o2-fire-big">2,150</div>
+              <div class="o2-fire-sub">pages this year</div>
+              <div class="tile-bar">
+                <div class="tile-bar-fill" style="width:59%;background:var(--fire-col);"></div>
+              </div>
+              <div class="tile-stat">59% · ✓ ahead of target</div>
+            </div>
+
+            <!-- Points -->
+            <div class="o2-pts-tile">
+              <div>
+                <div class="o2-tile-label">🏅 My Points</div>
+                <div class="o2-pts-big">3,480</div>
+                <div class="o2-pts-lbl">earned from challenges</div>
+              </div>
+              <div class="o2-pts-row">
+                <div class="o2-pts-stat">
+                  <span class="o2-pts-stat-val">1</span>
+                  <span class="o2-pts-stat-label">winner</span>
+                </div>
+                <div class="o2-pts-divider"></div>
+                <div class="o2-pts-stat">
+                  <span class="o2-pts-stat-val">2</span>
+                  <span class="o2-pts-stat-label">finisher</span>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /bento -->
+
+          <!-- Reading goals slim strip -->
+          <div class="o2-goals">
+            <div class="o2-gi">
+              <div class="o2-gi-icon">📚</div>
+              <div class="o2-gi-body">
+                <div class="o2-gi-row"><span>Books Goal</span><span>14 / 24</span></div>
+                <div class="o2-gi-bar"><div class="o2-gi-fill" style="width:58%;background:var(--books-col);"></div></div>
+              </div>
+            </div>
+            <div class="o2-gi-sep"></div>
+            <div class="o2-gi">
+              <div class="o2-gi-icon">📄</div>
+              <div class="o2-gi-body">
+                <div class="o2-gi-row"><span>Pages Goal</span><span>5.2k / 10k</span></div>
+                <div class="o2-gi-bar"><div class="o2-gi-fill" style="width:52%;background:var(--pages-col);"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter chips -->
+          <div class="o2-fchips">
+            <button class="o2-fc active">All</button>
+            <button class="o2-fc">Enrolled</button>
+            <button class="o2-fc">Un-enrolled</button>
+          </div>
+        </div><!-- /o2-hero -->
+
+        <!-- Cards -->
+        <div class="sec-hdr">Your Challenges</div>
+
+        <div class="cc pinned">
+          <div class="cc-top">
+            <span class="type-pill" style="background:var(--bingo-bg);color:var(--bingo-text);">🎲 Bingo Grid</span>
+            <span class="status-pill"><i class="fa-solid fa-check"></i> Active</span>
+          </div>
+          <div class="cc-title">Book Bingo 2026</div>
+          <div class="cc-meta">01 Jan – 31 Dec 2026 · 5×5 grid</div>
+          <div class="bar-lbl"><span>11 / 25 cells done</span><b style="color:var(--bingo-col);">44%</b></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:44%;background:var(--bingo-col);"></div></div>
+          <div class="cc-foot">
+            <span class="days">192 days left</span>
+            <button class="btn-drop">Drop</button>
+          </div>
+        </div>
+
+        <div class="cc">
+          <div class="cc-top">
+            <span class="type-pill" style="background:var(--fire-bg);color:#5a1f14;">🔥 10 Pages/Day</span>
+            <span class="status-pill"><i class="fa-solid fa-check"></i> Active</span>
+          </div>
+          <div class="cc-title">10 Pages a Day 2026</div>
+          <div class="cc-meta">01 Jan – 31 Dec 2026 · 3,660 pages target</div>
+          <div class="bar-lbl"><span>2,150 / 3,660 pages</span><b style="color:var(--fire-col);">59%</b></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:59%;background:var(--fire-col);"></div></div>
+          <div class="cc-foot">
+            <span class="days ahead">✓ 12 days ahead</span>
+            <button class="btn-drop">Drop</button>
+          </div>
+        </div>
+
+        <div class="sec-hdr">Reading Goals</div>
+
+        <div class="cc">
+          <div class="cc-top">
+            <span class="type-pill" style="background:var(--books-bg);color:#633806;">📚 Book Count</span>
+            <span class="status-pill"><i class="fa-solid fa-check"></i> Active</span>
+          </div>
+          <div class="cc-title">Reading Goal 2026</div>
+          <div class="cc-meta">Personal · 01 Jan – 31 Dec 2026</div>
+          <div class="bar-lbl"><span>14 / 24 books</span><b style="color:var(--books-col);">58%</b></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:58%;background:var(--books-col);"></div></div>
+          <div class="cc-foot">
+            <span class="days">192 days left</span>
+            <button class="btn-drop">Drop</button>
+          </div>
+        </div>
+
+        <div class="cc">
+          <div class="cc-top">
+            <span class="type-pill" style="background:var(--pages-bg);color:#0C447C;">📄 Page Count</span>
+            <span class="status-pill"><i class="fa-solid fa-check"></i> Active</span>
+          </div>
+          <div class="cc-title">Pages Goal 2026</div>
+          <div class="cc-meta">Personal · 01 Jan – 31 Dec 2026</div>
+          <div class="bar-lbl"><span>5,200 / 10,000 pages</span><b style="color:var(--pages-col);">52%</b></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:52%;background:var(--pages-col);"></div></div>
+          <div class="cc-foot">
+            <span class="days">192 days left</span>
+            <button class="btn-drop">Drop</button>
+          </div>
+        </div>
+
+        <div class="sec-hdr">Open to Join</div>
+
+        <div class="uc">
+          <span class="type-pill" style="background:var(--hunt-bg);color:#145c35;font-size:0.58rem;padding:3px 9px;border-radius:20px;">🔍 Book Hunt</span>
+          <div class="uc-title">Arka Book Hunt 2026</div>
+          <div class="uc-meta">23 Mar – 30 Sep 2026 · 23 clues</div>
+          <div class="uc-foot">
+            <div class="mini-chips">
+              <span class="mini-chip">👥 23 joined</span>
+              <span class="mini-chip">🏅 Up to 2,750 pts</span>
+            </div>
+            <button class="btn-enrol">Enrol →</button>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+      </div><!-- /m2 -->
+
+
+      <!-- ══════════════════════════════════════════
+           OPTION 3  ·  NO BANNER — RICH CARDS
+      ══════════════════════════════════════════ -->
+      <div class="mockup" id="m3">
+
+        <!-- Slim sticky header + filter chips -->
+        <div class="o3-header">
+          <div class="o3-toprow">
+            <div class="o3-left">
+              <span class="o3-wordmark">CHALLENGES</span>
+              <span class="o3-badge">4 enrolled</span>
+            </div>
+            <div class="o3-pts">
+              <i class="fa-solid fa-star" style="font-size:0.65rem;"></i>
+              3,480 pts
+            </div>
+          </div>
+          <div class="o3-fchips">
+            <button class="o3-fc active">All</button>
+            <button class="o3-fc">Enrolled</button>
+            <button class="o3-fc">Un-enrolled</button>
+          </div>
+        </div>
+
+        <div class="sec-hdr">Your Active Challenges</div>
+
+        <!-- Rich Bingo card with inline mini grid -->
+        <div class="o3-bingo">
+          <div class="o3-bingo-top">
+            <div class="o3-bt-left">
+              <div class="o3-bt-title">📌 Book Bingo 2026</div>
+              <div class="o3-bt-badges">
+                <span class="o3-mini-badge type">🎲 Bingo Grid</span>
+                <span class="o3-mini-badge stat">✓ Active</span>
+              </div>
+            </div>
+            <div class="o3-bt-pct">
+              <div class="o3-bt-pct-num">44%</div>
+              <div class="o3-bt-pct-lbl">complete</div>
+            </div>
+          </div>
+          <div class="o3-bingo-body">
+            <!-- Inline 5×5 mini grid -->
+            <div class="mini-grid-5b">
+              <div class="mgb-cell line"></div><div class="mgb-cell line"></div><div class="mgb-cell line"></div><div class="mgb-cell line"></div><div class="mgb-cell line"></div>
+              <div class="mgb-cell done"></div><div class="mgb-cell done"></div><div class="mgb-cell free"></div><div class="mgb-cell"></div><div class="mgb-cell"></div>
+              <div class="mgb-cell done"></div><div class="mgb-cell"></div><div class="mgb-cell done"></div><div class="mgb-cell done"></div><div class="mgb-cell"></div>
+              <div class="mgb-cell"></div><div class="mgb-cell done"></div><div class="mgb-cell"></div><div class="mgb-cell"></div><div class="mgb-cell"></div>
+              <div class="mgb-cell"></div><div class="mgb-cell"></div><div class="mgb-cell done"></div><div class="mgb-cell"></div><div class="mgb-cell"></div>
+            </div>
+            <div class="o3-bingo-stats">
+              <div class="o3-bs-line"><i class="fa-solid fa-grid-2"></i> 11 / 25 cells done</div>
+              <div class="o3-bs-line"><i class="fa-solid fa-trophy"></i> 2 full lines complete</div>
+              <div class="o3-bs-line"><i class="fa-solid fa-coins"></i> 1,000 pts on finish</div>
+            </div>
+          </div>
+          <div class="o3-bingo-foot">
+            <span class="o3-tag-chip bingo">⏱ 192 days left</span>
+            <button class="btn-drop" style="font-size:0.65rem;padding:4px 10px;">Drop</button>
+          </div>
+        </div>
+
+        <!-- Rich 10ppa card with month dots -->
+        <div class="o3-fire">
+          <div class="o3-fire-top">
+            <div>
+              <div class="o3-ft-title">🔥 10 Pages a Day 2026</div>
+              <div class="o3-ft-badges">
+                <span class="o3-mini-badge fire-type">10 Pages/Day</span>
+                <span class="o3-mini-badge stat">✓ Active</span>
+              </div>
+            </div>
+            <div class="o3-ft-big">
+              <div class="o3-ft-pages">2,150</div>
+              <div class="o3-ft-lbl">pages this year</div>
+            </div>
+          </div>
+          <div class="o3-fire-body">
+            <!-- Monthly progress dots (Jan–Jun done/partial, Jul–Dec future) -->
+            <div class="month-dots">
+              <div class="md met">JAN</div>
+              <div class="md met">FEB</div>
+              <div class="md met">MAR</div>
+              <div class="md met">APR</div>
+              <div class="md met">MAY</div>
+              <div class="md partial">JUN</div>
+              <div class="md future">JUL</div>
+              <div class="md future">AUG</div>
+              <div class="md future">SEP</div>
+              <div class="md future">OCT</div>
+              <div class="md future">NOV</div>
+              <div class="md future">DEC</div>
+            </div>
+            <div class="fire-bar-row">
+              <span>59% · 2,150 / 3,660 pages</span>
+              <span class="ok">✓ 12 days ahead</span>
+            </div>
+            <div class="bar-bg" style="margin-bottom:0;">
+              <div class="bar-fill" style="width:59%;background:var(--fire-col);"></div>
+            </div>
+          </div>
+          <div class="o3-fire-foot">
+            <span>01 Jan – 31 Dec 2026</span>
+            <span class="o3-tag-chip ahead">✓ On track</span>
+          </div>
+        </div>
+
+        <!-- Reading Goals — compact side-by-side cards -->
+        <div class="sec-hdr">Reading Goals</div>
+        <div class="goals-pair">
+          <div class="gcard bk">
+            <div class="gc-type">📚 Book Count</div>
+            <div class="gc-main">14<span>/24</span></div>
+            <div class="gc-sub">Reading Goal 2026 · 58%</div>
+            <div class="gc-bar"><div class="gc-fill" style="width:58%;background:var(--books-col);"></div></div>
+          </div>
+          <div class="gcard pg">
+            <div class="gc-type">📄 Page Count</div>
+            <div class="gc-main">5.2k<span>/10k</span></div>
+            <div class="gc-sub">Pages Goal 2026 · 52%</div>
+            <div class="gc-bar"><div class="gc-fill" style="width:52%;background:var(--pages-col);"></div></div>
+          </div>
+        </div>
+
+        <div class="sec-hdr">Open to Join</div>
+
+        <div class="uc">
+          <span class="type-pill" style="background:var(--hunt-bg);color:#145c35;font-size:0.58rem;padding:3px 9px;border-radius:20px;">🔍 Book Hunt</span>
+          <div class="uc-title">Arka Book Hunt 2026</div>
+          <div class="uc-meta">23 Mar – 30 Sep 2026 · 23 clues · Hunt-style challenge</div>
+          <div class="uc-foot">
+            <div class="mini-chips">
+              <span class="mini-chip">👥 23 joined</span>
+              <span class="mini-chip">🏅 Up to 2,750 pts</span>
+            </div>
+            <button class="btn-enrol">Enrol →</button>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+      </div><!-- /m3 -->
+
+    </div><!-- /screen -->
+  </div><!-- /phone -->
+
+
+  <script>
+    const labels = {
+      1: '<strong>Option 1 — Progress Rings:</strong> Deep navy-indigo hero. Two SVG rings for Bingo (44%) and 10ppa (59%) front and centre. Reading goals pushed down to a slim de-emphasised strip.',
+      2: '<strong>Option 2 — Bento Grid:</strong> Dark navy hero split into bento tiles. Bingo gets the full-width slot with a live mini grid preview. 10ppa and Points each get their own tile. Reading goals in a compact strip below.',
+      3: '<strong>Option 3 — No Banner, Rich Cards:</strong> Slim sticky header only. The hero energy goes INTO the cards: Bingo shows an inline 5×5 grid, 10ppa shows monthly dots. Reading goals are a compact side-by-side pair.'
+    };
+
+    function show(n, btn) {
+      document.querySelectorAll('.mockup').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.sw-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('m' + n).classList.add('active');
+      btn.classList.add('active');
+      document.getElementById('opt-desc').innerHTML = labels[n];
+      document.querySelector('.screen').scrollTop = 0;
+    }
+  </script>
+
+</body>
+</html>
