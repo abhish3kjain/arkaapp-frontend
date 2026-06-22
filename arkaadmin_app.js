@@ -23,6 +23,17 @@
   ];
   var PERF_MS_FAST      = 3000;
   var PERF_MS_SLOW      = 6000;
+  var CHART_COLORS = {
+    accent:     '#A984BA',
+    accentFill: 'rgba(169,132,186,0.10)',
+    ok:         '#1d9e75',
+    okFill:     'rgba(29,158,117,0.07)',
+    okThresh:   'rgba(29,158,117,0.30)',
+    danger:     '#e74c3c',
+    dangerFill: 'rgba(231,76,60,0.30)',
+    blue:       '#3498db',
+    blueFill:   'rgba(52,152,219,0.07)'
+  };
   var ACTIVE_WINDOW_MS  = 30 * 24 * 60 * 60 * 1000;
 
   /* ── Admin state ──────────────────────────────────────────────────── */
@@ -904,12 +915,12 @@
         data: {
           labels: labelsA,
           datasets: [
-            { label:'3 s threshold', data:thresh3s, borderColor:'rgba(29,158,117,0.3)', borderDash:[6,5], borderWidth:1.2, pointRadius:0, fill:false, tension:0 },
-            { label:'6 s threshold', data:thresh6s, borderColor:'rgba(231,76,60,0.3)',  borderDash:[6,5], borderWidth:1.2, pointRadius:0, fill:false, tension:0 },
-            { label:'Avg BigGulp',   data:avgBigGulpS, borderColor:'#3498db', backgroundColor:'rgba(52,152,219,0.07)', fill:'origin', tension:0.3, borderWidth:1.5, pointRadius:3, pointHoverRadius:5 },
-            { label:'Avg Render',    data:avgRenderS,  borderColor:'#1d9e75', backgroundColor:'rgba(29,158,117,0.07)', fill:'origin', tension:0.3, borderWidth:1.5, pointRadius:3, pointHoverRadius:5 },
-            { label:'P90 Total',     data:p90TotalS,   borderColor:'#e74c3c', backgroundColor:'transparent',           fill:false,    tension:0.3, borderWidth:1.8, borderDash:[5,4], pointRadius:3, pointHoverRadius:5 },
-            { label:'Avg Total',     data:avgTotalS,   borderColor:'#A984BA', backgroundColor:'rgba(169,132,186,0.1)', fill:'origin', tension:0.3, borderWidth:2.5, pointRadius:4, pointHoverRadius:7, pointBackgroundColor:'#A984BA' }
+            { label:'3 s threshold', data:thresh3s, borderColor:CHART_COLORS.okThresh,    borderDash:[6,5], borderWidth:1.2, pointRadius:0, fill:false, tension:0 },
+            { label:'6 s threshold', data:thresh6s, borderColor:CHART_COLORS.dangerFill,  borderDash:[6,5], borderWidth:1.2, pointRadius:0, fill:false, tension:0 },
+            { label:'Avg BigGulp',   data:avgBigGulpS, borderColor:CHART_COLORS.blue,    backgroundColor:CHART_COLORS.blueFill,   fill:'origin', tension:0.3, borderWidth:1.5, pointRadius:3, pointHoverRadius:5 },
+            { label:'Avg Render',    data:avgRenderS,  borderColor:CHART_COLORS.ok,      backgroundColor:CHART_COLORS.okFill,     fill:'origin', tension:0.3, borderWidth:1.5, pointRadius:3, pointHoverRadius:5 },
+            { label:'P90 Total',     data:p90TotalS,   borderColor:CHART_COLORS.danger,  backgroundColor:'transparent',           fill:false,    tension:0.3, borderWidth:1.8, borderDash:[5,4], pointRadius:3, pointHoverRadius:5 },
+            { label:'Avg Total',     data:avgTotalS,   borderColor:CHART_COLORS.accent,  backgroundColor:CHART_COLORS.accentFill, fill:'origin', tension:0.3, borderWidth:2.5, pointRadius:4, pointHoverRadius:7, pointBackgroundColor:CHART_COLORS.accent }
           ]
         },
         options: {
