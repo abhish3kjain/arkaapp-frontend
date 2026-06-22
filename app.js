@@ -31505,26 +31505,40 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       function renderBingoProgress(challenge, enrollment, state) {
         let config = {};
         try { config = JSON.parse(challenge.goalConfigJson || '{}'); } catch (e) {}
-    
+
+        const variant      = config.variant      || 'BOOK_BINGO';
+        const trackingMode = config.trackingMode || 'PROMPT';
         const gridSize     = config.gridSize || 3;
         const cells        = config.cells    || [];
         const cellsDone    = new Set(state.cellsCompleted || []);
         const booksLinked  = state.booksLinked || {};
+        const genreTagged  = state.genreTagged || {};
         const linesCount   = (state.linesCompleted || []).length;
         const totalCells   = gridSize * gridSize;
         const centreIdx    = Math.floor(totalCells / 2);
-    
+
+        const variantLabel = variant === 'GENRE_BINGO'  ? 'Genre Bingo'
+                           : variant === 'AUTHOR_BINGO' ? 'Author Bingo'
+                           : 'Book Bingo';
+        const modeLabel    = variant === 'GENRE_BINGO'
+          ? (trackingMode === 'NON_CANONICAL' ? ' · Open genres' : ' · Canonical genres')
+          : '';
+
         let tilesHtml = '';
         cells.forEach(function(cell, idx) {
           const isFree = (totalCells % 2 !== 0) && (idx === centreIdx);
           const isDone = cellsDone.has(cell.cellId);
           const linked = booksLinked[cell.cellId];
+          const tagged = genreTagged[cell.cellId];
           const stateClass = isFree ? 'state-free' : (isDone ? 'state-done' : 'state-empty');
           const checkMark  = isDone ? '<span class="bingo-tile-check">✓</span>' : '';
           const bookLine   = linked
             ? `<div class="bingo-tile-book">${escapeHtml(linked.title)}</div>`
             : '';
-    
+          const genreLine  = (variant === 'GENRE_BINGO' && tagged && trackingMode === 'NON_CANONICAL')
+            ? `<div class="bingo-tile-genre" style="font-size:0.6rem;color:var(--text-muted);margin-top:2px;">${escapeHtml(tagged)}</div>`
+            : '';
+
           tilesHtml += `
             <div class="bingo-tile ${stateClass}"
                 id="bingoTile-${cell.cellId}"
@@ -31534,13 +31548,20 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               ${checkMark}
               <div class="bingo-tile-prompt">${escapeHtml(cell.prompt)}</div>
               ${bookLine}
+              ${genreLine}
             </div>`;
         });
-    
-        const donePct = totalCells > 0 ? Math.round((cellsDone.size / totalCells) * 100) : 0;
+
+        const donePct  = totalCells > 0 ? Math.round((cellsDone.size / totalCells) * 100) : 0;
         const bingoNote = state.hasBingo ? '<span style="color:var(--color-success);font-weight:600;">🎉 BINGO achieved!</span>' : '';
-    
+        const instrText = variant === 'GENRE_BINGO'
+          ? (trackingMode === 'NON_CANONICAL'
+              ? 'Tap any empty cell to link a book and tag the genre.'
+              : 'Tap any empty cell to link a book you read in that genre.')
+          : 'Tap any empty cell to link a book and mark it complete.';
+
         return `
+          <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">${escapeHtml(variantLabel)}${escapeHtml(modeLabel)}</div>
           <div class="chal-stat-strip">
             <div class="chal-stat-tile">
               <div class="chal-stat-num" style="color:#7F77DD;">${cellsDone.size}/${totalCells}</div>
@@ -31560,7 +31581,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             ${tilesHtml}
           </div>
           <p style="font-size:0.75rem;color:var(--text-faint);text-align:center;margin-top:8px;">
-            Tap any empty cell to link a book and mark it complete.
+            ${instrText}
           </p>`;
       }
     
@@ -32235,13 +32256,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        */
       function openBingoCellSheet(cellId, challenge, state) {
         activeBingoCellId = cellId;
-    
+
         let config = {};
         try { config = JSON.parse(challenge.goalConfigJson || '{}'); } catch (e) {}
-    
-        const cell = (config.cells || []).find(function(c) { return c.cellId === cellId; });
+
+        const variant      = config.variant      || 'BOOK_BINGO';
+        const trackingMode = config.trackingMode || 'PROMPT';
+        const cell   = (config.cells || []).find(function(c) { return c.cellId === cellId; });
         const linked = (state.booksLinked || {})[cellId];
-    
+
         document.getElementById('bingoCellPromptText').textContent = cell ? cell.prompt : cellId;
         document.getElementById('bingoCellCurrentBook').textContent = linked
           ? 'Currently linked: ' + linked.title
@@ -32249,7 +32272,14 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         document.getElementById('bingoCellActiveCellId').value = cellId;
         document.getElementById('bingoCellBookInput').value   = '';
         document.getElementById('bingoCellBookId').value      = '';
-    
+
+        // Genre input: only for GENRE_BINGO NON_CANONICAL
+        const genreRow   = document.getElementById('bingoCellGenreRow');
+        const genreInput = document.getElementById('bingoCellGenreInput');
+        const showGenre  = variant === 'GENRE_BINGO' && trackingMode === 'NON_CANONICAL';
+        if (genreRow)   genreRow.style.display = showGenre ? '' : 'none';
+        if (genreInput) genreInput.value = showGenre ? ((state.genreTagged || {})[cellId] || '') : '';
+
         // Populate book datalist from Arka Library
         const datalist = document.getElementById('bingoCellBookList');
         if (datalist) {
@@ -32257,11 +32287,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             return '<option value="' + escapeHtml(b.title + ' — ' + b.author) + '" data-id="' + b.id + '">';
           }).join('');
         }
-    
+
         // Reset button
         const btn = document.getElementById('bingoCellSaveBtn');
         if (btn) { btn.disabled = false; btn.innerText = 'Mark as completed'; }
-    
+
         document.getElementById('bingoCellModal').style.display = 'flex';
         setTimeout(function() {
           document.getElementById('bingoCellDrawer').classList.add('open');
@@ -32328,7 +32358,22 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           title      : matchedBook.title,
           completedOn: getArkaTimestamp(new Date(), 'SHORT')
         };
-    
+
+        // Genre tagging for GENRE_BINGO
+        let chalConfig = {};
+        try { chalConfig = JSON.parse(challenge.goalConfigJson || '{}'); } catch (e) {}
+        if ((chalConfig.variant || 'BOOK_BINGO') === 'GENRE_BINGO') {
+          if (!state.genreTagged) state.genreTagged = {};
+          if ((chalConfig.trackingMode || 'CANONICAL') === 'NON_CANONICAL') {
+            const genreVal = (document.getElementById('bingoCellGenreInput') || {}).value || '';
+            state.genreTagged[cellId] = genreVal.trim();
+          } else {
+            // CANONICAL: genre is the cell prompt itself
+            const linkedCell = (chalConfig.cells || []).find(function(c) { return c.cellId === cellId; });
+            state.genreTagged[cellId] = linkedCell ? linkedCell.prompt : '';
+          }
+        }
+
         // Check for completed lines
         state.linesCompleted = detectBingoLines(state.cellsCompleted, challenge);
         state.hasBingo       = state.linesCompleted.length > 0;

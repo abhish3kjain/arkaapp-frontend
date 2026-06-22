@@ -2312,13 +2312,24 @@
     if (target) target.classList.add('visible');
   }
 
+  function admChalOnBingoVariantChange() {
+    var variant = (document.getElementById('admChalBingo-variant') || {}).value || 'BOOK_BINGO';
+    var row = document.getElementById('admChalBingo-trackingModeRow');
+    if (row) row.style.display = variant === 'GENRE_BINGO' ? '' : 'none';
+    admChalRenderBingoBuilder();
+  }
+
   function admChalRenderBingoBuilder() {
     var gridSize   = parseInt((document.getElementById('admChalBingo-gridSize') || {}).value) || 3;
+    var variant    = (document.getElementById('admChalBingo-variant') || {}).value || 'BOOK_BINGO';
     var totalCells = gridSize * gridSize;
     var centreIdx  = Math.floor(totalCells / 2);
     var container  = document.getElementById('admChalBingo-cellBuilder');
     if (!container) return;
     container.style.gridTemplateColumns = 'repeat(' + gridSize + ', 1fr)';
+    var placeholder = variant === 'GENRE_BINGO'  ? 'Genre name (e.g. Fiction, Sci-Fi)…'
+                    : variant === 'AUTHOR_BINGO' ? 'Author prompt…'
+                    : 'Reading prompt…';
     var html = '';
     for (var i = 0; i < totalCells; i++) {
       var isFree = (totalCells % 2 !== 0) && (i === centreIdx);
@@ -2327,7 +2338,7 @@
       if (isFree) {
         html += '<input class="adm-bingo-cell-input is-free" id="admChalBingo-cell-' + i + '" value="FREE — any book you loved" readonly>';
       } else {
-        html += '<input class="adm-bingo-cell-input" id="admChalBingo-cell-' + i + '" placeholder="Reading prompt…">';
+        html += '<input class="adm-bingo-cell-input" id="admChalBingo-cell-' + i + '" placeholder="' + placeholder + '">';
       }
       html += '</div>';
     }
@@ -2344,9 +2355,13 @@
       if (tog) tog.classList.toggle('on', config.streakResetOnMiss !== false);
     }
     if (t === 'BINGO_GRID') {
-      _admSetVal('admChalBingo-gridSize',         config.gridSize       || 3);
+      _admSetVal('admChalBingo-variant',           config.variant        || 'BOOK_BINGO');
+      _admSetVal('admChalBingo-gridSize',          config.gridSize       || 3);
       _admSetVal('admChalBingo-winCondition',      config.winCondition   || 'ALL_CELLS');
       _admSetVal('admChalBingo-finisherCondition', config.finisherCondition || 'ANY_LINE');
+      var tmRow = document.getElementById('admChalBingo-trackingModeRow');
+      if (tmRow) tmRow.style.display = (config.variant === 'GENRE_BINGO') ? '' : 'none';
+      if (config.trackingMode) _admSetVal('admChalBingo-trackingMode', config.trackingMode);
       admChalRenderBingoBuilder();
       if (config.cells && Array.isArray(config.cells)) {
         config.cells.forEach(function(cell, idx) {
@@ -2394,9 +2409,9 @@
       };
     }
     if (type === 'BINGO_GRID') {
+      var variant  = (document.getElementById('admChalBingo-variant') || {}).value || 'BOOK_BINGO';
       var gridSize = parseInt((document.getElementById('admChalBingo-gridSize') || {}).value) || 3;
       var total    = gridSize * gridSize;
-      var centre   = Math.floor(total / 2);
       var cells    = [];
       for (var i = 0; i < total; i++) {
         var inp = document.getElementById('admChalBingo-cell-' + i);
@@ -2404,11 +2419,15 @@
       }
       goalValue = total; goalUnit = 'cells';
       config = {
+        variant           : variant,
         gridSize          : gridSize,
         winCondition      : (document.getElementById('admChalBingo-winCondition') || {}).value || 'ALL_CELLS',
         finisherCondition : (document.getElementById('admChalBingo-finisherCondition') || {}).value || 'ANY_LINE',
         cells             : cells
       };
+      if (variant === 'GENRE_BINGO') {
+        config.trackingMode = (document.getElementById('admChalBingo-trackingMode') || {}).value || 'CANONICAL';
+      }
     }
     if (type === 'BUDDY_READ') {
       var bookTitle = ((document.getElementById('admChalBuddy-bookTitle') || {}).value || '').trim();
