@@ -75,6 +75,9 @@
       <button class="adm-nav-item" data-section="content" onclick="admSwitchSection('content')">
         <i class="fa-solid fa-comment-lines"></i><span>Posts</span>
       </button>
+      <button class="adm-nav-item" data-section="library" onclick="admSwitchSection('library')">
+        <i class="fa-solid fa-books"></i><span>Library</span>
+      </button>
       <div class="adm-nav-group-label">Analytics</div>
       <button class="adm-nav-item" data-section="performance" onclick="admSwitchSection('performance')">
         <i class="fa-solid fa-gauge-high"></i><span>Performance</span>
@@ -940,6 +943,27 @@
         </div>
       </section>
 
+      <!-- ── LIBRARY MANAGEMENT ────────────────────────────────── -->
+      <section id="admSectionLibrary" class="adm-section">
+        <div class="adm-section-header">
+          <h2><i class="fa-solid fa-books adm-section-icon"></i>Library</h2>
+          <button class="adm-btn adm-btn-accent adm-btn-sm" onclick="admOpenBookModal()"><i class="fa-solid fa-plus"></i> Add Book</button>
+        </div>
+        <p class="adm-section-subtitle">Browse and edit the club library catalogue. Click a row to edit a book's details.</p>
+        <div class="adm-filter-row">
+          <input id="admLibrarySearch" class="adm-input adm-filter-search" type="search" placeholder="Search title or author…" oninput="admFilterLibrary()" style="max-width:260px">
+          <span id="admLibraryCount" class="adm-td-faint adm-td-sm" style="margin-left:auto"></span>
+        </div>
+        <div class="adm-card adm-card--table">
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead><tr><th>Title</th><th>Author</th><th class="adm-col-meta">Genre</th><th class="adm-col-mob">Pages</th><th class="adm-col-mob">Added</th><th></th></tr></thead>
+              <tbody id="admLibraryTbody"><tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- ── EMAIL QUEUE MONITOR ──────────────────────────────── -->
       <section id="admSectionEmailqueue" class="adm-section">
         <div class="adm-section-header">
@@ -1030,6 +1054,9 @@
             </div>
           </div>
 
+          <!-- Mobile text summary (shown on ≤768 px instead of canvas) -->
+          <div id="rptMobileSummary"></div>
+
           <!-- 16:9 slide canvas + navigation -->
           <div class="adm-card rpt-canvas-card">
             <div id="rptSlideScaleWrap">
@@ -1053,6 +1080,79 @@
     </main>
   </div>
 </div><!-- /admShell -->
+
+<!-- Member detail / edit modal -->
+<div class="adm-modal-overlay" id="admMemberDetailModal">
+  <div class="adm-modal adm-modal--wide">
+    <div class="adm-modal-title">Edit Member Profile</div>
+    <div style="font-size:0.72rem;color:var(--text-faint);margin-bottom:14px" id="admMemberDetailId"></div>
+    <div class="adm-2col-grid" style="gap:10px 16px">
+      <div>
+        <label class="adm-form-label adm-form-label--no-top">Full Name</label>
+        <input id="admMDetailFullName" class="adm-input" type="text" placeholder="Full name">
+      </div>
+      <div>
+        <label class="adm-form-label adm-form-label--no-top">Display Name</label>
+        <input id="admMDetailDisplayName" class="adm-input" type="text" placeholder="Display name">
+      </div>
+      <div>
+        <label class="adm-form-label adm-form-label--no-top">Country</label>
+        <input id="admMDetailCountry" class="adm-input" type="text" placeholder="Country">
+      </div>
+      <div>
+        <label class="adm-form-label adm-form-label--no-top">Reading Goal <span class="adm-form-optional">(optional)</span></label>
+        <input id="admMDetailGoal" class="adm-input" type="text" placeholder="e.g. 24 books this year">
+      </div>
+    </div>
+    <label class="adm-form-label">Bio <span class="adm-form-optional">(optional)</span></label>
+    <textarea id="admMDetailBio" class="adm-input" rows="3" placeholder="Short bio…" style="resize:vertical"></textarea>
+    <div id="admMemberDetailErr" class="adm-inline-err" style="display:none;margin-top:10px"></div>
+    <div class="adm-modal-actions" style="margin-top:18px">
+      <button class="adm-btn adm-btn-light" onclick="admCloseMemberDetail()">Cancel</button>
+      <button class="adm-btn adm-btn-accent" id="admMemberDetailSaveBtn" onclick="admSaveMemberDetail()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Library Add / Edit Book modal -->
+<div class="adm-modal-overlay" id="admBookModal">
+  <div class="adm-modal adm-modal--wide">
+    <div class="adm-modal-title" id="admBookModalTitle">Add Book</div>
+    <div class="adm-2col-grid" style="gap:10px 16px">
+      <div style="grid-column:1/-1">
+        <label class="adm-form-label adm-form-label--no-top">Title <span style="color:var(--adm-danger)">*</span></label>
+        <input id="admBkTitle" class="adm-input" type="text" placeholder="Book title">
+      </div>
+      <div>
+        <label class="adm-form-label adm-form-label--no-top">Author <span style="color:var(--adm-danger)">*</span></label>
+        <input id="admBkAuthor" class="adm-input" type="text" placeholder="Author name">
+      </div>
+      <div>
+        <label class="adm-form-label adm-form-label--no-top">Genre <span class="adm-form-optional">(optional)</span></label>
+        <input id="admBkGenre" class="adm-input" type="text" placeholder="e.g. Fiction">
+      </div>
+      <div>
+        <label class="adm-form-label adm-form-label--no-top">Pages <span class="adm-form-optional">(optional)</span></label>
+        <input id="admBkPages" class="adm-input" type="number" min="0" placeholder="0">
+      </div>
+      <div>
+        <label class="adm-form-label adm-form-label--no-top">ISBN-13 <span class="adm-form-optional">(optional)</span></label>
+        <input id="admBkIsbn" class="adm-input" type="text" placeholder="978…">
+      </div>
+      <div>
+        <label class="adm-form-label adm-form-label--no-top">Published Date <span class="adm-form-optional">(optional)</span></label>
+        <input id="admBkPubDate" class="adm-input" type="text" placeholder="e.g. 2021-03-15">
+      </div>
+    </div>
+    <label class="adm-form-label">Blurb <span class="adm-form-optional">(optional)</span></label>
+    <textarea id="admBkBlurb" class="adm-input" rows="3" placeholder="Short description…" style="resize:vertical"></textarea>
+    <div id="admBookModalErr" class="adm-inline-err" style="display:none;margin-top:10px"></div>
+    <div class="adm-modal-actions" style="margin-top:18px">
+      <button class="adm-btn adm-btn-light" onclick="admCloseBookModal()">Cancel</button>
+      <button class="adm-btn adm-btn-accent" id="admBookModalSaveBtn" onclick="admSubmitBookForm()">Add Book</button>
+    </div>
+  </div>
+</div>
 
 <!-- Approval confirmation modal (Reject / Revoke Access) -->
 <div class="adm-modal-overlay" id="admApprovalConfirmModal">
