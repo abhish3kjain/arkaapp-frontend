@@ -3343,16 +3343,8 @@
 
         var wBtn = document.getElementById('rptWeeklyBtn');
         var mBtn = document.getElementById('rptMonthlyBtn');
-        if (wBtn) {
-          wBtn.style.background   = mode === 'weekly' ? '#2c3e50' : '#ecf0f1';
-          wBtn.style.color        = mode === 'weekly' ? '#fff'    : '#2c3e50';
-          wBtn.style.borderColor  = mode === 'weekly' ? '#2c3e50' : '#ecf0f1';
-        }
-        if (mBtn) {
-          mBtn.style.background   = mode === 'monthly' ? '#2c3e50' : '#ecf0f1';
-          mBtn.style.color        = mode === 'monthly' ? '#fff'    : '#2c3e50';
-          mBtn.style.borderColor  = mode === 'monthly' ? '#2c3e50' : '#ecf0f1';
-        }
+        if (wBtn) wBtn.classList.toggle('active', mode === 'weekly');
+        if (mBtn) mBtn.classList.toggle('active', mode === 'monthly');
 
         _rptBuildAndRender();
       }

@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=2.5">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=2.6">
 </head>
 <body>
 
@@ -997,35 +997,35 @@
         <div id="rptMainUI" style="display:none">
 
           <!-- Mode toggle + period selector + export buttons -->
-          <div class="adm-card" style="padding:16px">
+          <div class="adm-card rpt-controls-card">
             <div class="rpt-mode-toggle">
-              <button id="rptWeeklyBtn"  onclick="switchReportMode('weekly')"  style="background:#2c3e50;color:#fff;border-color:#2c3e50">Weekly</button>
-              <button id="rptMonthlyBtn" onclick="switchReportMode('monthly')" style="background:#ecf0f1;color:#2c3e50;border-color:#ecf0f1">Monthly</button>
+              <button id="rptWeeklyBtn"  onclick="switchReportMode('weekly')"  class="active">Weekly</button>
+              <button id="rptMonthlyBtn" onclick="switchReportMode('monthly')">Monthly</button>
             </div>
             <div class="rpt-period-row">
-              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptShiftPeriod(-1)">&#8249;</button>
-              <div id="rptPeriodLabel" style="font-size:0.9rem;font-weight:600;color:var(--text-strong);text-align:center">Week of…</div>
-              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptShiftPeriod(+1)">&#8250;</button>
+              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptShiftPeriod(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+              <div id="rptPeriodLabel" class="rpt-period-label">Week of…</div>
+              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptShiftPeriod(+1)"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
-            <div id="rptSlideCountLabel" style="font-size:0.75rem;color:var(--text-faint);text-align:center;margin-bottom:12px">— slides</div>
-            <div class="adm-flex-row" style="flex-wrap:nowrap">
-              <button id="rptShareImagesBtn" class="adm-btn adm-btn-light" style="flex:1" onclick="rptExportImages()">📲 Share Images</button>
-              <button id="rptExportPdfBtn"   class="adm-btn adm-btn-accent" style="flex:1" onclick="rptExportPdf()">📄 Export PDF</button>
+            <div id="rptSlideCountLabel" class="rpt-slide-count">— slides</div>
+            <div class="rpt-export-row">
+              <button id="rptShareImagesBtn" class="adm-btn adm-btn-light" onclick="rptExportImages()">📲 Share Images</button>
+              <button id="rptExportPdfBtn"   class="adm-btn adm-btn-accent" onclick="rptExportPdf()">📄 Export PDF</button>
             </div>
           </div>
 
           <!-- 16:9 slide canvas + navigation -->
-          <div class="adm-card" style="padding:12px">
+          <div class="adm-card rpt-canvas-card">
             <div id="rptSlideScaleWrap">
               <div id="rptSlideCanvas"></div>
               <div class="rpt-canvas-spacer"></div>
             </div>
             <div class="rpt-slide-nav">
-              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptPrevSlide()">&#8249;</button>
-              <div id="rptDotRow" style="display:flex;gap:6px;align-items:center"></div>
-              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptNextSlide()">&#8250;</button>
+              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptPrevSlide()"><i class="fa-solid fa-chevron-left"></i></button>
+              <div id="rptDotRow" class="rpt-dot-row"></div>
+              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptNextSlide()"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
-            <div id="rptSlideCaption" style="text-align:center;font-size:0.75rem;color:var(--text-faint);margin-top:8px"></div>
+            <div id="rptSlideCaption" class="rpt-slide-caption"></div>
           </div>
 
           <!-- Thumbnail strip -->
@@ -1160,6 +1160,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=2.5"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=2.6"></script>
 </body>
 </html>
