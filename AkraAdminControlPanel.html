@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=2.8">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=2.9">
 </head>
 <body>
 
@@ -107,13 +107,13 @@
       <!-- ── OVERVIEW ─────────────────────────────────────────── -->
       <section id="admSectionOverview" class="adm-section active">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-house" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Overview</h2>
-          <span style="font-size:0.75rem;color:var(--text-faint)" id="admOverviewTs"></span>
+          <h2><i class="fa-solid fa-house" class="adm-section-icon"></i>Overview</h2>
+          <span class="adm-section-ts" id="admOverviewTs"></span>
         </div>
         <div class="adm-stat-grid" id="admStatGrid"></div>
         <div class="adm-card">
           <div class="adm-card-title">Quick Actions</div>
-          <div class="adm-flex-row">
+          <div class="adm-quick-actions">
             <button class="adm-btn adm-btn-accent" onclick="admSwitchSection('approvals')"><i class="fa-solid fa-user-check"></i> Review Approvals</button>
             <button class="adm-btn adm-btn-light" onclick="admSwitchSection('badges')"><i class="fa-solid fa-medal"></i> Award a Badge</button>
             <button class="adm-btn adm-btn-light" onclick="admSwitchSection('performance')"><i class="fa-solid fa-gauge-high"></i> App Performance</button>
@@ -121,7 +121,7 @@
           </div>
         </div>
         <div class="adm-card" id="admPendingPreviewCard" style="display:none">
-          <div class="adm-card-title">Pending Approvals <a href="#" onclick="admSwitchSection('approvals');return false" class="adm-form-optional" style="margin-left:8px;font-size:0.78rem">View all →</a></div>
+          <div class="adm-card-title">Pending Approvals <a href="#" onclick="admSwitchSection('approvals');return false" class="adm-form-optional adm-card-title-link">View all →</a></div>
           <div id="admPendingPreviewList"></div>
         </div>
       </section>
@@ -129,7 +129,7 @@
       <!-- ── APPROVALS ─────────────────────────────────────────── -->
       <section id="admSectionApprovals" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-user-check" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Member Approvals</h2>
+          <h2><i class="fa-solid fa-user-check" class="adm-section-icon"></i>Member Approvals</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" id="admApprovalCardViewBtn" onclick="admToggleApprovalsCardView()" title="Toggle card view"><i class="fa-solid fa-table-cells-large"></i> Card View</button>
         </div>
         <p class="adm-section-subtitle">New members start as Pending. Approved = full app access. Rejected records are kept for the audit trail.</p>
@@ -346,7 +346,7 @@
       <!-- ── PERFORMANCE ───────────────────────────────────────── -->
       <section id="admSectionPerformance" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-gauge-high" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>App Load Performance</h2>
+          <h2><i class="fa-solid fa-gauge-high" class="adm-section-icon"></i>App Load Performance</h2>
         </div>
         <p class="adm-section-subtitle">
           Trend left → right = oldest → newest version. Dashed lines = 3 s and 6 s thresholds.
@@ -393,7 +393,7 @@
       <!-- ── MEMBER STATS ──────────────────────────────────────── -->
       <section id="admSectionMembers" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-chart-bar" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Member Stats</h2>
+          <h2><i class="fa-solid fa-chart-bar" class="adm-section-icon"></i>Member Stats</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" id="admMembersCardViewBtn" onclick="admToggleMembersCardView()" title="Toggle card view"><i class="fa-solid fa-table-cells-large"></i> Card View</button>
         </div>
         <p class="adm-section-subtitle">Approved members only. <span class="adm-live-dot"></span> = active in the last 30 days.</p>
@@ -927,7 +927,7 @@
       <!-- ── EMAIL QUEUE MONITOR ──────────────────────────────── -->
       <section id="admSectionEmailqueue" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-envelope-circle-check" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Email Queue</h2>
+          <h2><i class="fa-solid fa-envelope-circle-check" class="adm-section-icon"></i>Email Queue</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" onclick="admLoadEmailQueue()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
         </div>
         <p class="adm-section-subtitle">Read-only view of the ArkaEmailPass queue. Shows the 300 most recent entries. Suppress a PENDING entry to prevent it from being sent.</p>
@@ -951,7 +951,7 @@
       <!-- ── CLUB REPORTS (merged from ArkaReports v4) ────────── -->
       <section id="admSectionReports" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-file-chart-column" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Club Reports</h2>
+          <h2><i class="fa-solid fa-file-chart-column" class="adm-section-icon"></i>Club Reports</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" id="admRefreshReportsBtn" onclick="admLoadReportsData()" style="display:none">
             <i class="fa-solid fa-rotate-right"></i> Refresh Data
           </button>
@@ -1160,6 +1160,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=2.8"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=2.9"></script>
 </body>
 </html>
