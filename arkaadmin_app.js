@@ -2203,8 +2203,8 @@
   };
 
   function admLoadChallenges() {
-    var tbody = document.getElementById('admChalTbody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="8"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr>';
+    var list = document.getElementById('admChalList');
+    if (list) list.innerHTML = '<div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div>';
     google.script.run
       .withSuccessHandler(function(res) {
         if (res.status !== 'success') {
@@ -2236,14 +2236,9 @@
     if (formBtn) formBtn.classList.toggle('active', tab === 'form');
     if (tab === 'list') {
       admRenderChallengeList();
-      // Reset form tab label and editing state so it reads "New Challenge" next time
       admChalEditingId = null;
-      var hiddenId = document.getElementById('admChalEditingId');
-      if (hiddenId) hiddenId.value = '';
-      var labelEl = document.getElementById('admChalFormTabLabel');
-      if (labelEl) labelEl.textContent = 'New Challenge';
-      var typeEl = document.getElementById('admChalTypeSelect');
-      if (typeEl) typeEl.disabled = false;
+    } else if (tab === 'form') {
+      if (!admChalEditingId) admOpenChalEdit(null);
     }
   }
 
@@ -2256,40 +2251,46 @@
   }
 
   function admRenderChallengeList() {
-    var tbody = document.getElementById('admChalTbody');
-    if (!tbody) return;
+    var container = document.getElementById('admChalList');
+    if (!container) return;
+    var statusOrder = { Active: 0, Upcoming: 1, Completed: 2, Archived: 3 };
     var list = admChallengeDB.filter(function(c) {
       return admChalStatusFilter === 'All' || c.status === admChalStatusFilter;
+    }).sort(function(a, b) {
+      if (!!a.isPinned !== !!b.isPinned) return a.isPinned ? -1 : 1;
+      return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
     });
     if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="8"><div class="adm-empty"><i class="fa-solid fa-trophy"></i><p>No challenges match this filter.</p></div></td></tr>';
+      container.innerHTML = '<div class="adm-empty"><i class="fa-solid fa-trophy"></i><p>No challenges match this filter.</p></div>';
       return;
     }
-    tbody.innerHTML = list.map(function(c) {
-      var statusCls = 'adm-chal-pill adm-chal-pill-' + c.status.toLowerCase();
-      var statusPill = '<span class="' + statusCls + '">' + _esc(c.status) + '</span>';
+    container.innerHTML = list.map(function(c) {
       var typeRaw   = ADM_CHAL_TYPE_LABELS[c.challengeType] || c.challengeType;
       var typeShort = typeRaw.replace(/^\S+\s/, '');
-      var typeLabel = '<span class="chal-type-badge chal-type-' + _esc(c.challengeType) + '">' + _esc(typeShort) + '</span>';
-      var dates      = _esc(c.startDate) + (c.endDate ? ' → ' + _esc(c.endDate) : ' → open');
-      var goal       = c.goalValue ? (c.goalValue + ' ' + _esc(c.goalUnit)) : '—';
-      var pts        = c.enrollPoints + ' / ' + c.finishPoints + ' / ' + c.winPoints;
-      var pins       = c.isPinned ? ' <i class="fa-solid fa-thumbtack" style="color:var(--arka-accent);font-size:0.75rem;" title="Pinned"></i>' : '';
-      var editBtn    = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenChalEdit(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-pen-to-square"></i></button>';
-      var archBtn    = c.status !== 'Archived'
-        ? '<button class="adm-btn adm-btn-danger adm-btn-sm" style="margin-left:4px" onclick="admOpenChalArchiveModal(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-box-archive"></i></button>'
+      var typeBadge = '<span class="chal-type-badge chal-type-' + _esc(c.challengeType) + '">' + _esc(typeShort) + '</span>';
+      var dotCls    = 'adm-chal-dot adm-chal-dot-' + c.status.toLowerCase();
+      var statusMeta = '<span class="' + dotCls + '"></span> ' + _esc(c.status);
+      var dates = c.startDate ? _esc(c.startDate) + (c.endDate ? ' → ' + _esc(c.endDate) : ' → open') : '';
+      var enrolled = c.enrolledCount ? c.enrolledCount + ' enrolled' : '';
+      var goal = c.goalValue ? _esc(c.goalValue + ' ' + (c.goalUnit || '')) : '';
+      var metaParts = [statusMeta, dates, enrolled, goal].filter(Boolean);
+      var pinIcon = c.isPinned ? ' <i class="fa-solid fa-thumbtack" style="color:var(--arka-accent);font-size:0.65rem" title="Pinned"></i>' : '';
+      var seriesTag = c.seriesTag ? '<span style="font-size:0.68rem;color:var(--text-faint);font-weight:400"> · ' + _esc(c.seriesTag) + '</span>' : '';
+      var editBtn = '<button class="adm-btn adm-btn-light adm-btn-icon adm-btn-sm" title="Edit" onclick="admOpenChalEdit(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-pen-to-square"></i></button>';
+      var archBtn = c.status !== 'Archived'
+        ? '<button class="adm-btn adm-btn-danger adm-btn-icon adm-btn-sm" title="Archive" onclick="admOpenChalArchiveModal(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-box-archive"></i></button>'
         : '';
-      var rowCls = c.status === 'Archived' ? ' class="adm-chal-row-archived"' : (c.isPinned ? ' class="adm-chal-row-pinned"' : '');
-      return '<tr' + rowCls + '>'
-        + '<td><strong>' + _esc(c.title) + '</strong>' + pins + (c.seriesTag ? '<br><span class="adm-td-mono" style="font-size:0.7rem;color:var(--text-faint)">' + _esc(c.seriesTag) + '</span>' : '') + '</td>'
-        + '<td class="adm-col-meta">' + typeLabel + '</td>'
-        + '<td class="adm-col-meta" style="white-space:nowrap;font-size:0.78rem">' + dates + '</td>'
-        + '<td>' + goal + '</td>'
-        + '<td style="text-align:center">' + c.enrolledCount + '</td>'
-        + '<td class="adm-col-meta adm-td-mono" style="font-size:0.78rem">' + pts + '</td>'
-        + '<td>' + statusPill + '</td>'
-        + '<td>' + editBtn + archBtn + '</td>'
-        + '</tr>';
+      var cardCls = 'adm-chal-card' + (c.isPinned ? ' is-pinned' : '') + (c.status === 'Archived' ? ' is-archived' : '');
+      return '<div class="' + cardCls + '">'
+        + '<div class="adm-chal-card-top">'
+        +   '<div class="adm-chal-card-type">' + typeBadge + '</div>'
+        +   '<div class="adm-chal-card-actions">' + editBtn + ' ' + archBtn + '</div>'
+        + '</div>'
+        + '<div class="adm-chal-card-title">' + _esc(c.title) + pinIcon + seriesTag + '</div>'
+        + '<div class="adm-chal-card-meta">'
+        +   metaParts.join('<span class="adm-chal-card-meta-sep"> · </span>')
+        + '</div>'
+        + '</div>';
     }).join('');
   }
 
