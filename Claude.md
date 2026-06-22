@@ -522,7 +522,165 @@ Ideas that have been considered but explicitly deferred. Do not implement withou
 - When providing code that goes into production, state the new version number..
 - Never suggest reverting to a prior version as a fix strategy.
 - The `help-whats-new` article in `Arka_Help` should be updated whenever user-facing features ship.
+- When bumping `APP_VERSION` in `ArkaMainAppCode.gs`, always update `VERSION.md` in the same commit:
+- Add a new row to the table with the version number, date (YYYY-MM-DD), and a brief summary of what changed.
+- The version in `ArkaMainAppCode.gs` is the single source of truth. The HTML display element reads it dynamically from the backend — no separate HTML change is needed.
+
 
 ---
 
 *Last updated: June 2026 | Member app version: v127 | Admin panel: post-P1-1 (mobile drawer)*
+
+---
+
+## 16. Challenge System — Schemas & Design Reference
+
+### ChallengeDB columns (A–R, 0-indexed 0–17)
+```
+A=challengeId  B=challengeType  C=title  D=description  E=startDate  F=endDate
+G=goalValue    H=goalUnit       I=goalConfigJson  J=status  K=competitionMode
+L=seriesTag    M=isPinned       N=createdBy       O=createdOn
+P=enrollPoints Q=finishPoints   R=winPoints
+```
+
+### ChallengeEnrollmentDB columns (A–I, 0-indexed 0–8)
+```
+A=enrollmentId  B=challengeId  C=memberId  D=enrolledOn  E=enrollmentStatus
+F=currentProgressValue  G=progressStateJson  H=lastProgressUpdate  I=completedOn
+```
+
+### CompetitionMode enum
+`NONE` | `INDIVIDUAL` | `SHARED` | `TEAM`
+
+---
+
+### Per-type goalConfigJson schemas
+
+#### BINGO_GRID
+```json
+{
+  "variant": "BOOK_BINGO | GENRE_BINGO | AUTHOR_BINGO",
+  "gridSize": 5,
+  "winCondition": "ALL_CELLS | ANY_LINE",
+  "finisherCondition": "ANY_LINE | HALF_CELLS",
+  "trackingMode": "CANONICAL | NON_CANONICAL",
+  "cells": [
+    { "clueId": "C1", "position": [0, 0], "prompt": "A book set in another country" }
+  ]
+}
+```
+goalValue = totalCells, goalUnit = "cells"
+
+#### BOOK_COUNT
+```json
+{
+  "defaultGoal": 24,
+  "allowPersonalGoal": true
+}
+```
+goalValue = defaultGoal, goalUnit = "books"
+
+#### PAGE_COUNT
+```json
+{
+  "defaultGoal": 5000,
+  "allowPersonalGoal": true
+}
+```
+goalValue = defaultGoal, goalUnit = "pages"
+
+#### 10PAGESADAY
+```json
+{
+  "year": 2026,
+  "dailyGoal": 10,
+  "challengerBadge": "ARKA_BADGE_233",
+  "finisherBadge": "ARKA_BADGE_234",
+  "winnerBadge": "ARKA_BADGE_235"
+}
+```
+goalValue = dailyGoal × 365, goalUnit = "pages"
+Badge award triggered manually by admin via `award10PagesADayBadges(challengeId)`.
+Page data sourced from PageLogDB (all sources count, including legacy `Data_10PagesADay_*`).
+
+#### BOOK_HUNT
+```json
+{
+  "clues": [
+    { "clueId": "C1", "order": 1, "prompt": "A book with a color in the title", "hint": "Think beyond red and blue" },
+    { "clueId": "C2", "order": 2, "prompt": "A book set in Asia", "hint": "" }
+  ],
+  "totalClues": 20,
+  "finisherCondition": "N_CLUES",
+  "finisherThreshold": 15,
+  "winCondition": "MOST_CLUES",
+  "allowMultiClaim": false,
+  "requireApproval": false,
+  "challengerBadge": "ARKA_BADGE_240",
+  "finisherBadge": "ARKA_BADGE_241",
+  "winnerBadge": "ARKA_BADGE_242"
+}
+```
+goalValue = totalClues, goalUnit = "clues"
+competitionMode = INDIVIDUAL (leaderboard by clues completed).
+One distinct shelfId per clue per member — a member cannot use the same book for two clues,
+but another member may use the same book for any clue.
+Claiming a clue: member links a **currently-reading** book from their shelf.
+**Member-side claiming is NOT yet built** — see Future Work below.
+
+---
+
+### Per-type progressStateJson schemas
+
+#### BINGO_GRID
+```json
+{ "cellsCompleted": [], "booksLinked": {}, "genreTagged": {}, "linesCompleted": [], "hasBingo": false }
+```
+
+#### BOOK_COUNT
+```json
+{ "personalGoal": 24, "booksRead": [], "totalBooks": 0, "pacingProjection": 0, "monthlyBreakdown": {} }
+```
+
+#### PAGE_COUNT
+```json
+{ "personalGoal": 5000, "totalPages": 0, "monthlyBreakdown": {}, "weeklyBreakdown": {},
+  "pacingProjection": 0, "aheadBehindTarget": "" }
+```
+
+#### 10PAGESADAY
+```json
+{ "year": 2026, "dailyGoal": 10, "yearlyGoal": 3650, "totalPages": 0,
+  "monthlyBreakdown": {}, "avgPagesPerDay": 0, "isFinisher": false }
+```
+
+#### BOOK_HUNT
+```json
+{
+  "claims": {
+    "C1": { "shelfId": "ARKA_SHELF_42", "bookTitle": "The Red House", "claimedOn": "15-Jun-2026", "status": "Claimed" }
+  },
+  "completedCount": 2,
+  "isFinisher": false,
+  "finishedOn": ""
+}
+```
+
+---
+
+### Future Work — Challenge Member-Side (not yet built)
+
+#### BOOK_HUNT — Member-side claiming
+- **Where:** Me tab → Challenges → challenge card → clue grid
+- **Flow:** Tap a clue → pick a book from **currently-reading** shelf → confirm → progressStateJson updated
+- **Validation:** `status = "Reading"` in MemberShelfDB at claim time; each `shelfId` satisfies only one clue per member
+- **GAS function to build:** `claimBookHuntClue(enrollmentId, clueId, shelfId)`
+
+#### 10PAGESADAY — Member-side display
+- Progress bar vs yearly goal + monthly breakdown circles (matching legacy TenPagesADay_v3.html UI)
+- No new logging needed — reads PageLogDB automatically
+
+### Admin Panel Version Control
+When bumping the admin panel cache-bust version (`v3.X` in `AkraAdminControlPanel.html`):
+- Update both `arkaadmin_styles.css?v=X` and `arkaadmin_app.js?v=X` in the same commit
+- Add a row to the `AkraAdminControlPanel` table in `VERSIONS.md`

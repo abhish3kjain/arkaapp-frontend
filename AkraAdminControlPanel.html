@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=2.0">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=3.5">
 </head>
 <body>
 
@@ -64,7 +64,7 @@
       <button class="adm-nav-item active" data-section="overview" onclick="admSwitchSection('overview')">
         <i class="fa-solid fa-house"></i><span>Overview</span>
       </button>
-      <button class="adm-nav-item" data-section="approvals" onclick="admSwitchSection('approvals')" style="position:relative">
+      <button class="adm-nav-item adm-pos-relative" data-section="approvals" onclick="admSwitchSection('approvals')">
         <i class="fa-solid fa-user-check"></i><span>Approvals</span>
         <span class="adm-nav-pending-bubble" id="admNavPendingBubble" style="display:none">0</span>
       </button>
@@ -107,13 +107,13 @@
       <!-- ── OVERVIEW ─────────────────────────────────────────── -->
       <section id="admSectionOverview" class="adm-section active">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-house" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Overview</h2>
-          <span style="font-size:0.75rem;color:var(--text-faint)" id="admOverviewTs"></span>
+          <h2><i class="fa-solid fa-house adm-section-icon"></i>Overview</h2>
+          <span class="adm-section-ts" id="admOverviewTs"></span>
         </div>
         <div class="adm-stat-grid" id="admStatGrid"></div>
         <div class="adm-card">
           <div class="adm-card-title">Quick Actions</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div class="adm-quick-actions">
             <button class="adm-btn adm-btn-accent" onclick="admSwitchSection('approvals')"><i class="fa-solid fa-user-check"></i> Review Approvals</button>
             <button class="adm-btn adm-btn-light" onclick="admSwitchSection('badges')"><i class="fa-solid fa-medal"></i> Award a Badge</button>
             <button class="adm-btn adm-btn-light" onclick="admSwitchSection('performance')"><i class="fa-solid fa-gauge-high"></i> App Performance</button>
@@ -121,7 +121,7 @@
           </div>
         </div>
         <div class="adm-card" id="admPendingPreviewCard" style="display:none">
-          <div class="adm-card-title">Pending Approvals <a href="#" onclick="admSwitchSection('approvals');return false" style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:8px;font-size:0.78rem">View all →</a></div>
+          <div class="adm-card-title">Pending Approvals <a href="#" onclick="admSwitchSection('approvals');return false" class="adm-form-optional adm-card-title-link">View all →</a></div>
           <div id="admPendingPreviewList"></div>
         </div>
       </section>
@@ -129,7 +129,7 @@
       <!-- ── APPROVALS ─────────────────────────────────────────── -->
       <section id="admSectionApprovals" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-user-check" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Member Approvals</h2>
+          <h2><i class="fa-solid fa-user-check adm-section-icon"></i>Member Approvals</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" id="admApprovalCardViewBtn" onclick="admToggleApprovalsCardView()" title="Toggle card view"><i class="fa-solid fa-table-cells-large"></i> Card View</button>
         </div>
         <p class="adm-section-subtitle">New members start as Pending. Approved = full app access. Rejected records are kept for the audit trail.</p>
@@ -138,18 +138,18 @@
           <button class="adm-filter-tab" data-appr-filter="Approved" onclick="admFilterApprovals('Approved')">Approved</button>
           <button class="adm-filter-tab" data-appr-filter="Rejected" onclick="admFilterApprovals('Rejected')">Rejected</button>
           <button class="adm-filter-tab" data-appr-filter="All"      onclick="admFilterApprovals('All')">All Members</button>
-          <div style="flex:1"></div>
-          <input type="text" class="adm-input" id="admApprovalSearch" style="max-width:240px" placeholder="Search name or email…" oninput="admRenderApprovals()">
+          <div class="adm-flex-spacer"></div>
+          <input type="text" class="adm-input adm-search-input" id="admApprovalSearch" placeholder="Search name or email…" oninput="admRenderApprovals()">
         </div>
         <!-- Bulk action bar — shown when Pending rows are selected -->
-        <div id="admBulkApproveBar" style="display:none;align-items:center;gap:12px;background:var(--adm-page-bg);border:1.5px solid var(--arka-accent);border-radius:8px;padding:10px 14px;margin-bottom:12px">
-          <span id="admBulkCountLabel" style="font-size:0.85rem;font-weight:600;color:var(--text-strong)">0 selected</span>
+        <div id="admBulkApproveBar" class="adm-bulk-bar" style="display:none">
+          <span id="admBulkCountLabel" class="adm-bulk-count">0 selected</span>
           <button class="adm-btn adm-btn-accent adm-btn-sm" id="admBulkApproveBtn" onclick="admBulkApproveSelected()">
             <i class="fa-solid fa-check-double"></i> Approve Selected
           </button>
           <button class="adm-btn adm-btn-light adm-btn-sm" onclick="admClearBulkSelection()">Clear</button>
         </div>
-        <div class="adm-card" style="padding:0;overflow:hidden">
+        <div class="adm-card adm-card--table">
           <div class="adm-table-wrap" id="admApprovalTableWrap">
             <table class="adm-table">
               <!-- id="admApprovalThead" used by the bulk-select JS to inject
@@ -166,7 +166,7 @@
       <!-- ── BADGES ────────────────────────────────────────────── -->
       <section id="admSectionBadges" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-medal" style="color:var(--color-gamification);margin-right:8px;font-size:0.9em"></i>Badge Management</h2>
+          <h2><i class="fa-solid fa-medal adm-section-icon adm-section-icon--gamif"></i>Badge Management</h2>
         </div>
         <div class="adm-subtabs">
           <button class="adm-subtab active" id="admSubTabAward"     onclick="admSwitchBadgeSubTab('award')"><i class="fa-solid fa-medal"></i> Award a Badge</button>
@@ -188,7 +188,7 @@
             </div>
             <div class="adm-form-group">
               <label class="adm-form-label">Badge</label>
-              <div style="position:relative">
+              <div class="adm-pos-relative">
                 <input type="text" class="adm-input" id="admAwardBadgeInput"
                        placeholder="Type to search badge…"
                        oninput="admBadgePickerFilter('award')" onfocus="admBadgePickerOpen('award')" onblur="admBadgePickerCloseDelayed('award')"
@@ -199,7 +199,7 @@
               <div class="adm-input-hint" id="admAwardBadgeHint"></div>
             </div>
             <div class="adm-form-group">
-              <label class="adm-form-label">Admin Note <span style="font-weight:400;color:var(--text-faint)">(optional)</span></label>
+              <label class="adm-form-label">Admin Note <span class="adm-form-optional">(optional)</span></label>
               <textarea class="adm-textarea" id="admAwardNotesInput" rows="2" placeholder="Reason, event context, or any relevant note…"></textarea>
             </div>
             <button class="adm-btn adm-btn-accent" id="admAwardSubmitBtn" onclick="admSubmitBadgeAward()"><i class="fa-solid fa-medal"></i> Award Badge</button>
@@ -208,20 +208,20 @@
 
         <!-- ── Browse Awards panel ───────────────────────────────── -->
         <div id="admBadgePanelBrowse" style="display:none">
-          <div class="adm-filter-row" style="flex-wrap:wrap;gap:6px">
+          <div class="adm-filter-row">
             <button class="adm-filter-tab active" data-award-filter="Active"  onclick="admSetAwardFilter('Active')">Active</button>
             <button class="adm-filter-tab"        data-award-filter="Revoked" onclick="admSetAwardFilter('Revoked')">Revoked</button>
             <button class="adm-filter-tab"        data-award-filter="All"     onclick="admSetAwardFilter('All')">All Status</button>
-            <div style="flex:1;min-width:16px"></div>
-            <input type="text" class="adm-input" id="admAwardBrowseSearch" style="max-width:240px;flex-shrink:0" placeholder="Search member or badge…" oninput="admRenderBadgeAwardsList()">
+            <div class="adm-flex-spacer"></div>
+            <input type="text" class="adm-input adm-search-input" id="admAwardBrowseSearch" placeholder="Search member or badge…" oninput="admRenderBadgeAwardsList()">
           </div>
-          <div class="adm-filter-row" style="flex-wrap:wrap;gap:6px;margin-top:8px">
-            <span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:6px 4px;white-space:nowrap">Awarder</span>
+          <div class="adm-filter-row adm-mt-8">
+            <span class="adm-filter-row-label">Awarder</span>
             <button class="adm-filter-tab active" data-award-awarder="All"    onclick="admSetAwardAwarder('All')">All</button>
             <button class="adm-filter-tab"        data-award-awarder="System" onclick="admSetAwardAwarder('System')"><i class="fa-solid fa-robot" style="margin-right:4px;font-size:0.75em"></i>System</button>
             <button class="adm-filter-tab"        data-award-awarder="Manual" onclick="admSetAwardAwarder('Manual')"><i class="fa-solid fa-user-shield" style="margin-right:4px;font-size:0.75em"></i>Manual</button>
           </div>
-          <div class="adm-filter-row" id="admAwardCategoryChips" style="flex-wrap:wrap;gap:6px;margin-top:8px">
+          <div class="adm-filter-row adm-mt-8" id="admAwardCategoryChips">
             <!-- Populated by JS after data loads -->
           </div>
           <div class="adm-card" style="padding:0;overflow:hidden;margin-top:12px">
@@ -245,16 +245,16 @@
               <input type="text" class="adm-input" id="admCreateBadgeCaption" placeholder="e.g. First Read, Century Reader…">
             </div>
             <div class="adm-form-group">
-              <label class="adm-form-label">Description <span style="font-weight:400;color:var(--text-faint)">(optional)</span></label>
+              <label class="adm-form-label">Description <span class="adm-form-optional">(optional)</span></label>
               <textarea class="adm-textarea" id="admCreateBadgeDesc" rows="2" placeholder="What achievement does this badge represent?"></textarea>
             </div>
             <div class="adm-chal-section-divider">Points &amp; Category</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-              <div class="adm-form-group" style="margin-bottom:0">
+            <div class="adm-grid-2col adm-badge-form-grid">
+              <div class="adm-form-group adm-mb-0">
                 <label class="adm-form-label">Club Points Awarded</label>
                 <input type="number" class="adm-input" id="admCreateBadgePoints" placeholder="e.g. 500" min="0">
               </div>
-              <div class="adm-form-group" style="margin-bottom:0">
+              <div class="adm-form-group adm-mb-0">
                 <label class="adm-form-label">Category</label>
                 <select class="adm-input" id="admCreateBadgeCategory" style="cursor:pointer">
                   <option value="SPECIAL">Special</option>
@@ -268,14 +268,14 @@
             </div>
             <div class="adm-chal-section-divider">Image</div>
             <div class="adm-form-group">
-              <label class="adm-form-label">Badge Image <span style="color:var(--adm-danger)">*</span> <span style="font-weight:400;color:var(--text-faint)">(square, min 400×400 px — auto-cropped)</span></label>
-              <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+              <label class="adm-form-label">Badge Image <span style="color:var(--adm-danger)">*</span> <span class="adm-form-optional">(square, min 400×400 px — auto-cropped)</span></label>
+              <div class="adm-flex-row-tight adm-mt-8 adm-badge-img-row">
                 <img id="admCreateBadgePreview" class="adm-badge-img-preview" style="display:none" alt="preview">
                 <div id="admCreateBadgeFallback" class="adm-badge-img-fallback">🏅</div>
-                <input type="file" id="admCreateBadgeInput" accept="image/*" onchange="admHandleBadgeCreateImgSelect(this)" style="flex:1;font-size:0.82rem">
+                <input type="file" id="admCreateBadgeInput" accept="image/*" onchange="admHandleBadgeCreateImgSelect(this)" class="adm-file-input">
               </div>
             </div>
-            <button class="adm-btn adm-btn-accent" id="admCreateBadgeBtn" onclick="admSubmitCreateBadge()" style="margin-top:8px">
+            <button class="adm-btn adm-btn-accent adm-mt-8" id="admCreateBadgeBtn" onclick="admSubmitCreateBadge()">
               <i class="fa-solid fa-plus"></i> Create Badge
             </button>
           </div>
@@ -287,7 +287,7 @@
             <div class="adm-card-title">Replace the image for an existing badge</div>
             <div class="adm-form-group">
               <label class="adm-form-label">Badge to update</label>
-              <div style="position:relative">
+              <div class="adm-pos-relative">
                 <input type="text" class="adm-input" id="admUpdateBadgeInput"
                        placeholder="Type to search badge…"
                        oninput="admBadgePickerFilter('update')" onfocus="admBadgePickerOpen('update')" onblur="admBadgePickerCloseDelayed('update')"
@@ -299,14 +299,14 @@
             </div>
             <div class="adm-chal-section-divider">Image</div>
             <div class="adm-form-group">
-              <label class="adm-form-label">New image file <span style="color:var(--adm-danger)">*</span> <span style="font-weight:400;color:var(--text-faint)">(square, min 400×400 px — auto-cropped)</span></label>
-              <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+              <label class="adm-form-label">New image file <span style="color:var(--adm-danger)">*</span> <span class="adm-form-optional">(square, min 400×400 px — auto-cropped)</span></label>
+              <div class="adm-flex-row-tight adm-mt-8 adm-badge-img-row">
                 <img id="admUpdateImgPreview" class="adm-badge-img-preview" style="display:none" alt="preview">
                 <div id="admUpdateImgFallback" class="adm-badge-img-fallback">🖼️</div>
-                <input type="file" id="admUpdateImgInput" accept="image/*" onchange="admHandleUpdateImgSelect(this)" style="flex:1;font-size:0.82rem">
+                <input type="file" id="admUpdateImgInput" accept="image/*" onchange="admHandleUpdateImgSelect(this)" class="adm-file-input">
               </div>
             </div>
-            <button class="adm-btn adm-btn-accent" id="admUpdateImgBtn" onclick="admSubmitUpdateBadgeImage()" style="margin-top:8px">
+            <button class="adm-btn adm-btn-accent adm-mt-8" id="admUpdateImgBtn" onclick="admSubmitUpdateBadgeImage()">
               <i class="fa-solid fa-image"></i> Update Image
             </button>
           </div>
@@ -317,7 +317,7 @@
       <!-- ── CONTENT MODERATION ──────────────────────────────── -->
       <section id="admSectionContent" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-comment-lines" style="color:var(--adm-warn);margin-right:8px;font-size:0.9em"></i>Book Posts</h2>
+          <h2><i class="fa-solid fa-comment-lines adm-section-icon adm-section-icon--warn"></i>Book Posts</h2>
         </div>
         <p class="adm-section-subtitle">Review and delete book posts. Uses the same data as Club Reports — first load may take a few seconds.</p>
         <div class="adm-filter-row">
@@ -325,10 +325,10 @@
           <button class="adm-filter-tab"        data-posts-type="General Note" onclick="admFilterPostsType('General Note')">General Note</button>
           <button class="adm-filter-tab"        data-posts-type="Quote I Loved" onclick="admFilterPostsType('Quote I Loved')">Quote</button>
           <button class="adm-filter-tab"        data-posts-type="Fan Cast"     onclick="admFilterPostsType('Fan Cast')">Fan Cast</button>
-          <div style="flex:1"></div>
-          <input type="text" class="adm-input" id="admPostsSearch" style="max-width:240px" placeholder="Search member or text…" oninput="admRenderContent()">
+          <div class="adm-flex-spacer"></div>
+          <input type="text" class="adm-input adm-search-input" id="admPostsSearch" placeholder="Search member or text…" oninput="admRenderContent()">
         </div>
-        <div class="adm-card" style="padding:0;overflow:hidden">
+        <div class="adm-card adm-card--table">
           <div class="adm-table-wrap">
             <table class="adm-table">
               <!-- Date and Likes collapse on mobile; they appear as a
@@ -338,7 +338,7 @@
             </table>
           </div>
         </div>
-        <div id="admContentShowMore" style="text-align:center;padding:16px;display:none">
+        <div id="admContentShowMore" class="adm-paginator-row" style="display:none">
           <button class="adm-btn adm-btn-light" onclick="admShowMorePosts()"><i class="fa-solid fa-chevron-down"></i> Show More</button>
         </div>
       </section>
@@ -346,7 +346,7 @@
       <!-- ── PERFORMANCE ───────────────────────────────────────── -->
       <section id="admSectionPerformance" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-gauge-high" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>App Load Performance</h2>
+          <h2><i class="fa-solid fa-gauge-high adm-section-icon"></i>App Load Performance</h2>
         </div>
         <p class="adm-section-subtitle">
           Trend left → right = oldest → newest version. Dashed lines = 3 s and 6 s thresholds.
@@ -355,14 +355,12 @@
         </p>
 
         <!-- Trend summary stat cards — populated by admRenderPerformance() -->
-        <div class="adm-stat-grid" id="admPerfSummaryGrid"
-             style="grid-template-columns:repeat(auto-fill,minmax(145px,1fr));margin-bottom:16px">
-        </div>
+        <div class="adm-stat-grid adm-perf-summary-grid" id="admPerfSummaryGrid"></div>
 
         <!-- Chart A: Total load trend -->
         <div class="adm-card">
           <div class="adm-card-title">Total Load Time Trend (end-to-end, <em>_ALL</em> rows)</div>
-          <div style="position:relative;height:300px" id="admPerfChartWrap">
+          <div class="adm-pos-relative adm-perf-chart-wrap" id="admPerfChartWrap">
             <canvas id="admPerfChartCanvas"></canvas>
           </div>
           <div id="admPerfEmptyState" class="adm-empty" style="display:none">
@@ -373,11 +371,11 @@
         <!-- Chart B: Per-wave GAS timing trend -->
         <div class="adm-card" id="admWaveChartCard" style="display:none">
           <div class="adm-card-title">Per-Wave Server Time Trend (avg BigGulpMs from T0)</div>
-          <p style="font-size:0.75rem;color:var(--text-faint);margin-bottom:12px">
+          <p class="adm-perf-wave-hint">
             Each line = one wave's avg GAS round-trip across versions. Gap = wave didn't exist yet.
             <strong>init</strong> = initializeUser() overhead before any wave fires.
           </p>
-          <div style="position:relative;height:280px">
+          <div class="adm-pos-relative adm-perf-wave-chart-wrap">
             <canvas id="admWaveTrendChartCanvas"></canvas>
           </div>
         </div>
@@ -385,7 +383,7 @@
         <!-- Latest version wave breakdown (stat cards, not a third chart) -->
         <div class="adm-card" id="admWaveBreakdownCard" style="display:none">
           <div class="adm-card-title" id="admWaveBreakdownTitle">Latest Version — Wave Breakdown</div>
-          <div id="admWaveBreakdownGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:4px"></div>
+          <div id="admWaveBreakdownGrid" class="adm-perf-wave-grid"></div>
         </div>
 
       </section>
@@ -393,28 +391,28 @@
       <!-- ── MEMBER STATS ──────────────────────────────────────── -->
       <section id="admSectionMembers" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-chart-bar" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Member Stats</h2>
+          <h2><i class="fa-solid fa-chart-bar adm-section-icon"></i>Member Stats</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" id="admMembersCardViewBtn" onclick="admToggleMembersCardView()" title="Toggle card view"><i class="fa-solid fa-table-cells-large"></i> Card View</button>
         </div>
         <p class="adm-section-subtitle">Approved members only. <span class="adm-live-dot"></span> = active in the last 30 days.</p>
-        <div class="adm-filter-row" style="margin-bottom:16px">
-          <span style="font-size:0.78rem;font-weight:700;color:var(--text-muted);white-space:nowrap">Sort:</span>
+        <div class="adm-filter-row adm-mb-16">
+          <span class="adm-filter-sort-label">Sort:</span>
           <button class="adm-filter-tab active" data-members-sort="totalCp"          onclick="admSetMembersSort('totalCp')">Club Points</button>
           <button class="adm-filter-tab" data-members-sort="totalPages"      onclick="admSetMembersSort('totalPages')">Pages</button>
           <button class="adm-filter-tab" data-members-sort="totalBooks"      onclick="admSetMembersSort('totalBooks')">Books</button>
           <button class="adm-filter-tab" data-members-sort="lastAccessedTs"  onclick="admSetMembersSort('lastAccessedTs')">Last Active</button>
-          <div style="flex:1"></div>
+          <div class="adm-flex-spacer"></div>
           <button class="adm-filter-tab active" data-members-activity="all"      onclick="admSetMembersActivity('all')">All</button>
           <button class="adm-filter-tab" data-members-activity="active"   onclick="admSetMembersActivity('active')">Active 30d</button>
           <button class="adm-filter-tab" data-members-activity="inactive" onclick="admSetMembersActivity('inactive')">Inactive</button>
         </div>
-        <div class="adm-card" style="padding:0;overflow:hidden">
+        <div class="adm-card adm-card--table">
           <div class="adm-table-wrap" id="admMembersTableWrap">
             <table class="adm-table">
               <!-- Mobile keeps: #, Member, Club Points, Last Active, Status.
                    Country, Pages, Books and Joined collapse (adm-col-mob);
                    the Member cell sub-line surfaces memberId as context. -->
-              <thead><tr><th style="width:36px">#</th><th>Member</th><th class="adm-col-mob">Country</th><th>Club Points</th><th class="adm-col-mob">Pages</th><th class="adm-col-mob">Books</th><th class="adm-col-mob">Joined</th><th>Last Active</th><th>Status</th></tr></thead>
+              <thead><tr><th class="adm-th-narrow">#</th><th>Member</th><th class="adm-col-mob">Country</th><th>Club Points</th><th class="adm-col-mob">Pages</th><th class="adm-col-mob">Books</th><th class="adm-col-mob">Joined</th><th>Last Active</th><th>Status</th></tr></thead>
               <tbody id="admMembersTbody"><tr><td colspan="9"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr></tbody>
             </table>
           </div>
@@ -424,7 +422,7 @@
       <!-- ── ANNOUNCEMENTS ────────────────────────────────────── -->
       <section id="admSectionAnnouncements" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-bullhorn" style="color:var(--color-announcements);margin-right:8px;font-size:0.9em"></i>Announcements</h2>
+          <h2><i class="fa-solid fa-bullhorn adm-section-icon adm-section-icon--ann"></i>Announcements</h2>
         </div>
         <div class="adm-subtabs">
           <button class="adm-subtab active" id="admAnnSubTabActive"  onclick="admSwitchAnnSubTab('active')"><i class="fa-solid fa-list"></i> Active</button>
@@ -434,12 +432,12 @@
 
         <!-- Active + Archived list panels -->
         <div id="admAnnPanelActive">
-          <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <div class="adm-list-actions">
             <button class="adm-btn adm-btn-accent" onclick="admSwitchAnnSubTab('compose')">
               <i class="fa-solid fa-plus"></i> New Announcement
             </button>
           </div>
-          <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-card adm-card--table">
             <div class="adm-table-wrap">
               <table class="adm-table">
                 <thead><tr><th>Title</th><th class="adm-col-meta">Type</th><th>Audience</th><th class="adm-col-meta">Pinned</th><th class="adm-col-meta">Expiry</th><th class="adm-col-meta">Created</th><th>Actions</th></tr></thead>
@@ -450,7 +448,7 @@
         </div>
 
         <div id="admAnnPanelArchived" style="display:none">
-          <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-card adm-card--table">
             <div class="adm-table-wrap">
               <table class="adm-table">
                 <thead><tr><th>Title</th><th class="adm-col-meta">Type</th><th>Audience</th><th class="adm-col-meta">Expiry</th><th class="adm-col-meta">Created</th><th>Actions</th></tr></thead>
@@ -485,7 +483,7 @@
               <input type="text" class="adm-input" id="admAnnTitleInput" placeholder="Short, clear headline…" maxlength="120">
 
               <label class="adm-form-label" for="admAnnBodyInput">Body <span style="color:var(--adm-danger)">*</span></label>
-              <textarea class="adm-input" id="admAnnBodyInput" rows="5" placeholder="Full announcement text…" style="resize:vertical"></textarea>
+              <textarea class="adm-input adm-textarea" id="admAnnBodyInput" rows="5" placeholder="Full announcement text…"></textarea>
 
               <!-- Audience (hidden for WHATS_NEW) -->
               <div id="admAnnAudienceSection">
@@ -497,8 +495,8 @@
                   <div id="admAnnScopeToggle" class="toggle-pill" role="button" tabindex="0" onclick="admAnnToggleScope()"></div>
                 </div>
                 <!-- Member picker — shown when scope is Specific Members -->
-                <div id="admAnnMemberPickerSection" style="display:none;margin-top:10px;position:relative">
-                  <label class="adm-form-label" style="margin-top:0">Select Members</label>
+                <div id="admAnnMemberPickerSection" class="adm-pos-relative" style="display:none;margin-top:10px">
+                  <label class="adm-form-label adm-form-label--no-top">Select Members</label>
                   <div class="ann-member-picker" onclick="document.getElementById('admAnnMemberSearch').focus()">
                     <div id="admAnnMemberPills" style="display:contents"></div>
                     <input type="text" id="admAnnMemberSearch" class="ann-member-search"
@@ -512,7 +510,7 @@
               </div>
 
               <!-- Expiry -->
-              <label class="adm-form-label" for="admAnnExpiryInput">Expiry date <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional — dd-MMM-yyyy, e.g. 31-Dec-2026)</span></label>
+              <label class="adm-form-label" for="admAnnExpiryInput">Expiry date <span class="adm-form-optional">(optional — dd-MMM-yyyy, e.g. 31-Dec-2026)</span></label>
               <input type="text" class="adm-input" id="admAnnExpiryInput" placeholder="dd-MMM-yyyy">
 
               <!-- Pin (hidden for WHATS_NEW and specific-member scope) -->
@@ -526,8 +524,8 @@
                 </div>
               </div>
 
-              <div style="display:flex;gap:10px;margin-top:20px">
-                <button class="adm-btn adm-btn-accent" id="admAnnSaveBtn" onclick="admSubmitAnn()" style="flex:1">
+              <div class="adm-form-actions">
+                <button class="adm-btn adm-btn-accent adm-btn--grow" id="admAnnSaveBtn" onclick="admSubmitAnn()">
                   <i class="fa-solid fa-paper-plane"></i> Save Announcement
                 </button>
                 <button class="adm-btn adm-btn-light" onclick="admSwitchAnnSubTab('active')">Cancel</button>
@@ -540,7 +538,7 @@
       <!-- ── EVENTS ───────────────────────────────────────────── -->
       <section id="admSectionEvents" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-calendar-days" style="color:var(--adm-ok);margin-right:8px;font-size:0.9em"></i>Events</h2>
+          <h2><i class="fa-solid fa-calendar-days adm-section-icon adm-section-icon--ok"></i>Events</h2>
         </div>
         <div class="adm-subtabs">
           <button class="adm-subtab active" id="admEvtSubTabList"    onclick="admSwitchEvtSubTab('list')"><i class="fa-solid fa-list"></i> Events</button>
@@ -549,12 +547,12 @@
 
         <!-- Events list panel -->
         <div id="admEvtPanelList">
-          <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <div class="adm-list-actions">
             <button class="adm-btn adm-btn-accent" onclick="admSwitchEvtSubTab('compose')">
               <i class="fa-solid fa-plus"></i> New Event
             </button>
           </div>
-          <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-card adm-card--table">
             <div class="adm-table-wrap">
               <table class="adm-table">
                 <thead><tr><th>Title</th><th class="adm-col-meta">Type</th><th class="adm-col-meta">Host</th><th class="adm-col-meta">Start</th><th>Status</th><th>Actions</th></tr></thead>
@@ -583,10 +581,10 @@
               <input type="text" class="adm-input" id="admEvtTitleInput" placeholder="Event title…" maxlength="120">
 
               <label class="adm-form-label" for="admEvtDescInput">Description</label>
-              <textarea class="adm-input" id="admEvtDescInput" rows="4" placeholder="Details, agenda, or notes…" style="resize:vertical"></textarea>
+              <textarea class="adm-input adm-textarea" id="admEvtDescInput" rows="4" placeholder="Details, agenda, or notes…"></textarea>
 
-              <label class="adm-form-label">Host Member <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
-              <div style="position:relative">
+              <label class="adm-form-label">Host Member <span class="adm-form-optional">(optional)</span></label>
+              <div class="adm-pos-relative">
                 <div class="ann-member-picker" onclick="document.getElementById('admEvtHostSearch').focus()">
                   <div id="admEvtHostPills" style="display:contents"></div>
                   <input type="text" id="admEvtHostSearch" class="ann-member-search"
@@ -602,7 +600,7 @@
                    two columns to one on screens ≤ 768 px, preventing the
                    "dd-MMM-yyyy" placeholder from being clipped on 360 px
                    phones where 50% column width = ~140 px. -->
-              <div class="adm-evt-date-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+              <div class="adm-evt-date-grid">
                 <div>
                   <label class="adm-form-label" for="admEvtStartDateInput">Start Date <span style="color:var(--adm-danger)">*</span></label>
                   <input type="text" class="adm-input" id="admEvtStartDateInput" placeholder="dd-MMM-yyyy">
@@ -613,7 +611,7 @@
                 </div>
               </div>
 
-              <div class="adm-evt-date-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+              <div class="adm-evt-date-grid">
                 <div>
                   <label class="adm-form-label" for="admEvtEndDateInput">End Date</label>
                   <input type="text" class="adm-input" id="admEvtEndDateInput" placeholder="dd-MMM-yyyy">
@@ -645,8 +643,8 @@
                 <div id="admEvtPinToggle" class="toggle-pill" role="button" tabindex="0" onclick="admEvtTogglePin()"></div>
               </div>
 
-              <div style="display:flex;gap:10px;margin-top:20px">
-                <button class="adm-btn adm-btn-accent" id="admEvtSaveBtn" onclick="admSubmitEvt()" style="flex:1">
+              <div class="adm-form-actions">
+                <button class="adm-btn adm-btn-accent adm-btn--grow" id="admEvtSaveBtn" onclick="admSubmitEvt()">
                   <i class="fa-solid fa-paper-plane"></i> Save Event
                 </button>
                 <button class="adm-btn adm-btn-light" onclick="admSwitchEvtSubTab('list')">Cancel</button>
@@ -659,7 +657,7 @@
       <!-- ── CHALLENGES ───────────────────────────────────────── -->
       <section id="admSectionChallenges" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-trophy" style="color:var(--color-challenge);margin-right:8px;font-size:0.9em"></i>Challenges</h2>
+          <h2><i class="fa-solid fa-trophy adm-section-icon adm-section-icon--challenge"></i>Challenges</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" onclick="admLoadChallenges()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
         </div>
 
@@ -671,73 +669,53 @@
 
         <!-- ── ALL CHALLENGES panel ── -->
         <div id="admChalPanelList">
-          <div class="adm-filter-row" style="margin-bottom:14px;">
+          <div class="adm-filter-row adm-mb-14">
             <button class="adm-filter-tab active" data-chal-status="All"       onclick="admSwitchChalStatusFilter('All')">All</button>
             <button class="adm-filter-tab" data-chal-status="Active"    onclick="admSwitchChalStatusFilter('Active')">Active</button>
             <button class="adm-filter-tab" data-chal-status="Upcoming"  onclick="admSwitchChalStatusFilter('Upcoming')">Upcoming</button>
             <button class="adm-filter-tab" data-chal-status="Completed" onclick="admSwitchChalStatusFilter('Completed')">Completed</button>
             <button class="adm-filter-tab" data-chal-status="Archived"  onclick="admSwitchChalStatusFilter('Archived')">Archived</button>
           </div>
-          <div class="adm-card" style="padding:0;overflow:hidden">
-            <div class="adm-table-wrap">
-              <table class="adm-table">
-                <thead>
-                  <tr>
-                    <th>Title</th>
-                    <th class="adm-col-meta">Type</th>
-                    <th class="adm-col-meta">Dates</th>
-                    <th>Goal</th>
-                    <th>Enrolled</th>
-                    <th class="adm-col-meta">Points (E/F/W)</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="admChalTbody">
-                  <tr><td colspan="8"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr>
-                </tbody>
-              </table>
-            </div>
+          <div id="admChalList" class="adm-chal-cards">
+            <div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div>
           </div>
         </div>
 
         <!-- ── NEW / EDIT CHALLENGE panel ── -->
         <div id="admChalPanelForm" style="display:none">
-          <div class="adm-card" style="max-width:680px">
+          <div class="adm-card adm-form-card">
 
             <!-- Type -->
-            <label class="adm-form-label" for="admChalTypeSelect">Challenge Type *</label>
-            <select id="admChalTypeSelect" onchange="admChalTypeChange()">
+            <label class="adm-form-label adm-form-label--no-top" for="admChalTypeSelect">Challenge Type <span style="color:var(--adm-danger)">*</span></label>
+            <select class="adm-select adm-input" id="admChalTypeSelect" onchange="admChalTypeChange()">
               <option value="">— Select a type —</option>
-              <option value="HABIT_STREAK">📅 Habit Streak</option>
               <option value="BINGO_GRID">🎲 Bingo Grid</option>
-              <option value="BUDDY_READ">📖 Buddy Read</option>
-              <option value="COUNTRY_SPREAD">🌍 Around the World</option>
-              <option value="ALPHABET">🔤 Alphabet</option>
               <option value="BOOK_COUNT">📚 Annual Book Count</option>
               <option value="PAGE_COUNT">📄 Annual Page Count</option>
+              <option value="10PAGESADAY">🔥 10 Pages a Day</option>
+              <option value="BOOK_HUNT">🔍 Book Hunt</option>
             </select>
 
             <!-- Title + Description -->
-            <label class="adm-form-label" for="admChalTitleInput" style="margin-top:14px;">Title *</label>
+            <label class="adm-form-label" for="admChalTitleInput">Title <span style="color:var(--adm-danger)">*</span></label>
             <input type="text" id="admChalTitleInput" class="adm-input" placeholder="e.g. Arka Book Bingo 2027" maxlength="120">
 
-            <label class="adm-form-label" for="admChalDescInput" style="margin-top:12px;">Description</label>
-            <textarea id="admChalDescInput" class="adm-input" rows="2" placeholder="What do members need to do?" style="resize:vertical"></textarea>
+            <label class="adm-form-label" for="admChalDescInput">Description</label>
+            <textarea id="admChalDescInput" class="adm-input adm-textarea" rows="2" placeholder="What do members need to do?"></textarea>
 
             <!-- Dates + Status -->
-            <div class="adm-chal-form-row" style="margin-top:14px;">
+            <div class="adm-chal-form-row adm-mt-16">
               <div>
-                <label class="adm-form-label" for="admChalStartDate">Start date *</label>
+                <label class="adm-form-label adm-form-label--no-top" for="admChalStartDate">Start date <span style="color:var(--adm-danger)">*</span></label>
                 <input type="date" id="admChalStartDate" class="adm-input">
               </div>
               <div>
-                <label class="adm-form-label" for="admChalEndDate">End date <span style="font-weight:400;text-transform:none;">(blank = open-ended)</span></label>
+                <label class="adm-form-label adm-form-label--no-top" for="admChalEndDate">End date <span class="adm-form-optional">(blank = open-ended)</span></label>
                 <input type="date" id="admChalEndDate" class="adm-input">
               </div>
             </div>
 
-            <label class="adm-form-label" for="admChalStatusSelect" style="margin-top:12px;">Status</label>
+            <label class="adm-form-label" for="admChalStatusSelect">Status</label>
             <select id="admChalStatusSelect" class="adm-input">
               <option value="Active">Active</option>
               <option value="Upcoming">Upcoming</option>
@@ -746,29 +724,29 @@
             </select>
 
             <!-- Series Tag -->
-            <label class="adm-form-label" for="admChalSeriesTag" style="margin-top:12px;">Series tag <span style="font-weight:400;text-transform:none;">(blank = one-off)</span></label>
+            <label class="adm-form-label" for="admChalSeriesTag">Series tag <span class="adm-form-optional">(blank = one-off)</span></label>
             <input type="text" id="admChalSeriesTag" class="adm-input" list="admChalSeriesTagList"
                    placeholder="e.g. BOOK_BINGO — links editions across years">
             <datalist id="admChalSeriesTagList"></datalist>
 
             <!-- ── Type-specific config sections ── -->
 
-            <!-- HABIT_STREAK -->
-            <div id="admChalConfig-HABIT_STREAK" class="adm-chal-type-section">
-              <div class="adm-chal-section-divider">Streak rules</div>
-              <label class="adm-form-label" for="admChalStreak-minPages">Minimum pages per day to keep streak alive</label>
-              <input type="number" id="admChalStreak-minPages" class="adm-input" value="10" min="1" max="999">
-              <div class="adm-chal-toggle-row" style="margin-top:12px;">
-                <div>
-                  <div class="adm-chal-toggle-label">Reset streak on missed day</div>
-                  <div class="adm-chal-toggle-sub">Off = missed days are recorded but streak continues</div>
-                </div>
-                <div id="admChalStreak-resetToggle" class="toggle-pill on" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
-              </div>
-            </div>
-
             <!-- BINGO_GRID -->
             <div id="admChalConfig-BINGO_GRID" class="adm-chal-type-section">
+              <div class="adm-chal-section-divider">Bingo type</div>
+              <label class="adm-form-label" for="admChalBingo-variant">Variant</label>
+              <select id="admChalBingo-variant" class="adm-input" onchange="admChalOnBingoVariantChange()">
+                <option value="BOOK_BINGO">Book Bingo – reading prompts</option>
+                <option value="GENRE_BINGO">Genre Bingo – genre categories</option>
+                <option value="AUTHOR_BINGO">Author Bingo – author prompts</option>
+              </select>
+              <div id="admChalBingo-trackingModeRow" class="adm-mt-8" style="display:none">
+                <label class="adm-form-label adm-form-label--no-top" for="admChalBingo-trackingMode">Genre tracking mode</label>
+                <select id="admChalBingo-trackingMode" class="adm-input">
+                  <option value="CANONICAL">Canonical – must match Arka's canonical genre list</option>
+                  <option value="NON_CANONICAL">Non-canonical – sub-genres and free text accepted</option>
+                </select>
+              </div>
               <div class="adm-chal-section-divider">Grid settings</div>
               <label class="adm-form-label" for="admChalBingo-gridSize">Grid size</label>
               <select id="admChalBingo-gridSize" class="adm-input" onchange="admChalRenderBingoBuilder()">
@@ -787,52 +765,8 @@
                 <option value="HALF_CELLS">Half the cells completed</option>
               </select>
               <div class="adm-chal-section-divider">Cell prompts</div>
-              <div id="admChalBingo-cellBuilder" class="adm-bingo-cell-grid" style="grid-template-columns: 1fr;"></div>
-              <p style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">Centre cell is auto-set to FREE.</p>
-            </div>
-
-            <!-- BUDDY_READ -->
-            <div id="admChalConfig-BUDDY_READ" class="adm-chal-type-section">
-              <div class="adm-chal-section-divider">Book &amp; event</div>
-              <label class="adm-form-label" for="admChalBuddy-bookTitle">Book title</label>
-              <input type="text" id="admChalBuddy-bookTitle" class="adm-input" placeholder="Enter book title…">
-              <label class="adm-form-label" for="admChalBuddy-linkedEvent" style="margin-top:10px;">Linked club event <span style="font-weight:400;text-transform:none;">(optional)</span></label>
-              <select id="admChalBuddy-linkedEvent" class="adm-input">
-                <option value="">— Not linked to any event —</option>
-              </select>
-            </div>
-
-            <!-- COUNTRY_SPREAD -->
-            <div id="admChalConfig-COUNTRY_SPREAD" class="adm-chal-type-section">
-              <div class="adm-chal-section-divider">Country goal</div>
-              <label class="adm-form-label" for="admChalCountry-goalValue">Number of distinct countries to reach</label>
-              <input type="number" id="admChalCountry-goalValue" class="adm-input" value="10" min="2" max="195">
-              <label class="adm-form-label" for="admChalCountry-qualRule" style="margin-top:10px;">Qualification rule</label>
-              <select id="admChalCountry-qualRule" class="adm-input">
-                <option value="BOOK_SETTING_OR_AUTHOR">Book setting OR author nationality (either counts)</option>
-                <option value="BOOK_SETTING_ONLY">Book setting only</option>
-                <option value="AUTHOR_NATIONALITY_ONLY">Author nationality only</option>
-              </select>
-            </div>
-
-            <!-- ALPHABET -->
-            <div id="admChalConfig-ALPHABET" class="adm-chal-type-section">
-              <div class="adm-chal-section-divider">Letter rules</div>
-              <label class="adm-form-label" for="admChalAlpha-matchRule">Match rule</label>
-              <select id="admChalAlpha-matchRule" class="adm-input">
-                <option value="TITLE_FIRST_WORD">First meaningful word of title</option>
-                <option value="TITLE_ANY_WORD">Any word in the title</option>
-                <option value="AUTHOR_LASTNAME">Author's last name</option>
-              </select>
-              <div class="adm-chal-toggle-row" style="margin-top:12px;">
-                <div>
-                  <div class="adm-chal-toggle-label">Skip articles (The, A, An)</div>
-                  <div class="adm-chal-toggle-sub">"The Kite Runner" qualifies for K, not T</div>
-                </div>
-                <div id="admChalAlpha-skipToggle" class="toggle-pill on" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
-              </div>
-              <label class="adm-form-label" for="admChalAlpha-optionalLetters" style="margin-top:10px;">Optional letters — members may skip these</label>
-              <input type="text" id="admChalAlpha-optionalLetters" class="adm-input" value="Q, X, Z" placeholder="Comma-separated e.g. Q, X, Z">
+              <div id="admChalBingo-cellBuilder" class="adm-bingo-cell-grid"></div>
+              <p class="adm-chal-hint">Centre cell is auto-set to FREE.</p>
             </div>
 
             <!-- BOOK_COUNT -->
@@ -840,7 +774,7 @@
               <div class="adm-chal-section-divider">Book goal</div>
               <label class="adm-form-label" for="admChalBookCount-default">Default goal (books) — used if member doesn't set their own</label>
               <input type="number" id="admChalBookCount-default" class="adm-input" value="24" min="1" max="999">
-              <div class="adm-chal-toggle-row" style="margin-top:12px;">
+              <div class="adm-chal-toggle-row adm-mt-12">
                 <div>
                   <div class="adm-chal-toggle-label">Allow personal goal per member</div>
                   <div class="adm-chal-toggle-sub">Each member sets their own target on enrolment</div>
@@ -854,7 +788,7 @@
               <div class="adm-chal-section-divider">Page goal</div>
               <label class="adm-form-label" for="admChalPageCount-default">Default goal (pages) — used if member doesn't set their own</label>
               <input type="number" id="admChalPageCount-default" class="adm-input" value="5000" min="100" max="99999" step="100">
-              <div class="adm-chal-toggle-row" style="margin-top:12px;">
+              <div class="adm-chal-toggle-row adm-mt-12">
                 <div>
                   <div class="adm-chal-toggle-label">Allow personal goal per member</div>
                   <div class="adm-chal-toggle-sub">Each member sets their own target on enrolment</div>
@@ -863,23 +797,101 @@
               </div>
             </div>
 
+            <!-- 10PAGESADAY -->
+            <div id="admChalConfig-10PAGESADAY" class="adm-chal-type-section">
+              <div class="adm-chal-section-divider">10 Pages a Day — Year config</div>
+              <label class="adm-form-label" for="admChal10pad-year">Challenge year</label>
+              <input type="number" id="admChal10pad-year" class="adm-input" value="2026" min="2024" max="2099">
+              <label class="adm-form-label" for="admChal10pad-dailyGoal">Daily page goal (default 10)</label>
+              <input type="number" id="admChal10pad-dailyGoal" class="adm-input" value="10" min="1" max="100">
+              <div class="adm-chal-section-divider">Badge IDs</div>
+              <label class="adm-form-label" for="admChal10pad-challengerBadge">Challenger badge ID <span class="adm-form-optional">(enrolled)</span></label>
+              <input type="text" id="admChal10pad-challengerBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_233">
+              <label class="adm-form-label" for="admChal10pad-finisherBadge">Finisher badge ID <span class="adm-form-optional">(avg ≥ daily goal)</span></label>
+              <input type="text" id="admChal10pad-finisherBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_234">
+              <label class="adm-form-label" for="admChal10pad-winnerBadge">Winner badge ID <span class="adm-form-optional">(highest total — Page Turner)</span></label>
+              <input type="text" id="admChal10pad-winnerBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_235">
+            </div>
+
+            <!-- BOOK_HUNT -->
+            <div id="admChalConfig-BOOK_HUNT" class="adm-chal-type-section">
+              <div class="adm-chal-section-divider">Clue rules</div>
+
+              <div class="adm-flex-row-tight adm-mb-14" style="align-items:flex-end;gap:10px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:120px;">
+                  <label class="adm-form-label adm-form-label--no-top" for="admChalHunt-finisherThreshold">Clues to finish <span class="adm-form-optional">(Finisher badge)</span></label>
+                  <input type="number" id="admChalHunt-finisherThreshold" class="adm-input" value="15" min="1" max="100">
+                </div>
+                <div style="flex:1;min-width:120px;">
+                  <label class="adm-form-label adm-form-label--no-top" for="admChalHunt-totalClues">Total clues</label>
+                  <input type="number" id="admChalHunt-totalClues" class="adm-input" value="20" min="1" max="100" readonly tabindex="-1" style="background:var(--surface-alt);color:var(--text-faint);">
+                </div>
+              </div>
+
+              <div class="adm-chal-toggle-row adm-mt-12">
+                <div>
+                  <div class="adm-chal-toggle-label">One book per clue per member</div>
+                  <div class="adm-chal-toggle-sub">A member's shelf record can satisfy only one clue; other members may use the same book</div>
+                </div>
+                <div id="admChalHunt-multiToggle" class="toggle-pill on" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
+              </div>
+
+              <div class="adm-chal-section-divider">Badge IDs</div>
+              <label class="adm-form-label adm-form-label--no-top" for="admChalHunt-challengerBadge">Challenger badge ID <span class="adm-form-optional">(enrolled)</span></label>
+              <input type="text" id="admChalHunt-challengerBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_240">
+              <label class="adm-form-label" for="admChalHunt-finisherBadge">Finisher badge ID <span class="adm-form-optional">(completed N clues)</span></label>
+              <input type="text" id="admChalHunt-finisherBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_241">
+              <label class="adm-form-label" for="admChalHunt-winnerBadge">Winner badge ID <span class="adm-form-optional">(most clues at end date)</span></label>
+              <input type="text" id="admChalHunt-winnerBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_242">
+
+              <div class="adm-chal-section-divider">Clues</div>
+
+              <!-- CSV bulk upload -->
+              <div class="adm-flex-row-tight adm-mb-14" style="gap:8px;flex-wrap:wrap;align-items:center;">
+                <label class="adm-btn adm-btn-light adm-btn-sm" style="cursor:pointer;margin:0;">
+                  <i class="fa-solid fa-file-csv"></i> Upload CSV
+                  <input type="file" id="admChalHunt-csvInput" accept=".csv,text/csv" style="display:none" onchange="admHuntImportCSV(this)">
+                </label>
+                <span class="adm-chal-hint" style="margin:0;">CSV columns: <code>Order, Prompt, Hint</code> — Hint is optional</span>
+              </div>
+
+              <!-- Clue table -->
+              <div id="admChalHunt-clueTableWrap">
+                <table class="adm-table" style="width:100%;font-size:0.82rem;" id="admChalHunt-clueTable">
+                  <thead>
+                    <tr>
+                      <th style="width:36px;">#</th>
+                      <th>Prompt <span style="color:var(--adm-danger)">*</span></th>
+                      <th>Hint <span class="adm-form-optional">(optional)</span></th>
+                      <th style="width:36px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="admChalHunt-clueBody"></tbody>
+                </table>
+              </div>
+              <button class="adm-btn adm-btn-light adm-btn-sm adm-mt-10" type="button" onclick="admHuntAddClueRow()">
+                <i class="fa-solid fa-plus"></i> Add clue
+              </button>
+              <p class="adm-chal-hint adm-mt-8" id="admChalHunt-clueCount">0 clues defined</p>
+            </div>
+
             <!-- Points -->
             <div class="adm-chal-section-divider">Points ☀️</div>
-            <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:12px;line-height:1.5;">
+            <p class="adm-points-hint">
               Awarded at each stage. Set Win Points to 0 for personal challenges (Book Count, Page Count).
             </p>
             <div class="adm-chal-form-row">
               <div>
-                <label class="adm-form-label" for="admChalEnrollPoints">Enrol points</label>
+                <label class="adm-form-label adm-form-label--no-top" for="admChalEnrollPoints">Enrol points</label>
                 <input type="number" id="admChalEnrollPoints" class="adm-input" value="100" min="0" step="50">
               </div>
               <div>
-                <label class="adm-form-label" for="admChalFinishPoints">Finish points</label>
+                <label class="adm-form-label adm-form-label--no-top" for="admChalFinishPoints">Finish points</label>
                 <input type="number" id="admChalFinishPoints" class="adm-input" value="500" min="0" step="50">
               </div>
             </div>
-            <div style="margin-top:10px;">
-              <label class="adm-form-label" for="admChalWinPoints">Win points <span style="font-weight:400;text-transform:none;">(0 = no winner concept)</span></label>
+            <div class="adm-mt-10">
+              <label class="adm-form-label" for="admChalWinPoints">Win points <span class="adm-form-optional">(0 = no winner concept)</span></label>
               <input type="number" id="admChalWinPoints" class="adm-input" value="1500" min="0" step="100">
             </div>
 
@@ -892,20 +904,22 @@
               </div>
               <div id="admChalPinToggle" class="toggle-pill" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
             </div>
-            <div class="adm-chal-toggle-row">
-              <div>
-                <div class="adm-chal-toggle-label">🏆 Show club leaderboard tab</div>
-                <div class="adm-chal-toggle-sub">Off for personal challenges (Book Count, Page Count)</div>
-              </div>
-              <div id="admChalCompetitiveToggle" class="toggle-pill on" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
+            <div>
+              <label class="adm-form-label" for="admChalCompetitionMode">🏆 Competition Mode</label>
+              <select id="admChalCompetitionMode" class="adm-input">
+                <option value="NONE">None – personal challenge, no leaderboard</option>
+                <option value="INDIVIDUAL">Individual – ranked leaderboard per member</option>
+                <option value="SHARED">Shared – whole club works toward a common goal</option>
+                <option value="TEAM" disabled>Team – subgroups compete (coming soon)</option>
+              </select>
             </div>
 
             <!-- Hidden: editing ID -->
             <input type="hidden" id="admChalEditingId">
 
             <!-- Actions -->
-            <div style="display:flex;gap:10px;margin-top:20px;">
-              <button id="admChalSaveBtn" class="adm-btn adm-btn-ok" style="flex:1;" onclick="admSubmitChallenge()">
+            <div class="adm-form-actions">
+              <button id="admChalSaveBtn" class="adm-btn adm-btn-ok adm-btn--grow" onclick="admSubmitChallenge()">
                 <i class="fa-solid fa-floppy-disk"></i> Save Challenge
               </button>
               <button class="adm-btn adm-btn-light" onclick="admSwitchChalSubTab('list')">Cancel</button>
@@ -929,7 +943,7 @@
       <!-- ── EMAIL QUEUE MONITOR ──────────────────────────────── -->
       <section id="admSectionEmailqueue" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-envelope-circle-check" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Email Queue</h2>
+          <h2><i class="fa-solid fa-envelope-circle-check adm-section-icon"></i>Email Queue</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" onclick="admLoadEmailQueue()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
         </div>
         <p class="adm-section-subtitle">Read-only view of the ArkaEmailPass queue. Shows the 300 most recent entries. Suppress a PENDING entry to prevent it from being sent.</p>
@@ -940,7 +954,7 @@
           <button class="adm-filter-tab" data-eq-filter="FAILED"     onclick="admSwitchEqFilter('FAILED')">Failed</button>
           <button class="adm-filter-tab" data-eq-filter="SUPPRESSED" onclick="admSwitchEqFilter('SUPPRESSED')">Suppressed</button>
         </div>
-        <div class="adm-card" style="padding:0;overflow:hidden">
+        <div class="adm-card adm-card--table">
           <div class="adm-table-wrap">
             <table class="adm-table">
               <thead><tr><th>Member</th><th class="adm-col-meta">Email Type</th><th class="adm-col-meta">Scheduled</th><th>Status</th><th class="adm-col-meta">Sent At</th><th class="adm-col-meta">Clicked</th><th>Actions</th></tr></thead>
@@ -953,7 +967,7 @@
       <!-- ── CLUB REPORTS (merged from ArkaReports v4) ────────── -->
       <section id="admSectionReports" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-file-chart-column" style="color:var(--arka-accent);margin-right:8px;font-size:0.9em"></i>Club Reports</h2>
+          <h2><i class="fa-solid fa-file-chart-column adm-section-icon"></i>Club Reports</h2>
           <button class="adm-btn adm-btn-light adm-btn-sm" id="admRefreshReportsBtn" onclick="admLoadReportsData()" style="display:none">
             <i class="fa-solid fa-rotate-right"></i> Refresh Data
           </button>
@@ -965,7 +979,7 @@
             <div class="adm-empty">
               <i class="fa-solid fa-file-chart-column"></i>
               <p>Report data loads separately on demand (it's a large dataset).<br>Click below to fetch club activity data.</p>
-              <button class="adm-btn adm-btn-accent" onclick="admLoadReportsData()" style="margin-top:14px">
+              <button class="adm-btn adm-btn-accent adm-mt-16" onclick="admLoadReportsData()">
                 <i class="fa-solid fa-download"></i> Load Report Data
               </button>
             </div>
@@ -988,7 +1002,7 @@
             <div class="adm-empty">
               <i class="fa-solid fa-triangle-exclamation"></i>
               <p id="rptErrorMsg">Failed to load report data.</p>
-              <button class="adm-btn adm-btn-accent" onclick="admLoadReportsData()" style="margin-top:14px">
+              <button class="adm-btn adm-btn-accent adm-mt-16" onclick="admLoadReportsData()">
                 <i class="fa-solid fa-rotate-right"></i> Retry
               </button>
             </div>
@@ -999,35 +1013,35 @@
         <div id="rptMainUI" style="display:none">
 
           <!-- Mode toggle + period selector + export buttons -->
-          <div class="adm-card" style="padding:16px">
+          <div class="adm-card rpt-controls-card">
             <div class="rpt-mode-toggle">
-              <button id="rptWeeklyBtn"  onclick="switchReportMode('weekly')"  style="background:#2c3e50;color:#fff;border-color:#2c3e50">Weekly</button>
-              <button id="rptMonthlyBtn" onclick="switchReportMode('monthly')" style="background:#ecf0f1;color:#2c3e50;border-color:#ecf0f1">Monthly</button>
+              <button id="rptWeeklyBtn"  onclick="switchReportMode('weekly')"  class="active">Weekly</button>
+              <button id="rptMonthlyBtn" onclick="switchReportMode('monthly')">Monthly</button>
             </div>
             <div class="rpt-period-row">
-              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptShiftPeriod(-1)">&#8249;</button>
-              <div id="rptPeriodLabel" style="font-size:0.9rem;font-weight:600;color:var(--text-strong);text-align:center">Week of…</div>
-              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptShiftPeriod(+1)">&#8250;</button>
+              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptShiftPeriod(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+              <div id="rptPeriodLabel" class="rpt-period-label">Week of…</div>
+              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptShiftPeriod(+1)"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
-            <div id="rptSlideCountLabel" style="font-size:0.75rem;color:var(--text-faint);text-align:center;margin-bottom:12px">— slides</div>
-            <div style="display:flex;gap:10px">
-              <button id="rptShareImagesBtn" class="adm-btn adm-btn-light" style="flex:1" onclick="rptExportImages()">📲 Share Images</button>
-              <button id="rptExportPdfBtn"   class="adm-btn adm-btn-accent" style="flex:1" onclick="rptExportPdf()">📄 Export PDF</button>
+            <div id="rptSlideCountLabel" class="rpt-slide-count">— slides</div>
+            <div class="rpt-export-row">
+              <button id="rptShareImagesBtn" class="adm-btn adm-btn-light" onclick="rptExportImages()">📲 Share Images</button>
+              <button id="rptExportPdfBtn"   class="adm-btn adm-btn-accent" onclick="rptExportPdf()">📄 Export PDF</button>
             </div>
           </div>
 
           <!-- 16:9 slide canvas + navigation -->
-          <div class="adm-card" style="padding:12px">
+          <div class="adm-card rpt-canvas-card">
             <div id="rptSlideScaleWrap">
               <div id="rptSlideCanvas"></div>
               <div class="rpt-canvas-spacer"></div>
             </div>
             <div class="rpt-slide-nav">
-              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptPrevSlide()">&#8249;</button>
-              <div id="rptDotRow" style="display:flex;gap:6px;align-items:center"></div>
-              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptNextSlide()">&#8250;</button>
+              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptPrevSlide()"><i class="fa-solid fa-chevron-left"></i></button>
+              <div id="rptDotRow" class="rpt-dot-row"></div>
+              <button class="adm-btn adm-btn-light adm-btn-sm" onclick="rptNextSlide()"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
-            <div id="rptSlideCaption" style="text-align:center;font-size:0.75rem;color:var(--text-faint);margin-top:8px"></div>
+            <div id="rptSlideCaption" class="rpt-slide-caption"></div>
           </div>
 
           <!-- Thumbnail strip -->
@@ -1162,6 +1176,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=2.0"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=3.5"></script>
 </body>
 </html>

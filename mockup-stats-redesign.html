@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stats Redesign Mockup — Before & After</title>
+<style>
+  :root {
+    --text-strong: #1a1a2e;
+    --text-muted: #888;
+    --text-faint: #aaa;
+    --border-soft: #e0ddf5;
+    --surface-alt: #f7f5ff;
+    --color-warning: #e0900a;
+    --accent: #7c3aed;
+    --accent-light: #ede9fe;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0eef8;
+    padding: 24px 16px;
+  }
+  h1 { font-size: 15px; font-weight: 700; color: #333; margin-bottom: 4px; }
+  .label { font-size: 11px; color: #888; margin-bottom: 12px; }
+  .section-title {
+    font-size: 11px; font-weight: 700; color: #7c3aed;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin: 24px 0 10px;
+  }
+  /* Phone frame */
+  .phone {
+    width: 360px;
+    background: #f7f5ff;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1.5px solid #d1c4f8;
+    margin-bottom: 20px;
+  }
+  .phone-header {
+    background: white;
+    padding: 14px 16px 10px;
+    border-bottom: 0.5px solid #ede9fe;
+  }
+  .phone-header-title {
+    font-size: 18px; font-weight: 800; color: var(--text-strong);
+  }
+  .phone-header-sub {
+    font-size: 11px; color: var(--text-muted); margin-top: 2px;
+  }
+  .phone-body { padding: 14px 14px; }
+
+  /* ───── BEFORE: Pill styles ───── */
+  .pill-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .pill {
+    background: white;
+    border: 0.5px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+  .pill-streak {
+    background: #fff8f0;
+    border-color: #f0c070;
+  }
+  .pill-num { font-size: 18px; font-weight: 700; color: var(--text-strong); line-height: 1; }
+  .pill-num-streak { color: var(--color-warning); }
+  .pill-sublabel { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+  .pill-divider { height: 1px; background: var(--border-soft); margin: 6px 4px; }
+  .pill-total { font-size: 12px; font-weight: 600; color: var(--text-faint); line-height: 1; }
+  .pill-total-label { font-size: 9px; color: var(--text-faint); margin-top: 2px; }
+
+  /* ───── AFTER: Circle/Ring styles ───── */
+  .circle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  /* Each cell is a square that sizes itself to fill the 1fr column */
+  .circle-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1; /* keeps it circular */
+  }
+
+  /* SVG ring wrapper — fills the cell */
+  .ring-wrap {
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%; /* square */
+  }
+  .ring-wrap svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+  .ring-inner {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 1px;
+  }
+  .ring-num {
+    font-size: clamp(14px, 4vw, 18px);
+    font-weight: 800;
+    color: var(--text-strong);
+    line-height: 1;
+  }
+  .ring-label {
+    font-size: clamp(7px, 2vw, 9px);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    line-height: 1;
+  }
+  .ring-cta {
+    font-size: clamp(7px, 2vw, 8px);
+    color: var(--accent);
+    font-weight: 700;
+    margin-top: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1;
+  }
+
+  /* Streak circle (no ring, just solid border circle) */
+  .streak-circle {
+    width: 100%;
+    padding-bottom: 100%;
+    position: relative;
+  }
+  .streak-circle-inner {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #fff8f0;
+    border-radius: 50%;
+    border: 2.5px solid #f0c070;
+    text-align: center;
+    gap: 3px;
+  }
+  .streak-num {
+    font-size: clamp(16px, 4.5vw, 22px);
+    font-weight: 900;
+    color: var(--color-warning);
+    line-height: 1;
+  }
+  .streak-bottom {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: clamp(7px, 2vw, 9px);
+    color: var(--color-warning);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  /* scenario labels */
+  .scenario-tag {
+    font-size: 9px;
+    font-weight: 700;
+    background: #ede9fe;
+    color: #7c3aed;
+    border-radius: 4px;
+    padding: 2px 6px;
+    display: inline-block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* columns layout */
+  .cols { display: flex; gap: 20px; flex-wrap: wrap; }
+  .col { flex: 1; min-width: 300px; }
+
+  hr.divider { border: none; border-top: 1.5px dashed #d1c4f8; margin: 28px 0; }
+</style>
+</head>
+<body>
+
+<h1>Stats Redesign — Before & After Mockup</h1>
+<p class="label">Me Tab › Section 2: My Year Reading Journey</p>
+
+<!-- ═══════════════════════════════════════════════════════════
+     BEFORE
+════════════════════════════════════════════════════════════ -->
+<div class="section-title">⬅ Before — Current Stat Pills</div>
+
+<div class="phone">
+  <div class="phone-header">
+    <div class="phone-header-title">Me</div>
+    <div class="phone-header-sub">My 2026 Reading Journey</div>
+  </div>
+  <div class="phone-body">
+    <div class="pill-grid">
+      <!-- Pages pill -->
+      <div class="pill">
+        <div class="pill-num">5,523</div>
+        <div class="pill-sublabel">2026 pages</div>
+        <div class="pill-divider"></div>
+        <div class="pill-total">25,000</div>
+        <div class="pill-total-label">total</div>
+      </div>
+      <!-- Books pill -->
+      <div class="pill">
+        <div class="pill-num">15</div>
+        <div class="pill-sublabel">2026 books</div>
+        <div class="pill-divider"></div>
+        <div class="pill-total">65</div>
+        <div class="pill-total-label">total</div>
+      </div>
+      <!-- Streak pill -->
+      <div class="pill pill-streak">
+        <div class="pill-num pill-num-streak">5 🔥</div>
+        <div class="pill-sublabel" style="color:var(--color-warning)">streak</div>
+        <div class="pill-divider"></div>
+        <div class="pill-total">42</div>
+        <div class="pill-total-label">wks logged</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════════
+     AFTER — Three scenarios for Pages/Books
+════════════════════════════════════════════════════════════ -->
+<div class="section-title">➡ After — Stat Circles & Rings</div>
+<p class="label" style="margin-bottom:16px;">Three scenarios shown side by side based on enrollment state</p>
+
+<!-- Scenario A: Enrolled in goal → progress ring -->
+<div class="scenario-tag">Scenario A — Enrolled in goal (progress ring shown)</div>
+<div class="phone">
+  <div class="phone-header">
+    <div class="phone-header-title">Me</div>
+    <div class="phone-header-sub">My 2026 Reading Journey</div>
+  </div>
+  <div class="phone-body">
+    <div class="circle-grid">
+
+      <!-- Pages: enrolled, ring shows 5523/8000 = 69% -->
+      <div class="circle-cell">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 100 100">
+            <!-- track -->
+            <circle cx="50" cy="50" r="42" fill="white" stroke="#ede9fe" stroke-width="10"/>
+            <!-- progress: circumference = 2π×42 ≈ 263.9; 69% ≈ 182.1 -->
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#7c3aed" stroke-width="10"
+              stroke-dasharray="182 264" stroke-dashoffset="66"
+              stroke-linecap="round" transform="rotate(-90 50 50)"/>
+          </svg>
+          <div class="ring-inner">
+            <div class="ring-num">5,523</div>
+            <div class="ring-label">pages</div>
+            <div style="font-size:7px; color:#aaa; margin-top:1px;">of 8,000</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Books: enrolled, ring shows 15/20 = 75% -->
+      <div class="circle-cell">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="white" stroke="#ede9fe" stroke-width="10"/>
+            <!-- 75% → 264×0.75 = 198 -->
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#7c3aed" stroke-width="10"
+              stroke-dasharray="198 264" stroke-dashoffset="66"
+              stroke-linecap="round" transform="rotate(-90 50 50)"/>
+          </svg>
+          <div class="ring-inner">
+            <div class="ring-num">15</div>
+            <div class="ring-label">books</div>
+            <div style="font-size:7px; color:#aaa; margin-top:1px;">of 20</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streak: always simple -->
+      <div class="circle-cell">
+        <div class="streak-circle">
+          <div class="streak-circle-inner">
+            <div class="streak-num">5</div>
+            <div class="streak-bottom"><span>🔥</span><span>streak</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Scenario B: Challenge exists but NOT enrolled → count + Add goal CTA -->
+<div class="scenario-tag" style="margin-top:18px;">Scenario B — Not enrolled, challenge exists (+ Add goal CTA)</div>
+<div class="phone">
+  <div class="phone-header">
+    <div class="phone-header-title">Me</div>
+    <div class="phone-header-sub">My 2026 Reading Journey</div>
+  </div>
+  <div class="phone-body">
+    <div class="circle-grid">
+
+      <!-- Pages: not enrolled, challenge exists -->
+      <div class="circle-cell">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 100 100">
+            <!-- full track only, no fill -->
+            <circle cx="50" cy="50" r="42" fill="white" stroke="#ede9fe" stroke-width="10"/>
+          </svg>
+          <div class="ring-inner">
+            <div class="ring-num">5,523</div>
+            <div class="ring-label">pages</div>
+            <div class="ring-cta">＋ Add goal</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Books: not enrolled, challenge exists -->
+      <div class="circle-cell">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="white" stroke="#ede9fe" stroke-width="10"/>
+          </svg>
+          <div class="ring-inner">
+            <div class="ring-num">15</div>
+            <div class="ring-label">books</div>
+            <div class="ring-cta">＋ Add goal</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streak -->
+      <div class="circle-cell">
+        <div class="streak-circle">
+          <div class="streak-circle-inner">
+            <div class="streak-num">5</div>
+            <div class="streak-bottom"><span>🔥</span><span>streak</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Scenario C: No challenge this year → count only, no CTA -->
+<div class="scenario-tag" style="margin-top:18px;">Scenario C — No challenge exists for this year (count only)</div>
+<div class="phone">
+  <div class="phone-header">
+    <div class="phone-header-title">Me</div>
+    <div class="phone-header-sub">My 2026 Reading Journey</div>
+  </div>
+  <div class="phone-body">
+    <div class="circle-grid">
+
+      <!-- Pages: no challenge -->
+      <div class="circle-cell">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="white" stroke="#ede9fe" stroke-width="10"/>
+          </svg>
+          <div class="ring-inner">
+            <div class="ring-num">5,523</div>
+            <div class="ring-label">pages</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Books: no challenge -->
+      <div class="circle-cell">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="white" stroke="#ede9fe" stroke-width="10"/>
+          </svg>
+          <div class="ring-inner">
+            <div class="ring-num">15</div>
+            <div class="ring-label">books</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streak: no streak (dash state) -->
+      <div class="circle-cell">
+        <div class="streak-circle">
+          <div class="streak-circle-inner" style="background:var(--surface-alt); border-color:var(--border-soft);">
+            <div class="streak-num" style="color:var(--text-muted);">–</div>
+            <div class="streak-bottom" style="color:var(--text-muted);">streak</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

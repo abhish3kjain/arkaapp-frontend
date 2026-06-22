@@ -378,7 +378,7 @@
 | Col | Field | ID Format / Values | Notes |
 |-----|-------|-------------------|-------|
 | A | ChallengeID | `ARKA_CHAL_X` | Primary key. Sequential. |
-| B | ChallengeType | `HABIT_STREAK`, `BINGO_GRID`, etc. | Type code. Drives the UI renderer and progress tracking logic for each challenge variant. |
+| B | ChallengeType | `BINGO_GRID`, `BOOK_COUNT`, `PAGE_COUNT`, `10PAGESADAY`, `BOOK_HUNT` | Type code. Drives the UI renderer and progress tracking logic for each challenge variant. |
 | C | Title | string | Display name. e.g. `Book Bingo 2026` |
 | D | Description | string | What members need to do to complete or win the challenge. |
 | E | StartDate | `dd-MMM-yyyy` | Challenge opens for enrollment. |
@@ -387,7 +387,7 @@
 | H | GoalUnit | `pages`, `books`, `letters`, `countries`, etc. | Unit of the goal metric. Drives progress bar label. |
 | I | GoalConfigJson | JSON string or blank | Type-specific configuration. e.g. Bingo grid square definitions. Format varies by ChallengeType. |
 | J | Status | `Active`, `Upcoming`, `Completed`, `Archived` | Drives visibility in Challenges tab. `Active` = enrollable and in progress. |
-| K | IsCompetitive | `TRUE`/`FALSE` | If TRUE, shows a leaderboard tab within the challenge card. |
+| K | CompetitionMode | `NONE`, `INDIVIDUAL`, `SHARED`, `TEAM` | Controls leaderboard and scoring behaviour. `NONE` = personal challenge, no leaderboard. `INDIVIDUAL` = ranked per-member leaderboard. `SHARED` = whole club works toward a common goal with individual contribution tracking. `TEAM` = subgroups compete (reserved, not yet implemented). Legacy `TRUE`/`FALSE` values are accepted and mapped to `INDIVIDUAL`/`NONE` respectively. |
 | L | SeriesTag | string or blank | Groups multiple editions of the same challenge. e.g. `BOOK_BINGO` groups all annual Bingo editions. |
 | M | IsPinned | `TRUE`/`FALSE` | If TRUE, challenge is pinned to the top of the Challenges list. |
 | N | CreatedBy | `ARKA_MEMBER_X` | Who created the challenge. Admin only. |

@@ -246,12 +246,12 @@
     if (!pending.length) { if (pc) pc.style.display='none'; return; }
     if (pc) pc.style.display='block';
     pl.innerHTML = pending.slice(0,5).map(function(m){
-      return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border-soft)">'+
-        '<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:0.88rem">'+_esc(m.displayName)+'</div>'+
-        '<div style="font-size:0.75rem;color:var(--text-faint)">'+_esc(m.email)+' · Joined '+_esc(m.joinDate)+'</div></div>'+
+      return '<div class="adm-pending-row">'+
+        '<div class="adm-pending-info"><div class="adm-pending-name">'+_esc(m.displayName)+'</div>'+
+        '<div class="adm-pending-meta">'+_esc(m.email)+' · Joined '+_esc(m.joinDate)+'</div></div>'+
         '<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+m.memberId+'\',\'Approved\')"><i class="fa-solid fa-check"></i> Approve</button>'+
         '<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenApprovalConfirmModal(\''+m.memberId+'\',\'Rejected\')"><i class="fa-solid fa-xmark"></i> Reject</button></div>';
-    }).join('') + (pending.length>5?'<div style="padding:10px 0;font-size:0.78rem;color:var(--text-faint)">…and '+(pending.length-5)+' more. <a href="#" onclick="admSwitchSection(\'approvals\');return false">View all →</a></div>':'');
+    }).join('') + (pending.length>5?'<div class="adm-pending-more">…and '+(pending.length-5)+' more. <a href="#" onclick="admSwitchSection(\'approvals\');return false">View all →</a></div>':'');
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -281,7 +281,7 @@
     // Sync thead checkbox column
     var thead = document.getElementById('admApprovalThead');
     if (thead) {
-      thead.innerHTML = (showCb ? '<th style="width:36px"><input type="checkbox" id="admSelectAllPending" onchange="admToggleSelectAllPending(this.checked)" title="Select all pending"></th>' : '')
+      thead.innerHTML = (showCb ? '<th class="adm-th-cb"><input type="checkbox" id="admSelectAllPending" onchange="admToggleSelectAllPending(this.checked)" title="Select all pending"></th>' : '')
         + '<th>Member ID</th><th>Display Name</th><th>Full Name</th><th>Email</th><th>Join Date</th><th>Status</th><th>Actions</th>';
     }
     if (!showCb) { admBulkSelectedIds = []; _admUpdateBulkBar(); }
@@ -321,10 +321,10 @@
         + '<td data-label="ID" class="adm-td-mono adm-col-mob">'+_esc(m.memberId)+'</td>'
         + '<td data-label="Name"><strong>'+_esc(m.displayName)+'</strong>' + mobileSub + '</td>'
         + '<td data-label="Full Name" class="adm-col-mob">'+_esc(m.fullName)+'</td>'
-        + '<td data-label="Email" class="adm-col-mob" style="font-size:0.78rem;color:var(--text-faint)">'+_esc(m.email)+'</td>'
-        + '<td data-label="Joined" class="adm-col-mob" style="white-space:nowrap">'+_esc(m.joinDate)+'</td>'
+        + '<td data-label="Email" class="adm-col-mob adm-td-faint adm-td-sm">'+_esc(m.email)+'</td>'
+        + '<td data-label="Joined" class="adm-col-mob adm-nowrap">'+_esc(m.joinDate)+'</td>'
         + '<td data-label="Status">'+pill+'</td>'
-        + '<td data-label="" style="white-space:nowrap">'+actions+'</td>'
+        + '<td data-label="" class="adm-nowrap">'+actions+'</td>'
         + '</tr>';
     }).join('');
   }
@@ -488,7 +488,7 @@
   function _admPopulateBadgeCategoryChips() {
     var container = document.getElementById('admAwardCategoryChips');
     if (!container || !admPayload) return;
-    var html = '<span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-faint);padding:6px 4px;white-space:nowrap">Type</span>';
+    var html = '<span class="adm-filter-row-label">Type</span>';
     html += '<button class="adm-filter-tab active" data-award-category="All" onclick="admSetAwardCategory(\'All\')">All Types</button>';
     ADM_BADGE_CATEGORIES.forEach(function(cat) {
       var hasBadges = (admPayload.badgeList||[]).some(function(b) { return b.badgeCategory === cat.value; });
@@ -650,21 +650,21 @@
       return '<tr>'
         + '<td class="adm-td-mono adm-col-mob">' + _esc(a.awardId) + '</td>'
         + '<td>'
-          + '<div style="display:flex;align-items:center;gap:8px">'
+          + '<div class="adm-award-badge-cell">'
             + thumb
             + '<div><strong>' + _esc(b.caption) + '</strong>'
-              + (catLabel ? '<br><span style="font-size:0.7rem;color:var(--text-faint)">' + _esc(catLabel) + '</span>' : '')
+              + (catLabel ? '<br><span class="adm-award-badge-cat">' + _esc(catLabel) + '</span>' : '')
             + '</div>'
           + '</div>'
         + '</td>'
         + '<td>'
           + _esc(m.displayName)
-          + '<br><span class="adm-td-mono" style="font-size:0.7rem">' + _esc(a.memberId) + '</span>'
+          + '<br><span class="adm-td-mono adm-award-member-id">' + _esc(a.memberId) + '</span>'
         + '</td>'
         + '<td class="adm-col-mob">' + aBy + '</td>'
-        + '<td style="white-space:nowrap">' + _esc(a.awardedDate) + '</td>'
+        + '<td class="adm-nowrap">' + _esc(a.awardedDate) + '</td>'
         + '<td>' + stPill + '</td>'
-        + '<td class="adm-col-mob" style="font-size:0.78rem;max-width:200px;white-space:normal;word-break:break-word;color:var(--text-muted)">' + _esc(a.notes || '—') + '</td>'
+        + '<td class="adm-col-mob adm-award-notes">' + _esc(a.notes || '—') + '</td>'
         + '<td>' + revBtn + '</td>'
         + '</tr>';
     }).join('');
@@ -886,7 +886,7 @@
       summaryGrid.innerHTML = cards.map(function(c) {
         return '<div class="adm-stat-card ' + c.cls + '">' +
           '<div class="adm-stat-icon"><i class="fa-solid ' + c.icon + '"></i></div>' +
-          '<div class="adm-stat-value" style="font-size:1.3rem">' + _esc(String(c.value)) + '</div>' +
+          '<div class="adm-stat-value adm-stat-value--sm">' + _esc(String(c.value)) + '</div>' +
           '<div class="adm-stat-label">' + _esc(c.label) + '</div>' +
         '</div>';
       }).join('');
@@ -1077,15 +1077,22 @@
       var dot = isActive ? '<span class="adm-live-dot"></span>' : '';
       /* Mobile: Country, Pages, Books, Joined are hidden (adm-col-mob).
          data-label attrs are kept for card-view CSS (main branch feature). */
+      var memberSub = '<div class="adm-ann-title-sub">'
+        + (m.country ? '<span>' + _esc(m.country) + '</span><span style="opacity:0.4">·</span>' : '')
+        + '<span>' + _numFmt(m.totalPages) + ' p</span>'
+        + '<span style="opacity:0.4">·</span>'
+        + '<span>' + m.totalBooks + ' bk</span>'
+        + (m.joinDate ? '<span style="opacity:0.4">·</span><span>' + _esc(m.joinDate) + '</span>' : '')
+        + '</div>';
       return '<tr>'
         + '<td data-label="Rank"><span class="adm-rank '+rcls+'">'+rank+'</span></td>'
-        + '<td data-label="Member"><div style="font-weight:700">'+dot+_esc(m.displayName)+'</div><div class="adm-td-mono" style="font-size:0.7rem">'+_esc(m.memberId)+'</div></td>'
-        + '<td data-label="Country" class="adm-col-mob" style="font-size:0.78rem;color:var(--text-muted)">'+_esc(m.country||'—')+'</td>'
+        + '<td data-label="Member"><div class="adm-member-name">'+dot+_esc(m.displayName)+'</div><div class="adm-td-mono">'+_esc(m.memberId)+'</div>' + memberSub + '</td>'
+        + '<td data-label="Country" class="adm-col-mob adm-td-muted adm-td-sm">'+_esc(m.country||'—')+'</td>'
         + '<td data-label="CP"><strong>'+_numFmt(m.totalCp)+'</strong></td>'
         + '<td data-label="Pages" class="adm-col-mob">'+_numFmt(m.totalPages)+'</td>'
         + '<td data-label="Books" class="adm-col-mob">'+m.totalBooks+'</td>'
-        + '<td data-label="Joined" class="adm-col-mob" style="font-size:0.78rem;white-space:nowrap">'+_esc(m.joinDate)+'</td>'
-        + '<td data-label="Last Active" style="font-size:0.78rem;white-space:nowrap;color:var(--text-faint)">'+(m.lastAccessed||'—')+'</td>'
+        + '<td data-label="Joined" class="adm-col-mob adm-td-sm adm-nowrap">'+_esc(m.joinDate)+'</td>'
+        + '<td data-label="Last Active" class="adm-td-sm adm-nowrap adm-td-faint">'+(m.lastAccessed||'—')+'</td>'
         + '<td data-label="Status">'+_approvalPill(m.approvalStatus)+'</td>'
         + '</tr>';
     }).join('');
@@ -1167,16 +1174,16 @@
 
     if (activeTbody) {
       if (active.length === 0) {
-        activeTbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-bullhorn"></i><p>No active announcements.</p><button class="adm-btn adm-btn-accent" onclick="admSwitchAnnSubTab(\'compose\')" style="margin-top:12px"><i class="fa-solid fa-plus"></i> New Announcement</button></div></td></tr>';
+        activeTbody.innerHTML = '<tr><td colspan="7"><div class="adm-empty"><i class="fa-solid fa-bullhorn"></i><p>No active announcements.</p><button class="adm-btn adm-btn-accent adm-mt-12" onclick="admSwitchAnnSubTab(\'compose\')"><i class="fa-solid fa-plus"></i> New Announcement</button></div></td></tr>';
       } else {
         activeTbody.innerHTML = active.map(function (a) {
           var isWhatsNew = a.announcementType === 'WHATS_NEW';
           var typeLabel  = isWhatsNew ? '✦ What\'s New' : '📣 Club Notice';
           var audience   = a.targetMemberIds
             ? _admAnnAudienceLabel(a.targetMemberIds)
-            : '<span style="color:var(--text-faint)">All members</span>';
-          var pinIconCls = a.isPinned ? 'fa-solid fa-thumbtack' : 'fa-solid fa-thumbtack';
-          var pinStyle   = a.isPinned ? 'color:var(--arka-accent)' : 'opacity:0.25';
+            : '<span class="adm-td-faint">All members</span>';
+          var pinIconCls = 'fa-solid fa-thumbtack';
+          var pinCls     = a.isPinned ? 'adm-pin-active' : 'adm-pin-inactive';
           var pinTitle   = a.isPinned ? 'Pinned' : 'Not pinned';
           var expiryHtml = a.expiryDate
             ? _esc(a.expiryDate)
@@ -1186,22 +1193,22 @@
           // Mobile sub-line shown inside the Title cell below the title text
           var mobileSub  = '<div class="adm-ann-title-sub">'
             + '<span>' + typeLabel + '</span>'
-            + (a.isPinned ? '<i class="fa-solid fa-thumbtack" style="color:var(--arka-accent);font-size:0.7rem" title="Pinned"></i>' : '')
+            + (a.isPinned ? '<i class="fa-solid fa-thumbtack adm-pin-sub" title="Pinned"></i>' : '')
             + (a.expiryDate ? '<span>Expires ' + _esc(a.expiryDate) + '</span>' : '')
             + '</div>';
 
           var editBtn = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
-          var pinBtn  = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admToggleAnnPinRow(\'' + _esc(a.announcementId) + '\',' + (!a.isPinned) + ')" title="' + (a.isPinned ? 'Unpin' : 'Pin to top') + '" style="margin-left:4px"><i class="fa-solid fa-thumbtack" style="' + pinStyle + '"></i></button>';
-          var archBtn = '<button class="adm-btn adm-btn-danger adm-btn-icon" onclick="admOpenAnnArchiveModal(\'' + _esc(a.announcementId) + '\')" title="Archive" style="margin-left:4px"><i class="fa-solid fa-box-archive"></i></button>';
+          var pinBtn  = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admToggleAnnPinRow(\'' + _esc(a.announcementId) + '\',' + (!a.isPinned) + ')" title="' + (a.isPinned ? 'Unpin' : 'Pin to top') + '"><i class="fa-solid fa-thumbtack ' + pinCls + '"></i></button>';
+          var archBtn = '<button class="adm-btn adm-btn-danger adm-btn-icon" onclick="admOpenAnnArchiveModal(\'' + _esc(a.announcementId) + '\')" title="Archive"><i class="fa-solid fa-box-archive"></i></button>';
 
           return '<tr>'
-            + '<td style="white-space:normal;font-weight:600;font-size:0.85rem">' + _esc(a.title) + mobileSub + '</td>'
-            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
-            + '<td style="font-size:0.82rem">' + audience + '</td>'
-            + '<td class="adm-col-meta" style="text-align:center"><i class="' + pinIconCls + '" style="' + pinStyle + '" title="' + pinTitle + '"></i></td>'
-            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + expiryHtml + '</td>'
-            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
-            + '<td style="white-space:nowrap">' + editBtn + pinBtn + archBtn + '</td>'
+            + '<td class="adm-ann-title-cell">' + _esc(a.title) + mobileSub + '</td>'
+            + '<td class="adm-col-meta adm-td-sm adm-nowrap">' + typeLabel + '</td>'
+            + '<td class="adm-ann-audience-cell">' + audience + '</td>'
+            + '<td class="adm-col-meta adm-td-center"><i class="' + pinIconCls + ' ' + pinCls + '" title="' + pinTitle + '"></i></td>'
+            + '<td class="adm-col-meta adm-td-sm adm-nowrap">' + expiryHtml + '</td>'
+            + '<td class="adm-col-meta adm-td-sm adm-nowrap">' + _esc(created) + '</td>'
+            + '<td class="adm-nowrap">' + editBtn + pinBtn + archBtn + '</td>'
             + '</tr>';
         }).join('');
       }
@@ -1213,19 +1220,19 @@
       } else {
         archivedTbody.innerHTML = archived.map(function (a) {
           var typeLabel  = a.announcementType === 'WHATS_NEW' ? '✦ What\'s New' : '📣 Club Notice';
-          var audience   = a.targetMemberIds ? _admAnnAudienceLabel(a.targetMemberIds) : '<span style="color:var(--text-faint)">All members</span>';
+          var audience   = a.targetMemberIds ? _admAnnAudienceLabel(a.targetMemberIds) : '<span class="adm-td-faint">All members</span>';
           var expiryHtml = a.expiryDate
             ? _esc(a.expiryDate)
-            : '<span style="color:var(--text-faint)">—</span>';
+            : '<span class="adm-td-faint">—</span>';
           var created    = (a.createdOn || '').substring(0, 10);
           var mobileSub  = '<div class="adm-ann-title-sub"><span>' + typeLabel + '</span></div>';
           var editBtn    = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
           return '<tr>'
-            + '<td style="white-space:normal;font-weight:600;font-size:0.85rem;opacity:0.65">' + _esc(a.title) + mobileSub + '</td>'
-            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + typeLabel + '</td>'
-            + '<td style="font-size:0.82rem">' + audience + '</td>'
-            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + expiryHtml + '</td>'
-            + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + _esc(created) + '</td>'
+            + '<td class="adm-ann-title-cell adm-ann-title-cell--archived">' + _esc(a.title) + mobileSub + '</td>'
+            + '<td class="adm-col-meta adm-td-sm adm-nowrap">' + typeLabel + '</td>'
+            + '<td class="adm-ann-audience-cell">' + audience + '</td>'
+            + '<td class="adm-col-meta adm-td-sm adm-nowrap">' + expiryHtml + '</td>'
+            + '<td class="adm-col-meta adm-td-sm adm-nowrap">' + _esc(created) + '</td>'
             + '<td>' + editBtn + '</td>'
             + '</tr>';
         }).join('');
@@ -1234,7 +1241,7 @@
   }
 
   function _admAnnAudienceLabel(targetMemberIds) {
-    if (!targetMemberIds) return '<span style="color:var(--text-faint)">All members</span>';
+    if (!targetMemberIds) return '<span class="adm-td-faint">All members</span>';
     var ids   = targetMemberIds.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
     var names = ids.map(function (id) {
       var m = admMemberMap[id];
@@ -1593,7 +1600,7 @@
     if (!tbody) return;
 
     if (admEventsDB.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-calendar-days"></i><p>No events yet.</p><button class="adm-btn adm-btn-accent" onclick="admSwitchEvtSubTab(\'compose\')" style="margin-top:12px"><i class="fa-solid fa-plus"></i> New Event</button></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-calendar-days"></i><p>No events yet.</p><button class="adm-btn adm-btn-accent adm-mt-12" onclick="admSwitchEvtSubTab(\'compose\')"><i class="fa-solid fa-plus"></i> New Event</button></div></td></tr>';
       return;
     }
 
@@ -1617,17 +1624,17 @@
       var editBtn = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenEvtEdit(\'' + _esc(ev.eventId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
       var actionBtns = editBtn;
       if (ev.status === 'Active') {
-        actionBtns += ' <button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenEvtStatusModal(\'' + _esc(ev.eventId) + '\',\'Completed\')" title="Mark Complete" style="margin-left:4px"><i class="fa-solid fa-circle-check"></i></button>'
-          + ' <button class="adm-btn adm-btn-danger adm-btn-icon" onclick="admOpenEvtStatusModal(\'' + _esc(ev.eventId) + '\',\'Cancelled\')" title="Cancel Event" style="margin-left:4px"><i class="fa-solid fa-ban"></i></button>';
+        actionBtns += ' <button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenEvtStatusModal(\'' + _esc(ev.eventId) + '\',\'Completed\')" title="Mark Complete"><i class="fa-solid fa-circle-check"></i></button>'
+          + ' <button class="adm-btn adm-btn-danger adm-btn-icon" onclick="admOpenEvtStatusModal(\'' + _esc(ev.eventId) + '\',\'Cancelled\')" title="Cancel Event"><i class="fa-solid fa-ban"></i></button>';
       }
 
       return '<tr>'
-        + '<td style="white-space:normal;font-weight:600;font-size:0.85rem">' + _esc(ev.title) + mobileSub + '</td>'
-        + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + _esc(ev.eventType) + '</td>'
-        + '<td class="adm-col-meta" style="font-size:0.82rem">' + _esc(hostName) + '</td>'
-        + '<td class="adm-col-meta" style="font-size:0.82rem;white-space:nowrap">' + _esc(startStr) + '</td>'
-        + '<td style="white-space:nowrap">' + _admEvtStatusBadge(ev.status) + '</td>'
-        + '<td style="white-space:nowrap">' + actionBtns + '</td>'
+        + '<td class="adm-ann-title-cell">' + _esc(ev.title) + mobileSub + '</td>'
+        + '<td class="adm-col-meta adm-td-sm adm-nowrap">' + _esc(ev.eventType) + '</td>'
+        + '<td class="adm-col-meta adm-td-sm">' + _esc(hostName) + '</td>'
+        + '<td class="adm-col-meta adm-td-sm adm-nowrap">' + _esc(startStr) + '</td>'
+        + '<td class="adm-nowrap">' + _admEvtStatusBadge(ev.status) + '</td>'
+        + '<td class="adm-nowrap">' + actionBtns + '</td>'
         + '</tr>';
     }).join('');
   }
@@ -1943,11 +1950,11 @@
       return '<tr>'
         + '<td>' + name + '</td>'
         + '<td><span class="adm-pill">' + _esc(p.postType) + '</span></td>'
-        + '<td style="max-width:260px;white-space:normal;font-size:0.82rem;color:var(--text-body)">'
+        + '<td class="adm-post-excerpt">'
           + excerpt + mobileSub
         + '</td>'
-        + '<td class="adm-col-mob" style="white-space:nowrap;font-size:0.82rem">' + _esc(datePart) + '</td>'
-        + '<td class="adm-col-mob" style="text-align:center">' + (p.likeCount || 0) + '</td>'
+        + '<td class="adm-col-mob adm-td-sm adm-nowrap">' + _esc(datePart) + '</td>'
+        + '<td class="adm-col-mob adm-td-center">' + (p.likeCount || 0) + '</td>'
         + '<td><button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenPostDeleteModal(\'' + _esc(p.postId) + '\')">'
         + '<i class="fa-solid fa-trash"></i></button></td>'
         + '</tr>';
@@ -2117,8 +2124,12 @@
       var scheduled = e.scheduledDate ? _esc(e.scheduledDate).substring(0, 16) : '—';
       var sentAt    = e.sentAt        ? _esc(e.sentAt).substring(0, 16)        : '—';
       var clicked   = e.clickedAt     ? _esc(e.clickedAt).substring(0, 16)     : '—';
+      var eqSub = '<div class="adm-ann-title-sub">'
+        + '<span>' + _esc(e.emailType) + '</span>'
+        + (scheduled !== '—' ? '<span style="opacity:0.4">·</span><span>' + scheduled + '</span>' : '')
+        + '</div>';
       return '<tr>'
-        + '<td data-label="Member"><strong>' + _esc(e.displayName) + '</strong><div class="adm-td-mono" style="font-size:0.7rem;color:var(--text-faint)">' + _esc(e.memberId) + '</div></td>'
+        + '<td data-label="Member"><strong>' + _esc(e.displayName) + '</strong><div class="adm-td-mono">' + _esc(e.memberId) + '</div>' + eqSub + '</td>'
         + '<td data-label="Type" class="adm-col-meta" style="font-size:0.78rem">' + _esc(e.emailType) + '</td>'
         + '<td data-label="Scheduled" class="adm-col-meta" style="font-size:0.78rem;white-space:nowrap">' + scheduled + '</td>'
         + '<td data-label="Status">' + badge + '</td>'
@@ -2156,28 +2167,62 @@
      ══════════════════════════════════════════════════════════════════ */
 
   var ADM_CHAL_TYPE_LABELS = {
-    HABIT_STREAK  : '📅 Habit Streak',
     BINGO_GRID    : '🎲 Bingo Grid',
-    BUDDY_READ    : '📖 Buddy Read',
-    COUNTRY_SPREAD: '🌍 Around the World',
-    ALPHABET      : '🔤 Alphabet',
     BOOK_COUNT    : '📚 Book Count',
-    PAGE_COUNT    : '📄 Page Count'
+    PAGE_COUNT    : '📄 Page Count',
+    '10PAGESADAY' : '🔥 10 Pages a Day',
+    BOOK_HUNT     : '🔍 Book Hunt'
   };
 
+  // Full canonical genre list (mirrors app.js CANONICAL_GENRE_LIST)
+  var ADM_BINGO_CANONICAL_GENRES = [
+    'Fiction','Fantasy','Sci-Fi','Crime & Suspense','Non-Fiction',
+    'Self-Help','Philosophy','Psychology','Classics','Religious',
+    'Horror','Business','Poetry','Romance','LGBTQ+',
+    'Memoir','Young Adult','Politics','Comics','Humour','History'
+  ];
+
+  // All alias terms flattened (for NON_CANONICAL suggestions)
+  var ADM_BINGO_GENRE_ALIASES = (function() {
+    var map = {
+      'Fiction'         : ['literary fiction','general fiction','contemporary fiction',"women's fiction",'short stories','historical fiction'],
+      'Fantasy'         : ['epic fantasy','urban fantasy','dark fantasy','high fantasy','magical realism','mythology','fairy tale'],
+      'Sci-Fi'          : ['science fiction','scifi','speculative fiction','hard science fiction','dystopian','cyberpunk','steampunk','space opera'],
+      'Crime & Suspense': ['crime','thriller','mystery','suspense','detective','noir','psychological thriller','legal thriller','cozy mystery'],
+      'Non-Fiction'     : ['nonfiction','narrative nonfiction','general non-fiction','social science','journalism','travel','nature writing'],
+      'Self-Help'       : ['self help','personal development','personal growth','productivity','motivation','wellness','mindfulness'],
+      'Philosophy'      : ['ethics','metaphysics','political philosophy','critical theory'],
+      'Psychology'      : ['behavioral science','cognitive science','neuroscience','social psychology','psychiatry'],
+      'Classics'        : ['classic literature','literary classics','classic fiction'],
+      'Religious'       : ['spirituality','religion','faith','theology','spiritual','devotional'],
+      'Horror'          : ['gothic','supernatural fiction','gothic fiction','paranormal','occult','ghost story','cosmic horror'],
+      'Business'        : ['leadership','management','economics','finance','entrepreneurship','strategy','investing'],
+      'Poetry'          : ['poems','verse','poetic','spoken word'],
+      'Romance'         : ['contemporary romance','historical romance','paranormal romance','romantic comedy'],
+      'LGBTQ+'          : ['queer fiction','queer literature','gay fiction','lesbian fiction'],
+      'Memoir'          : ['autobiography','biography','personal essay','creative nonfiction','true story'],
+      'Young Adult'     : ['ya','ya fiction','young adult fiction','coming of age','teen fiction'],
+      'Politics'        : ['political biography','political nonfiction','current affairs','history & politics'],
+      'Comics'          : ['graphic novel','graphic memoir','manga','comic book'],
+      'Humour'          : ['humor','comedy','satire','parody','funny'],
+      'History'         : ['world history','ancient history','military history','cultural history','social history']
+    };
+    var all = [];
+    Object.keys(map).forEach(function(k) { all = all.concat(map[k]); });
+    return all;
+  })();
+
   var ADM_CHAL_POINT_DEFAULTS = {
-    HABIT_STREAK  : { enrol: 100, finish: 1500, win: 3000 },
     BINGO_GRID    : { enrol:  50, finish: 1000, win: 3000 },
-    BUDDY_READ    : { enrol:  30, finish:  200, win:    0 },
-    COUNTRY_SPREAD: { enrol: 100, finish: 1500, win: 3000 },
-    ALPHABET      : { enrol: 100, finish: 1500, win: 5000 },
     BOOK_COUNT    : { enrol:  30, finish:  100, win:    0 },
-    PAGE_COUNT    : { enrol:  30, finish:  100, win:    0 }
+    PAGE_COUNT    : { enrol:  30, finish:  100, win:    0 },
+    '10PAGESADAY' : { enrol: 100, finish: 1000, win: 3000 },
+    BOOK_HUNT     : { enrol:  50, finish:  750, win: 2000 }
   };
 
   function admLoadChallenges() {
-    var tbody = document.getElementById('admChalTbody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="8"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr>';
+    var list = document.getElementById('admChalList');
+    if (list) list.innerHTML = '<div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div>';
     google.script.run
       .withSuccessHandler(function(res) {
         if (res.status !== 'success') {
@@ -2207,7 +2252,12 @@
     var formBtn = document.getElementById('admChalSubTabForm');
     if (listBtn) listBtn.classList.toggle('active', tab === 'list');
     if (formBtn) formBtn.classList.toggle('active', tab === 'form');
-    if (tab === 'list') admRenderChallengeList();
+    if (tab === 'list') {
+      admRenderChallengeList();
+      admChalEditingId = null;
+    } else if (tab === 'form') {
+      if (!admChalEditingId) admOpenChalEdit(null);
+    }
   }
 
   function admSwitchChalStatusFilter(status) {
@@ -2219,40 +2269,50 @@
   }
 
   function admRenderChallengeList() {
-    var tbody = document.getElementById('admChalTbody');
-    if (!tbody) return;
+    var container = document.getElementById('admChalList');
+    if (!container) return;
+    var statusOrder = { Active: 0, Upcoming: 1, Completed: 2, Archived: 3 };
     var list = admChallengeDB.filter(function(c) {
       return admChalStatusFilter === 'All' || c.status === admChalStatusFilter;
+    }).sort(function(a, b) {
+      if (!!a.isPinned !== !!b.isPinned) return a.isPinned ? -1 : 1;
+      return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
     });
     if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="8"><div class="adm-empty"><i class="fa-solid fa-trophy"></i><p>No challenges match this filter.</p></div></td></tr>';
+      container.innerHTML = '<div class="adm-empty"><i class="fa-solid fa-trophy"></i><p>No challenges match this filter.</p></div>';
       return;
     }
-    tbody.innerHTML = list.map(function(c) {
-      var statusCls = 'adm-chal-pill adm-chal-pill-' + c.status.toLowerCase();
-      var statusPill = '<span class="' + statusCls + '">' + _esc(c.status) + '</span>';
+    container.innerHTML = list.map(function(c) {
       var typeRaw   = ADM_CHAL_TYPE_LABELS[c.challengeType] || c.challengeType;
       var typeShort = typeRaw.replace(/^\S+\s/, '');
-      var typeLabel = '<span class="chal-type-badge chal-type-' + _esc(c.challengeType) + '">' + _esc(typeShort) + '</span>';
-      var dates      = _esc(c.startDate) + (c.endDate ? ' → ' + _esc(c.endDate) : ' → open');
-      var goal       = c.goalValue ? (c.goalValue + ' ' + _esc(c.goalUnit)) : '—';
-      var pts        = c.enrollPoints + ' / ' + c.finishPoints + ' / ' + c.winPoints;
-      var pins       = c.isPinned ? ' <i class="fa-solid fa-thumbtack" style="color:var(--arka-accent);font-size:0.75rem;" title="Pinned"></i>' : '';
-      var editBtn    = '<button class="adm-btn adm-btn-light adm-btn-sm" onclick="admOpenChalEdit(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-pen-to-square"></i></button>';
-      var archBtn    = c.status !== 'Archived'
-        ? '<button class="adm-btn adm-btn-danger adm-btn-sm" style="margin-left:4px" onclick="admOpenChalArchiveModal(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-box-archive"></i></button>'
+      var typeBadge = '<span class="chal-type-badge chal-type-' + _esc(c.challengeType) + '">' + _esc(typeShort) + '</span>';
+      var dotCls    = 'adm-chal-dot adm-chal-dot-' + c.status.toLowerCase();
+      var statusMeta = '<span class="' + dotCls + '"></span> ' + _esc(c.status);
+      var dates = c.startDate ? _esc(c.startDate) + (c.endDate ? ' → ' + _esc(c.endDate) : ' → open') : '';
+      var enrolled = c.enrolledCount ? c.enrolledCount + ' enrolled' : '';
+      var goal = c.goalValue ? _esc(c.goalValue + ' ' + (c.goalUnit || '')) : '';
+      var metaParts = [statusMeta, dates, enrolled, goal].filter(Boolean);
+      var pinIcon = c.isPinned ? ' <i class="fa-solid fa-thumbtack" style="color:var(--arka-accent);font-size:0.65rem" title="Pinned"></i>' : '';
+      var seriesTag = c.seriesTag ? '<span style="font-size:0.68rem;color:var(--text-faint);font-weight:400"> · ' + _esc(c.seriesTag) + '</span>' : '';
+      var editBtn = '<button class="adm-btn adm-btn-light adm-btn-icon adm-btn-sm" title="Edit" onclick="admOpenChalEdit(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-pen-to-square"></i></button>';
+      var archBtn = c.status !== 'Archived'
+        ? '<button class="adm-btn adm-btn-danger adm-btn-icon adm-btn-sm" title="Archive" onclick="admOpenChalArchiveModal(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-box-archive"></i></button>'
         : '';
-      var rowCls = c.status === 'Archived' ? ' class="adm-chal-row-archived"' : (c.isPinned ? ' class="adm-chal-row-pinned"' : '');
-      return '<tr' + rowCls + '>'
-        + '<td><strong>' + _esc(c.title) + '</strong>' + pins + (c.seriesTag ? '<br><span class="adm-td-mono" style="font-size:0.7rem;color:var(--text-faint)">' + _esc(c.seriesTag) + '</span>' : '') + '</td>'
-        + '<td class="adm-col-meta">' + typeLabel + '</td>'
-        + '<td class="adm-col-meta" style="white-space:nowrap;font-size:0.78rem">' + dates + '</td>'
-        + '<td>' + goal + '</td>'
-        + '<td style="text-align:center">' + c.enrolledCount + '</td>'
-        + '<td class="adm-col-meta adm-td-mono" style="font-size:0.78rem">' + pts + '</td>'
-        + '<td>' + statusPill + '</td>'
-        + '<td>' + editBtn + archBtn + '</td>'
-        + '</tr>';
+      var awardBadgesBtn = c.challengeType === '10PAGESADAY'
+        ? '<button class="adm-btn adm-btn-accent adm-btn-sm" title="Award year-end badges" onclick="admAward10PadBadges(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-medal"></i> Award Badges</button>'
+        : '';
+      var cardCls = 'adm-chal-card' + (c.isPinned ? ' is-pinned' : '') + (c.status === 'Archived' ? ' is-archived' : '');
+      return '<div class="' + cardCls + '">'
+        + '<div class="adm-chal-card-top">'
+        +   '<div class="adm-chal-card-type">' + typeBadge + '</div>'
+        +   '<div class="adm-chal-card-actions">' + editBtn + ' ' + archBtn + '</div>'
+        + '</div>'
+        + '<div class="adm-chal-card-title">' + _esc(c.title) + pinIcon + seriesTag + '</div>'
+        + '<div class="adm-chal-card-meta">'
+        +   metaParts.join('<span class="adm-chal-card-meta-sep"> · </span>')
+        + '</div>'
+        + (awardBadgesBtn ? '<div class="adm-mt-10">' + awardBadgesBtn + '</div>' : '')
+        + '</div>';
     }).join('');
   }
 
@@ -2276,10 +2336,11 @@
       _admSetVal('admChalEnrollPoints',    c.enrollPoints);
       _admSetVal('admChalFinishPoints',    c.finishPoints);
       _admSetVal('admChalWinPoints',       c.winPoints);
-      var pinTog  = document.getElementById('admChalPinToggle');
-      var compTog = document.getElementById('admChalCompetitiveToggle');
-      if (pinTog)  pinTog.classList.toggle('on',  !!c.isPinned);
-      if (compTog) compTog.classList.toggle('on', !!c.isCompetitive);
+      var pinTog = document.getElementById('admChalPinToggle');
+      if (pinTog) pinTog.classList.toggle('on', !!c.isPinned);
+      _admChalUpdateCompetitionModeOptions(c.challengeType);
+      var compSel = document.getElementById('admChalCompetitionMode');
+      if (compSel && c.competitionMode) compSel.value = c.competitionMode;
       _admChalShowTypeSection(c.challengeType);
       _admChalPrefillTypeFields(c);
     } else {
@@ -2291,10 +2352,9 @@
       _admSetVal('admChalEnrollPoints', 100);
       _admSetVal('admChalFinishPoints', 500);
       _admSetVal('admChalWinPoints', 1500);
-      var pinTog  = document.getElementById('admChalPinToggle');
-      var compTog = document.getElementById('admChalCompetitiveToggle');
-      if (pinTog)  pinTog.classList.remove('on');
-      if (compTog) compTog.classList.add('on');
+      var pinTog = document.getElementById('admChalPinToggle');
+      if (pinTog) pinTog.classList.remove('on');
+      _admChalUpdateCompetitionModeOptions('');
       document.querySelectorAll('.adm-chal-type-section').forEach(function(el) { el.classList.remove('visible'); });
     }
 
@@ -2312,10 +2372,21 @@
       _admSetVal('admChalFinishPoints', pts.finish);
       _admSetVal('admChalWinPoints',    pts.win);
     }
-    var nonComp = ['BOOK_COUNT', 'PAGE_COUNT'];
-    var compTog = document.getElementById('admChalCompetitiveToggle');
-    if (compTog) compTog.classList.toggle('on', nonComp.indexOf(type) === -1);
+    _admChalUpdateCompetitionModeOptions(type);
     if (type === 'BINGO_GRID') admChalRenderBingoBuilder();
+    if (type === 'BOOK_HUNT') admHuntRefreshClueCount();
+  }
+
+  function _admChalUpdateCompetitionModeOptions(type) {
+    var compSel = document.getElementById('admChalCompetitionMode');
+    if (!compSel) return;
+    // Rebuild option list based on what makes sense for this type
+    var isPersonal = (type === 'BOOK_COUNT' || type === 'PAGE_COUNT' || type === '10PAGESADAY');
+    compSel.innerHTML = isPersonal
+      ? '<option value="NONE">None – personal challenge, no leaderboard</option>'
+      : '<option value="NONE">None – no leaderboard</option>'
+        + '<option value="INDIVIDUAL">Individual – ranked leaderboard per member</option>';
+    compSel.value = isPersonal ? 'NONE' : 'INDIVIDUAL';
   }
 
   function _admChalShowTypeSection(type) {
@@ -2324,41 +2395,107 @@
     if (target) target.classList.add('visible');
   }
 
+  function admChalOnBingoVariantChange() {
+    var variant = (document.getElementById('admChalBingo-variant') || {}).value || 'BOOK_BINGO';
+    var row = document.getElementById('admChalBingo-trackingModeRow');
+    if (row) row.style.display = variant === 'GENRE_BINGO' ? '' : 'none';
+    admChalRenderBingoBuilder();
+  }
+
   function admChalRenderBingoBuilder() {
     var gridSize   = parseInt((document.getElementById('admChalBingo-gridSize') || {}).value) || 3;
+    var variant    = (document.getElementById('admChalBingo-variant') || {}).value || 'BOOK_BINGO';
     var totalCells = gridSize * gridSize;
     var centreIdx  = Math.floor(totalCells / 2);
     var container  = document.getElementById('admChalBingo-cellBuilder');
     if (!container) return;
     container.style.gridTemplateColumns = 'repeat(' + gridSize + ', 1fr)';
+    var isGenre     = variant === 'GENRE_BINGO';
+    var placeholder = isGenre              ? 'Type a genre…'
+                    : variant === 'AUTHOR_BINGO' ? 'Author prompt…'
+                    : 'Reading prompt…';
     var html = '';
     for (var i = 0; i < totalCells; i++) {
       var isFree = (totalCells % 2 !== 0) && (i === centreIdx);
-      html += '<div>';
+      html += '<div style="position:relative;">';
       html += '<div class="adm-bingo-cell-label">Cell ' + (i + 1) + (isFree ? ' (FREE)' : '') + '</div>';
       if (isFree) {
         html += '<input class="adm-bingo-cell-input is-free" id="admChalBingo-cell-' + i + '" value="FREE — any book you loved" readonly>';
+      } else if (isGenre) {
+        html += '<input class="adm-bingo-cell-input" id="admChalBingo-cell-' + i + '" placeholder="' + placeholder + '" autocomplete="off"'
+              + ' oninput="admBingoCellGenreSuggest(' + i + ',this.value)"'
+              + ' onblur="admBingoCellGenreHide(' + i + ')">';
+        html += '<div id="admBingoCellSug-' + i + '" class="genre-suggestion-box" style="position:absolute;z-index:200;width:100%;"></div>';
       } else {
-        html += '<input class="adm-bingo-cell-input" id="admChalBingo-cell-' + i + '" placeholder="Reading prompt…">';
+        html += '<input class="adm-bingo-cell-input" id="admChalBingo-cell-' + i + '" placeholder="' + placeholder + '">';
       }
       html += '</div>';
     }
     container.innerHTML = html;
   }
 
+  function admBingoCellGenreSuggest(idx, query) {
+    var box = document.getElementById('admBingoCellSug-' + idx);
+    if (!box) return;
+    var q = (query || '').trim().toLowerCase();
+    if (!q) { box.classList.remove('open'); return; }
+
+    var trackingMode = (document.getElementById('admChalBingo-trackingMode') || {}).value || 'CANONICAL';
+    var pool = ADM_BINGO_CANONICAL_GENRES.slice();
+    if (trackingMode === 'NON_CANONICAL') {
+      pool = pool.concat(ADM_BINGO_GENRE_ALIASES);
+    }
+
+    var matches = pool.filter(function(g) {
+      return g.toLowerCase().indexOf(q) !== -1;
+    }).slice(0, 8);
+
+    if (!matches.length) { box.classList.remove('open'); return; }
+
+    box.innerHTML = matches.map(function(g) {
+      var lc  = g.toLowerCase();
+      var idx2 = lc.indexOf(q);
+      var hi  = idx2 === -1 ? _escAdm(g)
+        : _escAdm(g.slice(0, idx2))
+          + '<span class="genre-suggestion-highlight">' + _escAdm(g.slice(idx2, idx2 + q.length)) + '</span>'
+          + _escAdm(g.slice(idx2 + q.length));
+      return '<div class="genre-suggestion-option" role="button" tabindex="0" onmousedown="event.preventDefault()"'
+           + ' onclick="admBingoCellGenreSelect(' + idx + ',\'' + g.replace(/'/g, "\\'") + '\')">' + hi + '</div>';
+    }).join('');
+    box.classList.add('open');
+  }
+
+  function admBingoCellGenreSelect(idx, genre) {
+    var inp = document.getElementById('admChalBingo-cell-' + idx);
+    if (inp) inp.value = genre;
+    var box = document.getElementById('admBingoCellSug-' + idx);
+    if (box) box.classList.remove('open');
+    admBingoCellGenreHide(idx);
+  }
+
+  function admBingoCellGenreHide(idx) {
+    setTimeout(function() {
+      var box = document.getElementById('admBingoCellSug-' + idx);
+      if (box) box.classList.remove('open');
+    }, 180);
+  }
+
+  function _escAdm(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   function _admChalPrefillTypeFields(c) {
     var config = {};
     try { config = JSON.parse(c.goalConfigJson || '{}'); } catch (e) { config = {}; }
     var t = c.challengeType;
-    if (t === 'HABIT_STREAK') {
-      _admSetVal('admChalStreak-minPages', config.minPagesPerDay || 10);
-      var tog = document.getElementById('admChalStreak-resetToggle');
-      if (tog) tog.classList.toggle('on', config.streakResetOnMiss !== false);
-    }
     if (t === 'BINGO_GRID') {
-      _admSetVal('admChalBingo-gridSize',         config.gridSize       || 3);
+      _admSetVal('admChalBingo-variant',           config.variant        || 'BOOK_BINGO');
+      _admSetVal('admChalBingo-gridSize',          config.gridSize       || 3);
       _admSetVal('admChalBingo-winCondition',      config.winCondition   || 'ALL_CELLS');
       _admSetVal('admChalBingo-finisherCondition', config.finisherCondition || 'ANY_LINE');
+      var tmRow = document.getElementById('admChalBingo-trackingModeRow');
+      if (tmRow) tmRow.style.display = (config.variant === 'GENRE_BINGO') ? '' : 'none';
+      if (config.trackingMode) _admSetVal('admChalBingo-trackingMode', config.trackingMode);
       admChalRenderBingoBuilder();
       if (config.cells && Array.isArray(config.cells)) {
         config.cells.forEach(function(cell, idx) {
@@ -2366,21 +2503,6 @@
           if (input && !input.readOnly) input.value = cell.prompt || '';
         });
       }
-    }
-    if (t === 'BUDDY_READ') {
-      _admSetVal('admChalBuddy-bookTitle', config.bookTitle || '');
-      var evtEl = document.getElementById('admChalBuddy-linkedEvent');
-      if (evtEl && config.linkedEventId) evtEl.value = config.linkedEventId;
-    }
-    if (t === 'COUNTRY_SPREAD') {
-      _admSetVal('admChalCountry-goalValue', c.goalValue || 10);
-      _admSetVal('admChalCountry-qualRule',  config.qualificationRule || 'BOOK_SETTING_OR_AUTHOR');
-    }
-    if (t === 'ALPHABET') {
-      _admSetVal('admChalAlpha-matchRule',       config.matchRule || 'TITLE_FIRST_WORD');
-      _admSetVal('admChalAlpha-optionalLetters', (config.optionalLetters || ['Q','X','Z']).join(', '));
-      var skipTog = document.getElementById('admChalAlpha-skipToggle');
-      if (skipTog) skipTog.classList.toggle('on', config.skipArticles !== false);
     }
     if (t === 'BOOK_COUNT') {
       _admSetVal('admChalBookCount-default', config.defaultGoal || 24);
@@ -2392,23 +2514,30 @@
       var tog = document.getElementById('admChalPageCount-personalToggle');
       if (tog) tog.classList.toggle('on', config.allowPersonalGoal !== false);
     }
+    if (t === '10PAGESADAY') {
+      _admSetVal('admChal10pad-year',            config.year            || new Date().getFullYear());
+      _admSetVal('admChal10pad-dailyGoal',       config.dailyGoal       || 10);
+      _admSetVal('admChal10pad-challengerBadge', config.challengerBadge || '');
+      _admSetVal('admChal10pad-finisherBadge',   config.finisherBadge   || '');
+      _admSetVal('admChal10pad-winnerBadge',     config.winnerBadge     || '');
+    }
+    if (t === 'BOOK_HUNT') {
+      _admSetVal('admChalHunt-finisherThreshold', config.finisherThreshold || 15);
+      _admSetVal('admChalHunt-challengerBadge',   config.challengerBadge || '');
+      _admSetVal('admChalHunt-finisherBadge',     config.finisherBadge   || '');
+      _admSetVal('admChalHunt-winnerBadge',       config.winnerBadge     || '');
+      var multiTog = document.getElementById('admChalHunt-multiToggle');
+      if (multiTog) multiTog.classList.toggle('on', config.allowMultiClaim === false || config.allowMultiClaim === undefined);
+      admHuntLoadClues(config.clues || []);
+    }
   }
 
   function _admChalBuildGoalConfig(type) {
     var config = {}, goalValue = 0, goalUnit = '';
-    if (type === 'HABIT_STREAK') {
-      var minPages = parseInt((document.getElementById('admChalStreak-minPages') || {}).value) || 10;
-      goalValue = minPages; goalUnit = 'pages';
-      config = {
-        minPagesPerDay    : minPages,
-        streakResetOnMiss : (document.getElementById('admChalStreak-resetToggle') || {}).classList && document.getElementById('admChalStreak-resetToggle').classList.contains('on'),
-        countTowardsSource: ['ArkaClubApp']
-      };
-    }
     if (type === 'BINGO_GRID') {
+      var variant  = (document.getElementById('admChalBingo-variant') || {}).value || 'BOOK_BINGO';
       var gridSize = parseInt((document.getElementById('admChalBingo-gridSize') || {}).value) || 3;
       var total    = gridSize * gridSize;
-      var centre   = Math.floor(total / 2);
       var cells    = [];
       for (var i = 0; i < total; i++) {
         var inp = document.getElementById('admChalBingo-cell-' + i);
@@ -2416,31 +2545,15 @@
       }
       goalValue = total; goalUnit = 'cells';
       config = {
+        variant           : variant,
         gridSize          : gridSize,
         winCondition      : (document.getElementById('admChalBingo-winCondition') || {}).value || 'ALL_CELLS',
         finisherCondition : (document.getElementById('admChalBingo-finisherCondition') || {}).value || 'ANY_LINE',
         cells             : cells
       };
-    }
-    if (type === 'BUDDY_READ') {
-      var bookTitle = ((document.getElementById('admChalBuddy-bookTitle') || {}).value || '').trim();
-      var linkedEvt = ((document.getElementById('admChalBuddy-linkedEvent') || {}).value || '').trim();
-      goalValue = 1; goalUnit = 'book';
-      config = { bookTitle: bookTitle, linkedEventId: linkedEvt };
-    }
-    if (type === 'COUNTRY_SPREAD') {
-      goalValue = parseInt((document.getElementById('admChalCountry-goalValue') || {}).value) || 10;
-      goalUnit  = 'countries';
-      config    = { qualificationRule: (document.getElementById('admChalCountry-qualRule') || {}).value || 'BOOK_SETTING_OR_AUTHOR' };
-    }
-    if (type === 'ALPHABET') {
-      goalValue = 26; goalUnit = 'letters';
-      var optRaw = ((document.getElementById('admChalAlpha-optionalLetters') || {}).value || 'Q, X, Z');
-      config = {
-        matchRule      : (document.getElementById('admChalAlpha-matchRule') || {}).value || 'TITLE_FIRST_WORD',
-        skipArticles   : (document.getElementById('admChalAlpha-skipToggle') || {}).classList && document.getElementById('admChalAlpha-skipToggle').classList.contains('on'),
-        optionalLetters: optRaw.split(',').map(function(s) { return s.trim().toUpperCase(); }).filter(Boolean)
-      };
+      if (variant === 'GENRE_BINGO') {
+        config.trackingMode = (document.getElementById('admChalBingo-trackingMode') || {}).value || 'CANONICAL';
+      }
     }
     if (type === 'BOOK_COUNT') {
       goalValue = parseInt((document.getElementById('admChalBookCount-default') || {}).value) || 24;
@@ -2456,6 +2569,36 @@
       config    = {
         defaultGoal      : goalValue,
         allowPersonalGoal: (document.getElementById('admChalPageCount-personalToggle') || {}).classList && document.getElementById('admChalPageCount-personalToggle').classList.contains('on')
+      };
+    }
+    if (type === '10PAGESADAY') {
+      var year      = parseInt((document.getElementById('admChal10pad-year')            || {}).value) || new Date().getFullYear();
+      var dailyGoal = parseInt((document.getElementById('admChal10pad-dailyGoal')       || {}).value) || 10;
+      goalValue = dailyGoal * 365; goalUnit = 'pages';
+      config = {
+        year           : year,
+        dailyGoal      : dailyGoal,
+        challengerBadge: ((document.getElementById('admChal10pad-challengerBadge') || {}).value || '').trim(),
+        finisherBadge  : ((document.getElementById('admChal10pad-finisherBadge')   || {}).value || '').trim(),
+        winnerBadge    : ((document.getElementById('admChal10pad-winnerBadge')     || {}).value || '').trim()
+      };
+    }
+    if (type === 'BOOK_HUNT') {
+      var clues = admHuntReadClues();
+      var threshold = parseInt((document.getElementById('admChalHunt-finisherThreshold') || {}).value) || 1;
+      var multiTog  = document.getElementById('admChalHunt-multiToggle');
+      goalValue = clues.length; goalUnit = 'clues';
+      config = {
+        clues              : clues,
+        totalClues         : clues.length,
+        finisherCondition  : 'N_CLUES',
+        finisherThreshold  : Math.min(threshold, clues.length),
+        winCondition       : 'MOST_CLUES',
+        allowMultiClaim    : !(multiTog && multiTog.classList.contains('on')),
+        requireApproval    : false,
+        challengerBadge    : ((document.getElementById('admChalHunt-challengerBadge') || {}).value || '').trim(),
+        finisherBadge      : ((document.getElementById('admChalHunt-finisherBadge')   || {}).value || '').trim(),
+        winnerBadge        : ((document.getElementById('admChalHunt-winnerBadge')     || {}).value || '').trim()
       };
     }
     return { goalConfigJson: JSON.stringify(config), goalValue: goalValue, goalUnit: goalUnit };
@@ -2484,7 +2627,7 @@
       goalUnit      : goalCfg.goalUnit,
       goalConfigJson: goalCfg.goalConfigJson,
       status        : ((document.getElementById('admChalStatusSelect') || {}).value || 'Active'),
-      isCompetitive : !!(document.getElementById('admChalCompetitiveToggle') || {}).classList && document.getElementById('admChalCompetitiveToggle').classList.contains('on'),
+      competitionMode : ((document.getElementById('admChalCompetitionMode') || {}).value) || 'NONE',
       seriesTag     : ((document.getElementById('admChalSeriesTag') || {}).value || '').trim().toUpperCase(),
       isPinned      : !!(document.getElementById('admChalPinToggle') || {}).classList && document.getElementById('admChalPinToggle').classList.contains('on'),
       enrollPoints  : parseInt((document.getElementById('admChalEnrollPoints') || {}).value) || 0,
@@ -2559,6 +2702,124 @@
       })
       .withFailureHandler(function() { admShowToast('Server error archiving challenge.', 'err'); })
       .archiveChallenge(id);
+  }
+
+  /* ── BOOK_HUNT clue builder ──────────────────────────────────── */
+
+  function admHuntAddClueRow(order, prompt, hint) {
+    var tbody = document.getElementById('admChalHunt-clueBody');
+    if (!tbody) return;
+    var idx = tbody.rows.length + 1;
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td class="adm-td-center adm-td-faint" style="width:36px;">' + (order || idx) + '</td>'
+      + '<td><input type="text" class="adm-input adm-hunt-prompt" placeholder="e.g. A book with a color in the title" value="' + _esc(prompt || '') + '" oninput="admHuntRefreshClueCount()"></td>'
+      + '<td><input type="text" class="adm-input adm-hunt-hint" placeholder="Optional hint…" value="' + _esc(hint || '') + '"></td>'
+      + '<td><button type="button" class="adm-btn adm-btn-danger adm-btn-icon adm-btn-sm" onclick="admHuntDeleteRow(this)" title="Remove"><i class="fa-solid fa-trash"></i></button></td>';
+    tbody.appendChild(tr);
+    admHuntRefreshClueCount();
+  }
+
+  function admHuntDeleteRow(btn) {
+    var tr = btn.closest('tr');
+    if (tr) tr.remove();
+    admHuntRefreshNumbers();
+    admHuntRefreshClueCount();
+  }
+
+  function admHuntRefreshNumbers() {
+    var rows = document.querySelectorAll('#admChalHunt-clueBody tr');
+    rows.forEach(function(tr, i) {
+      var numCell = tr.cells[0];
+      if (numCell) numCell.textContent = i + 1;
+    });
+  }
+
+  function admHuntRefreshClueCount() {
+    var count = document.querySelectorAll('#admChalHunt-clueBody tr').length;
+    var hint  = document.getElementById('admChalHunt-clueCount');
+    if (hint) hint.textContent = count + ' clue' + (count !== 1 ? 's' : '') + ' defined';
+    var totalEl = document.getElementById('admChalHunt-totalClues');
+    if (totalEl) totalEl.value = count;
+  }
+
+  function admHuntLoadClues(clues) {
+    var tbody = document.getElementById('admChalHunt-clueBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    (clues || []).forEach(function(cl) {
+      admHuntAddClueRow(cl.order, cl.prompt, cl.hint);
+    });
+    admHuntRefreshClueCount();
+  }
+
+  function admHuntReadClues() {
+    var rows = document.querySelectorAll('#admChalHunt-clueBody tr');
+    var clues = [];
+    rows.forEach(function(tr, i) {
+      var prompt = (tr.querySelector('.adm-hunt-prompt') || {}).value || '';
+      var hint   = (tr.querySelector('.adm-hunt-hint')   || {}).value || '';
+      if (prompt.trim()) {
+        clues.push({ clueId: 'C' + (i + 1), order: i + 1, prompt: prompt.trim(), hint: hint.trim() });
+      }
+    });
+    return clues;
+  }
+
+  function admHuntImportCSV(inputEl) {
+    var file = inputEl.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var lines = (e.target.result || '').split(/\r?\n/).filter(function(l) { return l.trim(); });
+      // Skip header row if first cell looks like "Order" or "#"
+      var start = 0;
+      if (lines.length && /^(order|#|no\.?)/i.test(lines[0].split(',')[0].trim())) start = 1;
+      var tbody = document.getElementById('admChalHunt-clueBody');
+      if (tbody) tbody.innerHTML = '';
+      for (var i = start; i < lines.length; i++) {
+        var parts = _admCSVSplit(lines[i]);
+        var order  = parts[0] ? parseInt(parts[0]) || (i - start + 1) : (i - start + 1);
+        var prompt = parts[1] || '';
+        var hint   = parts[2] || '';
+        if (prompt.trim()) admHuntAddClueRow(order, prompt.trim(), hint.trim());
+      }
+      admHuntRefreshNumbers();
+      admHuntRefreshClueCount();
+      inputEl.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  function _admCSVSplit(line) {
+    var result = [], cur = '', inQuote = false;
+    for (var i = 0; i < line.length; i++) {
+      var ch = line[i];
+      if (ch === '"') { inQuote = !inQuote; }
+      else if (ch === ',' && !inQuote) { result.push(cur); cur = ''; }
+      else { cur += ch; }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  function admAward10PadBadges(challengeId) {
+    if (!challengeId) return;
+    var c = admChallengeDB.filter(function(x) { return x.challengeId === challengeId; })[0];
+    var title = c ? c.title : challengeId;
+    if (!confirm('Award year-end badges for "' + title + '"?\n\nThis will:\n• Award Challenger badge to all enrolled members\n• Award Finisher badge to members meeting the daily page goal\n• Award Winner (Page Turner) badge to the top member\n\nBadges already held are skipped automatically.')) return;
+    admShowToast('Computing standings and awarding badges…', 'ok');
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res.status !== 'success') {
+          admShowToast(res.message || 'Badge award failed.', 'err');
+          return;
+        }
+        admShowToast('Done! Challenger: ' + (res.challengerCount || 0)
+          + ' · Finisher: ' + (res.finisherCount || 0)
+          + ' · Winner: ' + (res.winnerCount || 0), 'ok');
+      })
+      .withFailureHandler(function(err) { admShowToast('Server error: ' + (err.message || 'unknown'), 'err'); })
+      .award10PagesADayBadges(challengeId);
   }
 
   /* date helpers — 'dd-MMM-yyyy' ↔ 'yyyy-MM-dd' (HTML date input format) */
@@ -2719,11 +2980,20 @@
   window.admSwitchChalStatusFilter  = admSwitchChalStatusFilter;
   window.admOpenChalEdit            = admOpenChalEdit;
   window.admChalTypeChange          = admChalTypeChange;
-  window.admChalRenderBingoBuilder  = admChalRenderBingoBuilder;
+  window.admChalRenderBingoBuilder      = admChalRenderBingoBuilder;
+  window.admChalOnBingoVariantChange    = admChalOnBingoVariantChange;
+  window.admBingoCellGenreSuggest       = admBingoCellGenreSuggest;
+  window.admBingoCellGenreSelect        = admBingoCellGenreSelect;
+  window.admBingoCellGenreHide          = admBingoCellGenreHide;
   window.admSubmitChallenge         = admSubmitChallenge;
   window.admOpenChalArchiveModal    = admOpenChalArchiveModal;
   window.admCloseChalArchiveModal   = admCloseChalArchiveModal;
   window.admConfirmChalArchive      = admConfirmChalArchive;
+  window.admAward10PadBadges        = admAward10PadBadges;
+  window.admHuntAddClueRow          = admHuntAddClueRow;
+  window.admHuntDeleteRow           = admHuntDeleteRow;
+  window.admHuntRefreshClueCount    = admHuntRefreshClueCount;
+  window.admHuntImportCSV           = admHuntImportCSV;
 
   /* ── Bootstrap ─────────────────────────────────────────────────── */
   window.addEventListener('DOMContentLoaded', admInit);
@@ -3212,16 +3482,8 @@
 
         var wBtn = document.getElementById('rptWeeklyBtn');
         var mBtn = document.getElementById('rptMonthlyBtn');
-        if (wBtn) {
-          wBtn.style.background   = mode === 'weekly' ? '#2c3e50' : '#ecf0f1';
-          wBtn.style.color        = mode === 'weekly' ? '#fff'    : '#2c3e50';
-          wBtn.style.borderColor  = mode === 'weekly' ? '#2c3e50' : '#ecf0f1';
-        }
-        if (mBtn) {
-          mBtn.style.background   = mode === 'monthly' ? '#2c3e50' : '#ecf0f1';
-          mBtn.style.color        = mode === 'monthly' ? '#fff'    : '#2c3e50';
-          mBtn.style.borderColor  = mode === 'monthly' ? '#2c3e50' : '#ecf0f1';
-        }
+        if (wBtn) wBtn.classList.toggle('active', mode === 'weekly');
+        if (mBtn) mBtn.classList.toggle('active', mode === 'monthly');
 
         _rptBuildAndRender();
       }

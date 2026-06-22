@@ -30,6 +30,7 @@ Full history lives here.
 | 2.3.0 | 2025 | Week-position context (`daysIntoWeek`, `projectedWeeklyPace`, `weeklyPagesTrend`) |
 | 2.4.0 | Jun 2026 | RSE V1 (`computeMemberReadingSpeed_`); `readingSpeed` written to Col O Stats JSON |
 | 2.5.0 | Jun 2026 | RSE V1 wired into `statSnapshot.memberReadingSpeed` for AI coach; `memberTotalClubPoints` bug fix |
+| 2.5.1 | Jun 2026 | BOOK_PACE_SLOWING + GENRE_PACE_MISMATCH insights switch to pages/day (RSE V1); session fallback retained |
 
 ---
 
@@ -44,6 +45,7 @@ Full history lives here.
 | 1.2.0 | 2025 | Layer 1 Persona DNA (`personaDNA`); archetype-aware coaching brief |
 | 1.3.0 | 2025 | Week-position blindness fix; projected weekly pace; 8-week trend in brief |
 | 1.4.0 | Jun 2026 | RSE V1 Layer 3 enrichment: daily pace (overall + recent), `moodMultiplier` mood label, genre pg/day alongside per-book velocity |
+| 1.4.1 | Jun 2026 | Per-book velocity note switches to pages/day (RSE V1) with session fallback |
 
 ---
 
@@ -86,6 +88,21 @@ Full history lives here.
 | 1.0.0 | pre-2025 | Initial HTML shell — GAS HtmlService entry point, stylesheet links, app.js script tag |
 | 1.1.0 | 2025 | Added styles.css versioned cache-bust param |
 | 1.2.0 | 2025 | styles.css cache-bust updated to `?v=1.2` |
+
+---
+
+## AkraAdminControlPanel.html / arkaadmin_styles.css / arkaadmin_app.js
+
+**Current: `v3.3`**
+
+| Version | Date | Summary |
+|---|---|---|
+| v3.0 | pre-Jun 2026 | Initial admin panel — all views, challenge types up to PAGE_COUNT |
+| v3.1 | pre-Jun 2026 | BINGO_GRID variants, genre tracking, CompetitionMode enum |
+| v3.2 | Jun 2026 | Phase 4 per-view polish — design tokens, CSS class purge, section icons, mobile sub-lines |
+| v3.3 | 2026-06-22 | Step 3: 10PAGESADAY challenge type — config form, year-end badge award admin action; legacy TenPagesADay files saved to repo |
+| v3.4 | 2026-06-22 | Step 4: BOOK_HUNT challenge type — clue builder, CSV bulk upload, badge IDs, GAS validTypes + progressState; CLAUDE.md updated with all challenge schemas |
+| v3.5 | 2026-06-22 | Remove discontinued challenge types: HABIT_STREAK, BUDDY_READ, COUNTRY_SPREAD, ALPHABET — from admin panel, app.js, GAS, and Claude.md |
 
 ---
 

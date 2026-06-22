@@ -4607,6 +4607,7 @@ function generateMemberCoachInsights_(
   // which may indicate low engagement, a genre/scale mismatch, or difficulty.
   // Also computes early vs. late velocity (split by session order) to detect
   // whether engagement is improving or declining within the same book.
+  // RSE V1 pages/day fields added alongside session fields for AI coach.
   var currentBooksVelocity = [];
   readingShelfRows.forEach(function(sr) {
     var bvSessions = memberLogs.filter(function(l) { return l.bookId === sr.bookId; });
@@ -4629,6 +4630,15 @@ function generateMemberCoachInsights_(
       bvLateAvg  = Math.round(bvLateTotal  / (bvSessions.length - bvHalf));
     }
 
+    // RSE V1 pages/day for this book — use date-span of logs on this book
+    var bvSessionsSorted = bvSessions.slice().sort(function(a, b) { return a.timestampMs - b.timestampMs; });
+    var bvFirstMs = bvSessionsSorted[0].timestampMs;
+    var bvLastMs  = bvSessionsSorted[bvSessionsSorted.length - 1].timestampMs;
+    var bvSpanDays = Math.max(1, (bvLastMs - bvFirstMs) / MS_PER_DAY);
+    var bvPagesPerDay = bvSessionsSorted.length >= 2
+      ? Math.round(bvTotalPages / bvSpanDays)
+      : null; // single session — span is meaningless, don't compute
+
     currentBooksVelocity.push({
       bookId                          : sr.bookId,
       title                           : bvMeta ? bvMeta.title : sr.bookId,
@@ -4643,7 +4653,9 @@ function generateMemberCoachInsights_(
       memberOverallAvgPagesPerSession : overallAvgPagesPerSession,
       paceRatio                       : bvPaceRatio,
       earlyPaceAvg                    : bvEarlyAvg,  // 0 if < 4 sessions on this book
-      latePaceAvg                     : bvLateAvg    // 0 if < 4 sessions on this book
+      latePaceAvg                     : bvLateAvg,   // 0 if < 4 sessions on this book
+      avgPagesPerDayThisBook          : bvPagesPerDay,                                   // RSE V1: null if only 1 session
+      memberOverallAvgPacePerDay      : memberReadingSpeed ? memberReadingSpeed.overallAvgPace : null // RSE V1
     });
   });
 
@@ -4851,13 +4863,26 @@ function generateMemberCoachInsights_(
           && b.paceRatio < 0.6;
     });
     if (slowBook) {
+      // Prefer RSE pages/day when both book-span and overall pace are available
+      var bpsUseDay = slowBook.avgPagesPerDayThisBook !== null
+                   && slowBook.memberOverallAvgPacePerDay !== null
+                   && slowBook.memberOverallAvgPacePerDay > 0;
+      var bpsSub;
+      if (bpsUseDay) {
+        var bpsDayRatio = Math.round((slowBook.avgPagesPerDayThisBook / slowBook.memberOverallAvgPacePerDay) * 100);
+        bpsSub = 'You\'re averaging ' + slowBook.avgPagesPerDayThisBook + ' pages/day on this book — about ' +
+                 bpsDayRatio + '% of your usual ' + Math.round(slowBook.memberOverallAvgPacePerDay) +
+                 ' pages/day. Worth asking if it\'s still the right read right now.';
+      } else {
+        bpsSub = 'You\'re averaging ' + slowBook.avgPagesPerSessionThisBook + ' pages/session on this book — about ' +
+                 Math.round(slowBook.paceRatio * 100) + '% of your usual rate. Worth asking if it\'s still the right read right now.';
+      }
       insights.push({
         type : 'BOOK_PACE_SLOWING',
         theme: 'amber',
         icon : '🐢',
         label: 'Your pace on "' + slowBook.title + '" has slowed',
-        sub  : 'You\'re averaging ' + slowBook.avgPagesPerSessionThisBook + ' pages/session on this book — about ' +
-               Math.round(slowBook.paceRatio * 100) + '% of your usual rate. Worth asking if it\'s still the right read right now.'
+        sub  : bpsSub
       });
     }
   }
@@ -4867,28 +4892,61 @@ function generateMemberCoachInsights_(
   // (< 70% of their overall average, with at least 3 sessions of genre history).
   // A complement to BOOK_PACE_SLOWING — this one names the genre as the root
   // cause rather than the individual book, giving more actionable context.
+  // GENRE_PACE_MISMATCH: prefer RSE V1 genrePace (pages/day); fall back to
+  // session-based genrePaceMap when RSE doesn't have that genre yet.
+  var gmpRseGenrePace    = (memberReadingSpeed && memberReadingSpeed.genrePace) || {};
+  var gmpRseOverallPace  = memberReadingSpeed ? memberReadingSpeed.overallAvgPace : 0;
+  var gmpHasRseOverall   = gmpRseOverallPace > 0;
+  var gmpHasSessionBase  = Object.keys(genrePaceMap).length > 0 && overallAvgPagesPerSession >= 10;
+
   if (currentBooksVelocity.length > 0
-      && Object.keys(genrePaceMap).length > 0
-      && overallAvgPagesPerSession >= 10
+      && (gmpHasRseOverall || gmpHasSessionBase)
       && insights.length < 4) {
     var genreMismatchFound = false;
     for (var gmpI = 0; gmpI < currentBooksVelocity.length && !genreMismatchFound; gmpI++) {
-      var gmpBook    = currentBooksVelocity[gmpI];
-      var gmpGenres  = resolveCanonicalGenres_(gmpBook.genre || '');
+      var gmpBook   = currentBooksVelocity[gmpI];
+      var gmpGenres = resolveCanonicalGenres_(gmpBook.genre || '');
       for (var gmpJ = 0; gmpJ < gmpGenres.length && !genreMismatchFound; gmpJ++) {
-        var gmpGenre         = gmpGenres[gmpJ];
-        var gmpHistoricPace  = genrePaceMap[gmpGenre];
-        if (!gmpHistoricPace) continue;
-        var gmpRatio = gmpHistoricPace / overallAvgPagesPerSession;
-        if (gmpRatio < 0.7) {
+        var gmpGenre = gmpGenres[gmpJ];
+        var gmpSub;
+
+        // Prefer RSE pages/day
+        if (gmpHasRseOverall && gmpRseGenrePace[gmpGenre]) {
+          var gmpGenrePaceDay = gmpRseGenrePace[gmpGenre].pace;
+          var gmpRatio = gmpGenrePaceDay / gmpRseOverallPace;
+          if (gmpRatio < 0.7) {
+            gmpSub = 'Historically you average ' + Math.round(gmpGenrePaceDay) + ' pages/day in ' + gmpGenre +
+                     ' vs your usual ' + Math.round(gmpRseOverallPace) + ' pages/day. "' + gmpBook.title +
+                     '" may take longer than you\'d expect.';
+          }
+        } else if (gmpHasSessionBase && genrePaceMap[gmpGenre]) {
+          // Fall back to session-based genrePaceMap.
+          // If RSE overall pace is available, convert session ratio → day equivalent
+          // so the sub-text stays in pages/day. Otherwise fall back to pages/session.
+          var gmpSessionPace = genrePaceMap[gmpGenre];
+          var gmpRatioSess   = gmpSessionPace / overallAvgPagesPerSession;
+          if (gmpRatioSess < 0.7) {
+            if (gmpHasRseOverall) {
+              // Scale RSE overall pace by the genre's session ratio to estimate genre pages/day
+              var gmpEstGenreDayPace = Math.round(gmpRseOverallPace * gmpRatioSess);
+              gmpSub = 'Historically you average ~' + gmpEstGenreDayPace + ' pages/day in ' + gmpGenre +
+                       ' vs your usual ' + Math.round(gmpRseOverallPace) + ' pages/day. "' + gmpBook.title +
+                       '" may take longer than you\'d expect.';
+            } else {
+              gmpSub = 'Historically you average ' + gmpSessionPace + ' pages/session in ' + gmpGenre +
+                       ' vs your usual ' + overallAvgPagesPerSession + ' pages/session. "' + gmpBook.title +
+                       '" may take longer than you\'d expect.';
+            }
+          }
+        }
+
+        if (gmpSub) {
           insights.push({
             type : 'GENRE_PACE_MISMATCH',
             theme: 'amber',
             icon : '📚',
             label: gmpGenre + ' tends to be slower reading for you',
-            sub  : 'Historically you average ' + gmpHistoricPace + ' pages/session in ' + gmpGenre +
-                   ' vs your usual ' + overallAvgPagesPerSession + '. "' + gmpBook.title +
-                   '" may take longer than you\'d expect.'
+            sub  : gmpSub
           });
           genreMismatchFound = true;
         }
@@ -5760,4 +5818,131 @@ function debugBadgePaceSignals() {
   console.log('  25 wk plogger→ ' + (25 * 7) + ' days (time-bound, pace irrelevant)');
 
   console.log('\n═══════════════════════════════════════════════════\n');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEV UTILITY — Run insights for a single member and log the result.
+// Set TEST_MEMBER_ID to your own member ID, then run this function from the
+// Apps Script editor. Output appears in the Execution Log (View → Logs).
+// Does NOT write anything to the sheet — read-only.
+// ─────────────────────────────────────────────────────────────────────────────
+function testInsightsForMe_() {
+  var TEST_MEMBER_ID = 'REPLACE_WITH_YOUR_MEMBER_ID'; // ← set this
+
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+  // Load all sheets needed by generateMemberCoachInsights_
+  var memData      = ss.getSheetByName(MEMBERS_SHEET_NAME).getDataRange().getValues();
+  var pageLogData  = ss.getSheetByName('PageLogDB').getDataRange().getValues();
+  var shelfData    = ss.getSheetByName('MemberShelfDB').getDataRange().getValues();
+  var libraryData  = ss.getSheetByName(LIBRARY_SHEET_NAME).getDataRange().getValues();
+  var challengeData   = ss.getSheetByName(CHALLENGE_SHEET_NAME).getDataRange().getValues();
+  var enrollmentSheet = ss.getSheetByName(CHALLENGE_ENROLLMENT_SHEET_NAME);
+  var enrollmentData  = enrollmentSheet ? enrollmentSheet.getDataRange().getValues() : [[]];
+  var badgeSheet      = ss.getSheetByName(BADGE_DB_SHEET_NAME);
+  var badgeAwardSheet = ss.getSheetByName(BADGE_AWARD_DB_SHEET_NAME);
+  var personaSheet    = ss.getSheetByName('PersonaProfileDB');
+  var levelSheet      = ss.getSheetByName('ClubPointLevelDB');
+
+  var badgeData    = badgeSheet      ? badgeSheet.getDataRange().getValues()      : [[]];
+  var badgeAwardData = badgeAwardSheet ? badgeAwardSheet.getDataRange().getValues() : [[]];
+  var personaData  = personaSheet    ? personaSheet.getDataRange().getValues()    : [[]];
+  var levelData    = levelSheet      ? levelSheet.getDataRange().getValues()      : [[]];
+
+  // Build levelRules
+  var levelRules = [];
+  for (var li = 1; li < levelData.length; li++) {
+    var lMax  = Number(levelData[li][0]) || 0;
+    var lName = (levelData[li][1] || '').toString().trim();
+    if (lName) levelRules.push({ maxClubPoints: lMax, levelName: lName });
+  }
+
+  // Build badgeTierMap
+  var badgeTierMap = buildBadgeTierMap_(badgeData);
+
+  // Build bookMetaMap
+  var insightBookMetaMap = {};
+  for (var ibm = 1; ibm < libraryData.length; ibm++) {
+    var ibmId = (libraryData[ibm][0] || '').toString();
+    if (ibmId) {
+      insightBookMetaMap[ibmId] = {
+        title        : (libraryData[ibm][1] || '').toString(),
+        pages        : Number(libraryData[ibm][4]) || 0,
+        genre        : (libraryData[ibm][3] || '').toString(),
+        addedBy      : (libraryData[ibm][5] || '').toString(),
+        coverImageURL: (libraryData[ibm][9] || '').toString()
+      };
+    }
+  }
+
+  // Build personaProfileMap
+  var personaProfileMap = {};
+  for (var ppj = 1; ppj < personaData.length; ppj++) {
+    var ppId = (personaData[ppj][0] || '').toString();
+    if (!ppId) continue;
+    var ppVerdicts = [];
+    try { ppVerdicts = JSON.parse((personaData[ppj][5] || '[]').toString()); } catch(e) {}
+    personaProfileMap[ppId] = {
+      archetypeName   : (personaData[ppj][2] || '').toString(),
+      archetypeTagline: (personaData[ppj][4] || '').toString(),
+      axisVerdicts    : ppVerdicts
+    };
+  }
+
+  // Find the member row
+  var memberRow = null;
+  for (var mi = 1; mi < memData.length; mi++) {
+    if ((memData[mi][0] || '').toString() === TEST_MEMBER_ID) { memberRow = memData[mi]; break; }
+  }
+  if (!memberRow) { console.log('Member not found: ' + TEST_MEMBER_ID); return; }
+
+  var displayName   = (memberRow[3]  || '').toString().trim();
+  var _statsObj_    = _parseStatsJson_(memberRow[14]);
+  var existingColS  = (memberRow[18] || '').toString();
+  var favGenres     = (memberRow[10] || '').toString();
+  var readingGoal   = (memberRow[11] || '').toString();
+  var shortBio      = (memberRow[6]  || '').toString();
+  var totalCP       = (_statsObj_.allTime || {}).arkaPoints || 0;
+  var rseProfile    = _statsObj_.readingSpeed || null;
+
+  console.log('Running insights for: ' + displayName + ' (' + TEST_MEMBER_ID + ')');
+  console.log('RSE profile: ' + JSON.stringify(rseProfile));
+
+  var result = generateMemberCoachInsights_(
+    TEST_MEMBER_ID, displayName,
+    pageLogData, shelfData, insightBookMetaMap,
+    challengeData, enrollmentData, badgeAwardData,
+    existingColS, favGenres, readingGoal, shortBio,
+    personaProfileMap[TEST_MEMBER_ID] || null,
+    badgeTierMap, totalCP, levelRules, rseProfile
+  );
+
+  var parsed = JSON.parse(result);
+
+  console.log('\n── currentBooksVelocity ──');
+  (parsed.statSnapshot.currentBooksVelocity || []).forEach(function(bv) {
+    console.log(bv.title + ':');
+    console.log('  pages/session: ' + bv.avgPagesPerSessionThisBook + ' (overall: ' + bv.memberOverallAvgPagesPerSession + ')');
+    console.log('  pages/day:     ' + bv.avgPagesPerDayThisBook     + ' (overall: ' + bv.memberOverallAvgPacePerDay + ')');
+  });
+
+  console.log('\n── Insights ──');
+  (parsed.insights || []).forEach(function(ins) {
+    console.log('[' + ins.type + '] ' + ins.label);
+    console.log('  ' + ins.sub);
+  });
+
+  console.log('\n── Full JSON (paste into jsonformatter.org) ──');
+  console.log(result);
+
+  // Write to Col S so testAIPassForMe_() picks up the fresh statSnapshot
+  var memSheet = ss.getSheetByName(MEMBERS_SHEET_NAME);
+  var allRows  = memSheet.getDataRange().getValues();
+  for (var wi = 1; wi < allRows.length; wi++) {
+    if ((allRows[wi][0] || '').toString() === TEST_MEMBER_ID) {
+      memSheet.getRange(wi + 1, 19).setValue(result); // Col S = column 19
+      console.log('\n✓ Written to Col S (row ' + (wi + 1) + ') — ready for testAIPassForMe_()');
+      break;
+    }
+  }
 }

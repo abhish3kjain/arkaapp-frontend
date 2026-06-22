@@ -31,6 +31,21 @@
       --color-challenge:     #534AB7;
       --color-announcements: #2980b9;
 
+      /* Extended palette — replaces all raw hex literals below */
+      --adm-challenge-bg:       #EEEDFE;
+      --adm-challenge-border:   #7F77DD;
+      --adm-challenge-text:     #534AB7;
+      --adm-ann-notice-bg:      #EAF4FD;
+      --adm-ann-notice-text:    #1565a8;
+      --adm-ann-new-bg:         #F3EDF7;
+      --adm-ann-new-text:       #6a3d85;
+      --adm-pill-approved-bg:   #e6f4ee;
+      --adm-pill-approved-text: #155c3e;
+      --adm-pill-pending-bg:    #fff4e0;
+      --adm-pill-pending-text:  #7c4a0e;
+      --adm-pill-rejected-bg:   #fce8e8;
+      --adm-pill-rejected-text: #8b1c1c;
+
       /* ── Mobile layout tokens ─────────────────────────────────────── */
       /* Height of the sticky bottom navigation bar shown only on mobile.
          Shell content gets an equivalent padding-bottom so nothing hides
@@ -49,6 +64,16 @@
          min-width so the standard is enforced consistently. */
       --mob-touch-min:   44px;
     }
+
+    /* ── Keyboard focus ring — WCAG AA ────────────────────────────── */
+    :focus-visible {
+      outline: 2px solid var(--arka-accent);
+      outline-offset: 2px;
+    }
+    /* Remove focus-visible from elements that have their own focus style */
+    .adm-input:focus-visible,
+    .adm-select:focus-visible,
+    .adm-textarea:focus-visible { outline: none; }
 
     /* ── Global reset ──────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -98,7 +123,7 @@
     }
     .adm-topbar-wordmark { font-size: 0.95rem; font-weight: 800; color: var(--text-strong); letter-spacing: -0.02em; }
     .adm-topbar-wordmark i { color: var(--arka-accent); margin-right: 6px; }
-    .adm-topbar-badge { font-size: 0.6rem; font-weight: 700; background: #fef3e2; color: #854f0b; border: 1px solid var(--adm-warn); border-radius: 4px; padding: 2px 7px; letter-spacing: 0.04em; }
+    .adm-topbar-badge { font-size: 0.6rem; font-weight: 700; background: var(--adm-warn-bg); color: #854f0b; border: 1px solid var(--adm-warn); border-radius: 4px; padding: 2px 7px; letter-spacing: 0.04em; }
     .adm-topbar-spacer { flex: 1; }
     .adm-topbar-admin-label { font-size: 0.78rem; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
     .adm-topbar-refresh-btn {
@@ -169,10 +194,110 @@
     .adm-stat-icon { font-size: 1.25rem; margin-bottom: 6px; color: var(--neutral-mid); }
     .adm-stat-value { font-size: 1.75rem; font-weight: 800; color: var(--text-strong); line-height: 1.1; }
     .adm-stat-label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
+    .adm-stat-card.c-accent { border-left: 3px solid var(--arka-accent); }
+    .adm-stat-card.c-ok     { border-left: 3px solid var(--adm-ok); }
+    .adm-stat-card.c-warn   { border-left: 3px solid var(--adm-warn); }
+    .adm-stat-card.c-danger { border-left: 3px solid var(--adm-danger); }
     .adm-stat-card.c-accent .adm-stat-value { color: var(--arka-accent); }
     .adm-stat-card.c-ok     .adm-stat-value { color: var(--adm-ok); }
     .adm-stat-card.c-warn   .adm-stat-value { color: var(--adm-warn); }
     .adm-stat-card.c-danger .adm-stat-value { color: var(--adm-danger); }
+    .adm-stat-card.c-accent .adm-stat-icon { color: var(--arka-accent); }
+    .adm-stat-card.c-ok     .adm-stat-icon { color: var(--adm-ok); }
+    .adm-stat-card.c-warn   .adm-stat-icon { color: var(--adm-warn); }
+    .adm-stat-card.c-danger .adm-stat-icon { color: var(--adm-danger); }
+
+    /* ── Section header icon / timestamp ──────────────────────────── */
+    .adm-section-icon            { color: var(--arka-accent); margin-right: 8px; font-size: 0.9em; }
+    .adm-section-icon--gamif     { color: var(--color-gamification); }
+    .adm-section-icon--warn      { color: var(--adm-warn); }
+    .adm-section-icon--ok        { color: var(--adm-ok); }
+    .adm-section-icon--ann       { color: var(--color-announcements); }
+    .adm-section-ts              { font-size: 0.75rem; color: var(--text-faint); }
+
+    /* ── Table card modifier ──────────────────────────────────────── */
+    .adm-card--table { padding: 0; overflow: hidden; }
+
+    /* ── List action row (New button aligned right) ───────────────── */
+    .adm-list-actions { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+
+    /* ── Layout helpers ───────────────────────────────────────────── */
+    .adm-flex-spacer     { flex: 1; }
+    .adm-mb-16           { margin-bottom: 16px; }
+    .adm-btn--grow       { flex: 1; }
+
+    /* ── Member table cells ───────────────────────────────────────── */
+    .adm-member-name     { font-weight: 700; }
+    .adm-td-muted        { color: var(--text-muted); }
+    .adm-filter-sort-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+    .adm-th-narrow       { width: 36px; }
+
+    /* ── Stat card size variant (Performance summary) ─────────────── */
+    .adm-stat-value--sm  { font-size: 1.3rem; }
+
+    /* ── Performance section ──────────────────────────────────────── */
+    .adm-perf-summary-grid   { grid-template-columns: repeat(auto-fill, minmax(145px,1fr)); margin-bottom: 16px; }
+    .adm-perf-chart-wrap     { height: 300px; }
+    .adm-perf-wave-chart-wrap{ height: 280px; }
+    .adm-perf-wave-hint      { font-size: 0.75rem; color: var(--text-faint); margin-bottom: 12px; }
+    .adm-perf-wave-grid      { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 10px; margin-top: 4px; }
+
+    /* ── Bulk approval bar ────────────────────────────────────────── */
+    .adm-bulk-bar   { display: flex; align-items: center; gap: 12px; background: var(--adm-page-bg); border: 1.5px solid var(--arka-accent); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }
+    .adm-bulk-count { font-size: 0.85rem; font-weight: 600; color: var(--text-strong); }
+
+    /* ── Filter row label (Awarder / Type chips) ──────────────────── */
+    .adm-filter-row-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-faint); padding: 6px 4px; white-space: nowrap; }
+
+    /* ── Challenges section ───────────────────────────────────────── */
+    .adm-section-icon--challenge { color: var(--color-challenge); }
+    .adm-chal-hint   { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+    .adm-points-hint { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; }
+
+    /* ── Announcement / Event table cells ────────────────────────── */
+    .adm-ann-title-cell           { white-space: normal; font-weight: 600; font-size: 0.85rem; }
+    .adm-ann-title-cell--archived { opacity: 0.65; }
+    .adm-ann-audience-cell        { font-size: 0.82rem; }
+    .adm-td-center                { text-align: center; }
+
+    /* ── Pin icon states ──────────────────────────────────────────── */
+    .adm-pin-active  { color: var(--arka-accent); }
+    .adm-pin-inactive{ opacity: 0.25; }
+    .adm-pin-sub     { color: var(--arka-accent); font-size: 0.7rem; }
+
+    /* ── Posts excerpt cell ───────────────────────────────────────── */
+    .adm-post-excerpt { max-width: 260px; white-space: normal; font-size: 0.82rem; color: var(--text-body, var(--text-strong)); }
+
+    /* ── Badge form helpers ───────────────────────────────────────── */
+    .adm-badge-form-grid { gap: 14px; }
+    .adm-mb-0            { margin-bottom: 0; }
+    .adm-badge-img-row   { gap: 14px; }
+    .adm-file-input      { flex: 1; font-size: 0.82rem; }
+
+    /* ── Badge award table ────────────────────────────────────────── */
+    .adm-award-badge-cell { display: flex; align-items: center; gap: 8px; }
+    .adm-award-badge-cat  { font-size: 0.7rem; color: var(--text-faint); }
+    .adm-award-member-id  { font-size: 0.7rem; }
+    .adm-award-notes      { font-size: 0.78rem; max-width: 200px; white-space: normal; word-break: break-word; color: var(--text-muted); }
+
+    /* ── Table utility classes ────────────────────────────────────── */
+    .adm-nowrap  { white-space: nowrap; }
+    .adm-td-faint{ color: var(--text-faint); }
+    .adm-td-sm   { font-size: 0.78rem; }
+    .adm-th-cb   { width: 36px; }
+
+    /* ── Pending preview rows (Overview) ──────────────────────────── */
+    .adm-pending-row  { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); }
+    .adm-pending-info { flex: 1; min-width: 0; }
+    .adm-pending-name { font-weight: 700; font-size: 0.88rem; }
+    .adm-pending-meta { font-size: 0.75rem; color: var(--text-faint); }
+    .adm-pending-more { padding: 10px 0; font-size: 0.78rem; color: var(--text-faint); }
+
+    /* ── Quick Actions card ────────────────────────────────────────── */
+    .adm-quick-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    /* ── Card title link ───────────────────────────────────────────── */
+    .adm-card-title-link { margin-left: 8px; font-size: 0.78rem; }
 
     /* ── Buttons ───────────────────────────────────────────────────── */
     /* :active provides instant press feedback on touch — critical on mobile
@@ -198,12 +323,13 @@
     .adm-btn-danger { background: var(--adm-danger);  color: #fff; }
     .adm-btn-light  { background: var(--surface-alt); border: 1px solid var(--border-soft); color: var(--text-strong); }
     .adm-btn-sm     { padding: 5px 10px; font-size: 0.75rem; }
+    .adm-btn + .adm-btn { margin-left: 4px; }
 
     /* ── Filter tabs ───────────────────────────────────────────────── */
-    .adm-filter-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+    .adm-filter-row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
     .adm-filter-tab {
-      padding: 5px 13px; border-radius: 20px;
-      font-size: 0.78rem; font-weight: 600;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 0.7rem; font-weight: 600;
       border: 1.5px solid var(--border-soft); background: #fff; color: var(--text-muted);
       cursor: pointer; transition: all 0.1s; font-family: var(--font-body);
     }
@@ -234,10 +360,22 @@
       outline: none; transition: border-color 0.12s;
       font-family: var(--font-body);
     }
-    .adm-input:focus, .adm-select:focus, .adm-textarea:focus { border-color: var(--arka-accent); }
+    .adm-input:focus, .adm-select:focus, .adm-textarea:focus { border-color: var(--arka-accent); box-shadow: 0 0 0 3px rgba(169, 132, 186, 0.15); }
     .adm-input-hint { font-size: 0.72rem; color: var(--text-faint); margin-top: 4px; min-height: 1em; }
     .adm-form-group { margin-bottom: 16px; }
-    .adm-form-label { display: block; font-size: 0.77rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; }
+    /* ── Shared form label — used across ALL admin forms ────────────── */
+    .adm-form-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.45px;
+      margin-bottom: 5px;
+      margin-top: 16px;
+    }
+    .adm-form-label:first-child,
+    .adm-form-label--no-top { margin-top: 0; }
 
     /* ── Data tables ───────────────────────────────────────────────── */
     .adm-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -250,17 +388,17 @@
 
     /* ── Status pills ──────────────────────────────────────────────── */
     .adm-pill { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
-    .adm-pill-approved { background: #e6f4ee; color: #155c3e; }
-    .adm-pill-pending  { background: #fef3e2; color: #7c4a0e; }
-    .adm-pill-rejected { background: #fde8e8; color: #7c1e1e; }
-    .adm-pill-active   { background: #e6f4ee; color: #155c3e; }
+    .adm-pill-approved { background: var(--adm-pill-approved-bg); color: var(--adm-pill-approved-text); }
+    .adm-pill-pending  { background: var(--adm-warn-bg);         color: var(--adm-pill-pending-text); }
+    .adm-pill-rejected { background: var(--adm-danger-bg);       color: var(--adm-pill-rejected-text); }
+    .adm-pill-active   { background: var(--adm-pill-approved-bg); color: var(--adm-pill-approved-text); }
     .adm-pill-revoked  { background: #f0f0f4; color: var(--text-faint); }
     .adm-pill-system   { background: #e8f0ff; color: #1a3da6; }
     .adm-pill-latest   { background: #f0eaf4; color: var(--arka-accent-text); }
 
     /* ── Rank + live-dot ───────────────────────────────────────────── */
     .adm-rank { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 0.7rem; font-weight: 800; background: var(--surface-alt); color: var(--text-faint); flex-shrink: 0; }
-    .adm-rank.gold   { background: #fef3e2; color: #854f0b; }
+    .adm-rank.gold   { background: var(--adm-warn-bg); color: #854f0b; }
     .adm-rank.silver { background: #f0f0f4; color: #4a4a5a; }
     .adm-rank.bronze { background: #fdf0e8; color: #7c4420; }
     .adm-live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--adm-ok); margin-right: 4px; vertical-align: middle; }
@@ -324,7 +462,17 @@
     .rpt-slide-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
     .rpt-mode-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
     .rpt-mode-toggle button { flex: 1; padding: 10px; border-radius: 20px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: 1.5px solid transparent; transition: background 0.15s, color 0.15s; font-family: var(--font-body); }
+    .rpt-mode-toggle button.active   { background: var(--text-strong); color: #fff; border-color: var(--text-strong); }
+    .rpt-mode-toggle button:not(.active) { background: var(--border-soft); color: var(--text-strong); border-color: var(--border-soft); }
     .rpt-period-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .rpt-period-label { font-size: 0.9rem; font-weight: 600; color: var(--text-strong); text-align: center; }
+    .rpt-slide-count  { font-size: 0.75rem; color: var(--text-faint); text-align: center; margin-bottom: 12px; }
+    .rpt-slide-caption { text-align: center; font-size: 0.75rem; color: var(--text-faint); margin-top: 8px; }
+    .rpt-dot-row { display: flex; gap: 6px; align-items: center; }
+    .rpt-export-row { display: flex; gap: 10px; }
+    .rpt-export-row .adm-btn { flex: 1; }
+    .rpt-controls-card { padding: 16px !important; }
+    .rpt-canvas-card   { padding: 12px !important; overflow: hidden; }
     #rptThumbnailStrip { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 12px; -webkit-overflow-scrolling: touch; }
 
     /* ══════════════════════════════════════════════════════════════════
@@ -393,13 +541,13 @@
       transition: border-color 0.15s, background 0.15s; background: var(--surface-alt);
     }
     .ann-type-option:active { opacity: 0.8; }
-    .ann-type-option.selected { background: #EEEDFE; border-color: #7F77DD; border-width: 1.5px; }
+    .ann-type-option.selected { background: var(--adm-challenge-bg); border-color: var(--adm-challenge-border); border-width: 1.5px; }
     .ann-type-option-label { font-size: 0.78rem; font-weight: 700; color: var(--text-strong); }
-    .ann-type-option.selected .ann-type-option-label { color: #3C3489; }
+    .ann-type-option.selected .ann-type-option-label { color: var(--adm-challenge-text); }
     .ann-type-option-sub { font-size: 0.65rem; color: var(--text-faint); margin-top: 2px; }
-    .ann-type-option.selected .ann-type-option-sub { color: #534AB7; }
+    .ann-type-option.selected .ann-type-option-sub { color: var(--adm-challenge-text); }
     .ann-type-hint {
-      font-size: 0.72rem; color: #534AB7; background: #EEEDFE;
+      font-size: 0.72rem; color: var(--adm-challenge-text); background: var(--adm-challenge-bg);
       border-radius: 6px; padding: 6px 10px; margin-bottom: 12px;
     }
 
@@ -414,12 +562,12 @@
     .ann-member-picker:focus-within { border-color: var(--arka-accent); background: #fff; }
     .ann-member-pill {
       display: inline-flex; align-items: center; gap: 4px;
-      background: #EEEDFE; color: #534AB7;
+      background: var(--adm-challenge-bg); color: var(--adm-challenge-text);
       font-size: 0.78rem; font-weight: 600;
       padding: 3px 8px; border-radius: 12px; white-space: nowrap;
     }
     .ann-member-pill-remove {
-      cursor: pointer; font-size: 0.85rem; color: #534AB7; opacity: 0.6; line-height: 1;
+      cursor: pointer; font-size: 0.85rem; color: var(--adm-challenge-text); opacity: 0.6; line-height: 1;
       background: none; border: none; padding: 0; width: auto; display: inline;
     }
     .ann-member-pill-remove:hover  { opacity: 1; }
@@ -468,13 +616,6 @@
     .ann-pin-toggle-label { font-size: 0.88rem; font-weight: 600; color: var(--text-strong); }
     .ann-pin-toggle-sub   { font-size: 0.75rem; color: var(--text-faint); margin-top: 1px; }
 
-    /* Scoped form label style for the compose form */
-    #admAnnForm .adm-form-label {
-      display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-faint);
-      text-transform: uppercase; letter-spacing: 0.5px;
-      margin-bottom: 5px; margin-top: 16px;
-    }
-    #admAnnForm .adm-form-label:first-child { margin-top: 0; }
     #admAnnForm .adm-input,
     #admAnnForm textarea.adm-input { resize: vertical; }
 
@@ -494,20 +635,7 @@
     .adm-eq-badge-failed     { background: var(--adm-danger-bg); color: var(--adm-danger); }
     .adm-eq-badge-suppressed { background: var(--adm-page-bg);   color: var(--text-faint); }
 
-    /* Scoped form label style for Events compose form */
-    #admEvtForm .adm-form-label {
-      display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-faint);
-      text-transform: uppercase; letter-spacing: 0.5px;
-      margin-bottom: 5px; margin-top: 16px;
-    }
-    #admEvtForm .adm-form-label:first-child { margin-top: 0; }
-
-    /* Scoped label + input style for Challenge create/edit form */
-    #admChalPanelForm .adm-form-label {
-      display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-faint);
-      text-transform: uppercase; letter-spacing: 0.5px;
-      margin-bottom: 5px; margin-top: 14px;
-    }
+    /* Scoped input style for Challenge create/edit form */
     #admChalPanelForm textarea.adm-input { resize: vertical; }
     #admChalPanelForm select.adm-input   { cursor: pointer; }
 
@@ -662,6 +790,7 @@
 
       /* ── 9. Stat grid — 2-column on mobile ───────────────────────── */
       .adm-stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .adm-grid-2col { grid-template-columns: 1fr; }
 
       /* ── 10. Hide admin label text in topbar (saves space) ─────────  */
       .adm-topbar-admin-label { display: none; }
@@ -698,11 +827,11 @@
         min-width:  var(--mob-touch-min);
       }
 
-      /* ── 14. Filter tabs: slightly larger on mobile ────────────────  */
+      /* ── 14. Filter tabs: minimum touch target on mobile ───────────  */
       .adm-filter-tab {
-        min-height: 36px;
-        padding: 6px 14px;
-        font-size: 0.82rem;
+        min-height: 32px;
+        padding: 5px 12px;
+        font-size: 0.75rem;
       }
 
       /* ── 15. Filter row: stack the search input on its own line ────
@@ -803,15 +932,37 @@
       }
 
       /* ── 25. Challenge form: action row ─────────────────────────── */
-      #admChalPanelForm > .adm-card > div[style*="display:flex"] {
+      #admChalPanelForm > .adm-card > .adm-form-actions {
         flex-direction: column-reverse;
         gap: 8px;
       }
-      #admChalPanelForm > .adm-card > div[style*="display:flex"] .adm-btn {
+      #admChalPanelForm > .adm-card > .adm-form-actions .adm-btn {
         width: 100%;
         justify-content: center;
       }
     } /* end @media mobile */
+
+    /* ── Layout utilities (replaces inline styles in HTML) ──────────── */
+    .adm-flex-row          { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .adm-flex-row-tight    { display: flex; align-items: center; gap: 6px; }
+    .adm-flex-col          { display: flex; flex-direction: column; gap: 8px; }
+    .adm-grid-2col         { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .adm-grid-2col > *     { min-width: 0; }
+    .adm-form-actions      { display: flex; gap: 10px; margin-top: 20px; }
+    .adm-form-optional     { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-faint); font-size: 0.82em; }
+    .adm-pos-relative      { position: relative; }
+    .adm-text-center       { text-align: center; }
+    .adm-mt-8              { margin-top: 8px; }
+    .adm-mt-10             { margin-top: 10px; }
+    .adm-mt-12             { margin-top: 12px; }
+    .adm-mt-16             { margin-top: 16px; }
+    .adm-mt-20             { margin-top: 20px; }
+    .adm-mb-14             { margin-bottom: 14px; }
+    .adm-paginator-row     { text-align: center; padding: 16px; }
+    .adm-search-input      { max-width: 240px; }
+    .adm-textarea          { resize: vertical; }
+    .adm-form-card         { max-width: 680px; }
+    .adm-evt-date-grid     { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
 
     /* Challenge form — global (outside media query) */
     .adm-chal-form-row       { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -835,7 +986,7 @@
       border-radius: 6px; padding: 7px 9px; font-size: 0.82rem;
       color: var(--text-strong); font-family: inherit; background: var(--surface-alt);
     }
-    .adm-bingo-cell-input.is-free { background: #EEEDFE; color: #534AB7; font-style: italic; }
+    .adm-bingo-cell-input.is-free { background: var(--adm-challenge-bg); color: var(--adm-challenge-text); font-style: italic; }
     .adm-bingo-cell-label  {
       font-size: 0.68rem; color: var(--text-faint); margin-bottom: 2px;
       text-transform: none; letter-spacing: 0; font-weight: 400;
@@ -860,6 +1011,40 @@
     .adm-chal-row-pinned   { box-shadow: inset 3px 0 0 var(--arka-accent); }
     .adm-chal-row-archived { opacity: 0.6; }
 
+    /* ── Challenge card list ───────────────────────────────────────── */
+    .adm-chal-cards { display: flex; flex-direction: column; gap: 10px; }
+    .adm-chal-card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      padding: 14px 16px;
+      border-left: 3px solid transparent;
+      transition: box-shadow 0.15s;
+    }
+    .adm-chal-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.11); }
+    .adm-chal-card.is-pinned  { border-left-color: var(--arka-accent); }
+    .adm-chal-card.is-archived { opacity: 0.55; }
+    .adm-chal-card-top {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
+    }
+    .adm-chal-card-type  { flex: 1; min-width: 0; }
+    .adm-chal-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .adm-chal-card-title {
+      font-size: 0.93rem; font-weight: 700; color: var(--text-strong);
+      margin-bottom: 4px; line-height: 1.3;
+    }
+    .adm-chal-card-meta {
+      font-size: 0.75rem; color: var(--text-muted);
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    }
+    .adm-chal-card-meta-sep { color: var(--neutral-mid); }
+    .adm-chal-dot {
+      width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0;
+    }
+    .adm-chal-dot-active    { background: var(--adm-ok); }
+    .adm-chal-dot-upcoming  { background: var(--adm-warn); }
+    .adm-chal-dot-completed { background: var(--neutral-mid); }
+    .adm-chal-dot-archived  { background: var(--neutral-mid); }
+
     /* Badge category colour pills (P8) — reuse challenge type palette */
     .badge-cat-badge {
       display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 1px 6px;
@@ -869,7 +1054,7 @@
     .badge-cat-BOOKS_READ     { background: #FAEEDA; color: #633806; }
     .badge-cat-GENRE_EXPLORER { background: #E1F5EE; color: #085041; }
     .badge-cat-READING_STREAK { background: #FBEAF0; color: #72243E; }
-    .badge-cat-YEARLY         { background: #EEEDFE; color: var(--color-challenge); }
+    .badge-cat-YEARLY         { background: var(--adm-challenge-bg); color: var(--color-challenge); }
     .badge-cat-SPECIAL        { background: #f0eaf4; color: var(--arka-accent-text); }
 
     /* Challenge type colour pills — ported from member app styles.css */
@@ -877,22 +1062,20 @@
       display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px;
       border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px;
     }
-    .chal-type-HABIT_STREAK   { background: #FAEEDA; color: #633806; }
-    .chal-type-BINGO_GRID     { background: #EEEDFE; color: var(--color-challenge); }
-    .chal-type-BUDDY_READ     { background: #FBEAF0; color: #72243E; }
-    .chal-type-COUNTRY_SPREAD { background: #E1F5EE; color: #085041; }
-    .chal-type-ALPHABET       { background: #E6F1FB; color: #0C447C; }
+    .chal-type-BINGO_GRID     { background: var(--adm-challenge-bg); color: var(--color-challenge); }
     .chal-type-BOOK_COUNT     { background: #FAEEDA; color: #633806; }
     .chal-type-PAGE_COUNT     { background: #E6F1FB; color: #0C447C; }
+    .chal-type-10PAGESADAY    { background: #FFF0E0; color: #7A3000; }
+    .chal-type-BOOK_HUNT      { background: #E8F5E9; color: #1B5E20; }
     @media (max-width: 768px) {
-      /* ── 24. Announcement compose: form action row ─────────────────  */
-      #admAnnForm  > div[style*="display:flex"],
-      #admEvtForm  > div[style*="display:flex"] {
+      /* ── 24. Announcement / Event compose: form action row ───────────  */
+      #admAnnForm  > .adm-form-actions,
+      #admEvtForm  > .adm-form-actions {
         flex-direction: column-reverse;
         gap: 8px;
       }
-      #admAnnForm  > div[style*="display:flex"] .adm-btn,
-      #admEvtForm  > div[style*="display:flex"] .adm-btn {
+      #admAnnForm  > .adm-form-actions .adm-btn,
+      #admEvtForm  > .adm-form-actions .adm-btn {
         width: 100%;
         justify-content: center;
       }

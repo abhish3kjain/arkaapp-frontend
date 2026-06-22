@@ -89,7 +89,7 @@
 /**
  * @typedef {Object} ChallengeRecord
  * @property {string}  challengeId     - Unique ID: ARKA_CHAL_X               (Col A)
- * @property {string}  challengeType   - HABIT_STREAK | BINGO_GRID | etc.     (Col B)
+ * @property {string}  challengeType   - BINGO_GRID | BOOK_COUNT | PAGE_COUNT | 10PAGESADAY | BOOK_HUNT  (Col B)
  * @property {string}  title           - Display name                          (Col C)
  * @property {string}  description     - What members need to do               (Col D)
  * @property {string}  startDate       - dd-MMM-yyyy                           (Col E)
@@ -99,7 +99,7 @@
  * @property {string}  goalConfigJson  - Type-specific config as JSON string   (Col I)
  * @property {string}  status          - Active | Upcoming | Completed |       (Col J)
  *                                       Archived
- * @property {boolean} isCompetitive   - Show Club leaderboard tab?            (Col K)
+ * @property {string}  competitionMode  - NONE | INDIVIDUAL | SHARED | TEAM     (Col K)
  * @property {string}  seriesTag       - Groups editions e.g. BOOK_BINGO       (Col L)
  * @property {boolean} isPinned        - Pin to top of Challenges list         (Col M)
  * @property {string}  createdBy       - ARKA_MEMBER_X                         (Col N)
@@ -5890,13 +5890,26 @@ function dismissAnnouncementPermanently(announcementId) {
  *   A=0  challengeId       B=1  challengeType     C=2  title
  *   D=3  description       E=4  startDate         F=5  endDate
  *   G=6  goalValue         H=7  goalUnit          I=8  goalConfigJson
- *   J=9  status            K=10 isCompetitive     L=11 seriesTag
+ *   J=9  status            K=10 competitionMode  L=11 seriesTag
  *   M=12 isPinned          N=13 createdBy         O=14 createdOn
  *   P=15 enrollPoints      Q=16 finishPoints      R=17 winPoints
  *
  * @param {GoogleAppsScript.Spreadsheet.Spreadsheet} ss
  * @returns {ChallengeRecord[]}
  */
+
+/**
+ * Parses Col K of ChallengeDB into a competitionMode string.
+ * Accepts legacy TRUE/FALSE values (back-compat) and the new enum strings.
+ */
+function parseCompetitionMode_(val) {
+  const s = (val || '').toString().trim().toUpperCase();
+  if (s === 'TRUE')  return 'INDIVIDUAL';
+  if (s === 'FALSE') return 'NONE';
+  if (['NONE', 'INDIVIDUAL', 'SHARED', 'TEAM'].includes(s)) return s;
+  return 'NONE';
+}
+
 function fetchChallenges(ss) {
   const sheet = ss.getSheetByName(CHALLENGE_SHEET);
   if (!sheet) return [];
@@ -5936,7 +5949,7 @@ function fetchChallenges(ss) {
       goalUnit       : row[7].toString(),
       goalConfigJson : row[8].toString(),
       status         : row[9].toString(),
-      isCompetitive  : row[10].toString().toUpperCase() === 'TRUE',
+      competitionMode: parseCompetitionMode_(row[10]),
       seriesTag      : row[11] ? row[11].toString() : '',
       isPinned       : row[12].toString().toUpperCase() === 'TRUE',
       createdBy      : row[13].toString(),
@@ -6498,7 +6511,7 @@ function fetchChallengeEnrollments(ss) {
  * @param {string}  data.goalUnit
  * @param {string}  data.goalConfigJson
  * @param {string}  data.status
- * @param {boolean} data.isCompetitive
+ * @param {string}  data.competitionMode  - NONE | INDIVIDUAL | SHARED | TEAM
  * @param {string}  [data.seriesTag]
  * @param {boolean} data.isPinned
  * @param {number}  data.enrollPoints      - ☀️ for enrolling
@@ -6521,8 +6534,7 @@ function saveChallenge(data) {
   if (!startDate)     return { status: 'error', message: 'Start date is required.'            };
  
   const validTypes = [
-    'HABIT_STREAK', 'BINGO_GRID', 'BUDDY_READ',
-    'COUNTRY_SPREAD', 'ALPHABET', 'BOOK_COUNT', 'PAGE_COUNT'
+    'BINGO_GRID', 'BOOK_COUNT', 'PAGE_COUNT', '10PAGESADAY', 'BOOK_HUNT'
   ];
   if (!validTypes.includes(challengeType)) {
     return { status: 'error', message: 'Invalid challenge type: ' + challengeType };
@@ -6540,7 +6552,7 @@ function saveChallenge(data) {
   const timestamp     = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MM-yyyy HH:mm:ss Z');
   const status        = (data.status    || 'Active').trim();
   const isPinned      = data.isPinned      === true || data.isPinned      === 'TRUE';
-  const isCompetitive = data.isCompetitive === true || data.isCompetitive === 'TRUE';
+  const competitionMode = parseCompetitionMode_(data.competitionMode);
   const seriesTag     = (data.seriesTag  || '').trim();
   const endDate       = (data.endDate    || '').trim();
   const goalValue     = Number(data.goalValue)    || 0;
@@ -6577,15 +6589,15 @@ function saveChallenge(data) {
       challengeSheet.getRange(targetRow, 1, 1, 18).setValues([[
         data.challengeId, challengeType, title,     description, startDate,
         endDate,          goalValue,     goalUnit,  goalConfigJsonStr,
-        status,           isCompetitive, seriesTag, isPinned,
+        status,           competitionMode, seriesTag, isPinned,
         originalCreatedBy, originalCreatedOn,
         enrollPoints,     finishPoints,  winPoints
       ]]);
-  
+
       const updatedChallenge = {
         challengeId: data.challengeId, challengeType, title, description,
         startDate, endDate, goalValue, goalUnit, goalConfigJson: goalConfigJsonStr,
-        status, isCompetitive, seriesTag, isPinned,
+        status, competitionMode, seriesTag, isPinned,
         createdBy: originalCreatedBy, createdOn: originalCreatedOn,
         enrollPoints, finishPoints, winPoints
       };
@@ -6616,17 +6628,17 @@ function saveChallenge(data) {
     const newRow = [
       challengeId,    challengeType,  title,     description,   startDate,
       endDate,        goalValue,      goalUnit,  goalConfigJsonStr,
-      status,         isCompetitive,  seriesTag, isPinned,
+      status,         competitionMode, seriesTag, isPinned,
       currentMemberId, timestamp,
       enrollPoints,   finishPoints,   winPoints
     ];
-  
+
     challengeSheet.appendRow(newRow);
-  
+
     const newChallenge = {
       challengeId, challengeType, title, description,
       startDate, endDate, goalValue, goalUnit, goalConfigJson: goalConfigJsonStr,
-      status, isCompetitive, seriesTag, isPinned,
+      status, competitionMode, seriesTag, isPinned,
       createdBy: currentMemberId, createdOn: timestamp,
       enrollPoints, finishPoints, winPoints
     };
@@ -6823,7 +6835,7 @@ function getLatestChallengeEnrollments() {
  * PRIVATE HELPER: Builds the correct initial progressStateJson object
  * for each challenge type.
  *
- * @param {string} challengeType  - e.g. 'HABIT_STREAK'
+ * @param {string} challengeType  - e.g. 'BINGO_GRID'
  * @param {Object} config         - Parsed goalConfigJson from ChallengeDB
  * @param {number} goalValue      - The challenge's primary goalValue
  * @param {number} personalGoal   - Member's own target (BOOK_COUNT / PAGE_COUNT only)
@@ -6831,61 +6843,13 @@ function getLatestChallengeEnrollments() {
  */
 function buildInitialProgressState(challengeType, config, goalValue, personalGoal) {
  
-  if (challengeType === 'HABIT_STREAK') {
-    return {
-      currentStreak   : 0,
-      longestStreak   : 0,
-      totalDaysLogged : 0,
-      totalPagesLogged: 0,
-      lastLogDate     : '',
-      missedDates     : [],
-      streakHistory   : []
-    };
-  }
- 
   if (challengeType === 'BINGO_GRID') {
     return {
       cellsCompleted  : [],
       booksLinked     : {},
+      genreTagged     : {},
       linesCompleted  : [],
       hasBingo        : false
-    };
-  }
- 
-  if (challengeType === 'BUDDY_READ') {
-    return {
-      pagesRead              : 0,
-      shelfRecordId          : '',
-      currentShelfStatus     : 'To Read',
-      finishedBeforeDeadline : null
-    };
-  }
- 
-  if (challengeType === 'COUNTRY_SPREAD') {
-    return {
-      countriesVisited  : {},
-      totalCountries    : 0,
-      continentProgress : {
-        Africa    : 0,
-        Americas  : 0,
-        Asia      : 0,
-        Europe    : 0,
-        Oceania   : 0,
-        MiddleEast: 0
-      }
-    };
-  }
- 
-  if (challengeType === 'ALPHABET') {
-    // Build the full letterMap — all 26 letters set to null (unclaimed)
-    const allLetters = (config.allLetters || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''));
-    const letterMap  = {};
-    allLetters.forEach(function(letter) { letterMap[letter] = null; });
- 
-    return {
-      letterMap                : letterMap,
-      lettersCompleted         : 0,
-      optionalLettersCompleted : 0
     };
   }
  
@@ -6919,6 +6883,29 @@ function buildInitialProgressState(challengeType, config, goalValue, personalGoa
     };
   }
  
+  if (challengeType === '10PAGESADAY') {
+    const year      = config.year      || new Date().getFullYear();
+    const dailyGoal = config.dailyGoal || 10;
+    return {
+      year           : year,
+      dailyGoal      : dailyGoal,
+      yearlyGoal     : dailyGoal * 365,
+      totalPages     : 0,
+      monthlyBreakdown: {},
+      avgPagesPerDay : 0,
+      isFinisher     : false
+    };
+  }
+
+  if (challengeType === 'BOOK_HUNT') {
+    return {
+      claims        : {},   // { clueId: { shelfId, bookTitle, claimedOn, status } }
+      completedCount: 0,
+      isFinisher    : false,
+      finishedOn    : ''
+    };
+  }
+
   // Fallback for unknown types
   return {};
 }
@@ -7036,7 +7023,7 @@ function saveChallengeProgress(data) {
       challengeType  : challengeRows[i][1].toString(),
       goalValue      : Number(challengeRows[i][6]) || 0,
       goalConfigJson : challengeRows[i][8].toString(),
-      isCompetitive  : challengeRows[i][10].toString().toUpperCase() === 'TRUE',
+      competitionMode: parseCompetitionMode_(challengeRows[i][10]),
       finishPoints   : Number(challengeRows[i][16]) || 0,  // Col Q
       winPoints      : Number(challengeRows[i][17]) || 0   // Col R
     };
@@ -7533,21 +7520,6 @@ function detectChallengeCompletion(challengeType, config, goalValue, progressJso
   let newStatus        = currentStatus;
   let isNewCompletion  = false;
  
-  // ── HABIT_STREAK ─────────────────────────────────────────────────────────
-  // Win: reached 365 consecutive days. Finish: reached goalValue days total logged.
-  if (challengeType === 'HABIT_STREAK') {
-    const totalLogged   = state.totalDaysLogged  || 0;
-    const currentStreak = state.currentStreak    || 0;
- 
-    if (currentStatus !== 'Winner' && currentStreak >= 365) {
-      newStatus       = 'Winner';
-      isNewCompletion = true;
-    } else if (currentStatus === 'Active' && totalLogged >= goalValue) {
-      newStatus       = 'Finisher';
-      isNewCompletion = true;
-    }
-  }
- 
   // ── BINGO_GRID ────────────────────────────────────────────────────────────
   // Finisher: linesCompleted.length >= 1 (ANY_LINE) or half cells done (HALF_CELLS)
   // Winner: ALL_CELLS completed OR ANY_LINE if that's the win condition
@@ -7570,37 +7542,6 @@ function detectChallengeCompletion(challengeType, config, goalValue, progressJso
     if (currentStatus !== 'Winner' && isWinner) {
       newStatus = 'Winner'; isNewCompletion = true;
     } else if (currentStatus === 'Active' && isFinisher) {
-      newStatus = 'Finisher'; isNewCompletion = true;
-    }
-  }
- 
-  // ── BUDDY_READ ────────────────────────────────────────────────────────────
-  // Finish only: read all pages. Win concept not applicable (winPoints = 0).
-  if (challengeType === 'BUDDY_READ') {
-    if (currentStatus === 'Active' && (state.pagesRead || 0) >= goalValue && goalValue > 0) {
-      newStatus = 'Finisher'; isNewCompletion = true;
-    }
-  }
- 
-  // ── COUNTRY_SPREAD ────────────────────────────────────────────────────────
-  // Finisher: reached goalValue countries. Winner: same goalValue (no separate bar).
-  if (challengeType === 'COUNTRY_SPREAD') {
-    const visited = state.totalCountries || 0;
-    if (currentStatus !== 'Winner' && visited >= goalValue) {
-      newStatus = 'Winner'; isNewCompletion = true;
-    }
-  }
- 
-  // ── ALPHABET ─────────────────────────────────────────────────────────────
-  // Finish: completed all required letters (goalValue = 26 minus optional count).
-  // Win: completed ALL 26 including optional.
-  if (challengeType === 'ALPHABET') {
-    const required  = state.lettersCompleted         || 0;
-    const optional  = state.optionalLettersCompleted || 0;
- 
-    if (currentStatus !== 'Winner' && (required + optional) >= 26) {
-      newStatus = 'Winner'; isNewCompletion = true;
-    } else if (currentStatus === 'Active' && required >= goalValue) {
       newStatus = 'Finisher'; isNewCompletion = true;
     }
   }
@@ -9807,18 +9748,28 @@ function getAdminChallengesData() {
       const r = challengeRows[i];
       if (!r[0]) continue;
       const cid = r[0].toString().trim();
+
+      const rawStart = r[4];
+      const rawEnd   = r[5];
+      const startDate = rawStart instanceof Date
+        ? Utilities.formatDate(rawStart, Session.getScriptTimeZone(), 'dd-MMM-yyyy')
+        : (rawStart || '').toString().trim();
+      const endDate = rawEnd instanceof Date
+        ? Utilities.formatDate(rawEnd, Session.getScriptTimeZone(), 'dd-MMM-yyyy')
+        : (rawEnd || '').toString().trim();
+
       challengeList.push({
         challengeId   : cid,
         challengeType : (r[1] || '').toString().trim(),
         title         : (r[2] || '').toString().trim(),
         description   : (r[3] || '').toString().trim(),
-        startDate     : (r[4] || '').toString().trim(),
-        endDate       : (r[5] || '').toString().trim(),
+        startDate,
+        endDate,
         goalValue     : Number(r[6]) || 0,
         goalUnit      : (r[7] || '').toString().trim(),
         goalConfigJson: (r[8] || '{}').toString().trim(),
         status        : (r[9] || 'Active').toString().trim(),
-        isCompetitive : r[10] === true || r[10] === 'TRUE',
+        competitionMode: parseCompetitionMode_(r[10]),
         seriesTag     : (r[11] || '').toString().trim(),
         isPinned      : r[12] === true || r[12] === 'TRUE',
         createdBy     : (r[13] || '').toString().trim(),
@@ -9835,5 +9786,175 @@ function getAdminChallengesData() {
   } catch (err) {
     console.error('getAdminChallengesData error:', err);
     return { status: 'error', message: 'Failed to load challenges: ' + (err.message || String(err)) };
+  }
+}
+
+/**
+ * ADMIN ONLY: Awards year-end badges for a 10PAGESADAY challenge.
+ *
+ * Badge tiers (badge IDs stored in goalConfigJson):
+ *   challengerBadge — every enrolled member (participation)
+ *   finisherBadge   — members whose avg pages/day >= dailyGoal for the challenge year
+ *   winnerBadge     — the single member with the highest total pages that year
+ *
+ * Page data source: PageLogDB, filtered to the challenge year.
+ * Already-held active badges are skipped silently.
+ *
+ * @param  {string} challengeId — e.g. 'ARKA_CHAL_42'
+ * @returns {Object} { status, challengerCount, finisherCount, winnerCount } | { status:'error', message }
+ */
+function award10PagesADayBadges(challengeId) {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId)               return { status: 'error', message: 'Unauthorized session.' };
+  if (!isAdminMember(currentMemberId)) return { status: 'error', message: 'Admin access required.' };
+  if (!challengeId)                    return { status: 'error', message: 'challengeId is required.' };
+
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+    // ── 1. Load challenge config ───────────────────────────────────────────
+    const chalSheet = ss.getSheetByName(CHALLENGE_SHEET);
+    if (!chalSheet) return { status: 'error', message: 'ChallengeDB sheet not found.' };
+    const chalRows = chalSheet.getDataRange().getValues();
+    let chalRow = null;
+    for (let i = 1; i < chalRows.length; i++) {
+      if ((chalRows[i][0] || '').toString().trim() === challengeId) { chalRow = chalRows[i]; break; }
+    }
+    if (!chalRow) return { status: 'error', message: 'Challenge not found: ' + challengeId };
+    if ((chalRow[1] || '').toString().trim() !== '10PAGESADAY') {
+      return { status: 'error', message: 'Challenge is not of type 10PAGESADAY.' };
+    }
+
+    let config = {};
+    try { config = JSON.parse((chalRow[8] || '{}').toString()); } catch(e) {}
+    const year         = config.year         || new Date().getFullYear();
+    const dailyGoal    = config.dailyGoal    || 10;
+    const yearlyGoal   = dailyGoal * 365;
+    const challengerBadge = (config.challengerBadge || '').trim();
+    const finisherBadge   = (config.finisherBadge   || '').trim();
+    const winnerBadge     = (config.winnerBadge     || '').trim();
+
+    // ── 2. Get enrolled members ────────────────────────────────────────────
+    const enrollSheet = ss.getSheetByName(CHALLENGE_ENROLLMENT_SHEET);
+    if (!enrollSheet) return { status: 'error', message: 'ChallengeEnrollmentDB not found.' };
+    const enrollRows = enrollSheet.getDataRange().getValues();
+    const enrolledMemberIds = [];
+    for (let i = 1; i < enrollRows.length; i++) {
+      const r = enrollRows[i];
+      if ((r[1] || '').toString().trim() === challengeId &&
+          (r[4] || '').toString().trim() !== 'Dropped') {
+        const mid = (r[2] || '').toString().trim();
+        if (mid) enrolledMemberIds.push(mid);
+      }
+    }
+    if (!enrolledMemberIds.length) return { status: 'error', message: 'No enrolled members found for this challenge.' };
+
+    // ── 3. Sum pages from PageLogDB for the challenge year ─────────────────
+    const pageLogSheet = ss.getSheetByName(PAGELOG_SHEET || 'PageLogDB');
+    const pagesByMember = {}; // memberId → total pages
+    if (pageLogSheet) {
+      const pageRows = pageLogSheet.getDataRange().getValues();
+      // Cols: A=LogID, B=Timestamp, C=MemberID, D=BookID, E=PageDelta, F=Source
+      for (let i = 1; i < pageRows.length; i++) {
+        const r = pageRows[i];
+        const ts = r[1];
+        if (!ts) continue;
+        const rowYear = (ts instanceof Date) ? ts.getFullYear() : new Date(ts).getFullYear();
+        if (rowYear !== year) continue;
+        const mid   = (r[2] || '').toString().trim();
+        const delta = Number(r[4]) || 0;
+        if (!mid || delta <= 0) continue;
+        pagesByMember[mid] = (pagesByMember[mid] || 0) + delta;
+      }
+    }
+
+    // ── 4. Compute avg pages/day (using 365 days for the year) ────────────
+    const daysInYear = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 366 : 365;
+
+    // ── 5. Load existing awards to skip duplicates ─────────────────────────
+    const awardSheet = ss.getSheetByName(BADGE_AWARD_DB_SHEET);
+    if (!awardSheet) return { status: 'error', message: 'BadgeAwardDB sheet not found.' };
+    const existingAwards = awardSheet.getDataRange().getValues();
+    function alreadyHolds(mid, bid) {
+      for (let i = 1; i < existingAwards.length; i++) {
+        if ((existingAwards[i][1] || '').toString() === bid &&
+            (existingAwards[i][2] || '').toString() === mid &&
+            (existingAwards[i][5] || '').toString() === 'Active') return true;
+      }
+      return false;
+    }
+
+    // Award ID sequencing helper
+    function getNextAwardId() {
+      const allIds = awardSheet.getRange('A:A').getValues();
+      let last = 0;
+      for (let i = allIds.length - 1; i >= 0; i--) {
+        const v = (allIds[i][0] || '').toString();
+        if (v.startsWith('ARKA_AWARD_')) {
+          const n = parseInt(v.split('_')[2]);
+          if (!isNaN(n) && n > last) last = n;
+          break;
+        }
+      }
+      return last + 1;
+    }
+
+    let nextIdNum = getNextAwardId();
+    const dateFormatted = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MMM-yyyy');
+    const noteBase = year + ' 10 Pages a Day Challenge · awarded by admin';
+
+    function writeAward(memberId, badgeId, note) {
+      const awardId = 'ARKA_AWARD_' + nextIdNum++;
+      awardSheet.appendRow([awardId, badgeId, memberId, currentMemberId, dateFormatted, 'Active', note]);
+      try {
+        logActivityBatch(memberId, [{ typeId: 'ARKA_ACTTYP_BADGEAWARD', val: 0, desc: awardId }]);
+      } catch(e) { console.warn('logActivityBatch failed for ' + memberId + ': ' + e); }
+      return awardId;
+    }
+
+    // ── 6. Award Challenger badge to all enrolled ──────────────────────────
+    let challengerCount = 0;
+    if (challengerBadge) {
+      enrolledMemberIds.forEach(function(mid) {
+        if (!alreadyHolds(mid, challengerBadge)) {
+          writeAward(mid, challengerBadge, noteBase + ' · Challenger');
+          challengerCount++;
+        }
+      });
+    }
+
+    // ── 7. Award Finisher badge to members meeting avg goal ────────────────
+    let finisherCount = 0;
+    if (finisherBadge) {
+      enrolledMemberIds.forEach(function(mid) {
+        const total = pagesByMember[mid] || 0;
+        const avg   = total / daysInYear;
+        if (avg >= dailyGoal && !alreadyHolds(mid, finisherBadge)) {
+          writeAward(mid, finisherBadge, noteBase + ' · Finisher (' + Math.round(avg) + ' pg/day)');
+          finisherCount++;
+        }
+      });
+    }
+
+    // ── 8. Award Winner badge to top member ───────────────────────────────
+    let winnerCount = 0;
+    if (winnerBadge && enrolledMemberIds.length) {
+      let topMid = '', topPages = -1;
+      enrolledMemberIds.forEach(function(mid) {
+        const p = pagesByMember[mid] || 0;
+        if (p > topPages) { topPages = p; topMid = mid; }
+      });
+      if (topMid && topPages > 0 && !alreadyHolds(topMid, winnerBadge)) {
+        writeAward(topMid, winnerBadge, noteBase + ' · Page Turner (' + topPages + ' pages)');
+        winnerCount++;
+      }
+    }
+
+    invalidateCacheKey(CACHE_KEYS.badgeAwards);
+    return { status: 'success', challengerCount: challengerCount, finisherCount: finisherCount, winnerCount: winnerCount };
+
+  } catch (err) {
+    console.error('award10PagesADayBadges error:', err);
+    return { status: 'error', message: 'Failed to award badges: ' + (err.message || String(err)) };
   }
 }
