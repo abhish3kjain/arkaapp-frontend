@@ -235,12 +235,12 @@
     if (!pending.length) { if (pc) pc.style.display='none'; return; }
     if (pc) pc.style.display='block';
     pl.innerHTML = pending.slice(0,5).map(function(m){
-      return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border-soft)">'+
-        '<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:0.88rem">'+_esc(m.displayName)+'</div>'+
-        '<div style="font-size:0.75rem;color:var(--text-faint)">'+_esc(m.email)+' · Joined '+_esc(m.joinDate)+'</div></div>'+
+      return '<div class="adm-pending-row">'+
+        '<div class="adm-pending-info"><div class="adm-pending-name">'+_esc(m.displayName)+'</div>'+
+        '<div class="adm-pending-meta">'+_esc(m.email)+' · Joined '+_esc(m.joinDate)+'</div></div>'+
         '<button class="adm-btn adm-btn-ok adm-btn-sm" onclick="admSetApproval(\''+m.memberId+'\',\'Approved\')"><i class="fa-solid fa-check"></i> Approve</button>'+
         '<button class="adm-btn adm-btn-danger adm-btn-sm" onclick="admOpenApprovalConfirmModal(\''+m.memberId+'\',\'Rejected\')"><i class="fa-solid fa-xmark"></i> Reject</button></div>';
-    }).join('') + (pending.length>5?'<div style="padding:10px 0;font-size:0.78rem;color:var(--text-faint)">…and '+(pending.length-5)+' more. <a href="#" onclick="admSwitchSection(\'approvals\');return false">View all →</a></div>':'');
+    }).join('') + (pending.length>5?'<div class="adm-pending-more">…and '+(pending.length-5)+' more. <a href="#" onclick="admSwitchSection(\'approvals\');return false">View all →</a></div>':'');
   }
 
   /* ══════════════════════════════════════════════════════════════════

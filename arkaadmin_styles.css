@@ -194,10 +194,35 @@
     .adm-stat-icon { font-size: 1.25rem; margin-bottom: 6px; color: var(--neutral-mid); }
     .adm-stat-value { font-size: 1.75rem; font-weight: 800; color: var(--text-strong); line-height: 1.1; }
     .adm-stat-label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
+    .adm-stat-card.c-accent { border-left: 3px solid var(--arka-accent); }
+    .adm-stat-card.c-ok     { border-left: 3px solid var(--adm-ok); }
+    .adm-stat-card.c-warn   { border-left: 3px solid var(--adm-warn); }
+    .adm-stat-card.c-danger { border-left: 3px solid var(--adm-danger); }
     .adm-stat-card.c-accent .adm-stat-value { color: var(--arka-accent); }
     .adm-stat-card.c-ok     .adm-stat-value { color: var(--adm-ok); }
     .adm-stat-card.c-warn   .adm-stat-value { color: var(--adm-warn); }
     .adm-stat-card.c-danger .adm-stat-value { color: var(--adm-danger); }
+    .adm-stat-card.c-accent .adm-stat-icon { color: var(--arka-accent); }
+    .adm-stat-card.c-ok     .adm-stat-icon { color: var(--adm-ok); }
+    .adm-stat-card.c-warn   .adm-stat-icon { color: var(--adm-warn); }
+    .adm-stat-card.c-danger .adm-stat-icon { color: var(--adm-danger); }
+
+    /* ── Section header icon / timestamp ──────────────────────────── */
+    .adm-section-icon { color: var(--arka-accent); margin-right: 8px; font-size: 0.9em; }
+    .adm-section-ts   { font-size: 0.75rem; color: var(--text-faint); }
+
+    /* ── Pending preview rows (Overview) ──────────────────────────── */
+    .adm-pending-row  { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); }
+    .adm-pending-info { flex: 1; min-width: 0; }
+    .adm-pending-name { font-weight: 700; font-size: 0.88rem; }
+    .adm-pending-meta { font-size: 0.75rem; color: var(--text-faint); }
+    .adm-pending-more { padding: 10px 0; font-size: 0.78rem; color: var(--text-faint); }
+
+    /* ── Quick Actions card ────────────────────────────────────────── */
+    .adm-quick-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    /* ── Card title link ───────────────────────────────────────────── */
+    .adm-card-title-link { margin-left: 8px; font-size: 0.78rem; }
 
     /* ── Buttons ───────────────────────────────────────────────────── */
     /* :active provides instant press feedback on touch — critical on mobile
