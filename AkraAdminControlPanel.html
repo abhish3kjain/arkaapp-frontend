@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=3.0">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=3.1">
 </head>
 <body>
 
@@ -138,7 +138,7 @@
           <button class="adm-filter-tab" data-appr-filter="Approved" onclick="admFilterApprovals('Approved')">Approved</button>
           <button class="adm-filter-tab" data-appr-filter="Rejected" onclick="admFilterApprovals('Rejected')">Rejected</button>
           <button class="adm-filter-tab" data-appr-filter="All"      onclick="admFilterApprovals('All')">All Members</button>
-          <div style="flex:1"></div>
+          <div class="adm-flex-spacer"></div>
           <input type="text" class="adm-input adm-search-input" id="admApprovalSearch" placeholder="Search name or email…" oninput="admRenderApprovals()">
         </div>
         <!-- Bulk action bar — shown when Pending rows are selected -->
@@ -149,7 +149,7 @@
           </button>
           <button class="adm-btn adm-btn-light adm-btn-sm" onclick="admClearBulkSelection()">Clear</button>
         </div>
-        <div class="adm-card" style="padding:0;overflow:hidden">
+        <div class="adm-card adm-card--table">
           <div class="adm-table-wrap" id="admApprovalTableWrap">
             <table class="adm-table">
               <!-- id="admApprovalThead" used by the bulk-select JS to inject
@@ -212,7 +212,7 @@
             <button class="adm-filter-tab active" data-award-filter="Active"  onclick="admSetAwardFilter('Active')">Active</button>
             <button class="adm-filter-tab"        data-award-filter="Revoked" onclick="admSetAwardFilter('Revoked')">Revoked</button>
             <button class="adm-filter-tab"        data-award-filter="All"     onclick="admSetAwardFilter('All')">All Status</button>
-            <div style="flex:1;min-width:16px"></div>
+            <div class="adm-flex-spacer"></div>
             <input type="text" class="adm-input adm-search-input" id="admAwardBrowseSearch" placeholder="Search member or badge…" oninput="admRenderBadgeAwardsList()">
           </div>
           <div class="adm-filter-row adm-mt-8">
@@ -317,7 +317,7 @@
       <!-- ── CONTENT MODERATION ──────────────────────────────── -->
       <section id="admSectionContent" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-comment-lines" style="color:var(--adm-warn);margin-right:8px;font-size:0.9em"></i>Book Posts</h2>
+          <h2><i class="fa-solid fa-comment-lines adm-section-icon adm-section-icon--warn"></i>Book Posts</h2>
         </div>
         <p class="adm-section-subtitle">Review and delete book posts. Uses the same data as Club Reports — first load may take a few seconds.</p>
         <div class="adm-filter-row">
@@ -325,10 +325,10 @@
           <button class="adm-filter-tab"        data-posts-type="General Note" onclick="admFilterPostsType('General Note')">General Note</button>
           <button class="adm-filter-tab"        data-posts-type="Quote I Loved" onclick="admFilterPostsType('Quote I Loved')">Quote</button>
           <button class="adm-filter-tab"        data-posts-type="Fan Cast"     onclick="admFilterPostsType('Fan Cast')">Fan Cast</button>
-          <div style="flex:1"></div>
+          <div class="adm-flex-spacer"></div>
           <input type="text" class="adm-input adm-search-input" id="admPostsSearch" placeholder="Search member or text…" oninput="admRenderContent()">
         </div>
-        <div class="adm-card" style="padding:0;overflow:hidden">
+        <div class="adm-card adm-card--table">
           <div class="adm-table-wrap">
             <table class="adm-table">
               <!-- Date and Likes collapse on mobile; they appear as a
@@ -355,14 +355,12 @@
         </p>
 
         <!-- Trend summary stat cards — populated by admRenderPerformance() -->
-        <div class="adm-stat-grid" id="admPerfSummaryGrid"
-             style="grid-template-columns:repeat(auto-fill,minmax(145px,1fr));margin-bottom:16px">
-        </div>
+        <div class="adm-stat-grid adm-perf-summary-grid" id="admPerfSummaryGrid"></div>
 
         <!-- Chart A: Total load trend -->
         <div class="adm-card">
           <div class="adm-card-title">Total Load Time Trend (end-to-end, <em>_ALL</em> rows)</div>
-          <div class="adm-pos-relative" style="height:300px" id="admPerfChartWrap">
+          <div class="adm-pos-relative adm-perf-chart-wrap" id="admPerfChartWrap">
             <canvas id="admPerfChartCanvas"></canvas>
           </div>
           <div id="admPerfEmptyState" class="adm-empty" style="display:none">
@@ -373,11 +371,11 @@
         <!-- Chart B: Per-wave GAS timing trend -->
         <div class="adm-card" id="admWaveChartCard" style="display:none">
           <div class="adm-card-title">Per-Wave Server Time Trend (avg BigGulpMs from T0)</div>
-          <p style="font-size:0.75rem;color:var(--text-faint);margin-bottom:12px">
+          <p class="adm-perf-wave-hint">
             Each line = one wave's avg GAS round-trip across versions. Gap = wave didn't exist yet.
             <strong>init</strong> = initializeUser() overhead before any wave fires.
           </p>
-          <div class="adm-pos-relative" style="height:280px">
+          <div class="adm-pos-relative adm-perf-wave-chart-wrap">
             <canvas id="admWaveTrendChartCanvas"></canvas>
           </div>
         </div>
@@ -385,7 +383,7 @@
         <!-- Latest version wave breakdown (stat cards, not a third chart) -->
         <div class="adm-card" id="admWaveBreakdownCard" style="display:none">
           <div class="adm-card-title" id="admWaveBreakdownTitle">Latest Version — Wave Breakdown</div>
-          <div id="admWaveBreakdownGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:4px"></div>
+          <div id="admWaveBreakdownGrid" class="adm-perf-wave-grid"></div>
         </div>
 
       </section>
@@ -397,24 +395,24 @@
           <button class="adm-btn adm-btn-light adm-btn-sm" id="admMembersCardViewBtn" onclick="admToggleMembersCardView()" title="Toggle card view"><i class="fa-solid fa-table-cells-large"></i> Card View</button>
         </div>
         <p class="adm-section-subtitle">Approved members only. <span class="adm-live-dot"></span> = active in the last 30 days.</p>
-        <div class="adm-filter-row" style="margin-bottom:16px">
-          <span style="font-size:0.78rem;font-weight:700;color:var(--text-muted);white-space:nowrap">Sort:</span>
+        <div class="adm-filter-row adm-mb-16">
+          <span class="adm-filter-sort-label">Sort:</span>
           <button class="adm-filter-tab active" data-members-sort="totalCp"          onclick="admSetMembersSort('totalCp')">Club Points</button>
           <button class="adm-filter-tab" data-members-sort="totalPages"      onclick="admSetMembersSort('totalPages')">Pages</button>
           <button class="adm-filter-tab" data-members-sort="totalBooks"      onclick="admSetMembersSort('totalBooks')">Books</button>
           <button class="adm-filter-tab" data-members-sort="lastAccessedTs"  onclick="admSetMembersSort('lastAccessedTs')">Last Active</button>
-          <div style="flex:1"></div>
+          <div class="adm-flex-spacer"></div>
           <button class="adm-filter-tab active" data-members-activity="all"      onclick="admSetMembersActivity('all')">All</button>
           <button class="adm-filter-tab" data-members-activity="active"   onclick="admSetMembersActivity('active')">Active 30d</button>
           <button class="adm-filter-tab" data-members-activity="inactive" onclick="admSetMembersActivity('inactive')">Inactive</button>
         </div>
-        <div class="adm-card" style="padding:0;overflow:hidden">
+        <div class="adm-card adm-card--table">
           <div class="adm-table-wrap" id="admMembersTableWrap">
             <table class="adm-table">
               <!-- Mobile keeps: #, Member, Club Points, Last Active, Status.
                    Country, Pages, Books and Joined collapse (adm-col-mob);
                    the Member cell sub-line surfaces memberId as context. -->
-              <thead><tr><th style="width:36px">#</th><th>Member</th><th class="adm-col-mob">Country</th><th>Club Points</th><th class="adm-col-mob">Pages</th><th class="adm-col-mob">Books</th><th class="adm-col-mob">Joined</th><th>Last Active</th><th>Status</th></tr></thead>
+              <thead><tr><th class="adm-th-narrow">#</th><th>Member</th><th class="adm-col-mob">Country</th><th>Club Points</th><th class="adm-col-mob">Pages</th><th class="adm-col-mob">Books</th><th class="adm-col-mob">Joined</th><th>Last Active</th><th>Status</th></tr></thead>
               <tbody id="admMembersTbody"><tr><td colspan="9"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr></tbody>
             </table>
           </div>
@@ -424,7 +422,7 @@
       <!-- ── ANNOUNCEMENTS ────────────────────────────────────── -->
       <section id="admSectionAnnouncements" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-bullhorn" style="color:var(--color-announcements);margin-right:8px;font-size:0.9em"></i>Announcements</h2>
+          <h2><i class="fa-solid fa-bullhorn adm-section-icon adm-section-icon--ann"></i>Announcements</h2>
         </div>
         <div class="adm-subtabs">
           <button class="adm-subtab active" id="admAnnSubTabActive"  onclick="admSwitchAnnSubTab('active')"><i class="fa-solid fa-list"></i> Active</button>
@@ -434,12 +432,12 @@
 
         <!-- Active + Archived list panels -->
         <div id="admAnnPanelActive">
-          <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <div class="adm-list-actions">
             <button class="adm-btn adm-btn-accent" onclick="admSwitchAnnSubTab('compose')">
               <i class="fa-solid fa-plus"></i> New Announcement
             </button>
           </div>
-          <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-card adm-card--table">
             <div class="adm-table-wrap">
               <table class="adm-table">
                 <thead><tr><th>Title</th><th class="adm-col-meta">Type</th><th>Audience</th><th class="adm-col-meta">Pinned</th><th class="adm-col-meta">Expiry</th><th class="adm-col-meta">Created</th><th>Actions</th></tr></thead>
@@ -450,7 +448,7 @@
         </div>
 
         <div id="admAnnPanelArchived" style="display:none">
-          <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-card adm-card--table">
             <div class="adm-table-wrap">
               <table class="adm-table">
                 <thead><tr><th>Title</th><th class="adm-col-meta">Type</th><th>Audience</th><th class="adm-col-meta">Expiry</th><th class="adm-col-meta">Created</th><th>Actions</th></tr></thead>
@@ -527,7 +525,7 @@
               </div>
 
               <div class="adm-form-actions">
-                <button class="adm-btn adm-btn-accent" id="admAnnSaveBtn" onclick="admSubmitAnn()" style="flex:1">
+                <button class="adm-btn adm-btn-accent adm-btn--grow" id="admAnnSaveBtn" onclick="admSubmitAnn()">
                   <i class="fa-solid fa-paper-plane"></i> Save Announcement
                 </button>
                 <button class="adm-btn adm-btn-light" onclick="admSwitchAnnSubTab('active')">Cancel</button>
@@ -540,7 +538,7 @@
       <!-- ── EVENTS ───────────────────────────────────────────── -->
       <section id="admSectionEvents" class="adm-section">
         <div class="adm-section-header">
-          <h2><i class="fa-solid fa-calendar-days" style="color:var(--adm-ok);margin-right:8px;font-size:0.9em"></i>Events</h2>
+          <h2><i class="fa-solid fa-calendar-days adm-section-icon adm-section-icon--ok"></i>Events</h2>
         </div>
         <div class="adm-subtabs">
           <button class="adm-subtab active" id="admEvtSubTabList"    onclick="admSwitchEvtSubTab('list')"><i class="fa-solid fa-list"></i> Events</button>
@@ -549,12 +547,12 @@
 
         <!-- Events list panel -->
         <div id="admEvtPanelList">
-          <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <div class="adm-list-actions">
             <button class="adm-btn adm-btn-accent" onclick="admSwitchEvtSubTab('compose')">
               <i class="fa-solid fa-plus"></i> New Event
             </button>
           </div>
-          <div class="adm-card" style="padding:0;overflow:hidden">
+          <div class="adm-card adm-card--table">
             <div class="adm-table-wrap">
               <table class="adm-table">
                 <thead><tr><th>Title</th><th class="adm-col-meta">Type</th><th class="adm-col-meta">Host</th><th class="adm-col-meta">Start</th><th>Status</th><th>Actions</th></tr></thead>
@@ -938,7 +936,7 @@
           <button class="adm-filter-tab" data-eq-filter="FAILED"     onclick="admSwitchEqFilter('FAILED')">Failed</button>
           <button class="adm-filter-tab" data-eq-filter="SUPPRESSED" onclick="admSwitchEqFilter('SUPPRESSED')">Suppressed</button>
         </div>
-        <div class="adm-card" style="padding:0;overflow:hidden">
+        <div class="adm-card adm-card--table">
           <div class="adm-table-wrap">
             <table class="adm-table">
               <thead><tr><th>Member</th><th class="adm-col-meta">Email Type</th><th class="adm-col-meta">Scheduled</th><th>Status</th><th class="adm-col-meta">Sent At</th><th class="adm-col-meta">Clicked</th><th>Actions</th></tr></thead>
@@ -1160,6 +1158,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=3.0"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=3.1"></script>
 </body>
 </html>
