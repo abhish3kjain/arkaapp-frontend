@@ -963,10 +963,10 @@
             <!-- Pages ring circle -->
             <div style="aspect-ratio:1/1; position:relative;" id="meStatPagesCircleWrap">
               <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
-                <circle cx="50" cy="50" r="46" fill="white" stroke="var(--border-soft)" stroke-width="7"/>
-                <circle id="meStatPagesRingArc" cx="50" cy="50" r="46" fill="none"
-                        stroke="var(--arka-accent,#7c3aed)" stroke-width="7"
-                        stroke-dasharray="0 289" stroke-dashoffset="0"
+                <circle cx="50" cy="50" r="44" fill="white" stroke="var(--border-soft)" stroke-width="11"/>
+                <circle id="meStatPagesRingArc" cx="50" cy="50" r="44" fill="none"
+                        stroke="var(--arka-accent,#7c3aed)" stroke-width="11"
+                        stroke-dasharray="0 277" stroke-dashoffset="0"
                         stroke-linecap="round" transform="rotate(-90 50 50)"
                         style="transition:stroke-dasharray 0.6s ease;"/>
               </svg>
@@ -974,7 +974,7 @@
                           display:flex;flex-direction:column;align-items:center;justify-content:center;
                           text-align:center;gap:2px;">
                 <div id="meStatPagesYear"
-                     style="font-size:clamp(14px,4.5vw,20px);font-weight:800;color:var(--text-strong);line-height:1;">–</div>
+                     style="font-size:clamp(17px,5.4vw,24px);font-weight:800;color:var(--text-strong);line-height:1;">–</div>
                 <div style="font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);text-transform:uppercase;
                             letter-spacing:0.5px;line-height:1;font-weight:600;">pages</div>
                 <div id="meStatPagesGoalSub"
@@ -990,10 +990,10 @@
                  onclick="openFullShelf(currentUser,'Finished',new Date().getFullYear().toString())"
                  title="View my finished books this year">
               <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
-                <circle cx="50" cy="50" r="46" fill="white" stroke="var(--border-soft)" stroke-width="7"/>
-                <circle id="meStatBooksRingArc" cx="50" cy="50" r="46" fill="none"
-                        stroke="var(--arka-accent,#7c3aed)" stroke-width="7"
-                        stroke-dasharray="0 289" stroke-dashoffset="0"
+                <circle cx="50" cy="50" r="44" fill="white" stroke="var(--border-soft)" stroke-width="11"/>
+                <circle id="meStatBooksRingArc" cx="50" cy="50" r="44" fill="none"
+                        stroke="var(--arka-accent,#7c3aed)" stroke-width="11"
+                        stroke-dasharray="0 277" stroke-dashoffset="0"
                         stroke-linecap="round" transform="rotate(-90 50 50)"
                         style="transition:stroke-dasharray 0.6s ease;"/>
               </svg>
@@ -1001,7 +1001,7 @@
                           display:flex;flex-direction:column;align-items:center;justify-content:center;
                           text-align:center;gap:2px;">
                 <div id="meStatBooksYear"
-                     style="font-size:clamp(14px,4.5vw,20px);font-weight:800;color:var(--text-strong);line-height:1;">–</div>
+                     style="font-size:clamp(17px,5.4vw,24px);font-weight:800;color:var(--text-strong);line-height:1;">–</div>
                 <div style="font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);text-transform:uppercase;
                             letter-spacing:0.5px;line-height:1;font-weight:600;">books</div>
                 <div id="meStatBooksGoalSub"
@@ -1017,12 +1017,18 @@
                  style="aspect-ratio:1/1;position:relative;border-radius:50%;
                         background:var(--surface-alt);border:3.5px solid var(--border-soft);
                         display:flex;flex-direction:column;align-items:center;justify-content:center;
-                        text-align:center;gap:3px;">
-              <div id="meStatStreakValue"
-                   style="font-size:clamp(14px,4.5vw,20px);font-weight:900;color:var(--text-muted);line-height:1;">–</div>
+                        text-align:center;gap:2px;">
+              <div id="meStatWeeksActive"
+                   style="font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);
+                          text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">–</div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span id="meStatStreakValue"
+                      style="font-size:clamp(18px,5.85vw,26px);font-weight:900;color:var(--text-muted);line-height:1;">–</span>
+                <span id="meStatStreakFire"
+                      style="font-size:clamp(18px,5.85vw,26px);line-height:1;display:none;">🔥</span>
+              </div>
               <div id="meStatStreakLabel"
-                   style="display:flex;align-items:center;gap:3px;
-                          font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);
+                   style="font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);
                           text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">streak</div>
             </div>
 
