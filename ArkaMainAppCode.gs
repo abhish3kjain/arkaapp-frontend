@@ -6535,7 +6535,7 @@ function saveChallenge(data) {
  
   const validTypes = [
     'HABIT_STREAK', 'BINGO_GRID', 'BUDDY_READ',
-    'COUNTRY_SPREAD', 'ALPHABET', 'BOOK_COUNT', 'PAGE_COUNT'
+    'COUNTRY_SPREAD', 'ALPHABET', 'BOOK_COUNT', 'PAGE_COUNT', '10PAGESADAY'
   ];
   if (!validTypes.includes(challengeType)) {
     return { status: 'error', message: 'Invalid challenge type: ' + challengeType };
@@ -6933,6 +6933,20 @@ function buildInitialProgressState(challengeType, config, goalValue, personalGoa
     };
   }
  
+  if (challengeType === '10PAGESADAY') {
+    const year      = config.year      || new Date().getFullYear();
+    const dailyGoal = config.dailyGoal || 10;
+    return {
+      year           : year,
+      dailyGoal      : dailyGoal,
+      yearlyGoal     : dailyGoal * 365,
+      totalPages     : 0,
+      monthlyBreakdown: {},
+      avgPagesPerDay : 0,
+      isFinisher     : false
+    };
+  }
+
   // Fallback for unknown types
   return {};
 }
@@ -9859,5 +9873,175 @@ function getAdminChallengesData() {
   } catch (err) {
     console.error('getAdminChallengesData error:', err);
     return { status: 'error', message: 'Failed to load challenges: ' + (err.message || String(err)) };
+  }
+}
+
+/**
+ * ADMIN ONLY: Awards year-end badges for a 10PAGESADAY challenge.
+ *
+ * Badge tiers (badge IDs stored in goalConfigJson):
+ *   challengerBadge — every enrolled member (participation)
+ *   finisherBadge   — members whose avg pages/day >= dailyGoal for the challenge year
+ *   winnerBadge     — the single member with the highest total pages that year
+ *
+ * Page data source: PageLogDB, filtered to the challenge year.
+ * Already-held active badges are skipped silently.
+ *
+ * @param  {string} challengeId — e.g. 'ARKA_CHAL_42'
+ * @returns {Object} { status, challengerCount, finisherCount, winnerCount } | { status:'error', message }
+ */
+function award10PagesADayBadges(challengeId) {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId)               return { status: 'error', message: 'Unauthorized session.' };
+  if (!isAdminMember(currentMemberId)) return { status: 'error', message: 'Admin access required.' };
+  if (!challengeId)                    return { status: 'error', message: 'challengeId is required.' };
+
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+    // ── 1. Load challenge config ───────────────────────────────────────────
+    const chalSheet = ss.getSheetByName(CHALLENGE_SHEET);
+    if (!chalSheet) return { status: 'error', message: 'ChallengeDB sheet not found.' };
+    const chalRows = chalSheet.getDataRange().getValues();
+    let chalRow = null;
+    for (let i = 1; i < chalRows.length; i++) {
+      if ((chalRows[i][0] || '').toString().trim() === challengeId) { chalRow = chalRows[i]; break; }
+    }
+    if (!chalRow) return { status: 'error', message: 'Challenge not found: ' + challengeId };
+    if ((chalRow[1] || '').toString().trim() !== '10PAGESADAY') {
+      return { status: 'error', message: 'Challenge is not of type 10PAGESADAY.' };
+    }
+
+    let config = {};
+    try { config = JSON.parse((chalRow[8] || '{}').toString()); } catch(e) {}
+    const year         = config.year         || new Date().getFullYear();
+    const dailyGoal    = config.dailyGoal    || 10;
+    const yearlyGoal   = dailyGoal * 365;
+    const challengerBadge = (config.challengerBadge || '').trim();
+    const finisherBadge   = (config.finisherBadge   || '').trim();
+    const winnerBadge     = (config.winnerBadge     || '').trim();
+
+    // ── 2. Get enrolled members ────────────────────────────────────────────
+    const enrollSheet = ss.getSheetByName(CHALLENGE_ENROLLMENT_SHEET);
+    if (!enrollSheet) return { status: 'error', message: 'ChallengeEnrollmentDB not found.' };
+    const enrollRows = enrollSheet.getDataRange().getValues();
+    const enrolledMemberIds = [];
+    for (let i = 1; i < enrollRows.length; i++) {
+      const r = enrollRows[i];
+      if ((r[1] || '').toString().trim() === challengeId &&
+          (r[4] || '').toString().trim() !== 'Dropped') {
+        const mid = (r[2] || '').toString().trim();
+        if (mid) enrolledMemberIds.push(mid);
+      }
+    }
+    if (!enrolledMemberIds.length) return { status: 'error', message: 'No enrolled members found for this challenge.' };
+
+    // ── 3. Sum pages from PageLogDB for the challenge year ─────────────────
+    const pageLogSheet = ss.getSheetByName(PAGELOG_SHEET || 'PageLogDB');
+    const pagesByMember = {}; // memberId → total pages
+    if (pageLogSheet) {
+      const pageRows = pageLogSheet.getDataRange().getValues();
+      // Cols: A=LogID, B=Timestamp, C=MemberID, D=BookID, E=PageDelta, F=Source
+      for (let i = 1; i < pageRows.length; i++) {
+        const r = pageRows[i];
+        const ts = r[1];
+        if (!ts) continue;
+        const rowYear = (ts instanceof Date) ? ts.getFullYear() : new Date(ts).getFullYear();
+        if (rowYear !== year) continue;
+        const mid   = (r[2] || '').toString().trim();
+        const delta = Number(r[4]) || 0;
+        if (!mid || delta <= 0) continue;
+        pagesByMember[mid] = (pagesByMember[mid] || 0) + delta;
+      }
+    }
+
+    // ── 4. Compute avg pages/day (using 365 days for the year) ────────────
+    const daysInYear = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 366 : 365;
+
+    // ── 5. Load existing awards to skip duplicates ─────────────────────────
+    const awardSheet = ss.getSheetByName(BADGE_AWARD_DB_SHEET);
+    if (!awardSheet) return { status: 'error', message: 'BadgeAwardDB sheet not found.' };
+    const existingAwards = awardSheet.getDataRange().getValues();
+    function alreadyHolds(mid, bid) {
+      for (let i = 1; i < existingAwards.length; i++) {
+        if ((existingAwards[i][1] || '').toString() === bid &&
+            (existingAwards[i][2] || '').toString() === mid &&
+            (existingAwards[i][5] || '').toString() === 'Active') return true;
+      }
+      return false;
+    }
+
+    // Award ID sequencing helper
+    function getNextAwardId() {
+      const allIds = awardSheet.getRange('A:A').getValues();
+      let last = 0;
+      for (let i = allIds.length - 1; i >= 0; i--) {
+        const v = (allIds[i][0] || '').toString();
+        if (v.startsWith('ARKA_AWARD_')) {
+          const n = parseInt(v.split('_')[2]);
+          if (!isNaN(n) && n > last) last = n;
+          break;
+        }
+      }
+      return last + 1;
+    }
+
+    let nextIdNum = getNextAwardId();
+    const dateFormatted = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MMM-yyyy');
+    const noteBase = year + ' 10 Pages a Day Challenge · awarded by admin';
+
+    function writeAward(memberId, badgeId, note) {
+      const awardId = 'ARKA_AWARD_' + nextIdNum++;
+      awardSheet.appendRow([awardId, badgeId, memberId, currentMemberId, dateFormatted, 'Active', note]);
+      try {
+        logActivityBatch(memberId, [{ typeId: 'ARKA_ACTTYP_BADGEAWARD', val: 0, desc: awardId }]);
+      } catch(e) { console.warn('logActivityBatch failed for ' + memberId + ': ' + e); }
+      return awardId;
+    }
+
+    // ── 6. Award Challenger badge to all enrolled ──────────────────────────
+    let challengerCount = 0;
+    if (challengerBadge) {
+      enrolledMemberIds.forEach(function(mid) {
+        if (!alreadyHolds(mid, challengerBadge)) {
+          writeAward(mid, challengerBadge, noteBase + ' · Challenger');
+          challengerCount++;
+        }
+      });
+    }
+
+    // ── 7. Award Finisher badge to members meeting avg goal ────────────────
+    let finisherCount = 0;
+    if (finisherBadge) {
+      enrolledMemberIds.forEach(function(mid) {
+        const total = pagesByMember[mid] || 0;
+        const avg   = total / daysInYear;
+        if (avg >= dailyGoal && !alreadyHolds(mid, finisherBadge)) {
+          writeAward(mid, finisherBadge, noteBase + ' · Finisher (' + Math.round(avg) + ' pg/day)');
+          finisherCount++;
+        }
+      });
+    }
+
+    // ── 8. Award Winner badge to top member ───────────────────────────────
+    let winnerCount = 0;
+    if (winnerBadge && enrolledMemberIds.length) {
+      let topMid = '', topPages = -1;
+      enrolledMemberIds.forEach(function(mid) {
+        const p = pagesByMember[mid] || 0;
+        if (p > topPages) { topPages = p; topMid = mid; }
+      });
+      if (topMid && topPages > 0 && !alreadyHolds(topMid, winnerBadge)) {
+        writeAward(topMid, winnerBadge, noteBase + ' · Page Turner (' + topPages + ' pages)');
+        winnerCount++;
+      }
+    }
+
+    invalidateCacheKey(CACHE_KEYS.badgeAwards);
+    return { status: 'success', challengerCount: challengerCount, finisherCount: finisherCount, winnerCount: winnerCount };
+
+  } catch (err) {
+    console.error('award10PagesADayBadges error:', err);
+    return { status: 'error', message: 'Failed to award badges: ' + (err.message || String(err)) };
   }
 }

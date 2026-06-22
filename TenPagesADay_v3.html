@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <base target="_top">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body { background-color: #f4f7f6; padding: 20px; font-family: 'Segoe UI', sans-serif; }
+    .card { max-width: 500px; margin: auto; border: none; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); overflow: hidden; }
+    
+    .header-area { background: #008a91; color: white; padding: 20px; display: flex; align-items: center; justify-content: flex-start; }
+    .logo-container { flex: 0 0 20%; display: flex; justify-content: center; align-items: center; }
+    .logo-container img { max-width: 100%; height: auto; max-height: 60px; border-radius: 5px; }
+    .text-container { flex: 0 0 80%; text-align: center; padding-right: 10%; }
+    .pace-container { white-space: nowrap; }
+
+    .status-box { background: #f1f3f4; border-left: 5px solid #008a91; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+    .notes-area { border: 1px solid #ced4da; border-radius: 8px; padding: 10px; font-size: 0.9em; height: 80px; width: 100%; resize: none; margin-bottom: 20px; }
+    .loading { display: none; text-align: center; margin: 10px 0; }
+    .btn-primary { background-color: #008a91; border: none; padding: 12px; font-weight: 600; }
+    .pace-unit { font-size: 0.65rem !important; font-weight: normal; color: #6c757d; margin-left: 2px; }
+    .progress { height: 8px; border-radius: 10px; background-color: #e9ecef; margin-bottom: 5px; }
+    .progress-bar { background-color: #008a91; transition: width 1s ease-in-out; }
+    .progress-label { font-size: 0.75rem; font-weight: 600; color: #495057; display: flex; justify-content: space-between; }
+
+    #monthlyPerc { background-color: #008a91 !important; color: white !important; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; }
+    .month-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px 4px; margin: 15px 0; justify-items: center; }
+
+    .month-circle { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: bold; position: relative; background: #eee; transition: transform 0.2s ease; }
+    .month-circle::after { content: ''; position: absolute; top: 3px; left: 3px; right: 3px; bottom: 3px; background: white; border-radius: 50%; z-index: 1; }
+    .month-label { position: relative; z-index: 2; color: #333; line-height: 1; }
+    .month-circle:active { transform: scale(0.9); transition: transform 0.1s; }
+    .month-info-text { font-size: 0.65rem; color: #888; text-align: center; margin-top: 8px; min-height: 1em; letter-spacing: 0.02em; transition: all 0.4s ease-in-out; }
+
+    /* 2. ADD SPARKLE STYLES */
+    .goal-reached { box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
+    .goal-reached::before { content: '✨'; position: absolute; top: -8px; right: -6px; font-size: 0.75rem; z-index: 3; animation: sparkle-pulse 2s infinite ease-in-out; }
+    @keyframes sparkle-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.7; } }
+
+    .leader-row {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .leader-rank {
+      font-weight: bold;
+      font-size: 1.1rem;
+      width: 30px;
+      color: #888;
+    }
+    .leader-name {
+      flex-grow: 1;
+      font-weight: 600;
+      color: #333;
+    }
+    .leader-pages {
+      font-weight: bold;
+      color: #008a91;
+    }
+    .top-3 { background-color: #fcfcfc; }
+    .rank-1 { color: #FFD700 !important; font-size: 1.4rem; } /* Gold */
+    .rank-2 { color: #C0C0C0 !important; } /* Silver */
+    .rank-3 { color: #CD7F32 !important; } /* Bronze */
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header-area">
+    <div class="logo-container"><img src="https://lh3.googleusercontent.com/u/0/d/1O-PceFvQ9rAXZDzzSxSd-5VfA7lWqdp4" alt="Logo"></div>
+    <div class="text-container">
+      <h4 class="mb-0">10 Pages a Day Challenge</h4>
+      <p class="mb-0 opacity-75 small">Weekly Progress Updater</p>
+    </div>
+  </div>
+  
+  <div class="card-body p-4">
+    <div class="text-end mb-3">
+      <a href="javascript:void(0)" id="regToggle" onclick="toggleRegistration(true); return false;" class="small text-decoration-none">+ Not on the list? Register here</a>
+    </div>
+
+    <div id="registrationArea" style="display:none;" class="p-3 border rounded bg-light mb-4">
+      <label class="form-label fw-bold">Enter Your Display Name</label>
+      <input type="text" id="regNameInput" class="form-control mb-3" placeholder="First & Last Name">
+      <div class="d-flex gap-2">
+        <button class="btn btn-success w-100" onclick="submitRegistration()">Register</button>
+        <button class="btn btn-outline-secondary" onclick="toggleRegistration(false)">Cancel</button>
+      </div>
+    </div>
+
+    <div id="dropdownContainer">
+      <label class="form-label fw-bold">Who are you?</label>
+      <select id="nameDropdown" class="form-select mb-4" onchange="loadUserStatus()">
+        <option value="">Fetching members...</option>
+      </select>
+    </div>
+
+    <div id="statusArea" style="display:none;">
+      <div class="status-box" id="personalStatusBox">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-muted text-uppercase fw-bold">Current Standing</div>
+            <div class="h5 mb-1"><span id="lastVal">0</span> Pages</div>
+          </div>
+          <div class="text-end">
+            <div class="small text-muted text-uppercase fw-bold">Daily Pace</div>
+            <div class="h5 mb-1 text-success pace-container">
+              <span id="avgVal">0</span>
+              <span class="pace-unit">pages/day</span>
+            </div>
+          </div>
+        </div>
+        <div class="small mt-2">As of: <span id="lastDate" class="text-primary"></span></div>
+      </div>
+
+      <div class="small text-muted text-uppercase fw-bold mt-4">2026 Monthly View</div>
+      <div id="monthGrid" class="month-grid"></div>
+      <div id="monthDetail" class="month-info-text">Tap a month</div>
+
+      <div class="mb-4">
+        <div class="progress-label mb-1">
+          <span id="currentMonthName" class="fw-bold text-dark">Monthly Progress</span>
+          <span id="monthlyPerc" class="badge bg-info text-dark">0%</span>
+        </div>
+        <div class="progress">
+          <div id="monthlyBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+        </div>
+        <p class="small text-muted mb-3"><span id="monthlyText">0 / 0</span> pages read this month</p>
+
+        <div class="progress-label">
+          <span>2026 Challenge</span>
+          <span id="yearlyPerc">0%</span>
+        </div>
+        <div class="progress">
+          <div id="yearlyBar" class="progress-bar" role="progressbar" style="width: 0%; background-color: #f39c12;"></div>
+        </div>
+        <p class="small text-muted mb-0"><span id="yearlyText">0 / 3650</span> pages towards the year goal</p>
+      </div>
+
+      <label class="form-label fw-bold">Your Reading Journey</label>
+      <textarea id="notesInput" class="notes-area" placeholder="Share what you are reading currently and how it is going..."></textarea>
+
+      <label class="form-label fw-bold">Select Sunday to Update</label>
+      <select id="dateDropdown" class="form-select mb-3"></select>
+
+      <label class="form-label fw-bold">Pages to Record</label>
+      <div class="input-group mb-4">
+        <input type="number" id="pagesInput" class="form-control form-control-lg" placeholder="0">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="checkbox" id="isTotal">
+          <label class="form-check-label ms-2 small" for="isTotal">Is Total?</label>
+        </div>
+      </div>
+
+      <button id="updateBtn" class="btn btn-primary w-100" onclick="submitUpdate()">Update My Sheet</button>
+    </div>
+
+    <div id="loader" class="loading">
+      <div class="spinner-border spinner-border-sm text-primary"></div> Processing...
+    </div>
+    <div id="msg" class="mt-3 text-center fw-bold"></div>
+  </div>
+</div>
+
+<div class="card mt-4 mb-2" style="border: 2px solid #FFD700; background: #fffdf0;">
+  <div class="p-2 d-flex align-items-center justify-content-between">
+    <strong style="color: #d4af37; font-size: 0.85rem; letter-spacing: 1px;">ARKA METER</strong>
+    <span id="meterStats" class="small fw-bold" style="color: #b8860b;">0</span>
+  </div>
+  
+  <div class="card-body pt-0 pb-3 px-3">
+    <div style="height: 24px; width: 100%; background: #eee; border-radius: 50px; border: 2px solid #f1c40f; position: relative; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);">
+      <div id="sunshineLiquid" style="height: 100%; width: 0%; background: linear-gradient(90deg, #FFD700, #ffee58); border-radius: 50px; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); position: relative;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(rgba(255,255,255,0.3), transparent); pointer-events: none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="moverCard" class="card mt-4 mb-2" style="display:none; border: 2px solid #2ecc71; background: #fafffa;">
+  <div class="card-header bg-transparent border-0 pt-3 pb-0 px-3">
+    <div class="d-flex align-items-center">
+      <span style="font-size: 1.5rem; margin-right: 10px;">🚀</span>
+      <div>
+        <strong id="moverHeader" class="text-success fw-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.85rem;">
+          Weekly Champions
+        </strong>
+        <div id="moverDateRange" class="text-muted small" style="font-size: 0.7rem; margin-top: -4px;">Loading dates...</div>
+      </div>
+    </div>
+    <button onclick="shareMoverCard()" class="btn btn-sm btn-outline-success" style="border-radius: 50%; width: 32px; height: 32px; padding: 0;">📸</button>
+  </div>
+  <div class="card-body p-2">
+    <div id="moversList">
+      </div>
+  </div>
+</div>
+
+<div class="card mt-4 mb-5" id="leaderboardCard" style="display:none;">
+  <div class="header-area" style="background: #34495e; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleLeaderboard()">
+    <div class="text-container" style="text-align: left; padding-right: 0;">
+      <h5 class="mb-0">Club Leaderboard</h5>
+      <p class="mb-0 opacity-75 small" id="leaderSubtext">Tap to expand rankings</p>
+    </div>
+    <div id="leaderChevron" style="transition: transform 0.3s ease;">▼</div>
+  </div>
+  
+  <div id="leaderboardCollapse" style="display: none; max-height: 400px; overflow-y: auto;">
+    <div class="card-body p-0" id="leaderboardBody">
+      </div>
+  </div>
+</div>
+
+<div class="card mt-4 mb-3" id="analyticsCard">
+  <div class="header-area" style="background: #8e44ad; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleCard('analyticsCollapse', 'analyticsChevron')">
+    <div class="text-container" style="text-align: left; padding-right: 0;">
+      <h5 class="mb-0">Growth Trends</h5>
+      <p class="mb-0 opacity-75 small">All readers' progress over time</p>
+    </div>
+    <div id="analyticsChevron" style="transition: transform 0.3s ease;">▼</div>
+  </div>
+  
+  <div id="analyticsCollapse" style="display: none;">
+    <div class="card-body">
+      <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+        <div style="min-width: 600px; height: 350px;"> <canvas id="progressChart"></canvas>
+        </div>
+      </div>
+      <p class="small text-muted text-center mt-2">Swipe left/right to see full timeline</p>
+    </div>
+  </div>
+</div>
+
+<div id="shareModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:25px; border-radius:15px; width:85%; max-width:320px; text-align:center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+    <div style="font-size: 40px; margin-bottom: 10px;">📚</div>
+    <h3 style="margin-top:0; color:#008a91;">Logged!</h3>
+    <p id="shareTextPreview" style="font-size: 0.9rem; color:#666; margin-bottom: 20px;">Want to show the group you're actually reading? 😂</p>
+    <button onclick="executeWhatsAppShare()" style="background:#25D366; color:white; border:none; padding:12px 20px; border-radius:8px; width:100%; font-weight:bold; margin-bottom:10px;">Share on WhatsApp</button>
+    <button onclick="closeShareModal()" style="background:none; border:none; color:#999; font-size:0.8rem;">Maybe later</button>
+  </div>
+</div>
+
+<script>
+  window.onload = () => { refreshNameList(localStorage.getItem('arkaLastUser')); };
+  let cachedHistory = null; // To store the original data
+  let myChart = null;       // To store the Chart.js instance
+  let currentShareData = {}; 
+  let monthTimer; 
+  let currentShareFile = null; // Global variable to hold the image file
+
+  function loadUserStatus(callback = null) {
+    const name = document.getElementById('nameDropdown').value;
+    if (!name) return;
+    localStorage.setItem('arkaLastUser', name);
+    toggleLoading(true);
+    document.getElementById('statusArea').style.opacity = '0.35';
+    document.getElementById('statusArea').style.pointerEvents = 'none';
+    
+    google.script.run.withSuccessHandler(data => {
+      if (!data) { alert("No data found."); toggleLoading(false); return; }
+      
+      document.getElementById('statusArea').style.display = 'block';
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      
+      let nextSunday = new Date();
+      nextSunday.setDate(nextSunday.getDate() + (7 - nextSunday.getDay()) % 7);
+      let pivotDay = new Date(nextSunday);
+      pivotDay.setDate(nextSunday.getDate() - 3);
+      
+      if(document.getElementById('currentMonthName')) document.getElementById('currentMonthName').innerText = monthNames[pivotDay.getMonth()] + " Progress";
+
+      let mPerc = Math.min(100, (data.monthlyTotal / data.monthlyGoal) * 100).toFixed(0);
+      document.getElementById('monthlyBar').style.width = mPerc + "%";
+      document.getElementById('monthlyPerc').innerText = mPerc + "%";
+      document.getElementById('monthlyText').innerText = data.monthlyTotal + " / " + data.monthlyGoal + " pages";
+
+      let yPerc = Math.min(100, (data.currentTotal / data.yearlyGoal) * 100).toFixed(0);
+      document.getElementById('yearlyBar').style.width = yPerc + "%";
+      document.getElementById('yearlyPerc').innerText = yPerc + "%";
+      document.getElementById('yearlyText').innerText = data.currentTotal + " / " + data.yearlyGoal + " pages";
+
+      document.getElementById('lastVal').innerText = data.currentTotal;
+      document.getElementById('avgVal').innerText = data.avg;
+      document.getElementById('lastDate').innerText = data.lastDate;
+      document.getElementById('notesInput').value = data.notes || "";
+
+      const dateDrop = document.getElementById('dateDropdown');
+      dateDrop.innerHTML = '';
+      data.availableDates.forEach(d => { dateDrop.innerHTML += `<option value="${d.iso}">${d.display}</option>`; });
+      if (dateDrop.options.length > 0) dateDrop.selectedIndex = dateDrop.options.length - 1;
+
+      const monthInitials = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+      const grid = document.getElementById('monthGrid');
+      if (grid) {
+        grid.innerHTML = '';
+        data.monthlyStats.forEach((pages, idx) => {
+          const goal = data.monthlyGoals[idx];
+          const percentage = Math.min(100, (pages / goal) * 100).toFixed(0);
+          const circle = document.createElement('div');
+          circle.className = 'month-circle';
+          
+          if (parseInt(percentage) >= 100) circle.classList.add('goal-reached');
+          if (percentage > 0) circle.style.background = "conic-gradient(#008a91 " + percentage + "%, #eee 0)";
+          
+          circle.innerHTML = '<span class="month-label">' + monthInitials[idx] + '</span>';
+          circle.addEventListener('click', function() {
+            const detailArea = document.getElementById('monthDetail');
+            if (detailArea) {
+              clearTimeout(monthTimer);
+              detailArea.innerHTML = monthNames[idx] + ": " + pages + " / " + goal + " pages";
+              detailArea.style.color = "#008a91";
+              detailArea.style.opacity = "1";
+              monthTimer = setTimeout(() => {
+                detailArea.style.opacity = "0.5";
+                detailArea.innerHTML = "Tap a month";
+                detailArea.style.color = "#888";
+              }, 3000); 
+            }
+          });
+          grid.appendChild(circle);
+        });
+      }
+      buildChart(cachedHistory, name);
+      document.getElementById('statusArea').style.opacity = '1';
+      document.getElementById('statusArea').style.pointerEvents = '';
+      toggleLoading(false);
+      // THE KEY: If a callback was passed, run it now!
+      if (callback && typeof callback === 'function') {
+        callback();
+      }
+    }).getMemberStatus(name);
+  }
+
+  function submitUpdate() {
+    const name = document.getElementById('nameDropdown').value;
+    const date = document.getElementById('dateDropdown').value;
+    const val = document.getElementById('pagesInput').value;
+    const isTotal = document.getElementById('isTotal').checked; 
+    const notes = document.getElementById('notesInput').value;
+    if (!name) { alert("Please select your name first."); return; }
+    if (!val) { alert("Please enter a page number."); return; }
+    toggleLoading(true);
+
+    google.script.run
+      .withSuccessHandler(res => {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#008a91', '#25D366', '#FFD700'] });
+        refreshNameList(name); //Updates all Cards, then re-selects the user
+        loadUserStatus(async () => {
+        // We wait just 300ms to let the browser physically "paint" the text
+        setTimeout(async () => {
+            const box = document.getElementById('personalStatusBox');
+            
+            // Take the fresh snapshot
+            const canvas = await html2canvas(box, { 
+              backgroundColor: "#ffffff", 
+              scale: 2,
+              logging: false 
+            });
+            
+            canvas.toBlob((blob) => {
+              currentShareFile = new File([blob], "Arka_Update.png", { type: "image/png" });
+              currentShareData = { name: name, pages: val };
+
+              // 4. Show the Modal with the NEW data
+              document.getElementById('shareModal').style.display = 'flex';
+              document.getElementById('pagesInput').value = '';
+              toggleLoading(false);
+            }, "image/png");
+          }, 300); 
+        });
+      })
+      .withFailureHandler(err => { alert("Error: " + err.message); toggleLoading(false); })
+      .updateSheet(name, date, val, isTotal, notes);
+  }
+
+  async function executeWhatsAppShare() {
+    const pages = currentShareData.pages;
+    const appUrl = "https://script.google.com/macros/s/AKfycbwFS1D-PN1G_QXzZQt7GVhGbbMsqY6ghdVcgEn3NLdDCEZzCz5v9CHceegn-LY9K2zY0Q/exec";
+    
+    const vibes = [
+      "Hey Arka Readers! I added " + pages + " pages to my bank! 📖🔥 Who is keeping up?",
+      "Logged: " + pages + " pages in the Arka Meter. 📚✨ Go ahead and log yours!",
+      "Just making sure my sparkle ✨ is safe. Just added " + pages + " pages."
+    ];
+    
+    const fullText = vibes[Math.floor(Math.random() * vibes.length)] + "\n\nUpdate yours: " + appUrl;
+
+    // Check if the browser can share files (Mobile)
+    if (navigator.share && navigator.canShare({ files: [currentShareFile] })) {
+      try {
+        await navigator.share({
+          files: [currentShareFile],
+          text: fullText,
+          title: 'Arka Reading Update'
+        });
+        closeShareModal();
+      } catch (err) {
+        console.log("Share failed", err);
+      }
+    } else {
+      // Fallback for Desktop: Just send the text via WhatsApp Link
+      window.open("https://wa.me/?text=" + encodeURIComponent(fullText), "_blank");
+      closeShareModal();
+    }
+  }
+
+  function closeShareModal() { document.getElementById('shareModal').style.display = 'none'; }
+
+  function toggleLoading(show) { 
+    const loader = document.getElementById('loader');
+    const updateBtn = document.getElementById('updateBtn');
+    if (loader) loader.style.display = show ? 'block' : 'none';
+    if (updateBtn) updateBtn.disabled = show;
+  }
+
+  function toggleRegistration(show) {
+    document.getElementById('registrationArea').style.display = show ? 'block' : 'none';
+    document.getElementById('dropdownContainer').style.display = show ? 'none' : 'block';
+    document.getElementById('regToggle').style.display = show ? 'none' : 'block';
+    document.getElementById('statusArea').style.display = 'none';
+  }
+
+  function submitRegistration() {
+    const newName = document.getElementById('regNameInput').value.trim();
+    if (newName.length < 2) { alert("Invalid name."); return; }
+    toggleLoading(true);
+    google.script.run.withSuccessHandler(res => {
+      alert(res);
+      document.getElementById('regNameInput').value = '';
+      toggleRegistration(false);
+      refreshNameList(); 
+    }).registerNewMember(newName);
+  }
+
+  function refreshNameList(nameToSelect = null) {
+    google.script.run.withSuccessHandler(data => {
+      
+      cachedHistory = data.history; // Save the history for later use
+      //Fill Arka Meter
+      updateArkaMeter(data.clubTotal, data.clubGoal);
+
+      // Fill the Names dropdown
+      const drop = document.getElementById('nameDropdown');
+      drop.innerHTML = '<option value="">-- Select Name --</option>';
+      data.names.forEach(n => drop.innerHTML += '<option value="' + n + '">' + n + '</option>');
+
+      // Re-select the user's name if one was passed in (e.g. after a successful update)
+      if (nameToSelect) {
+        drop.value = nameToSelect;
+        if (drop.value === nameToSelect) loadUserStatus();
+      }
+      
+      // Build Top Movers of the week
+      
+      const moversContainer = document.getElementById('moverCard');
+      const moversList = document.getElementById('moversList');
+
+      if (data.topMovers && data.topMovers.length > 0) {
+        moversContainer.style.display = 'block';
+        
+        document.getElementById('moverDateRange').innerText = data.moverRange;
+        const moversList = document.getElementById('moversList');
+        moversList.innerHTML = ''; // Clear old data
+
+        data.topMovers.forEach((mover, index) => {
+          moversList.innerHTML += `
+            <div class="d-flex justify-content-between align-items-center p-2" style="border-bottom: 1px dashed #2ecc7133;">
+              <div class="d-flex align-items-center">
+                <span class="badge rounded-pill bg-success me-2" style="font-size: 0.7rem;">#${index + 1}</span>
+                <span class="fw-bold text-dark" style="font-size: 0.9rem;">${mover.name}</span>
+              </div>
+              <div class="text-success fw-bold" style="font-size: 0.9rem;">+${mover.jump} <small class="text-muted fw-normal">pages</small></div>
+            </div>`;
+        });
+      } else {
+        moversContainer.style.display = 'none';
+      }
+
+      // Build the Leaderboard
+      buildLeaderboard(data.allStats);
+      buildChart(data.history);
+
+      // If a name was auto-restored, loadUserStatus() is already running and
+      // will call toggleLoading(false) when it finishes. Don't cancel it early.
+      if (!nameToSelect || drop.value !== nameToSelect) toggleLoading(false);
+    }).getInitialData();
+  }
+
+  function buildLeaderboard(stats) {
+    const board = document.getElementById('leaderboardBody');
+    const card = document.getElementById('leaderboardCard');
+    board.innerHTML = '';
+    
+    // Sort by pages read (highest first)
+    stats.sort((a, b) => b.pages - a.pages);
+    
+    stats.forEach((user, index) => {
+      const rank = index + 1;
+           
+      // Use medals for top 3, numbers for the rest
+      let displayRank;
+      if (rank === 1) displayRank = '🥇';
+      else if (rank === 2) displayRank = '🥈';
+      else if (rank === 3) displayRank = '🥉';
+      else displayRank = rank;
+
+      board.innerHTML += `
+        <div class="leader-row ${rank <= 3 ? 'top-3' : ''}">
+          <div class="leader-rank" style="font-size: 1.2rem; width: 40px;">${displayRank}</div>
+          <div class="leader-name">${user.name}</div>
+          <div class="leader-pages">${user.pages.toLocaleString()} <span style="font-size:0.7rem; color:#999; font-weight:normal;">pages</span></div>
+        </div>
+      `;
+    });
+    card.style.display = 'block';
+  }
+
+  function toggleLeaderboard() {
+    const content = document.getElementById('leaderboardCollapse');
+    const chevron = document.getElementById('leaderChevron');
+    const subtext = document.getElementById('leaderSubtext');
+    
+    if (content.style.display === "none") {
+      content.style.display = "block";
+      chevron.style.transform = "rotate(180deg)";
+      subtext.innerText = "Showing all readers";
+    } else {
+      content.style.display = "none";
+      chevron.style.transform = "rotate(0deg)";
+      subtext.innerText = "Tap to expand rankings";
+    }
+  }
+
+  function buildChart(history, selectedName = null) {
+    // 1. Safety check: If no data, don't try to draw
+    if (!history || !history.datasets) return;
+
+    // 2. Prevent "Ghost Charts": Clear the old chart instance before drawing a new one
+    if (myChart) {
+      myChart.destroy();
+    }
+
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    const isMobile = window.innerWidth < 600;
+
+    // 3. Create a temporary copy of history so we don't overwrite the original colors permanently
+    const displayData = JSON.parse(JSON.stringify(history));
+
+    // 4. THE SPOTLIGHT LOGIC: Identify the selected user
+    displayData.datasets.forEach(dataset => {
+      if (selectedName && dataset.label === selectedName) {
+        dataset.label = "YOU";           // Change legend name
+        dataset.borderColor = "#000000"; // Solid Black line
+        dataset.backgroundColor = "#000000";
+        dataset.borderWidth = 3;         // Slightly thicker to stand out
+        dataset.pointRadius = 3;         // Bigger dots for "YOU"
+        dataset.pointHoverRadius = 7;
+        dataset.order = -1;              // Force this line to be drawn ON TOP of others
+      } else {
+        // Styling for everyone else (the "background" users)
+        dataset.borderWidth = 2;
+        dataset.pointRadius = 2;
+        dataset.order = 1;               // Send to back
+      }
+    });
+
+    // Benchmark: cumulative 10 pages/day (70 per week)
+    displayData.datasets.push({
+      label: '10 pages/day',
+      data: displayData.labels.map((_, i) => i * 70),
+      borderColor: '#cccccc',
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderDash: [6, 4],
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      tension: 0,
+      fill: false,
+      order: 2
+    });
+
+    // 5. Initialize Chart.js
+    myChart = new Chart(ctx, {
+      type: 'line',
+      data: displayData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false, // Essential for our horizontal scroll container
+        animation: {
+          duration: 1000,
+          easing: 'easeOutQuart'
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              boxWidth: 10,
+              font: { size: 11 },
+              usePointStyle: true,
+              padding: 15
+            }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            titleColor: '#333',
+            bodyColor: '#666',
+            borderColor: '#ddd',
+            borderWidth: 1
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: '#f0f0f0' },
+            ticks: { font: { size: 10 } },
+            title: { 
+              display: !isMobile, 
+              text: 'Cumulative Pages',
+              font: { weight: 'bold' }
+            }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { 
+              font: { size: 10 },
+              autoSkip: true,
+              maxTicksLimit: isMobile ? 6 : 12, // Prevents date crowding
+              maxRotation: 0
+            }
+          }
+        },
+        // Ensures lines don't "dive" to zero if data is missing for a week
+        spanGaps: false 
+      }
+    });
+  }
+
+  function updateArkaMeter(total, goal) {
+    const liquid = document.getElementById('sunshineLiquid');
+    const stats = document.getElementById('meterStats');
+    
+    const percentage = Math.min(100, (total / goal) * 100).toFixed(1);
+    
+    liquid.style.width = percentage + "%";
+    stats.innerText = Math.floor(total).toLocaleString() + " pages"
+    
+    // If the meter is full, make it glow!
+    if (parseFloat(percentage) >= 100) {
+      liquid.style.boxShadow = "0 0 15px #FFD700";
+    }
+  }
+  // Generic toggle helper since you'll have many cards now
+  function toggleCard(collapseId, chevronId) {
+    const content = document.getElementById(collapseId);
+    const chevron = document.getElementById(chevronId);
+    content.style.display = content.style.display === "none" ? "block" : "none";
+    chevron.style.transform = content.style.display === "none" ? "rotate(0deg)" : "rotate(180deg)";
+  }
+
+  //To share image to whatsapp
+  async function shareMoverCard() {
+    const card = document.getElementById('moverCard');
+    toggleLoading(true);
+
+    // 1. Capture the card as a Canvas
+    const canvas = await html2canvas(card, {
+      backgroundColor: "#fafffa", // Matches your card background
+      scale: 2, // Higher quality for mobile screens
+      logging: false,
+      useCORS: true
+    });
+
+    // 2. Convert Canvas to a Blob (Image File)
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], "Arka_Weekly_Champions.png", { type: "image/png" });
+
+      // 3. Check if the browser supports native sharing (Modern Mobile Browsers)
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'Arka Weekly Champions',
+            text: 'Check out Arka Weekly Chart Toppers! 🚀📖'
+          });
+        } catch (err) {
+          console.error("Share failed:", err);
+        }
+      } else {
+        // 4. Fallback: Download the image so they can manually post it
+        const link = document.createElement('a');
+        link.download = 'Arka_Weekly_Champions.png';
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        alert("Image saved to gallery! You can now manually upload it to WhatsApp.");
+      }
+      toggleLoading(false);
+    }, "image/png");
+  }
+</script>
+</body>
+</html>

@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=3.2">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=3.3">
 </head>
 <body>
 
@@ -696,6 +696,7 @@
               <option value="ALPHABET">🔤 Alphabet</option>
               <option value="BOOK_COUNT">📚 Annual Book Count</option>
               <option value="PAGE_COUNT">📄 Annual Page Count</option>
+              <option value="10PAGESADAY">🔥 10 Pages a Day</option>
             </select>
 
             <!-- Title + Description -->
@@ -855,6 +856,22 @@
                 </div>
                 <div id="admChalPageCount-personalToggle" class="toggle-pill on" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
               </div>
+            </div>
+
+            <!-- 10PAGESADAY -->
+            <div id="admChalConfig-10PAGESADAY" class="adm-chal-type-section">
+              <div class="adm-chal-section-divider">10 Pages a Day — Year config</div>
+              <label class="adm-form-label" for="admChal10pad-year">Challenge year</label>
+              <input type="number" id="admChal10pad-year" class="adm-input" value="2026" min="2024" max="2099">
+              <label class="adm-form-label" for="admChal10pad-dailyGoal">Daily page goal (default 10)</label>
+              <input type="number" id="admChal10pad-dailyGoal" class="adm-input" value="10" min="1" max="100">
+              <div class="adm-chal-section-divider">Badge IDs</div>
+              <label class="adm-form-label" for="admChal10pad-challengerBadge">Challenger badge ID <span class="adm-form-optional">(enrolled)</span></label>
+              <input type="text" id="admChal10pad-challengerBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_233">
+              <label class="adm-form-label" for="admChal10pad-finisherBadge">Finisher badge ID <span class="adm-form-optional">(avg ≥ daily goal)</span></label>
+              <input type="text" id="admChal10pad-finisherBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_234">
+              <label class="adm-form-label" for="admChal10pad-winnerBadge">Winner badge ID <span class="adm-form-optional">(highest total — Page Turner)</span></label>
+              <input type="text" id="admChal10pad-winnerBadge" class="adm-input" placeholder="e.g. ARKA_BADGE_235">
             </div>
 
             <!-- Points -->
@@ -1158,6 +1175,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=3.2"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=3.3"></script>
 </body>
 </html>
