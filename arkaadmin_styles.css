@@ -10,23 +10,23 @@
          Use --arka-accent-text wherever accent colour sits on a white or
          light background as running text (nav labels, links, etc.). */
       --arka-accent-text:  #7a5e8e;
-      --text-strong:       var(--text-strong);
-      --text-muted:        var(--text-muted);
-      --surface-alt:       var(--surface-alt);
-      --border-soft:       var(--border-soft);
-      --text-faint:        var(--text-faint);
-      --neutral-mid:       var(--neutral-mid);
+      --text-strong:       #2c3e50;
+      --text-muted:        #5b6b6e;
+      --surface-alt:       #f8f9fa;
+      --border-soft:       #ecf0f1;
+      --text-faint:        #6a7878;
+      --neutral-mid:       #bdc3c7;
       --font-body:         'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       /* Admin semantic tokens */
       --adm-sidebar-w:     220px;
       --adm-topbar-h:      56px;
-      --adm-ok:            var(--adm-ok);
+      --adm-ok:            #1d9e75;
       --adm-ok-bg:         #e6f7f1;
-      --adm-warn:          var(--adm-warn);
+      --adm-warn:          #f59f00;
       --adm-warn-bg:       #fff8e6;
-      --adm-danger:        var(--adm-danger);
-      --adm-danger-bg:     var(--adm-danger-bg);
-      --adm-page-bg:       var(--adm-page-bg);
+      --adm-danger:        #e74c3c;
+      --adm-danger-bg:     #fde8e8;
+      --adm-page-bg:       #f4f7f6;
       --color-gamification:   #EF9F27;
       --color-challenge:     #534AB7;
       --color-announcements: #2980b9;
