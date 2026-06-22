@@ -2162,7 +2162,8 @@
     COUNTRY_SPREAD: '🌍 Around the World',
     ALPHABET      : '🔤 Alphabet',
     BOOK_COUNT    : '📚 Book Count',
-    PAGE_COUNT    : '📄 Page Count'
+    PAGE_COUNT    : '📄 Page Count',
+    '10PAGESADAY' : '🔥 10 Pages a Day'
   };
 
   // Full canonical genre list (mirrors app.js CANONICAL_GENRE_LIST)
@@ -2210,7 +2211,8 @@
     COUNTRY_SPREAD: { enrol: 100, finish: 1500, win: 3000 },
     ALPHABET      : { enrol: 100, finish: 1500, win: 5000 },
     BOOK_COUNT    : { enrol:  30, finish:  100, win:    0 },
-    PAGE_COUNT    : { enrol:  30, finish:  100, win:    0 }
+    PAGE_COUNT    : { enrol:  30, finish:  100, win:    0 },
+    '10PAGESADAY' : { enrol: 100, finish: 1000, win: 3000 }
   };
 
   function admLoadChallenges() {
@@ -2291,6 +2293,9 @@
       var archBtn = c.status !== 'Archived'
         ? '<button class="adm-btn adm-btn-danger adm-btn-icon adm-btn-sm" title="Archive" onclick="admOpenChalArchiveModal(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-box-archive"></i></button>'
         : '';
+      var awardBadgesBtn = c.challengeType === '10PAGESADAY'
+        ? '<button class="adm-btn adm-btn-accent adm-btn-sm" title="Award year-end badges" onclick="admAward10PadBadges(\'' + _esc(c.challengeId) + '\')"><i class="fa-solid fa-medal"></i> Award Badges</button>'
+        : '';
       var cardCls = 'adm-chal-card' + (c.isPinned ? ' is-pinned' : '') + (c.status === 'Archived' ? ' is-archived' : '');
       return '<div class="' + cardCls + '">'
         + '<div class="adm-chal-card-top">'
@@ -2301,6 +2306,7 @@
         + '<div class="adm-chal-card-meta">'
         +   metaParts.join('<span class="adm-chal-card-meta-sep"> · </span>')
         + '</div>'
+        + (awardBadgesBtn ? '<div class="adm-mt-10">' + awardBadgesBtn + '</div>' : '')
         + '</div>';
     }).join('');
   }
@@ -2369,7 +2375,7 @@
     var compSel = document.getElementById('admChalCompetitionMode');
     if (!compSel) return;
     // Rebuild option list based on what makes sense for this type
-    var isPersonal = (type === 'BOOK_COUNT' || type === 'PAGE_COUNT');
+    var isPersonal = (type === 'BOOK_COUNT' || type === 'PAGE_COUNT' || type === '10PAGESADAY');
     var isShared   = (type === 'BOOK_HUNT');
     compSel.innerHTML = isPersonal
       ? '<option value="NONE">None – personal challenge, no leaderboard</option>'
@@ -2526,6 +2532,13 @@
       var tog = document.getElementById('admChalPageCount-personalToggle');
       if (tog) tog.classList.toggle('on', config.allowPersonalGoal !== false);
     }
+    if (t === '10PAGESADAY') {
+      _admSetVal('admChal10pad-year',            config.year            || new Date().getFullYear());
+      _admSetVal('admChal10pad-dailyGoal',       config.dailyGoal       || 10);
+      _admSetVal('admChal10pad-challengerBadge', config.challengerBadge || '');
+      _admSetVal('admChal10pad-finisherBadge',   config.finisherBadge   || '');
+      _admSetVal('admChal10pad-winnerBadge',     config.winnerBadge     || '');
+    }
   }
 
   function _admChalBuildGoalConfig(type) {
@@ -2594,6 +2607,18 @@
       config    = {
         defaultGoal      : goalValue,
         allowPersonalGoal: (document.getElementById('admChalPageCount-personalToggle') || {}).classList && document.getElementById('admChalPageCount-personalToggle').classList.contains('on')
+      };
+    }
+    if (type === '10PAGESADAY') {
+      var year      = parseInt((document.getElementById('admChal10pad-year')            || {}).value) || new Date().getFullYear();
+      var dailyGoal = parseInt((document.getElementById('admChal10pad-dailyGoal')       || {}).value) || 10;
+      goalValue = dailyGoal * 365; goalUnit = 'pages';
+      config = {
+        year           : year,
+        dailyGoal      : dailyGoal,
+        challengerBadge: ((document.getElementById('admChal10pad-challengerBadge') || {}).value || '').trim(),
+        finisherBadge  : ((document.getElementById('admChal10pad-finisherBadge')   || {}).value || '').trim(),
+        winnerBadge    : ((document.getElementById('admChal10pad-winnerBadge')     || {}).value || '').trim()
       };
     }
     return { goalConfigJson: JSON.stringify(config), goalValue: goalValue, goalUnit: goalUnit };
@@ -2697,6 +2722,26 @@
       })
       .withFailureHandler(function() { admShowToast('Server error archiving challenge.', 'err'); })
       .archiveChallenge(id);
+  }
+
+  function admAward10PadBadges(challengeId) {
+    if (!challengeId) return;
+    var c = admChallengeDB.filter(function(x) { return x.challengeId === challengeId; })[0];
+    var title = c ? c.title : challengeId;
+    if (!confirm('Award year-end badges for "' + title + '"?\n\nThis will:\n• Award Challenger badge to all enrolled members\n• Award Finisher badge to members meeting the daily page goal\n• Award Winner (Page Turner) badge to the top member\n\nBadges already held are skipped automatically.')) return;
+    admShowToast('Computing standings and awarding badges…', 'ok');
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res.status !== 'success') {
+          admShowToast(res.message || 'Badge award failed.', 'err');
+          return;
+        }
+        admShowToast('Done! Challenger: ' + (res.challengerCount || 0)
+          + ' · Finisher: ' + (res.finisherCount || 0)
+          + ' · Winner: ' + (res.winnerCount || 0), 'ok');
+      })
+      .withFailureHandler(function(err) { admShowToast('Server error: ' + (err.message || 'unknown'), 'err'); })
+      .award10PagesADayBadges(challengeId);
   }
 
   /* date helpers — 'dd-MMM-yyyy' ↔ 'yyyy-MM-dd' (HTML date input format) */
@@ -2866,6 +2911,7 @@
   window.admOpenChalArchiveModal    = admOpenChalArchiveModal;
   window.admCloseChalArchiveModal   = admCloseChalArchiveModal;
   window.admConfirmChalArchive      = admConfirmChalArchive;
+  window.admAward10PadBadges        = admAward10PadBadges;
 
   /* ── Bootstrap ─────────────────────────────────────────────────── */
   window.addEventListener('DOMContentLoaded', admInit);

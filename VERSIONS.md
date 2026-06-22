@@ -89,6 +89,19 @@ Full history lives here.
 
 ---
 
+## AkraAdminControlPanel.html / arkaadmin_styles.css / arkaadmin_app.js
+
+**Current: `v3.3`**
+
+| Version | Date | Summary |
+|---|---|---|
+| v3.0 | pre-Jun 2026 | Initial admin panel — all views, challenge types up to PAGE_COUNT |
+| v3.1 | pre-Jun 2026 | BINGO_GRID variants, genre tracking, CompetitionMode enum |
+| v3.2 | Jun 2026 | Phase 4 per-view polish — design tokens, CSS class purge, section icons, mobile sub-lines |
+| v3.3 | 2026-06-22 | Step 3: 10PAGESADAY challenge type — config form, year-end badge award admin action; legacy TenPagesADay files saved to repo |
+
+---
+
 ## ArkaApp Version History
 
 | Version | Date       | Notes                                      |
