@@ -30384,153 +30384,322 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       }
 
 
+      // ── List Rendering ───────────────────────────────────────────────────────────
+
       /**
-       * Switches between sub-tabs inside the Challenges view.
+       * Maps a legacy tab name or new filter value to a canonical filter string.
+       * @param {string} tab
+       * @returns {'all'|'enrolled'|'unenrolled'}
+       */
+      function _normaliseChalFilter(tab) {
+        if (tab === 'mine')     return 'enrolled';
+        if (tab === 'upcoming') return 'all';
+        if (tab === 'archived') return 'all';
+        if (tab === 'enrolled' || tab === 'unenrolled') return tab;
+        return 'all';
+      }
+
+      /**
+       * Switches the active filter chip and re-renders the challenge list + banner.
+       * @param {'all'|'enrolled'|'unenrolled'} filter
+       */
+      function switchChallengesFilter(filter) {
+        currentChallengesSubTab = filter;
+        ['all', 'enrolled', 'unenrolled'].forEach(function(f) {
+          const chipId = 'chalChip' + f.charAt(0).toUpperCase() + f.slice(1);
+          const chip = document.getElementById(chipId);
+          if (chip) chip.classList.toggle('active', f === filter);
+        });
+        renderChallengesSections(filter);
+      }
+
+      /**
+       * Legacy shim — routes old tab names to the new filter chip system.
+       * Kept because openChallengesView and other places still call this.
        * @param {'all'|'mine'|'upcoming'|'archived'} tabName
        */
       function switchChallengesTab(tabName) {
-        currentChallengesSubTab = tabName;
-    
-        // Update active styling on tabs
-        ['all', 'mine', 'upcoming', 'archived'].forEach(function(t) {
-          const tabEl = document.getElementById('tabChal' + t.charAt(0).toUpperCase() + t.slice(1));
-          if (tabEl) tabEl.classList.toggle('active', t === tabName);
-        });
-    
-        // Show/hide content panels
-        const panels = {
-          all      : document.getElementById('chalAllContent'),
-          mine     : document.getElementById('chalMineContent'),
-          upcoming : document.getElementById('chalUpcomingContent'),
-          archived : document.getElementById('chalArchivedContent')
-        };
-        Object.entries(panels).forEach(function(entry) {
-          if (entry[1]) entry[1].style.display = entry[0] === tabName ? 'block' : 'none';
-        });
-    
-        // Render the relevant list
-        if (tabName === 'all')      renderChallengeList('all');
-        if (tabName === 'mine')     renderChallengeList('mine');
-        if (tabName === 'upcoming') renderChallengeList('upcoming');
-        if (tabName === 'archived') renderChallengeList('archived');
+        switchChallengesFilter(_normaliseChalFilter(tabName));
       }
-    
-    
-      // ── List Rendering ───────────────────────────────────────────────────────────
-    
+
       /**
        * Entry point called by switchTab('challenges').
-       * Renders the currently active sub-tab.
        */
       function renderChallengesView() {
-        switchChallengesTab(currentChallengesSubTab || 'all');
+        renderChallengesBanner();
+        switchChallengesFilter(_normaliseChalFilter(currentChallengesSubTab || 'all'));
       }
-    
+
       /**
-       * Builds and injects the challenge card list for a given tab.
-       * Derives enrolled counts from globalChallengeEnrollmentsDB at render time —
-       * no extra backend call needed.
-       *
-       * @param {'all'|'mine'|'upcoming'|'archived'} tab
+       * Backward-compatible wrapper — all existing call sites pass a tab name.
+       * Re-renders the banner and list.
+       * @param {string} tab  legacy tab name or new filter value
        */
       function renderChallengeList(tab) {
-        const containerId = 'chal' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'List';
-        const container   = document.getElementById(containerId);
+        renderChallengesBanner();
+        renderChallengesSections(_normaliseChalFilter(tab));
+      }
+
+      /**
+       * Builds the bento banner tiles and injects them into #chalBentoGrid.
+       * Left column (spans 2 rows): mini bingo grid for active enrolled bingo challenge.
+       * Top right: 10ppa fire tile (streak + total pages).
+       * Bottom right: club-points tile.
+       * Falls back to placeholder tiles when no matching active challenge is enrolled.
+       */
+      function renderChallengesBanner() {
+        const bentoEl = document.getElementById('chalBentoGrid');
+        if (!bentoEl) return;
+        if (!isAppDataLoaded) { bentoEl.innerHTML = ''; return; }
+
+        let html = '';
+
+        // ── Bingo tile ────────────────────────────────────────────────────────────
+        const bingoChal = globalChallengesDB.find(function(c) {
+          const enr = myEnrollmentsMap.get(c.challengeId);
+          return c.challengeType === 'BINGO_GRID' && c.status === 'Active' &&
+                 enr && enr.enrollmentStatus !== 'Dropped';
+        });
+
+        if (bingoChal) {
+          const bingoEnr = myEnrollmentsMap.get(bingoChal.challengeId);
+          let bingoCfg = {};
+          try { bingoCfg = JSON.parse(bingoChal.goalConfigJson || '{}'); } catch(e) {}
+          let bingoState = {};
+          try { bingoState = JSON.parse(bingoEnr.progressStateJson || '{}'); } catch(e) {}
+
+          const gridSize   = bingoCfg.gridSize || 3;
+          const cells      = bingoCfg.cells || [];
+          const cellsDone  = new Set(bingoState.cellsCompleted || []);
+          const totalCells = cells.length;
+          const squareCells = gridSize * gridSize;
+          const centreIdx  = Math.floor(squareCells / 2);
+
+          let miniCellsHtml = '';
+          cells.forEach(function(cell, idx) {
+            const isFree = (squareCells % 2 !== 0) && (idx === centreIdx);
+            const isDone = cellsDone.has(cell.cellId);
+            const cls    = isFree ? 'free' : (isDone ? 'done' : '');
+            const label  = (isFree || isDone) ? '' : escapeHtml((cell.prompt || '').substring(0, 8));
+            miniCellsHtml += '<div class="chal-mg-cell ' + cls + '">' + label + '</div>';
+          });
+
+          const donePct = totalCells > 0 ? Math.round((cellsDone.size / totalCells) * 100) : 0;
+
+          html += '<div class="chal-bingo-tile">' +
+            '<div class="chal-bingo-tile-label">Book Bingo</div>' +
+            '<div class="chal-mg" style="grid-template-columns:repeat(' + gridSize + ',1fr);">' +
+              miniCellsHtml +
+            '</div>' +
+            '<div class="chal-bingo-progress">' + cellsDone.size + '/' + totalCells + ' cells · ' + donePct + '%</div>' +
+          '</div>';
+        } else {
+          html += '<div class="chal-bento-placeholder" style="grid-column:1;grid-row:1/3;">' +
+            '<span>No active<br>Bingo<br>challenge</span>' +
+          '</div>';
+        }
+
+        // ── Fire / 10ppa tile ─────────────────────────────────────────────────────
+        const fireChal = globalChallengesDB.find(function(c) {
+          const enr = myEnrollmentsMap.get(c.challengeId);
+          return c.challengeType === '10PAGESADAY' && c.status === 'Active' &&
+                 enr && enr.enrollmentStatus !== 'Dropped';
+        });
+
+        if (fireChal) {
+          const fireEnr = myEnrollmentsMap.get(fireChal.challengeId);
+          let fireState = {};
+          try { fireState = JSON.parse(fireEnr.progressStateJson || '{}'); } catch(e) {}
+          let fireCfg = {};
+          try { fireCfg = JSON.parse(fireChal.goalConfigJson || '{}'); } catch(e) {}
+
+          const streak     = fireState.currentStreak || 0;
+          const totalPages = fireState.totalPages    || 0;
+          const daysActive = fireState.daysActive    || 0;
+          const daysGoal   = fireCfg.durationDays    || 0;
+          const barPct     = daysGoal > 0 ? Math.min(100, Math.round(daysActive / daysGoal * 100)) : 0;
+
+          html += '<div class="chal-fire-tile">' +
+            '<div>' +
+              '<div class="chal-fire-tile-label">🔥 10 Pages a Day</div>' +
+              '<div class="chal-fire-tile-num">' + streak + '<span style="font-size:0.8rem;font-family:inherit;font-weight:400;"> day streak</span></div>' +
+              '<div class="chal-fire-tile-sub">' + totalPages + ' pages total</div>' +
+            '</div>' +
+            '<div class="chal-mini-bar-bg"><div class="chal-mini-bar-fill" style="width:' + barPct + '%;background:#E05A47;"></div></div>' +
+          '</div>';
+        } else {
+          html += '<div class="chal-bento-placeholder" style="grid-column:2;grid-row:1;">' +
+            '<span>No active<br>10ppa</span>' +
+          '</div>';
+        }
+
+        // ── Points tile ───────────────────────────────────────────────────────────
+        html += _buildChalPointsTile();
+
+        bentoEl.innerHTML = html;
+      }
+
+      /**
+       * Builds the club-points bento tile (bottom-right).
+       * @returns {string} HTML string
+       */
+      function _buildChalPointsTile() {
+        const member   = membersMap ? membersMap.get(currentUser) : null;
+        const pts      = member ? (Number(member.clubPoints) || 0) : 0;
+        const enrolled = myEnrollmentsMap ? myEnrollmentsMap.size : 0;
+
+        return '<div class="chal-pts-tile">' +
+          '<div>' +
+            '<div class="chal-pts-tile-label">⭐ Club Points</div>' +
+            '<div class="chal-pts-tile-num">' + pts.toLocaleString() + '</div>' +
+            '<div class="chal-pts-tile-sub">' + enrolled + ' challenge' + (enrolled !== 1 ? 's' : '') + ' enrolled</div>' +
+          '</div>' +
+        '</div>';
+      }
+
+      /**
+       * Renders the sectioned challenge list into #chalListContent.
+       * Enrolled active challenges appear first, then un-enrolled active,
+       * then upcoming, then archived (when filter is 'all').
+       *
+       * @param {'all'|'enrolled'|'unenrolled'} filter
+       */
+      function renderChallengesSections(filter) {
+        const container = document.getElementById('chalListContent');
         if (!container) return;
-    
+
         if (!isAppDataLoaded) {
           container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px 0;font-style:italic;">Loading...</p>';
           return;
         }
 
-        // Filter challenges by tab
-        let challenges = globalChallengesDB.filter(function(c) {
-          if (tab === 'all')      return c.status === 'Active';
-          if (tab === 'mine') {
-            const enr = myEnrollmentsMap.get(c.challengeId);
-            return enr && enr.enrollmentStatus !== 'Dropped' && c.status === 'Active';
-          }
-          if (tab === 'upcoming') return c.status === 'Upcoming';
-          if (tab === 'archived') return c.status === 'Archived' || c.status === 'Completed';
-          return false;
-        });
-    
-        // Sort: pinned first, then alphabetical by title
-        challenges = challenges.sort(function(a, b) {
-          if (a.isPinned && !b.isPinned) return -1;
-          if (!a.isPinned && b.isPinned) return 1;
-          return a.title.localeCompare(b.title);
-        });
-    
-        if (challenges.length === 0) {
-          const emptyMessages = {
-            all      : 'No active challenges yet.',
-            mine     : 'You haven\'t enrolled in any challenges yet. Check the All tab!',
-            upcoming : 'No upcoming challenges.',
-            archived : 'No archived challenges.'
-          };
-          container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px 0;font-style:italic;">' + (emptyMessages[tab] || '') + '</p>';
-          return;
-        }
-    
-        // Pre-compute enrolled counts: challengeId → count of Active/Winner/Finisher enrollments
+        // Pre-compute enrolled counts
         const enrolledCountMap = {};
         globalChallengeEnrollmentsDB.forEach(function(enr) {
           if (enr.enrollmentStatus === 'Dropped') return;
           enrolledCountMap[enr.challengeId] = (enrolledCountMap[enr.challengeId] || 0) + 1;
         });
-    
-        let html = '';
-        challenges.forEach(function(c) {
-          const enrolledCount = enrolledCountMap[c.challengeId] || 0;
-          const myEnrollment       = myEnrollmentsMap.get(c.challengeId);
-          const isEnrolled         = !!myEnrollment;
-          const isActivelyEnrolled = !!(myEnrollment && myEnrollment.enrollmentStatus !== 'Dropped');
-          const pinnedClass   = c.isPinned ? ' chal-card-pinned' : '';
-          const pinBadge      = c.isPinned ? '<span style="font-size:0.7rem;color:var(--arka-accent);margin-right:6px;">📌</span>' : '';
-    
-          // Date display
-          const dateStr = c.endDate
-            ? c.startDate + ' – ' + c.endDate
-            : c.startDate + ' · Open-ended';
-    
-          // Enrolled badge for member (shows their enrolment status)
+
+        // Bucket challenges by state + my enrolment
+        const myActive    = [];
+        const otherActive = [];
+        const upcoming    = [];
+        const archived    = [];
+
+        globalChallengesDB.forEach(function(c) {
+          const enr        = myEnrollmentsMap.get(c.challengeId);
+          const isEnrolled = !!(enr && enr.enrollmentStatus !== 'Dropped');
+
+          if (c.status === 'Active') {
+            if (isEnrolled) myActive.push(c);
+            else            otherActive.push(c);
+          } else if (c.status === 'Upcoming') {
+            upcoming.push(c);
+          } else if (c.status === 'Archived' || c.status === 'Completed') {
+            archived.push(c);
+          }
+        });
+
+        function sortChal(arr) {
+          return arr.sort(function(a, b) {
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            return a.title.localeCompare(b.title);
+          });
+        }
+        sortChal(myActive); sortChal(otherActive); sortChal(upcoming); sortChal(archived);
+
+        function buildCard(c) {
+          const myEnr              = myEnrollmentsMap.get(c.challengeId);
+          const isActivelyEnrolled = !!(myEnr && myEnr.enrollmentStatus !== 'Dropped');
+          const enrolledCount      = enrolledCountMap[c.challengeId] || 0;
+          const pinnedClass        = c.isPinned ? ' chal-card-pinned' : '';
+          const pinBadge           = c.isPinned ? '<span style="font-size:0.7rem;color:var(--arka-accent);margin-right:6px;">📌</span>' : '';
+          const dateStr            = c.endDate ? c.startDate + ' – ' + c.endDate : c.startDate + ' · Open-ended';
+
           let enrollBadge = '';
           if (isActivelyEnrolled) {
-            const myEnr = myEnrollment;
             const statusColours = {
-              Active   : 'background:#EAF3DE;color:#27500A;',
-              Winner   : 'background:#FAEEDA;color:#633806;',
-              Finisher : 'background:#E1F5EE;color:#085041;'
+              Active  : 'background:#EAF3DE;color:#27500A;',
+              Winner  : 'background:#FAEEDA;color:#633806;',
+              Finisher: 'background:#E1F5EE;color:#085041;'
             };
-            const style = statusColours[myEnr.enrollmentStatus] || 'background:var(--border-soft);color:var(--text-muted);';
-            enrollBadge = '<span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;' + style + 'margin-left:6px;">✓ ' + myEnr.enrollmentStatus + '</span>';
+            const sty = statusColours[myEnr.enrollmentStatus] || 'background:var(--border-soft);color:var(--text-muted);';
+            enrollBadge = '<span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;' + sty + 'margin-left:6px;">✓ ' + myEnr.enrollmentStatus + '</span>';
           }
-    
-          html += `
-            <div class="chal-card${pinnedClass}" role="button" tabindex="0" data-action onclick="openChallengeDetailView('${c.challengeId}')">
 
-              <div class="chal-card-header">
-                <div style="flex:1;">
-                  <div class="chal-card-title">${pinBadge}${escapeHtml(c.title)}${enrollBadge}</div>
-                  <div style="margin-top:4px;">
-                    <span class="chal-type-badge chal-type-${c.challengeType}">${c.challengeType.replace(/_/g,' ')}</span>
-                  </div>
-                  <div class="chal-card-meta">${dateStr}</div>
-                  ${c.description ? '<div class="chal-card-meta" style="margin-top:3px;">' + escapeHtml(c.description) + '</div>' : ''}
-                </div>
-                <div class="chal-card-enroll-count">${enrolledCount} enrolled</div>
-              </div>
+          const statusBanner = c.status !== 'Active'
+            ? '<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">' + escapeHtml(c.status) + '</div>'
+            : '';
 
-              <div style="display:flex; justify-content:flex-end; margin-top:10px;">
-                ${isActivelyEnrolled && myEnrollment.enrollmentStatus === 'Active'
-                  ? '<button class="chal-drop-btn" onclick="event.stopPropagation(); openDropChallengeConfirm(\'' + c.challengeId + '\', \'' + escapeHtml(c.title) + '\')">Drop</button>'
-                  : (!isActivelyEnrolled ? '<button class="chal-enrol-btn" onclick="openChalEnrolSheet(\'' + c.challengeId + '\')">Enrol →</button>' : '')
-                }
-              </div>
-            </div>`;
-        });
-    
+          const actionBtn = isActivelyEnrolled && myEnr.enrollmentStatus === 'Active'
+            ? '<button class="chal-drop-btn" onclick="event.stopPropagation(); openDropChallengeConfirm(\'' + c.challengeId + '\', \'' + escapeHtml(c.title) + '\')">Drop</button>'
+            : (!isActivelyEnrolled && c.status === 'Active'
+                ? '<button class="chal-enrol-btn" onclick="openChalEnrolSheet(\'' + c.challengeId + '\')">Enrol →</button>'
+                : '');
+
+          return '<div class="chal-card' + pinnedClass + '" role="button" tabindex="0" data-action onclick="openChallengeDetailView(\'' + c.challengeId + '\')">' +
+            '<div class="chal-card-header">' +
+              '<div style="flex:1;">' +
+                statusBanner +
+                '<div class="chal-card-title">' + pinBadge + escapeHtml(c.title) + enrollBadge + '</div>' +
+                '<div style="margin-top:4px;"><span class="chal-type-badge chal-type-' + c.challengeType + '">' + c.challengeType.replace(/_/g,' ') + '</span></div>' +
+                '<div class="chal-card-meta">' + dateStr + '</div>' +
+                (c.description ? '<div class="chal-card-meta" style="margin-top:3px;">' + escapeHtml(c.description) + '</div>' : '') +
+              '</div>' +
+              '<div class="chal-card-enroll-count">' + enrolledCount + ' enrolled</div>' +
+            '</div>' +
+            '<div style="display:flex;justify-content:flex-end;margin-top:10px;">' + actionBtn + '</div>' +
+          '</div>';
+        }
+
+        let html = '';
+
+        if (filter === 'enrolled') {
+          if (myActive.length === 0) {
+            html = '<p style="text-align:center;color:var(--text-muted);padding:20px 0;font-style:italic;">You haven\'t enrolled in any active challenges.</p>';
+          } else {
+            html += '<div class="chal-section-hdr">Your Challenges</div>';
+            myActive.forEach(function(c) { html += buildCard(c); });
+          }
+
+        } else if (filter === 'unenrolled') {
+          if (otherActive.length === 0 && upcoming.length === 0) {
+            html = '<p style="text-align:center;color:var(--text-muted);padding:20px 0;font-style:italic;">No challenges to join right now.</p>';
+          } else {
+            if (otherActive.length > 0) {
+              html += '<div class="chal-section-hdr">Active</div>';
+              otherActive.forEach(function(c) { html += buildCard(c); });
+            }
+            if (upcoming.length > 0) {
+              html += '<div class="chal-section-hdr">Upcoming</div>';
+              upcoming.forEach(function(c) { html += buildCard(c); });
+            }
+          }
+
+        } else {
+          // 'all' — enrolled first, then others, then upcoming, then archived
+          if (myActive.length > 0) {
+            html += '<div class="chal-section-hdr">Your Challenges</div>';
+            myActive.forEach(function(c) { html += buildCard(c); });
+          }
+          if (otherActive.length > 0) {
+            html += '<div class="chal-section-hdr">Active</div>';
+            otherActive.forEach(function(c) { html += buildCard(c); });
+          }
+          if (upcoming.length > 0) {
+            html += '<div class="chal-section-hdr">Upcoming</div>';
+            upcoming.forEach(function(c) { html += buildCard(c); });
+          }
+          if (archived.length > 0) {
+            html += '<div class="chal-section-hdr">Archived</div>';
+            archived.forEach(function(c) { html += buildCard(c); });
+          }
+          if (!html) {
+            html = '<p style="text-align:center;color:var(--text-muted);padding:20px 0;font-style:italic;">No challenges found.</p>';
+          }
+        }
+
         container.innerHTML = html;
       }
     
