@@ -200,10 +200,10 @@
     .adm-btn-sm     { padding: 5px 10px; font-size: 0.75rem; }
 
     /* ── Filter tabs ───────────────────────────────────────────────── */
-    .adm-filter-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+    .adm-filter-row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
     .adm-filter-tab {
-      padding: 5px 13px; border-radius: 20px;
-      font-size: 0.78rem; font-weight: 600;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 0.7rem; font-weight: 600;
       border: 1.5px solid var(--border-soft); background: #fff; color: var(--text-muted);
       cursor: pointer; transition: all 0.1s; font-family: var(--font-body);
     }
@@ -697,11 +697,11 @@
         min-width:  var(--mob-touch-min);
       }
 
-      /* ── 14. Filter tabs: slightly larger on mobile ────────────────  */
+      /* ── 14. Filter tabs: minimum touch target on mobile ───────────  */
       .adm-filter-tab {
-        min-height: 36px;
-        padding: 6px 14px;
-        font-size: 0.82rem;
+        min-height: 32px;
+        padding: 5px 12px;
+        font-size: 0.75rem;
       }
 
       /* ── 15. Filter row: stack the search input on its own line ────
@@ -858,6 +858,40 @@
     /* Challenge table row states (P6) */
     .adm-chal-row-pinned   { box-shadow: inset 3px 0 0 var(--arka-accent); }
     .adm-chal-row-archived { opacity: 0.6; }
+
+    /* ── Challenge card list ───────────────────────────────────────── */
+    .adm-chal-cards { display: flex; flex-direction: column; gap: 10px; }
+    .adm-chal-card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      padding: 14px 16px;
+      border-left: 3px solid transparent;
+      transition: box-shadow 0.15s;
+    }
+    .adm-chal-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.11); }
+    .adm-chal-card.is-pinned  { border-left-color: var(--arka-accent); }
+    .adm-chal-card.is-archived { opacity: 0.55; }
+    .adm-chal-card-top {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
+    }
+    .adm-chal-card-type  { flex: 1; min-width: 0; }
+    .adm-chal-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .adm-chal-card-title {
+      font-size: 0.93rem; font-weight: 700; color: var(--text-strong);
+      margin-bottom: 4px; line-height: 1.3;
+    }
+    .adm-chal-card-meta {
+      font-size: 0.75rem; color: var(--text-muted);
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    }
+    .adm-chal-card-meta-sep { color: var(--neutral-mid); }
+    .adm-chal-dot {
+      width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0;
+    }
+    .adm-chal-dot-active    { background: var(--adm-ok); }
+    .adm-chal-dot-upcoming  { background: var(--adm-warn); }
+    .adm-chal-dot-completed { background: var(--neutral-mid); }
+    .adm-chal-dot-archived  { background: var(--neutral-mid); }
 
     /* Badge category colour pills (P8) — reuse challenge type palette */
     .badge-cat-badge {
