@@ -274,7 +274,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        */
       function backgroundSyncChallengeProgress() {
         // Collect only the challenge types that auto-sync from source data.
-        // Other types (HABIT_STREAK, BINGO_GRID etc.) are updated explicitly
+        // Other types (BINGO_GRID etc.) are updated explicitly
         // by the member — no background sync needed.
         const syncableTypes = new Set(['BOOK_COUNT', 'PAGE_COUNT']);
 
@@ -30906,24 +30906,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        */
       const CHAL_CARD_CONFIG = {
     
-        HABIT_STREAK: {
-          icon: '📅',
-          /**
-           * Returns 0–1 fill fraction for the progress bar.
-           * Streaks don't have a fixed end target — we use current/365 as a
-           * visual proxy so the bar feels meaningful.
-           */
-          getProgress: function(state) {
-            return Math.min(1, (state.currentStreak || 0) / 365);
-          },
-          getLabel: function(state) {
-            const streak  = state.currentStreak  || 0;
-            const longest = state.longestStreak  || 0;
-            const missed  = (state.missedDates || []).length;
-            return streak + ' day streak  ·  best: ' + longest + (missed > 0 ? '  ·  ' + missed + ' missed' : '');
-          }
-        },
-    
         BINGO_GRID: {
           icon: '🎲',
           getProgress: function(state, challenge) {
@@ -30936,51 +30918,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             const completed = (state.cellsCompleted || []).length;
             const bingo     = state.hasBingo ? '  ·  BINGO! 🎉' : '';
             return completed + ' / ' + total + ' cells' + bingo;
-          }
-        },
-    
-        BUDDY_READ: {
-          icon: '📖',
-          getProgress: function(state, challenge) {
-            const total = challenge.goalValue || 0;
-            return total > 0 ? Math.min(1, (state.pagesRead || 0) / total) : 0;
-          },
-          getLabel: function(state, challenge) {
-            const total    = challenge.goalValue || 0;
-            const read     = state.pagesRead || 0;
-            const pct      = total > 0 ? Math.round((read / total) * 100) : 0;
-            const finished = state.finishedBeforeDeadline === true  ? '  ·  Finished in time ✓'
-                          : state.finishedBeforeDeadline === false ? '  ·  Finished (after deadline)'
-                          : '';
-            return read.toLocaleString() + ' / ' + total.toLocaleString() + ' pages  ·  ' + pct + '%' + finished;
-          }
-        },
-    
-        COUNTRY_SPREAD: {
-          icon: '🌍',
-          getProgress: function(state, challenge) {
-            const goal = challenge.goalValue || 10;
-            return Math.min(1, (state.totalCountries || 0) / goal);
-          },
-          getLabel: function(state, challenge) {
-            const goal = challenge.goalValue || 10;
-            return (state.totalCountries || 0) + ' / ' + goal + ' countries';
-          }
-        },
-    
-        ALPHABET: {
-          icon: '🔤',
-          getProgress: function(state, challenge) {
-            const goal      = challenge.goalValue || 23;
-            const completed = state.lettersCompleted || 0;
-            return goal > 0 ? Math.min(1, completed / goal) : 0;
-          },
-          getLabel: function(state, challenge) {
-            const goal      = challenge.goalValue || 23;
-            const completed = state.lettersCompleted || 0;
-            const optional  = state.optionalLettersCompleted || 0;
-            const optStr    = optional > 0 ? '  ·  ' + optional + ' optional' : '';
-            return completed + ' / ' + goal + ' letters' + optStr;
           }
         },
     
@@ -31467,11 +31404,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         try { state = JSON.parse(enrollment.progressStateJson || '{}'); } catch (e) {}
     
         const renderers = {
-          HABIT_STREAK  : renderStreakProgress,
           BINGO_GRID    : renderBingoProgress,
-          BUDDY_READ    : renderBuddyReadProgress,
-          COUNTRY_SPREAD: renderCountrySpreadProgress,
-          ALPHABET      : renderAlphabetProgress,
           BOOK_COUNT    : renderCountProgress,
           PAGE_COUNT    : renderCountProgress
         };
@@ -31487,120 +31420,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (challenge.challengeType === 'BINGO_GRID') {
           attachBingoTileHandlers(challenge, enrollment, state);
         }
-      }
-    
-    
-      // ── HABIT_STREAK renderer ────────────────────────────────────────────────────
-    
-      /**
-       * Renders streak stats + a 28-day daily heatmap (4 weeks visible) +
-       * a monthly breakdown borrowed from the existing TenPagesADay design.
-       */
-      function renderStreakProgress(challenge, enrollment, state) {
-        const currentStreak  = state.currentStreak   || 0;
-        const longestStreak  = state.longestStreak   || 0;
-        const totalLogged    = state.totalDaysLogged  || 0;
-        const totalPages     = state.totalPagesLogged || 0;
-        const missedDates    = new Set(state.missedDates || []);
-    
-        // Build last-28-days heatmap
-        const today     = new Date();
-        const todayStr  = today.toISOString().slice(0, 10);
-        let   heatCells = '';
-    
-        for (let d = 27; d >= 0; d--) {
-          const dt      = new Date(today);
-          dt.setDate(today.getDate() - d);
-          const isoStr  = dt.toISOString().slice(0, 10);
-          const dayNum  = dt.getDate();
-          const isToday = isoStr === todayStr;
-    
-          // Determine if this day was logged — check PageLogDB filtered to this challenge
-          const wasLogged = wasPageLoggedOnDate(isoStr, enrollment.challengeId);
-          const wasMissed = missedDates.has(isoStr);
-    
-          let cls = 'streak-day';
-          if (wasLogged)     cls += ' logged';
-          else if (wasMissed) cls += ' missed';
-          else if (d === 0)   cls += ' future'; // today — not yet decided
-          if (isToday)       cls += ' today';
-    
-          heatCells += `<div class="${cls}" title="${isoStr}"></div>`;
-        }
-    
-        // Streak history list (last 5 streaks)
-        const historyRows = (state.streakHistory || [])
-          .slice(-5)
-          .reverse()
-          .map(function(h) {
-            return `<div style="display:flex;justify-content:space-between;padding:5px 0;
-                                border-bottom:1px solid #f0f0f0;font-size:0.8rem;">
-              <span style="color:var(--text-muted);">${h.startDate} → ${h.endDate || 'ongoing'}</span>
-              <span style="font-weight:600;">${h.length} days</span>
-            </div>`;
-          }).join('');
-    
-        return `
-          <div class="chal-stat-strip">
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num" style="color:var(--color-gamification);">${currentStreak}</div>
-              <div class="chal-stat-label">Current streak</div>
-            </div>
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num">${longestStreak}</div>
-              <div class="chal-stat-label">Best streak</div>
-            </div>
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num">${totalLogged}</div>
-              <div class="chal-stat-label">Days logged</div>
-            </div>
-          </div>
-    
-          <div class="card" style="padding:14px;margin-bottom:14px;">
-            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;
-                        letter-spacing:0.5px;margin-bottom:8px;">Last 28 days</div>
-            <div class="streak-heatmap">${heatCells}</div>
-            <div style="display:flex;gap:12px;margin-top:6px;font-size:0.7rem;color:var(--text-faint);">
-              <span><span style="display:inline-block;width:10px;height:10px;background:var(--color-success);border-radius:2px;margin-right:3px;"></span>Logged</span>
-              <span><span style="display:inline-block;width:10px;height:10px;background:var(--color-danger);border-radius:2px;margin-right:3px;opacity:0.7;"></span>Missed</span>
-              <span style="margin-left:auto;">${totalPages.toLocaleString()} total pages</span>
-            </div>
-          </div>
-    
-          ${historyRows.length ? `
-            <div class="card" style="padding:14px;margin-bottom:14px;">
-              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;
-                          letter-spacing:0.5px;margin-bottom:8px;">Streak history</div>
-              ${historyRows}
-            </div>` : ''}
-        `;
-      }
-    
-      /**
-       * Checks PageLogDB to see if any pages were logged on a specific date
-       * for the current challenge enrollment.
-       *
-       * Uses the source field matching challengeId OR 'ArkaClubApp' for
-       * the 10 Pages challenge which predates the challenge module.
-       *
-       * @param {string} isoDateStr - yyyy-MM-dd
-       * @param {string} challengeId
-       * @returns {boolean}
-       */
-      function wasPageLoggedOnDate(isoDateStr, challengeId) {
-        return globalMyPageLogDB.some(function(log) {
-          if (log.memberId !== currentUser) return false;
-          // Normalise the timestamp to yyyy-MM-dd for comparison
-          const logDate = log.timestamp
-            ? log.timestamp.toString().slice(6, 10) + '-' +
-              log.timestamp.toString().slice(3, 5) + '-' +
-              log.timestamp.toString().slice(0, 2)
-            : '';
-          if (logDate !== isoDateStr) return false;
-          // Pages logged via this challenge OR directly via the app
-          return log.logSource === challengeId || log.logSource === 'ArkaClubApp'
-              || log.logSource === '10PagesADay' || log.logSource.includes('10Pages');
-        });
       }
     
     
@@ -31707,143 +31526,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             openBingoCellSheet(cellId, challenge, state);
           });
         });
-      }
-    
-    
-      // ── BUDDY_READ renderer ───────────────────────────────────────────────────────
-    
-      function renderBuddyReadProgress(challenge, enrollment, state) {
-        let config = {};
-        try { config = JSON.parse(challenge.goalConfigJson || '{}'); } catch (e) {}
-    
-        const totalPages = challenge.goalValue || 0;
-        const pagesRead  = state.pagesRead    || 0;
-        const pct        = totalPages > 0 ? Math.min(100, Math.round((pagesRead / totalPages) * 100)) : 0;
-        const bookTitle  = config.bookTitle   || 'the book';
-        const endDate    = challenge.endDate  || '';
-    
-        let finishedNote = '';
-        if (state.finishedBeforeDeadline === true)  finishedNote = '<p style="color:var(--color-success);font-weight:600;text-align:center;margin-top:12px;">✓ Finished on time!</p>';
-        if (state.finishedBeforeDeadline === false) finishedNote = '<p style="color:var(--color-warning);font-weight:600;text-align:center;margin-top:12px;">Finished (after deadline)</p>';
-    
-        return `
-          <div class="card" style="padding:16px;margin-bottom:14px;">
-            <div style="font-size:0.88rem;font-weight:600;color:var(--text-strong);margin-bottom:4px;">
-              ${escapeHtml(bookTitle)}
-            </div>
-            ${endDate ? `<div style="font-size:0.75rem;color:var(--text-faint);margin-bottom:12px;">Deadline: ${endDate}</div>` : ''}
-            <div style="font-size:2rem;font-weight:700;color:#D4537E;text-align:center;margin:10px 0;">
-              ${pagesRead.toLocaleString()} <span style="font-size:1rem;color:var(--text-faint);">/ ${totalPages.toLocaleString()}</span>
-            </div>
-            <div style="height:10px;background:var(--border-soft);border-radius:6px;overflow:hidden;margin:8px 0;">
-              <div style="height:100%;width:${pct}%;background:#D4537E;border-radius:6px;transition:width 0.4s;"></div>
-            </div>
-            <div style="text-align:center;font-size:0.8rem;color:var(--text-muted);">${pct}% complete</div>
-            ${finishedNote}
-          </div>
-          <p style="font-size:0.8rem;color:var(--text-faint);text-align:center;">
-            Your page progress updates automatically when you log pages for this book on your shelf.
-          </p>`;
-      }
-    
-    
-      // ── COUNTRY_SPREAD renderer ──────────────────────────────────────────────────
-    
-      function renderCountrySpreadProgress(challenge, enrollment, state) {
-        const goalValue = challenge.goalValue || 10;
-        const visited   = state.countriesVisited || {};
-        const total     = state.totalCountries  || 0;
-        const pct       = Math.round((total / goalValue) * 100);
-    
-        let listHtml = Object.entries(visited).map(function(entry) {
-          const country = entry[0];
-          const data    = entry[1];
-          return `
-            <div class="spread-item">
-              <div class="spread-item-flag">🌍</div>
-              <div style="flex:1;">
-                <div class="spread-item-name">${escapeHtml(country)}</div>
-                <div class="spread-item-book">${escapeHtml(data.title || '')}
-                  <span style="color:var(--text-faint);margin-left:4px;">${data.qualifiedVia || ''}</span>
-                </div>
-              </div>
-              <div style="font-size:0.72rem;color:var(--text-faint);">${data.completedOn || ''}</div>
-            </div>`;
-        }).join('');
-    
-        if (!listHtml) listHtml = '<p style="color:var(--text-faint);font-style:italic;text-align:center;padding:16px 0;">No countries visited yet.</p>';
-    
-        return `
-          <div class="chal-stat-strip" style="grid-template-columns:1fr 1fr;">
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num" style="color:var(--color-success);">${total}</div>
-              <div class="chal-stat-label">Countries</div>
-            </div>
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num">${goalValue - total > 0 ? goalValue - total : '✓'}</div>
-              <div class="chal-stat-label">${goalValue - total > 0 ? 'Remaining' : 'Goal reached'}</div>
-            </div>
-          </div>
-          <div style="height:8px;background:var(--border-soft);border-radius:4px;overflow:hidden;margin-bottom:16px;">
-            <div style="height:100%;width:${Math.min(100,pct)}%;background:var(--color-success);border-radius:4px;transition:width 0.4s;"></div>
-          </div>
-          <div class="card" style="padding:14px;">
-            ${listHtml}
-          </div>
-          <p style="font-size:0.78rem;color:var(--text-faint);text-align:center;margin-top:10px;">
-            Ask your admin to record country completions from the admin enrollment view.
-          </p>`;
-      }
-    
-    
-      // ── ALPHABET renderer ─────────────────────────────────────────────────────────
-    
-      function renderAlphabetProgress(challenge, enrollment, state) {
-        let config = {};
-        try { config = JSON.parse(challenge.goalConfigJson || '{}'); } catch (e) {}
-    
-        const optionals  = new Set(config.optionalLetters || ['Q','X','Z']);
-        const letterMap  = state.letterMap || {};
-        const completed  = state.lettersCompleted || 0;
-        const goalValue  = challenge.goalValue || 23;
-    
-        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-        let cellsHtml = letters.map(function(letter) {
-          const data      = letterMap[letter];
-          const isClaimed = data !== null && data !== undefined;
-          const isOpt     = optionals.has(letter);
-          const cls       = 'alpha-cell' + (isClaimed ? ' claimed' : '') + (isOpt ? ' optional' : '');
-          const bookSnip  = isClaimed && data ? data.title.slice(0, 12) : '';
-          return `
-            <div class="${cls}" title="${isClaimed && data ? escapeHtml(data.title) : (isOpt ? 'Optional' : 'Not claimed')}">
-              <div class="alpha-cell-letter">${letter}</div>
-              ${bookSnip ? `<div class="alpha-cell-book">${escapeHtml(bookSnip)}</div>` : ''}
-            </div>`;
-        }).join('');
-    
-        return `
-          <div class="chal-stat-strip">
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num" style="color:#378ADD;">${completed}/${goalValue}</div>
-              <div class="chal-stat-label">Letters</div>
-            </div>
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num">${state.optionalLettersCompleted || 0}</div>
-              <div class="chal-stat-label">Optional</div>
-            </div>
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num">${Math.round((completed/Math.max(1,goalValue))*100)}%</div>
-              <div class="chal-stat-label">Complete</div>
-            </div>
-          </div>
-          <div class="alpha-grid">${cellsHtml}</div>
-          <div style="display:flex;gap:12px;margin-top:8px;font-size:0.72rem;color:var(--text-faint);flex-wrap:wrap;">
-            <span><span style="display:inline-block;width:10px;height:10px;background:#EAF3DE;border:1px solid var(--color-success);border-radius:2px;margin-right:3px;"></span>Claimed</span>
-            <span><span style="display:inline-block;width:10px;height:10px;background:var(--surface-alt);border:1px dashed var(--text-faint);border-radius:2px;margin-right:3px;"></span>Optional</span>
-          </div>
-          <p style="font-size:0.78rem;color:var(--text-faint);text-align:center;margin-top:12px;">
-            Ask your admin to record letter completions from the admin enrollment view.
-          </p>`;
       }
     
     
@@ -32140,9 +31822,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        */
       function renderCompetitiveLeaderboard(challenge, enrollments) {
         const typeColours = {
-          HABIT_STREAK: 'var(--color-gamification)', BINGO_GRID: '#7F77DD',
-          BUDDY_READ: '#D4537E', COUNTRY_SPREAD: 'var(--color-success)',
-          ALPHABET: '#378ADD', BOOK_COUNT: 'var(--color-gamification)', PAGE_COUNT: '#378ADD'
+          BINGO_GRID: '#7F77DD',
+          BOOK_COUNT: 'var(--color-gamification)', PAGE_COUNT: '#378ADD'
         };
         const barColour = typeColours[challenge.challengeType] || 'var(--arka-accent)';
         const maxVal    = Math.max(1, enrollments[0].currentProgressValue);

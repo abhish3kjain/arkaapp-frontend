@@ -102,6 +102,7 @@ Full history lives here.
 | v3.2 | Jun 2026 | Phase 4 per-view polish — design tokens, CSS class purge, section icons, mobile sub-lines |
 | v3.3 | 2026-06-22 | Step 3: 10PAGESADAY challenge type — config form, year-end badge award admin action; legacy TenPagesADay files saved to repo |
 | v3.4 | 2026-06-22 | Step 4: BOOK_HUNT challenge type — clue builder, CSV bulk upload, badge IDs, GAS validTypes + progressState; CLAUDE.md updated with all challenge schemas |
+| v3.5 | 2026-06-22 | Remove discontinued challenge types: HABIT_STREAK, BUDDY_READ, COUNTRY_SPREAD, ALPHABET — from admin panel, app.js, GAS, and Claude.md |
 
 ---
 

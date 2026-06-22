@@ -1062,11 +1062,7 @@
       display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px;
       border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px;
     }
-    .chal-type-HABIT_STREAK   { background: #FAEEDA; color: #633806; }
     .chal-type-BINGO_GRID     { background: var(--adm-challenge-bg); color: var(--color-challenge); }
-    .chal-type-BUDDY_READ     { background: #FBEAF0; color: #72243E; }
-    .chal-type-COUNTRY_SPREAD { background: #E1F5EE; color: #085041; }
-    .chal-type-ALPHABET       { background: #E6F1FB; color: #0C447C; }
     .chal-type-BOOK_COUNT     { background: #FAEEDA; color: #633806; }
     .chal-type-PAGE_COUNT     { background: #E6F1FB; color: #0C447C; }
     .chal-type-10PAGESADAY    { background: #FFF0E0; color: #7A3000; }

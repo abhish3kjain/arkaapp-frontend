@@ -2156,11 +2156,7 @@
      ══════════════════════════════════════════════════════════════════ */
 
   var ADM_CHAL_TYPE_LABELS = {
-    HABIT_STREAK  : '📅 Habit Streak',
     BINGO_GRID    : '🎲 Bingo Grid',
-    BUDDY_READ    : '📖 Buddy Read',
-    COUNTRY_SPREAD: '🌍 Around the World',
-    ALPHABET      : '🔤 Alphabet',
     BOOK_COUNT    : '📚 Book Count',
     PAGE_COUNT    : '📄 Page Count',
     '10PAGESADAY' : '🔥 10 Pages a Day',
@@ -2206,11 +2202,7 @@
   })();
 
   var ADM_CHAL_POINT_DEFAULTS = {
-    HABIT_STREAK  : { enrol: 100, finish: 1500, win: 3000 },
     BINGO_GRID    : { enrol:  50, finish: 1000, win: 3000 },
-    BUDDY_READ    : { enrol:  30, finish:  200, win:    0 },
-    COUNTRY_SPREAD: { enrol: 100, finish: 1500, win: 3000 },
-    ALPHABET      : { enrol: 100, finish: 1500, win: 5000 },
     BOOK_COUNT    : { enrol:  30, finish:  100, win:    0 },
     PAGE_COUNT    : { enrol:  30, finish:  100, win:    0 },
     '10PAGESADAY' : { enrol: 100, finish: 1000, win: 3000 },
@@ -2485,11 +2477,6 @@
     var config = {};
     try { config = JSON.parse(c.goalConfigJson || '{}'); } catch (e) { config = {}; }
     var t = c.challengeType;
-    if (t === 'HABIT_STREAK') {
-      _admSetVal('admChalStreak-minPages', config.minPagesPerDay || 10);
-      var tog = document.getElementById('admChalStreak-resetToggle');
-      if (tog) tog.classList.toggle('on', config.streakResetOnMiss !== false);
-    }
     if (t === 'BINGO_GRID') {
       _admSetVal('admChalBingo-variant',           config.variant        || 'BOOK_BINGO');
       _admSetVal('admChalBingo-gridSize',          config.gridSize       || 3);
@@ -2505,21 +2492,6 @@
           if (input && !input.readOnly) input.value = cell.prompt || '';
         });
       }
-    }
-    if (t === 'BUDDY_READ') {
-      _admSetVal('admChalBuddy-bookTitle', config.bookTitle || '');
-      var evtEl = document.getElementById('admChalBuddy-linkedEvent');
-      if (evtEl && config.linkedEventId) evtEl.value = config.linkedEventId;
-    }
-    if (t === 'COUNTRY_SPREAD') {
-      _admSetVal('admChalCountry-goalValue', c.goalValue || 10);
-      _admSetVal('admChalCountry-qualRule',  config.qualificationRule || 'BOOK_SETTING_OR_AUTHOR');
-    }
-    if (t === 'ALPHABET') {
-      _admSetVal('admChalAlpha-matchRule',       config.matchRule || 'TITLE_FIRST_WORD');
-      _admSetVal('admChalAlpha-optionalLetters', (config.optionalLetters || ['Q','X','Z']).join(', '));
-      var skipTog = document.getElementById('admChalAlpha-skipToggle');
-      if (skipTog) skipTog.classList.toggle('on', config.skipArticles !== false);
     }
     if (t === 'BOOK_COUNT') {
       _admSetVal('admChalBookCount-default', config.defaultGoal || 24);
@@ -2551,15 +2523,6 @@
 
   function _admChalBuildGoalConfig(type) {
     var config = {}, goalValue = 0, goalUnit = '';
-    if (type === 'HABIT_STREAK') {
-      var minPages = parseInt((document.getElementById('admChalStreak-minPages') || {}).value) || 10;
-      goalValue = minPages; goalUnit = 'pages';
-      config = {
-        minPagesPerDay    : minPages,
-        streakResetOnMiss : (document.getElementById('admChalStreak-resetToggle') || {}).classList && document.getElementById('admChalStreak-resetToggle').classList.contains('on'),
-        countTowardsSource: ['ArkaClubApp']
-      };
-    }
     if (type === 'BINGO_GRID') {
       var variant  = (document.getElementById('admChalBingo-variant') || {}).value || 'BOOK_BINGO';
       var gridSize = parseInt((document.getElementById('admChalBingo-gridSize') || {}).value) || 3;
@@ -2580,26 +2543,6 @@
       if (variant === 'GENRE_BINGO') {
         config.trackingMode = (document.getElementById('admChalBingo-trackingMode') || {}).value || 'CANONICAL';
       }
-    }
-    if (type === 'BUDDY_READ') {
-      var bookTitle = ((document.getElementById('admChalBuddy-bookTitle') || {}).value || '').trim();
-      var linkedEvt = ((document.getElementById('admChalBuddy-linkedEvent') || {}).value || '').trim();
-      goalValue = 1; goalUnit = 'book';
-      config = { bookTitle: bookTitle, linkedEventId: linkedEvt };
-    }
-    if (type === 'COUNTRY_SPREAD') {
-      goalValue = parseInt((document.getElementById('admChalCountry-goalValue') || {}).value) || 10;
-      goalUnit  = 'countries';
-      config    = { qualificationRule: (document.getElementById('admChalCountry-qualRule') || {}).value || 'BOOK_SETTING_OR_AUTHOR' };
-    }
-    if (type === 'ALPHABET') {
-      goalValue = 26; goalUnit = 'letters';
-      var optRaw = ((document.getElementById('admChalAlpha-optionalLetters') || {}).value || 'Q, X, Z');
-      config = {
-        matchRule      : (document.getElementById('admChalAlpha-matchRule') || {}).value || 'TITLE_FIRST_WORD',
-        skipArticles   : (document.getElementById('admChalAlpha-skipToggle') || {}).classList && document.getElementById('admChalAlpha-skipToggle').classList.contains('on'),
-        optionalLetters: optRaw.split(',').map(function(s) { return s.trim().toUpperCase(); }).filter(Boolean)
-      };
     }
     if (type === 'BOOK_COUNT') {
       goalValue = parseInt((document.getElementById('admChalBookCount-default') || {}).value) || 24;

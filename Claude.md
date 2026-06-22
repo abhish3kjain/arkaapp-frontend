@@ -556,16 +556,6 @@ F=currentProgressValue  G=progressStateJson  H=lastProgressUpdate  I=completedOn
 
 ### Per-type goalConfigJson schemas
 
-#### HABIT_STREAK
-```json
-{
-  "minPagesPerDay": 10,
-  "streakResetOnMiss": true,
-  "countTowardsSource": ["ArkaClubApp"]
-}
-```
-goalValue = minPagesPerDay, goalUnit = "pages"
-
 #### BINGO_GRID
 ```json
 {
@@ -580,33 +570,6 @@ goalValue = minPagesPerDay, goalUnit = "pages"
 }
 ```
 goalValue = totalCells, goalUnit = "cells"
-
-#### BUDDY_READ
-```json
-{
-  "bookTitle": "The Name of the Rose",
-  "linkedEventId": "ARKA_EVT_12"
-}
-```
-goalValue = 1, goalUnit = "book"
-
-#### COUNTRY_SPREAD
-```json
-{
-  "qualificationRule": "BOOK_SETTING_OR_AUTHOR | BOOK_SETTING_ONLY | AUTHOR_NATIONALITY_ONLY"
-}
-```
-goalValue = targetCountries, goalUnit = "countries"
-
-#### ALPHABET
-```json
-{
-  "matchRule": "TITLE_FIRST_WORD | TITLE_ANY_WORD | AUTHOR_LASTNAME",
-  "skipArticles": true,
-  "optionalLetters": ["Q", "X", "Z"]
-}
-```
-goalValue = 26, goalUnit = "letters"
 
 #### BOOK_COUNT
 ```json
@@ -669,31 +632,9 @@ Claiming a clue: member links a **currently-reading** book from their shelf.
 
 ### Per-type progressStateJson schemas
 
-#### HABIT_STREAK
-```json
-{ "currentStreak": 0, "longestStreak": 0, "totalDaysLogged": 0, "totalPagesLogged": 0,
-  "lastLogDate": "", "missedDates": [], "streakHistory": [] }
-```
-
 #### BINGO_GRID
 ```json
 { "cellsCompleted": [], "booksLinked": {}, "genreTagged": {}, "linesCompleted": [], "hasBingo": false }
-```
-
-#### BUDDY_READ
-```json
-{ "pagesRead": 0, "shelfRecordId": "", "currentShelfStatus": "To Read", "finishedBeforeDeadline": null }
-```
-
-#### COUNTRY_SPREAD
-```json
-{ "countriesVisited": {}, "totalCountries": 0,
-  "continentProgress": { "Africa":0, "Americas":0, "Asia":0, "Europe":0, "Oceania":0, "MiddleEast":0 } }
-```
-
-#### ALPHABET
-```json
-{ "letterMap": { "A": null, "B": "ARKA_SHELF_X" }, "lettersCompleted": 0, "optionalLettersCompleted": 0 }
 ```
 
 #### BOOK_COUNT
