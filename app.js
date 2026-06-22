@@ -30899,7 +30899,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               : '';
 
             const enrolBtn = c.status === 'Active'
-              ? '<button class="btn-enrol" onclick="openChalEnrolSheet(\'' + c.challengeId + '\')" style="font-size:0.72rem;font-weight:700;background:var(--text-strong);color:white;border:none;padding:6px 14px;border-radius:9px;cursor:pointer;">Enrol →</button>'
+              ? '<button class="chal-enrol-btn" onclick="openChalEnrolSheet(\'' + c.challengeId + '\')">Enrol →</button>'
               : '';
 
             return '<div class="chal-card chal-card-unenrolled" role="button" tabindex="0" data-action onclick="openChallengeDetailView(\'' + c.challengeId + '\')">' +
