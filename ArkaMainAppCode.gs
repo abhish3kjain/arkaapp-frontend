@@ -6860,6 +6860,7 @@ function buildInitialProgressState(challengeType, config, goalValue, personalGoa
     return {
       cellsCompleted  : [],
       booksLinked     : {},
+      genreTagged     : {},
       linesCompleted  : [],
       hasBingo        : false
     };

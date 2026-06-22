@@ -769,6 +769,20 @@
 
             <!-- BINGO_GRID -->
             <div id="admChalConfig-BINGO_GRID" class="adm-chal-type-section">
+              <div class="adm-chal-section-divider">Bingo type</div>
+              <label for="admChalBingo-variant">Variant</label>
+              <select id="admChalBingo-variant" class="adm-input" onchange="admChalOnBingoVariantChange()">
+                <option value="BOOK_BINGO">Book Bingo – reading prompts</option>
+                <option value="GENRE_BINGO">Genre Bingo – genre categories</option>
+                <option value="AUTHOR_BINGO">Author Bingo – author prompts</option>
+              </select>
+              <div id="admChalBingo-trackingModeRow" style="display:none;margin-top:8px;">
+                <label for="admChalBingo-trackingMode">Genre tracking mode</label>
+                <select id="admChalBingo-trackingMode" class="adm-input">
+                  <option value="CANONICAL">Canonical – must match Arka's canonical genre list</option>
+                  <option value="NON_CANONICAL">Non-canonical – sub-genres and free text accepted</option>
+                </select>
+              </div>
               <div class="adm-chal-section-divider">Grid settings</div>
               <label for="admChalBingo-gridSize">Grid size</label>
               <select id="admChalBingo-gridSize" class="adm-input" onchange="admChalRenderBingoBuilder()">
