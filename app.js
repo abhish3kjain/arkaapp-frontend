@@ -3983,6 +3983,17 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           },
           notReadyMsg: 'Quote card not available yet.'
         }
+        rankingPodium: {
+          elementId  : 'leaderboardPodium',
+          fileName   : 'arka-ranking.jpg',
+          waText     : function() {
+            var url = ARKA_APP_URL || '';
+            return '🏆 Arka Readers Club — Members Ranking!\n\n'
+              + 'Check out who’s at the top of our leaderboard 📚'
+              + (url ? '\n👉 ' + url : '');
+          },
+          notReadyMsg: 'Ranking card not available yet.'
+        }
         // Future cards: discoveryCard, readingTogether, etc. — add entries here.
       };
 
@@ -4021,6 +4032,16 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             if (b) b.style.visibility = '';
           }
         });
+      }
+
+      /**
+       * Captures the leaderboard podium card and shares it via WhatsApp.
+       * Uses the generic _snapshotAndShareCard_ pipeline — same as weekly pulse.
+       *
+       * @param {HTMLElement|null} btn - The share icon <i> element (for spinner state).
+       */
+      function sharePodiumCard(btn) {
+        shareCard(btn, 'rankingPodium');
       }
 
       /**
@@ -11447,7 +11468,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               ${descriptionText}
             </div>
             ${badgeContextHtml}
-            ${buildPodiumHtml(rankedMembers, cfg)}
+            ${buildPodiumHtml(rankedMembers, cfg, descriptionText)}
             ${buildRankedListHtml(rankedMembers, scoreMap, cfg)}
           </div>
         `;
@@ -11533,8 +11554,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        * @param {LeaderboardCategoryConfig} cfg
        * @returns {string} HTML string
        */
-      function buildPodiumHtml(rankedMembers, cfg) {
-      
+      function buildPodiumHtml(rankedMembers, cfg, descriptionText) {
+
         // ── 0 qualifiers: empty state ─────────────────────────────────────────────
         if (rankedMembers.length === 0) {
           return `
@@ -11546,17 +11567,23 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             </div>
           `;
         }
-      
+
+        const podiumDesc = descriptionText || cfg.description;
+
         // ── 1 qualifier: solo champion card ──────────────────────────────────────
         if (rankedMembers.length === 1) {
           const { member, score } = rankedMembers[0];
           const isMe = member.id === currentUser;
-      
+
           return `
-            <div style="background:linear-gradient(180deg,var(--text-strong),#34495e); border-radius:12px;
-                        padding:30px 20px; text-align:center; margin-bottom:20px;">
+            <div id="leaderboardPodium" style="background:linear-gradient(180deg,var(--text-strong),#34495e); border-radius:12px;
+                        padding:30px 20px; text-align:center; margin-bottom:20px; position:relative;">
+              <i class="fa-solid fa-share-nodes" onclick="sharePodiumCard(this)"
+                 title="Share ranking"
+                 style="position:absolute; top:12px; right:14px; font-size:13px;
+                        color:rgba(255,255,255,0.45); cursor:pointer; padding:4px;"></i>
               <div style="font-size:0.65rem; color:rgba(255,255,255,0.5); text-transform:uppercase;
-                          letter-spacing:1px; margin-bottom:20px;">${cfg.description}</div>
+                          letter-spacing:1px; margin-bottom:20px;">${podiumDesc}</div>
               ${buildPodiumAvatar(member, 72, 'var(--color-gamification)')}
               <div style="color:white; font-size:1.05rem; font-weight:bold; margin-bottom:4px;
                           cursor:pointer;" onclick="showMemberProfile('${member.id}')">
@@ -11622,11 +11649,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         }
       
         return `
-          <div style="background:linear-gradient(180deg,var(--text-strong),#34495e); border-radius:12px;
-                      padding:20px 16px 0; margin-bottom:20px;">
+          <div id="leaderboardPodium" style="background:linear-gradient(180deg,var(--text-strong),#34495e); border-radius:12px;
+                      padding:20px 16px 0; margin-bottom:20px; position:relative;">
+            <i class="fa-solid fa-share-nodes" onclick="sharePodiumCard(this)"
+               title="Share ranking"
+               style="position:absolute; top:12px; right:14px; font-size:13px;
+                      color:rgba(255,255,255,0.45); cursor:pointer; padding:4px;"></i>
             <div style="font-size:0.62rem; color:rgba(255,255,255,0.5); text-transform:uppercase;
-                        letter-spacing:1px; margin-bottom:16px; text-align:center;">
-              ${cfg.description}
+                        letter-spacing:1px; margin-bottom:16px; text-align:center; padding-right:24px;">
+              ${podiumDesc}
             </div>
             <div style="display:flex; align-items:flex-end; justify-content:center; gap:8px;">
               ${buildPodiumColumn(secondPlace, 2, 40, 45, '#B4B2A9', '#888780', '0.72rem')}
