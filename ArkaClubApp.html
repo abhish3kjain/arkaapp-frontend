@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/styles.css?v=1.6">
+    <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/styles.css?v=1.7">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3095,9 +3095,12 @@
           <datalist id="bingoCellBookList"></datalist>
           <input type="hidden" id="bingoCellBookId">
 
-          <div id="bingoCellGenreRow" style="display:none;margin-top:12px;">
+          <div id="bingoCellGenreRow" style="display:none;margin-top:12px;position:relative;">
             <label>Genre tag <span style="font-weight:400;color:var(--text-muted);">(describe the genre this book covers)</span></label>
-            <input type="text" id="bingoCellGenreInput" placeholder="e.g. Magical Realism, Gothic Horror…">
+            <input type="text" id="bingoCellGenreInput" autocomplete="off" placeholder="Type a genre…"
+                   oninput="onBingoCellGenreInput(this.value)"
+                   onblur="hideBingoCellGenreSuggestions()">
+            <div id="bingoCellGenreSuggestions" class="genre-suggestion-box"></div>
           </div>
       
           <div style="display:flex;gap:10px;margin-top:18px;">
@@ -4268,7 +4271,7 @@
        */
       const ARKA_LAUNCH_PARAMS = <?!= launchParamsJson ?>;
     </script>
-    <script src="https://abhish3kjain.github.io/arkaapp-frontend/app.js?v=1.6"></script>
+    <script src="https://abhish3kjain.github.io/arkaapp-frontend/app.js?v=1.7"></script>
 
   </body>
 </html>

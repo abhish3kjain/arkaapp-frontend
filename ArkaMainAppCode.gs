@@ -9821,13 +9821,23 @@ function getAdminChallengesData() {
       const r = challengeRows[i];
       if (!r[0]) continue;
       const cid = r[0].toString().trim();
+
+      const rawStart = r[4];
+      const rawEnd   = r[5];
+      const startDate = rawStart instanceof Date
+        ? Utilities.formatDate(rawStart, Session.getScriptTimeZone(), 'dd-MMM-yyyy')
+        : (rawStart || '').toString().trim();
+      const endDate = rawEnd instanceof Date
+        ? Utilities.formatDate(rawEnd, Session.getScriptTimeZone(), 'dd-MMM-yyyy')
+        : (rawEnd || '').toString().trim();
+
       challengeList.push({
         challengeId   : cid,
         challengeType : (r[1] || '').toString().trim(),
         title         : (r[2] || '').toString().trim(),
         description   : (r[3] || '').toString().trim(),
-        startDate     : (r[4] || '').toString().trim(),
-        endDate       : (r[5] || '').toString().trim(),
+        startDate,
+        endDate,
         goalValue     : Number(r[6]) || 0,
         goalUnit      : (r[7] || '').toString().trim(),
         goalConfigJson: (r[8] || '{}').toString().trim(),
