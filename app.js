@@ -27588,20 +27588,17 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const streakPillFireEl  = document.getElementById('meStatStreakFire');
         const streakPillTileEl  = document.getElementById('meStatStreakTile');
         const streakPillLblEl   = document.getElementById('meStatStreakLabel');
-        const weeksActiveEl     = document.getElementById('meStatWeeksActive');
 
         if (streakPillValEl) streakPillValEl.innerText = currentStreak > 0 ? currentStreak : '–';
         if (streakPillFireEl) streakPillFireEl.style.display = currentStreak > 0 ? '' : 'none';
-        if (weeksActiveEl) weeksActiveEl.innerText = totalWeeksActive > 0 ? totalWeeksActive + ' wks' : '–';
 
         if (streakPillTileEl) {
           if (currentStreak > 0) {
             streakPillTileEl.style.background  = '#fff8f0';
             streakPillTileEl.style.borderColor = '#f0c070';
-            if (streakPillValEl) streakPillValEl.style.color = 'var(--color-warning)';
+            if (streakPillValEl)  streakPillValEl.style.color  = 'var(--color-warning)';
             if (streakPillFireEl) streakPillFireEl.style.color = 'var(--color-warning)';
-            if (streakPillLblEl) streakPillLblEl.style.color  = '#854F0B';
-            if (weeksActiveEl)   weeksActiveEl.style.color    = '#854F0B';
+            if (streakPillLblEl)  streakPillLblEl.style.color  = '#854F0B';
           } else {
             streakPillTileEl.style.background  = 'var(--surface-alt)';
             streakPillTileEl.style.borderColor = 'var(--border-soft)';
