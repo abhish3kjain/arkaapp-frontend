@@ -532,10 +532,19 @@ function _aiPassCallGemini_(apiKey, displayName, insights, statSnapshot) {
       var pagesLeftStr = bv.pagesLeft !== null
         ? bv.pagesLeft + ' pages left'
         : 'page count unknown';
-      var velocityNote = bv.sessionsOnBook + ' session(s) on this book, avg ' +
-        bv.avgPagesPerSessionThisBook + ' pages/session';
-      if (bv.memberOverallAvgPagesPerSession > 0) {
-        velocityNote += ' vs their usual ' + bv.memberOverallAvgPagesPerSession + ' pages/session overall';
+      // Prefer RSE pages/day; fall back to session-based when not available
+      var velocityNote;
+      if (bv.avgPagesPerDayThisBook !== null && bv.avgPagesPerDayThisBook !== undefined
+          && bv.memberOverallAvgPacePerDay) {
+        velocityNote = bv.sessionsOnBook + ' session(s) on this book, avg ' +
+          bv.avgPagesPerDayThisBook + ' pages/day';
+        velocityNote += ' vs their usual ' + Math.round(bv.memberOverallAvgPacePerDay) + ' pages/day overall';
+      } else {
+        velocityNote = bv.sessionsOnBook + ' session(s) on this book, avg ' +
+          bv.avgPagesPerSessionThisBook + ' pages/session';
+        if (bv.memberOverallAvgPagesPerSession > 0) {
+          velocityNote += ' vs their usual ' + bv.memberOverallAvgPagesPerSession + ' pages/session overall';
+        }
       }
       // Annotate with genre pace/day from RSE V1 when available
       var primaryGenre = bv.genre ? bv.genre.split(',')[0].trim() : '';

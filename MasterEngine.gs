@@ -4607,6 +4607,7 @@ function generateMemberCoachInsights_(
   // which may indicate low engagement, a genre/scale mismatch, or difficulty.
   // Also computes early vs. late velocity (split by session order) to detect
   // whether engagement is improving or declining within the same book.
+  // RSE V1 pages/day fields added alongside session fields for AI coach.
   var currentBooksVelocity = [];
   readingShelfRows.forEach(function(sr) {
     var bvSessions = memberLogs.filter(function(l) { return l.bookId === sr.bookId; });
@@ -4629,6 +4630,15 @@ function generateMemberCoachInsights_(
       bvLateAvg  = Math.round(bvLateTotal  / (bvSessions.length - bvHalf));
     }
 
+    // RSE V1 pages/day for this book — use date-span of logs on this book
+    var bvSessionsSorted = bvSessions.slice().sort(function(a, b) { return a.timestampMs - b.timestampMs; });
+    var bvFirstMs = bvSessionsSorted[0].timestampMs;
+    var bvLastMs  = bvSessionsSorted[bvSessionsSorted.length - 1].timestampMs;
+    var bvSpanDays = Math.max(1, (bvLastMs - bvFirstMs) / MS_PER_DAY);
+    var bvPagesPerDay = bvSessionsSorted.length >= 2
+      ? Math.round(bvTotalPages / bvSpanDays)
+      : null; // single session — span is meaningless, don't compute
+
     currentBooksVelocity.push({
       bookId                          : sr.bookId,
       title                           : bvMeta ? bvMeta.title : sr.bookId,
@@ -4643,7 +4653,9 @@ function generateMemberCoachInsights_(
       memberOverallAvgPagesPerSession : overallAvgPagesPerSession,
       paceRatio                       : bvPaceRatio,
       earlyPaceAvg                    : bvEarlyAvg,  // 0 if < 4 sessions on this book
-      latePaceAvg                     : bvLateAvg    // 0 if < 4 sessions on this book
+      latePaceAvg                     : bvLateAvg,   // 0 if < 4 sessions on this book
+      avgPagesPerDayThisBook          : bvPagesPerDay,                                   // RSE V1: null if only 1 session
+      memberOverallAvgPacePerDay      : memberReadingSpeed ? memberReadingSpeed.overallAvgPace : null // RSE V1
     });
   });
 
@@ -4851,13 +4863,26 @@ function generateMemberCoachInsights_(
           && b.paceRatio < 0.6;
     });
     if (slowBook) {
+      // Prefer RSE pages/day when both book-span and overall pace are available
+      var bpsUseDay = slowBook.avgPagesPerDayThisBook !== null
+                   && slowBook.memberOverallAvgPacePerDay !== null
+                   && slowBook.memberOverallAvgPacePerDay > 0;
+      var bpsSub;
+      if (bpsUseDay) {
+        var bpsDayRatio = Math.round((slowBook.avgPagesPerDayThisBook / slowBook.memberOverallAvgPacePerDay) * 100);
+        bpsSub = 'You\'re averaging ' + slowBook.avgPagesPerDayThisBook + ' pages/day on this book — about ' +
+                 bpsDayRatio + '% of your usual ' + Math.round(slowBook.memberOverallAvgPacePerDay) +
+                 ' pages/day. Worth asking if it\'s still the right read right now.';
+      } else {
+        bpsSub = 'You\'re averaging ' + slowBook.avgPagesPerSessionThisBook + ' pages/session on this book — about ' +
+                 Math.round(slowBook.paceRatio * 100) + '% of your usual rate. Worth asking if it\'s still the right read right now.';
+      }
       insights.push({
         type : 'BOOK_PACE_SLOWING',
         theme: 'amber',
         icon : '🐢',
         label: 'Your pace on "' + slowBook.title + '" has slowed',
-        sub  : 'You\'re averaging ' + slowBook.avgPagesPerSessionThisBook + ' pages/session on this book — about ' +
-               Math.round(slowBook.paceRatio * 100) + '% of your usual rate. Worth asking if it\'s still the right read right now.'
+        sub  : bpsSub
       });
     }
   }
@@ -4867,28 +4892,51 @@ function generateMemberCoachInsights_(
   // (< 70% of their overall average, with at least 3 sessions of genre history).
   // A complement to BOOK_PACE_SLOWING — this one names the genre as the root
   // cause rather than the individual book, giving more actionable context.
+  // GENRE_PACE_MISMATCH: prefer RSE V1 genrePace (pages/day); fall back to
+  // session-based genrePaceMap when RSE doesn't have that genre yet.
+  var gmpRseGenrePace    = (memberReadingSpeed && memberReadingSpeed.genrePace) || {};
+  var gmpRseOverallPace  = memberReadingSpeed ? memberReadingSpeed.overallAvgPace : 0;
+  var gmpHasRseOverall   = gmpRseOverallPace > 0;
+  var gmpHasSessionBase  = Object.keys(genrePaceMap).length > 0 && overallAvgPagesPerSession >= 10;
+
   if (currentBooksVelocity.length > 0
-      && Object.keys(genrePaceMap).length > 0
-      && overallAvgPagesPerSession >= 10
+      && (gmpHasRseOverall || gmpHasSessionBase)
       && insights.length < 4) {
     var genreMismatchFound = false;
     for (var gmpI = 0; gmpI < currentBooksVelocity.length && !genreMismatchFound; gmpI++) {
-      var gmpBook    = currentBooksVelocity[gmpI];
-      var gmpGenres  = resolveCanonicalGenres_(gmpBook.genre || '');
+      var gmpBook   = currentBooksVelocity[gmpI];
+      var gmpGenres = resolveCanonicalGenres_(gmpBook.genre || '');
       for (var gmpJ = 0; gmpJ < gmpGenres.length && !genreMismatchFound; gmpJ++) {
-        var gmpGenre         = gmpGenres[gmpJ];
-        var gmpHistoricPace  = genrePaceMap[gmpGenre];
-        if (!gmpHistoricPace) continue;
-        var gmpRatio = gmpHistoricPace / overallAvgPagesPerSession;
-        if (gmpRatio < 0.7) {
+        var gmpGenre = gmpGenres[gmpJ];
+        var gmpSub;
+
+        // Prefer RSE pages/day
+        if (gmpHasRseOverall && gmpRseGenrePace[gmpGenre]) {
+          var gmpGenrePaceDay = gmpRseGenrePace[gmpGenre].pace;
+          var gmpRatio = gmpGenrePaceDay / gmpRseOverallPace;
+          if (gmpRatio < 0.7) {
+            gmpSub = 'Historically you average ' + Math.round(gmpGenrePaceDay) + ' pages/day in ' + gmpGenre +
+                     ' vs your usual ' + Math.round(gmpRseOverallPace) + ' pages/day. "' + gmpBook.title +
+                     '" may take longer than you\'d expect.';
+          }
+        } else if (gmpHasSessionBase && genrePaceMap[gmpGenre]) {
+          // Fall back to session-based
+          var gmpSessionPace = genrePaceMap[gmpGenre];
+          var gmpRatioSess   = gmpSessionPace / overallAvgPagesPerSession;
+          if (gmpRatioSess < 0.7) {
+            gmpSub = 'Historically you average ' + gmpSessionPace + ' pages/session in ' + gmpGenre +
+                     ' vs your usual ' + overallAvgPagesPerSession + ' pages/session. "' + gmpBook.title +
+                     '" may take longer than you\'d expect.';
+          }
+        }
+
+        if (gmpSub) {
           insights.push({
             type : 'GENRE_PACE_MISMATCH',
             theme: 'amber',
             icon : '📚',
             label: gmpGenre + ' tends to be slower reading for you',
-            sub  : 'Historically you average ' + gmpHistoricPace + ' pages/session in ' + gmpGenre +
-                   ' vs your usual ' + overallAvgPagesPerSession + '. "' + gmpBook.title +
-                   '" may take longer than you\'d expect.'
+            sub  : gmpSub
           });
           genreMismatchFound = true;
         }
