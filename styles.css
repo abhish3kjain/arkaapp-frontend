@@ -3917,11 +3917,7 @@
         display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px;
         border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px;
       }
-      .chal-type-HABIT_STREAK   { background: #FAEEDA; color: #633806; }
       .chal-type-BINGO_GRID     { background: #EEEDFE; color: #3C3489; }
-      .chal-type-BUDDY_READ     { background: #FBEAF0; color: #72243E; }
-      .chal-type-COUNTRY_SPREAD { background: #E1F5EE; color: #085041; }
-      .chal-type-ALPHABET       { background: #E6F1FB; color: #0C447C; }
       .chal-type-BOOK_COUNT     { background: #FAEEDA; color: #633806; }
       .chal-type-PAGE_COUNT     { background: #E6F1FB; color: #0C447C; }
     
@@ -4007,19 +4003,11 @@
       }
     
       /* Per-type accent colours for the challenge cards on Me tab */
-      .chal-accent-HABIT_STREAK   { border-left: 4px solid #EF9F27; }
       .chal-accent-BINGO_GRID     { border-left: 4px solid #7F77DD; }
-      .chal-accent-BUDDY_READ     { border-left: 4px solid #D4537E; }
-      .chal-accent-COUNTRY_SPREAD { border-left: 4px solid #1D9E75; }
-      .chal-accent-ALPHABET       { border-left: 4px solid #378ADD; }
       .chal-accent-BOOK_COUNT     { border-left: 4px solid #EF9F27; }
       .chal-accent-PAGE_COUNT     { border-left: 4px solid #378ADD; }
     
-      .chal-mini-fill-HABIT_STREAK   { background: #EF9F27; }
       .chal-mini-fill-BINGO_GRID     { background: #7F77DD; }
-      .chal-mini-fill-BUDDY_READ     { background: #D4537E; }
-      .chal-mini-fill-COUNTRY_SPREAD { background: #1D9E75; }
-      .chal-mini-fill-ALPHABET       { background: #378ADD; }
       .chal-mini-fill-BOOK_COUNT     { background: #EF9F27; }
       .chal-mini-fill-PAGE_COUNT     { background: #378ADD; }
     

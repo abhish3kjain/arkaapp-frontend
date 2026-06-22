@@ -378,7 +378,7 @@
 | Col | Field | ID Format / Values | Notes |
 |-----|-------|-------------------|-------|
 | A | ChallengeID | `ARKA_CHAL_X` | Primary key. Sequential. |
-| B | ChallengeType | `HABIT_STREAK`, `BINGO_GRID`, etc. | Type code. Drives the UI renderer and progress tracking logic for each challenge variant. |
+| B | ChallengeType | `BINGO_GRID`, `BOOK_COUNT`, `PAGE_COUNT`, `10PAGESADAY`, `BOOK_HUNT` | Type code. Drives the UI renderer and progress tracking logic for each challenge variant. |
 | C | Title | string | Display name. e.g. `Book Bingo 2026` |
 | D | Description | string | What members need to do to complete or win the challenge. |
 | E | StartDate | `dd-MMM-yyyy` | Challenge opens for enrollment. |
