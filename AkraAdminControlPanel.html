@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=3.4">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=3.5">
 </head>
 <body>
 
@@ -689,11 +689,7 @@
             <label class="adm-form-label adm-form-label--no-top" for="admChalTypeSelect">Challenge Type <span style="color:var(--adm-danger)">*</span></label>
             <select class="adm-select adm-input" id="admChalTypeSelect" onchange="admChalTypeChange()">
               <option value="">— Select a type —</option>
-              <option value="HABIT_STREAK">📅 Habit Streak</option>
               <option value="BINGO_GRID">🎲 Bingo Grid</option>
-              <option value="BUDDY_READ">📖 Buddy Read</option>
-              <option value="COUNTRY_SPREAD">🌍 Around the World</option>
-              <option value="ALPHABET">🔤 Alphabet</option>
               <option value="BOOK_COUNT">📚 Annual Book Count</option>
               <option value="PAGE_COUNT">📄 Annual Page Count</option>
               <option value="10PAGESADAY">🔥 10 Pages a Day</option>
@@ -735,20 +731,6 @@
 
             <!-- ── Type-specific config sections ── -->
 
-            <!-- HABIT_STREAK -->
-            <div id="admChalConfig-HABIT_STREAK" class="adm-chal-type-section">
-              <div class="adm-chal-section-divider">Streak rules</div>
-              <label class="adm-form-label" for="admChalStreak-minPages">Minimum pages per day to keep streak alive</label>
-              <input type="number" id="admChalStreak-minPages" class="adm-input" value="10" min="1" max="999">
-              <div class="adm-chal-toggle-row adm-mt-12">
-                <div>
-                  <div class="adm-chal-toggle-label">Reset streak on missed day</div>
-                  <div class="adm-chal-toggle-sub">Off = missed days are recorded but streak continues</div>
-                </div>
-                <div id="admChalStreak-resetToggle" class="toggle-pill on" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
-              </div>
-            </div>
-
             <!-- BINGO_GRID -->
             <div id="admChalConfig-BINGO_GRID" class="adm-chal-type-section">
               <div class="adm-chal-section-divider">Bingo type</div>
@@ -785,50 +767,6 @@
               <div class="adm-chal-section-divider">Cell prompts</div>
               <div id="admChalBingo-cellBuilder" class="adm-bingo-cell-grid"></div>
               <p class="adm-chal-hint">Centre cell is auto-set to FREE.</p>
-            </div>
-
-            <!-- BUDDY_READ -->
-            <div id="admChalConfig-BUDDY_READ" class="adm-chal-type-section">
-              <div class="adm-chal-section-divider">Book &amp; event</div>
-              <label class="adm-form-label" for="admChalBuddy-bookTitle">Book title</label>
-              <input type="text" id="admChalBuddy-bookTitle" class="adm-input" placeholder="Enter book title…">
-              <label class="adm-form-label" for="admChalBuddy-linkedEvent">Linked club event <span class="adm-form-optional">(optional)</span></label>
-              <select id="admChalBuddy-linkedEvent" class="adm-input">
-                <option value="">— Not linked to any event —</option>
-              </select>
-            </div>
-
-            <!-- COUNTRY_SPREAD -->
-            <div id="admChalConfig-COUNTRY_SPREAD" class="adm-chal-type-section">
-              <div class="adm-chal-section-divider">Country goal</div>
-              <label class="adm-form-label" for="admChalCountry-goalValue">Number of distinct countries to reach</label>
-              <input type="number" id="admChalCountry-goalValue" class="adm-input" value="10" min="2" max="195">
-              <label class="adm-form-label" for="admChalCountry-qualRule">Qualification rule</label>
-              <select id="admChalCountry-qualRule" class="adm-input">
-                <option value="BOOK_SETTING_OR_AUTHOR">Book setting OR author nationality (either counts)</option>
-                <option value="BOOK_SETTING_ONLY">Book setting only</option>
-                <option value="AUTHOR_NATIONALITY_ONLY">Author nationality only</option>
-              </select>
-            </div>
-
-            <!-- ALPHABET -->
-            <div id="admChalConfig-ALPHABET" class="adm-chal-type-section">
-              <div class="adm-chal-section-divider">Letter rules</div>
-              <label class="adm-form-label" for="admChalAlpha-matchRule">Match rule</label>
-              <select id="admChalAlpha-matchRule" class="adm-input">
-                <option value="TITLE_FIRST_WORD">First meaningful word of title</option>
-                <option value="TITLE_ANY_WORD">Any word in the title</option>
-                <option value="AUTHOR_LASTNAME">Author's last name</option>
-              </select>
-              <div class="adm-chal-toggle-row adm-mt-12">
-                <div>
-                  <div class="adm-chal-toggle-label">Skip articles (The, A, An)</div>
-                  <div class="adm-chal-toggle-sub">"The Kite Runner" qualifies for K, not T</div>
-                </div>
-                <div id="admChalAlpha-skipToggle" class="toggle-pill on" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
-              </div>
-              <label class="adm-form-label" for="admChalAlpha-optionalLetters">Optional letters — members may skip these</label>
-              <input type="text" id="admChalAlpha-optionalLetters" class="adm-input" value="Q, X, Z" placeholder="Comma-separated e.g. Q, X, Z">
             </div>
 
             <!-- BOOK_COUNT -->
@@ -1238,6 +1176,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=3.4"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=3.5"></script>
 </body>
 </html>

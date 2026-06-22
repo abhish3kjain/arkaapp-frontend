@@ -89,7 +89,7 @@
 /**
  * @typedef {Object} ChallengeRecord
  * @property {string}  challengeId     - Unique ID: ARKA_CHAL_X               (Col A)
- * @property {string}  challengeType   - HABIT_STREAK | BINGO_GRID | etc.     (Col B)
+ * @property {string}  challengeType   - BINGO_GRID | BOOK_COUNT | PAGE_COUNT | 10PAGESADAY | BOOK_HUNT  (Col B)
  * @property {string}  title           - Display name                          (Col C)
  * @property {string}  description     - What members need to do               (Col D)
  * @property {string}  startDate       - dd-MMM-yyyy                           (Col E)
@@ -6534,8 +6534,7 @@ function saveChallenge(data) {
   if (!startDate)     return { status: 'error', message: 'Start date is required.'            };
  
   const validTypes = [
-    'HABIT_STREAK', 'BINGO_GRID', 'BUDDY_READ',
-    'COUNTRY_SPREAD', 'ALPHABET', 'BOOK_COUNT', 'PAGE_COUNT', '10PAGESADAY', 'BOOK_HUNT'
+    'BINGO_GRID', 'BOOK_COUNT', 'PAGE_COUNT', '10PAGESADAY', 'BOOK_HUNT'
   ];
   if (!validTypes.includes(challengeType)) {
     return { status: 'error', message: 'Invalid challenge type: ' + challengeType };
@@ -6844,18 +6843,6 @@ function getLatestChallengeEnrollments() {
  */
 function buildInitialProgressState(challengeType, config, goalValue, personalGoal) {
  
-  if (challengeType === 'HABIT_STREAK') {
-    return {
-      currentStreak   : 0,
-      longestStreak   : 0,
-      totalDaysLogged : 0,
-      totalPagesLogged: 0,
-      lastLogDate     : '',
-      missedDates     : [],
-      streakHistory   : []
-    };
-  }
- 
   if (challengeType === 'BINGO_GRID') {
     return {
       cellsCompleted  : [],
@@ -6863,43 +6850,6 @@ function buildInitialProgressState(challengeType, config, goalValue, personalGoa
       genreTagged     : {},
       linesCompleted  : [],
       hasBingo        : false
-    };
-  }
- 
-  if (challengeType === 'BUDDY_READ') {
-    return {
-      pagesRead              : 0,
-      shelfRecordId          : '',
-      currentShelfStatus     : 'To Read',
-      finishedBeforeDeadline : null
-    };
-  }
- 
-  if (challengeType === 'COUNTRY_SPREAD') {
-    return {
-      countriesVisited  : {},
-      totalCountries    : 0,
-      continentProgress : {
-        Africa    : 0,
-        Americas  : 0,
-        Asia      : 0,
-        Europe    : 0,
-        Oceania   : 0,
-        MiddleEast: 0
-      }
-    };
-  }
- 
-  if (challengeType === 'ALPHABET') {
-    // Build the full letterMap — all 26 letters set to null (unclaimed)
-    const allLetters = (config.allLetters || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''));
-    const letterMap  = {};
-    allLetters.forEach(function(letter) { letterMap[letter] = null; });
- 
-    return {
-      letterMap                : letterMap,
-      lettersCompleted         : 0,
-      optionalLettersCompleted : 0
     };
   }
  
@@ -7570,21 +7520,6 @@ function detectChallengeCompletion(challengeType, config, goalValue, progressJso
   let newStatus        = currentStatus;
   let isNewCompletion  = false;
  
-  // ── HABIT_STREAK ─────────────────────────────────────────────────────────
-  // Win: reached 365 consecutive days. Finish: reached goalValue days total logged.
-  if (challengeType === 'HABIT_STREAK') {
-    const totalLogged   = state.totalDaysLogged  || 0;
-    const currentStreak = state.currentStreak    || 0;
- 
-    if (currentStatus !== 'Winner' && currentStreak >= 365) {
-      newStatus       = 'Winner';
-      isNewCompletion = true;
-    } else if (currentStatus === 'Active' && totalLogged >= goalValue) {
-      newStatus       = 'Finisher';
-      isNewCompletion = true;
-    }
-  }
- 
   // ── BINGO_GRID ────────────────────────────────────────────────────────────
   // Finisher: linesCompleted.length >= 1 (ANY_LINE) or half cells done (HALF_CELLS)
   // Winner: ALL_CELLS completed OR ANY_LINE if that's the win condition
@@ -7607,37 +7542,6 @@ function detectChallengeCompletion(challengeType, config, goalValue, progressJso
     if (currentStatus !== 'Winner' && isWinner) {
       newStatus = 'Winner'; isNewCompletion = true;
     } else if (currentStatus === 'Active' && isFinisher) {
-      newStatus = 'Finisher'; isNewCompletion = true;
-    }
-  }
- 
-  // ── BUDDY_READ ────────────────────────────────────────────────────────────
-  // Finish only: read all pages. Win concept not applicable (winPoints = 0).
-  if (challengeType === 'BUDDY_READ') {
-    if (currentStatus === 'Active' && (state.pagesRead || 0) >= goalValue && goalValue > 0) {
-      newStatus = 'Finisher'; isNewCompletion = true;
-    }
-  }
- 
-  // ── COUNTRY_SPREAD ────────────────────────────────────────────────────────
-  // Finisher: reached goalValue countries. Winner: same goalValue (no separate bar).
-  if (challengeType === 'COUNTRY_SPREAD') {
-    const visited = state.totalCountries || 0;
-    if (currentStatus !== 'Winner' && visited >= goalValue) {
-      newStatus = 'Winner'; isNewCompletion = true;
-    }
-  }
- 
-  // ── ALPHABET ─────────────────────────────────────────────────────────────
-  // Finish: completed all required letters (goalValue = 26 minus optional count).
-  // Win: completed ALL 26 including optional.
-  if (challengeType === 'ALPHABET') {
-    const required  = state.lettersCompleted         || 0;
-    const optional  = state.optionalLettersCompleted || 0;
- 
-    if (currentStatus !== 'Winner' && (required + optional) >= 26) {
-      newStatus = 'Winner'; isNewCompletion = true;
-    } else if (currentStatus === 'Active' && required >= goalValue) {
       newStatus = 'Finisher'; isNewCompletion = true;
     }
   }
