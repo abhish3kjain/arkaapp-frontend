@@ -6835,7 +6835,7 @@ function getLatestChallengeEnrollments() {
  * PRIVATE HELPER: Builds the correct initial progressStateJson object
  * for each challenge type.
  *
- * @param {string} challengeType  - e.g. 'HABIT_STREAK'
+ * @param {string} challengeType  - e.g. 'BINGO_GRID'
  * @param {Object} config         - Parsed goalConfigJson from ChallengeDB
  * @param {number} goalValue      - The challenge's primary goalValue
  * @param {number} personalGoal   - Member's own target (BOOK_COUNT / PAGE_COUNT only)
