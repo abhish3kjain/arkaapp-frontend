@@ -22488,6 +22488,59 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       }
 
 
+      // All alias terms from GENRE_ALIAS_MAP_FRONTEND flattened (for NON_CANONICAL bingo genre pool)
+      const _BINGO_GENRE_ALIAS_TERMS = (function() {
+        var terms = [];
+        for (var canonical in GENRE_ALIAS_MAP_FRONTEND) {
+          GENRE_ALIAS_MAP_FRONTEND[canonical].forEach(function(alias) { terms.push(alias); });
+        }
+        return terms;
+      })();
+
+      // Current challenge's tracking mode — set by openBingoCellSheet so input handler can read it
+      var _bingoCellTrackingMode = 'CANONICAL';
+
+      function onBingoCellGenreInput(query) {
+        var box = document.getElementById('bingoCellGenreSuggestions');
+        if (!box) return;
+        var q = (query || '').trim().toLowerCase();
+        if (!q) { box.classList.remove('open'); return; }
+
+        var pool = CANONICAL_GENRE_LIST.slice();
+        if (_bingoCellTrackingMode === 'NON_CANONICAL') {
+          pool = pool.concat(_BINGO_GENRE_ALIAS_TERMS);
+        }
+
+        var matches = pool.filter(function(g) {
+          return g.toLowerCase().indexOf(q) !== -1;
+        }).slice(0, 8);
+
+        if (!matches.length) { box.classList.remove('open'); return; }
+
+        box.innerHTML = matches.map(function(g) {
+          var lc  = g.toLowerCase();
+          var i   = lc.indexOf(q);
+          var hi  = i === -1 ? escapeHtml(g)
+            : escapeHtml(g.slice(0, i))
+              + '<span class="genre-suggestion-highlight">' + escapeHtml(g.slice(i, i + q.length)) + '</span>'
+              + escapeHtml(g.slice(i + q.length));
+          return '<div class="genre-suggestion-option" role="button" tabindex="0" data-action'
+               + ' onmousedown="event.preventDefault()" onclick="selectBingoCellGenre(\'' + escapeHtml(g).replace(/'/g, "\\'") + '\')">'
+               + hi + '</div>';
+        }).join('');
+        box.classList.add('open');
+      }
+
+      function selectBingoCellGenre(genre) {
+        var inp = document.getElementById('bingoCellGenreInput');
+        if (inp) inp.value = genre;
+        hideGenreSuggestions('bingoCellGenreSuggestions');
+      }
+
+      function hideBingoCellGenreSuggestions() {
+        hideGenreSuggestions('bingoCellGenreSuggestions');
+      }
+
       /**
        * Called when a suggestion is tapped in the Add Book genre input.
        * Adds the genre as a chip and closes the suggestion box.
@@ -32277,8 +32330,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const genreRow   = document.getElementById('bingoCellGenreRow');
         const genreInput = document.getElementById('bingoCellGenreInput');
         const showGenre  = variant === 'GENRE_BINGO' && trackingMode === 'NON_CANONICAL';
+        _bingoCellTrackingMode = trackingMode;
         if (genreRow)   genreRow.style.display = showGenre ? '' : 'none';
         if (genreInput) genreInput.value = showGenre ? ((state.genreTagged || {})[cellId] || '') : '';
+        hideGenreSuggestions('bingoCellGenreSuggestions');
 
         // Populate book datalist from Arka Library
         const datalist = document.getElementById('bingoCellBookList');

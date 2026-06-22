@@ -2154,6 +2154,44 @@
     PAGE_COUNT    : '📄 Page Count'
   };
 
+  // Full canonical genre list (mirrors app.js CANONICAL_GENRE_LIST)
+  var ADM_BINGO_CANONICAL_GENRES = [
+    'Fiction','Fantasy','Sci-Fi','Crime & Suspense','Non-Fiction',
+    'Self-Help','Philosophy','Psychology','Classics','Religious',
+    'Horror','Business','Poetry','Romance','LGBTQ+',
+    'Memoir','Young Adult','Politics','Comics','Humour','History'
+  ];
+
+  // All alias terms flattened (for NON_CANONICAL suggestions)
+  var ADM_BINGO_GENRE_ALIASES = (function() {
+    var map = {
+      'Fiction'         : ['literary fiction','general fiction','contemporary fiction',"women's fiction",'short stories','historical fiction'],
+      'Fantasy'         : ['epic fantasy','urban fantasy','dark fantasy','high fantasy','magical realism','mythology','fairy tale'],
+      'Sci-Fi'          : ['science fiction','scifi','speculative fiction','hard science fiction','dystopian','cyberpunk','steampunk','space opera'],
+      'Crime & Suspense': ['crime','thriller','mystery','suspense','detective','noir','psychological thriller','legal thriller','cozy mystery'],
+      'Non-Fiction'     : ['nonfiction','narrative nonfiction','general non-fiction','social science','journalism','travel','nature writing'],
+      'Self-Help'       : ['self help','personal development','personal growth','productivity','motivation','wellness','mindfulness'],
+      'Philosophy'      : ['ethics','metaphysics','political philosophy','critical theory'],
+      'Psychology'      : ['behavioral science','cognitive science','neuroscience','social psychology','psychiatry'],
+      'Classics'        : ['classic literature','literary classics','classic fiction'],
+      'Religious'       : ['spirituality','religion','faith','theology','spiritual','devotional'],
+      'Horror'          : ['gothic','supernatural fiction','gothic fiction','paranormal','occult','ghost story','cosmic horror'],
+      'Business'        : ['leadership','management','economics','finance','entrepreneurship','strategy','investing'],
+      'Poetry'          : ['poems','verse','poetic','spoken word'],
+      'Romance'         : ['contemporary romance','historical romance','paranormal romance','romantic comedy'],
+      'LGBTQ+'          : ['queer fiction','queer literature','gay fiction','lesbian fiction'],
+      'Memoir'          : ['autobiography','biography','personal essay','creative nonfiction','true story'],
+      'Young Adult'     : ['ya','ya fiction','young adult fiction','coming of age','teen fiction'],
+      'Politics'        : ['political biography','political nonfiction','current affairs','history & politics'],
+      'Comics'          : ['graphic novel','graphic memoir','manga','comic book'],
+      'Humour'          : ['humor','comedy','satire','parody','funny'],
+      'History'         : ['world history','ancient history','military history','cultural history','social history']
+    };
+    var all = [];
+    Object.keys(map).forEach(function(k) { all = all.concat(map[k]); });
+    return all;
+  })();
+
   var ADM_CHAL_POINT_DEFAULTS = {
     HABIT_STREAK  : { enrol: 100, finish: 1500, win: 3000 },
     BINGO_GRID    : { enrol:  50, finish: 1000, win: 3000 },
@@ -2265,10 +2303,11 @@
       _admSetVal('admChalEnrollPoints',    c.enrollPoints);
       _admSetVal('admChalFinishPoints',    c.finishPoints);
       _admSetVal('admChalWinPoints',       c.winPoints);
-      var pinTog  = document.getElementById('admChalPinToggle');
+      var pinTog = document.getElementById('admChalPinToggle');
+      if (pinTog) pinTog.classList.toggle('on', !!c.isPinned);
+      _admChalUpdateCompetitionModeOptions(c.challengeType);
       var compSel = document.getElementById('admChalCompetitionMode');
-      if (pinTog)  pinTog.classList.toggle('on', !!c.isPinned);
-      if (compSel) compSel.value = c.competitionMode || 'NONE';
+      if (compSel && c.competitionMode) compSel.value = c.competitionMode;
       _admChalShowTypeSection(c.challengeType);
       _admChalPrefillTypeFields(c);
     } else {
@@ -2280,10 +2319,9 @@
       _admSetVal('admChalEnrollPoints', 100);
       _admSetVal('admChalFinishPoints', 500);
       _admSetVal('admChalWinPoints', 1500);
-      var pinTog  = document.getElementById('admChalPinToggle');
-      var compSel = document.getElementById('admChalCompetitionMode');
-      if (pinTog)  pinTog.classList.remove('on');
-      if (compSel) compSel.value = 'INDIVIDUAL';
+      var pinTog = document.getElementById('admChalPinToggle');
+      if (pinTog) pinTog.classList.remove('on');
+      _admChalUpdateCompetitionModeOptions('');
       document.querySelectorAll('.adm-chal-type-section').forEach(function(el) { el.classList.remove('visible'); });
     }
 
@@ -2301,9 +2339,24 @@
       _admSetVal('admChalFinishPoints', pts.finish);
       _admSetVal('admChalWinPoints',    pts.win);
     }
-    var compSel = document.getElementById('admChalCompetitionMode');
-    if (compSel) compSel.value = (type === 'BOOK_COUNT' || type === 'PAGE_COUNT') ? 'NONE' : 'INDIVIDUAL';
+    _admChalUpdateCompetitionModeOptions(type);
     if (type === 'BINGO_GRID') admChalRenderBingoBuilder();
+  }
+
+  function _admChalUpdateCompetitionModeOptions(type) {
+    var compSel = document.getElementById('admChalCompetitionMode');
+    if (!compSel) return;
+    // Rebuild option list based on what makes sense for this type
+    var isPersonal = (type === 'BOOK_COUNT' || type === 'PAGE_COUNT');
+    var isShared   = (type === 'BOOK_HUNT');
+    compSel.innerHTML = isPersonal
+      ? '<option value="NONE">None – personal challenge, no leaderboard</option>'
+      : isShared
+        ? '<option value="SHARED">Shared – whole club works toward a common goal</option>'
+          + '<option value="TEAM" disabled>Team – subgroups compete (coming soon)</option>'
+        : '<option value="NONE">None – no leaderboard</option>'
+          + '<option value="INDIVIDUAL">Individual – ranked leaderboard per member</option>';
+    compSel.value = isPersonal ? 'NONE' : isShared ? 'SHARED' : 'INDIVIDUAL';
   }
 
   function _admChalShowTypeSection(type) {
@@ -2327,22 +2380,76 @@
     var container  = document.getElementById('admChalBingo-cellBuilder');
     if (!container) return;
     container.style.gridTemplateColumns = 'repeat(' + gridSize + ', 1fr)';
-    var placeholder = variant === 'GENRE_BINGO'  ? 'Genre name (e.g. Fiction, Sci-Fi)…'
+    var isGenre     = variant === 'GENRE_BINGO';
+    var placeholder = isGenre              ? 'Type a genre…'
                     : variant === 'AUTHOR_BINGO' ? 'Author prompt…'
                     : 'Reading prompt…';
     var html = '';
     for (var i = 0; i < totalCells; i++) {
       var isFree = (totalCells % 2 !== 0) && (i === centreIdx);
-      html += '<div>';
+      html += '<div style="position:relative;">';
       html += '<div class="adm-bingo-cell-label">Cell ' + (i + 1) + (isFree ? ' (FREE)' : '') + '</div>';
       if (isFree) {
         html += '<input class="adm-bingo-cell-input is-free" id="admChalBingo-cell-' + i + '" value="FREE — any book you loved" readonly>';
+      } else if (isGenre) {
+        html += '<input class="adm-bingo-cell-input" id="admChalBingo-cell-' + i + '" placeholder="' + placeholder + '" autocomplete="off"'
+              + ' oninput="admBingoCellGenreSuggest(' + i + ',this.value)"'
+              + ' onblur="admBingoCellGenreHide(' + i + ')">';
+        html += '<div id="admBingoCellSug-' + i + '" class="genre-suggestion-box" style="position:absolute;z-index:200;width:100%;"></div>';
       } else {
         html += '<input class="adm-bingo-cell-input" id="admChalBingo-cell-' + i + '" placeholder="' + placeholder + '">';
       }
       html += '</div>';
     }
     container.innerHTML = html;
+  }
+
+  function admBingoCellGenreSuggest(idx, query) {
+    var box = document.getElementById('admBingoCellSug-' + idx);
+    if (!box) return;
+    var q = (query || '').trim().toLowerCase();
+    if (!q) { box.classList.remove('open'); return; }
+
+    var trackingMode = (document.getElementById('admChalBingo-trackingMode') || {}).value || 'CANONICAL';
+    var pool = ADM_BINGO_CANONICAL_GENRES.slice();
+    if (trackingMode === 'NON_CANONICAL') {
+      pool = pool.concat(ADM_BINGO_GENRE_ALIASES);
+    }
+
+    var matches = pool.filter(function(g) {
+      return g.toLowerCase().indexOf(q) !== -1;
+    }).slice(0, 8);
+
+    if (!matches.length) { box.classList.remove('open'); return; }
+
+    box.innerHTML = matches.map(function(g) {
+      var lc  = g.toLowerCase();
+      var idx2 = lc.indexOf(q);
+      var hi  = idx2 === -1 ? _escAdm(g)
+        : _escAdm(g.slice(0, idx2))
+          + '<span class="genre-suggestion-highlight">' + _escAdm(g.slice(idx2, idx2 + q.length)) + '</span>'
+          + _escAdm(g.slice(idx2 + q.length));
+      return '<div class="genre-suggestion-option" role="button" tabindex="0" onmousedown="event.preventDefault()"'
+           + ' onclick="admBingoCellGenreSelect(' + idx + ',\'' + g.replace(/'/g, "\\'") + '\')">' + hi + '</div>';
+    }).join('');
+    box.classList.add('open');
+  }
+
+  function admBingoCellGenreSelect(idx, genre) {
+    var inp = document.getElementById('admChalBingo-cell-' + idx);
+    if (inp) inp.value = genre;
+    admBingoCellGenreHide(idx);
+  }
+
+  function admBingoCellGenreHide(idx) {
+    setTimeout(function() {
+      var box = document.getElementById('admBingoCellSug-' + idx);
+      if (box) box.classList.remove('open');
+    }, 180);
+  }
+
+  function _escAdm(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   function _admChalPrefillTypeFields(c) {
@@ -2726,7 +2833,11 @@
   window.admSwitchChalStatusFilter  = admSwitchChalStatusFilter;
   window.admOpenChalEdit            = admOpenChalEdit;
   window.admChalTypeChange          = admChalTypeChange;
-  window.admChalRenderBingoBuilder  = admChalRenderBingoBuilder;
+  window.admChalRenderBingoBuilder      = admChalRenderBingoBuilder;
+  window.admChalOnBingoVariantChange    = admChalOnBingoVariantChange;
+  window.admBingoCellGenreSuggest       = admBingoCellGenreSuggest;
+  window.admBingoCellGenreSelect        = admBingoCellGenreSelect;
+  window.admBingoCellGenreHide          = admBingoCellGenreHide;
   window.admSubmitChallenge         = admSubmitChallenge;
   window.admOpenChalArchiveModal    = admOpenChalArchiveModal;
   window.admCloseChalArchiveModal   = admCloseChalArchiveModal;
