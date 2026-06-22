@@ -30673,21 +30673,23 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           html += '<div class="chal-bento-placeholder"><span>No active<br>10ppa enrolled</span></div>';
         }
 
-        // Points tile
-        const member  = membersMap ? membersMap.get(currentUser) : null;
-        const pts     = member ? (Number(member.clubPoints) || 0) : 0;
+        // Record tile — challenge-specific stats (winner + finisher counts)
         const winnerCount   = globalChallengeEnrollmentsDB.filter(function(e) {
           return e.memberId === currentUser && e.enrollmentStatus === 'Winner';
         }).length;
         const finisherCount = globalChallengeEnrollmentsDB.filter(function(e) {
           return e.memberId === currentUser && e.enrollmentStatus === 'Finisher';
         }).length;
+        const completedCount = winnerCount + finisherCount;
+        const activeEnrolled = globalChallengeEnrollmentsDB.filter(function(e) {
+          return e.memberId === currentUser && e.enrollmentStatus === 'Active';
+        }).length;
 
         html += '<div class="chal-pts-tile">' +
           '<div>' +
-            '<div class="chal-tile-label">🏅 My Points</div>' +
-            '<div class="chal-pts-big">' + pts.toLocaleString() + '</div>' +
-            '<div class="chal-pts-lbl">earned from challenges</div>' +
+            '<div class="chal-tile-label">🏅 My Record</div>' +
+            '<div class="chal-pts-big">' + completedCount + '</div>' +
+            '<div class="chal-pts-lbl">challenges completed</div>' +
           '</div>' +
           '<div class="chal-pts-row">' +
             '<div class="chal-pts-stat">' +
@@ -30696,8 +30698,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             '</div>' +
             '<div class="chal-pts-divider"></div>' +
             '<div class="chal-pts-stat">' +
-              '<span class="chal-pts-stat-val">' + finisherCount + '</span>' +
-              '<span class="chal-pts-stat-label">finisher</span>' +
+              '<span class="chal-pts-stat-val">' + activeEnrolled + '</span>' +
+              '<span class="chal-pts-stat-label">active</span>' +
             '</div>' +
           '</div>' +
         '</div>';
