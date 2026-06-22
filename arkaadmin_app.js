@@ -1187,8 +1187,8 @@
             + '</div>';
 
           var editBtn = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenAnnEdit(\'' + _esc(a.announcementId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
-          var pinBtn  = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admToggleAnnPinRow(\'' + _esc(a.announcementId) + '\',' + (!a.isPinned) + ')" title="' + (a.isPinned ? 'Unpin' : 'Pin to top') + '" style="margin-left:4px"><i class="fa-solid fa-thumbtack" style="' + pinStyle + '"></i></button>';
-          var archBtn = '<button class="adm-btn adm-btn-danger adm-btn-icon" onclick="admOpenAnnArchiveModal(\'' + _esc(a.announcementId) + '\')" title="Archive" style="margin-left:4px"><i class="fa-solid fa-box-archive"></i></button>';
+          var pinBtn  = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admToggleAnnPinRow(\'' + _esc(a.announcementId) + '\',' + (!a.isPinned) + ')" title="' + (a.isPinned ? 'Unpin' : 'Pin to top') + '"><i class="fa-solid fa-thumbtack" style="' + pinStyle + '"></i></button>';
+          var archBtn = '<button class="adm-btn adm-btn-danger adm-btn-icon" onclick="admOpenAnnArchiveModal(\'' + _esc(a.announcementId) + '\')" title="Archive"><i class="fa-solid fa-box-archive"></i></button>';
 
           return '<tr>'
             + '<td style="white-space:normal;font-weight:600;font-size:0.85rem">' + _esc(a.title) + mobileSub + '</td>'
@@ -1613,8 +1613,8 @@
       var editBtn = '<button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenEvtEdit(\'' + _esc(ev.eventId) + '\')" title="Edit"><i class="fa-solid fa-pen"></i></button>';
       var actionBtns = editBtn;
       if (ev.status === 'Active') {
-        actionBtns += ' <button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenEvtStatusModal(\'' + _esc(ev.eventId) + '\',\'Completed\')" title="Mark Complete" style="margin-left:4px"><i class="fa-solid fa-circle-check"></i></button>'
-          + ' <button class="adm-btn adm-btn-danger adm-btn-icon" onclick="admOpenEvtStatusModal(\'' + _esc(ev.eventId) + '\',\'Cancelled\')" title="Cancel Event" style="margin-left:4px"><i class="fa-solid fa-ban"></i></button>';
+        actionBtns += ' <button class="adm-btn adm-btn-light adm-btn-icon" onclick="admOpenEvtStatusModal(\'' + _esc(ev.eventId) + '\',\'Completed\')" title="Mark Complete"><i class="fa-solid fa-circle-check"></i></button>'
+          + ' <button class="adm-btn adm-btn-danger adm-btn-icon" onclick="admOpenEvtStatusModal(\'' + _esc(ev.eventId) + '\',\'Cancelled\')" title="Cancel Event"><i class="fa-solid fa-ban"></i></button>';
       }
 
       return '<tr>'

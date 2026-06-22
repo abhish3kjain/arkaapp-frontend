@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Chart.js — line chart for the Performance trend section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=2.7">
+  <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_styles.css?v=2.8">
 </head>
 <body>
 
@@ -498,7 +498,7 @@
                 </div>
                 <!-- Member picker — shown when scope is Specific Members -->
                 <div id="admAnnMemberPickerSection" class="adm-pos-relative" style="display:none;margin-top:10px">
-                  <label class="adm-form-label" style="margin-top:0">Select Members</label>
+                  <label class="adm-form-label adm-form-label--no-top">Select Members</label>
                   <div class="ann-member-picker" onclick="document.getElementById('admAnnMemberSearch').focus()">
                     <div id="admAnnMemberPills" style="display:contents"></div>
                     <input type="text" id="admAnnMemberSearch" class="ann-member-search"
@@ -602,7 +602,7 @@
                    two columns to one on screens ≤ 768 px, preventing the
                    "dd-MMM-yyyy" placeholder from being clipped on 360 px
                    phones where 50% column width = ~140 px. -->
-              <div class="adm-evt-date-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+              <div class="adm-evt-date-grid">
                 <div>
                   <label class="adm-form-label" for="admEvtStartDateInput">Start Date <span style="color:var(--adm-danger)">*</span></label>
                   <input type="text" class="adm-input" id="admEvtStartDateInput" placeholder="dd-MMM-yyyy">
@@ -613,7 +613,7 @@
                 </div>
               </div>
 
-              <div class="adm-evt-date-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+              <div class="adm-evt-date-grid">
                 <div>
                   <label class="adm-form-label" for="admEvtEndDateInput">End Date</label>
                   <input type="text" class="adm-input" id="admEvtEndDateInput" placeholder="dd-MMM-yyyy">
@@ -685,11 +685,11 @@
 
         <!-- ── NEW / EDIT CHALLENGE panel ── -->
         <div id="admChalPanelForm" style="display:none">
-          <div class="adm-card" style="max-width:680px">
+          <div class="adm-card adm-form-card">
 
             <!-- Type -->
-            <label for="admChalTypeSelect">Challenge Type *</label>
-            <select id="admChalTypeSelect" onchange="admChalTypeChange()">
+            <label class="adm-form-label adm-form-label--no-top" for="admChalTypeSelect">Challenge Type <span style="color:var(--adm-danger)">*</span></label>
+            <select class="adm-select adm-input" id="admChalTypeSelect" onchange="admChalTypeChange()">
               <option value="">— Select a type —</option>
               <option value="HABIT_STREAK">📅 Habit Streak</option>
               <option value="BINGO_GRID">🎲 Bingo Grid</option>
@@ -701,25 +701,25 @@
             </select>
 
             <!-- Title + Description -->
-            <label for="admChalTitleInput" style="margin-top:14px;">Title *</label>
+            <label class="adm-form-label" for="admChalTitleInput">Title <span style="color:var(--adm-danger)">*</span></label>
             <input type="text" id="admChalTitleInput" class="adm-input" placeholder="e.g. Arka Book Bingo 2027" maxlength="120">
 
-            <label for="admChalDescInput" style="margin-top:12px;">Description</label>
+            <label class="adm-form-label" for="admChalDescInput">Description</label>
             <textarea id="admChalDescInput" class="adm-input adm-textarea" rows="2" placeholder="What do members need to do?"></textarea>
 
             <!-- Dates + Status -->
-            <div class="adm-chal-form-row" style="margin-top:14px;">
+            <div class="adm-chal-form-row adm-mt-16">
               <div>
-                <label for="admChalStartDate">Start date *</label>
+                <label class="adm-form-label adm-form-label--no-top" for="admChalStartDate">Start date <span style="color:var(--adm-danger)">*</span></label>
                 <input type="date" id="admChalStartDate" class="adm-input">
               </div>
               <div>
-                <label for="admChalEndDate">End date <span class="adm-form-optional">(blank = open-ended)</span></label>
+                <label class="adm-form-label adm-form-label--no-top" for="admChalEndDate">End date <span class="adm-form-optional">(blank = open-ended)</span></label>
                 <input type="date" id="admChalEndDate" class="adm-input">
               </div>
             </div>
 
-            <label for="admChalStatusSelect" style="margin-top:12px;">Status</label>
+            <label class="adm-form-label" for="admChalStatusSelect">Status</label>
             <select id="admChalStatusSelect" class="adm-input">
               <option value="Active">Active</option>
               <option value="Upcoming">Upcoming</option>
@@ -728,7 +728,7 @@
             </select>
 
             <!-- Series Tag -->
-            <label for="admChalSeriesTag" style="margin-top:12px;">Series tag <span class="adm-form-optional">(blank = one-off)</span></label>
+            <label class="adm-form-label" for="admChalSeriesTag">Series tag <span class="adm-form-optional">(blank = one-off)</span></label>
             <input type="text" id="admChalSeriesTag" class="adm-input" list="admChalSeriesTagList"
                    placeholder="e.g. BOOK_BINGO — links editions across years">
             <datalist id="admChalSeriesTagList"></datalist>
@@ -738,7 +738,7 @@
             <!-- HABIT_STREAK -->
             <div id="admChalConfig-HABIT_STREAK" class="adm-chal-type-section">
               <div class="adm-chal-section-divider">Streak rules</div>
-              <label for="admChalStreak-minPages">Minimum pages per day to keep streak alive</label>
+              <label class="adm-form-label" for="admChalStreak-minPages">Minimum pages per day to keep streak alive</label>
               <input type="number" id="admChalStreak-minPages" class="adm-input" value="10" min="1" max="999">
               <div class="adm-chal-toggle-row" style="margin-top:12px;">
                 <div>
@@ -752,32 +752,32 @@
             <!-- BINGO_GRID -->
             <div id="admChalConfig-BINGO_GRID" class="adm-chal-type-section">
               <div class="adm-chal-section-divider">Bingo type</div>
-              <label for="admChalBingo-variant">Variant</label>
+              <label class="adm-form-label" for="admChalBingo-variant">Variant</label>
               <select id="admChalBingo-variant" class="adm-input" onchange="admChalOnBingoVariantChange()">
                 <option value="BOOK_BINGO">Book Bingo – reading prompts</option>
                 <option value="GENRE_BINGO">Genre Bingo – genre categories</option>
                 <option value="AUTHOR_BINGO">Author Bingo – author prompts</option>
               </select>
               <div id="admChalBingo-trackingModeRow" style="display:none;margin-top:8px;">
-                <label for="admChalBingo-trackingMode">Genre tracking mode</label>
+                <label class="adm-form-label adm-form-label--no-top" for="admChalBingo-trackingMode">Genre tracking mode</label>
                 <select id="admChalBingo-trackingMode" class="adm-input">
                   <option value="CANONICAL">Canonical – must match Arka's canonical genre list</option>
                   <option value="NON_CANONICAL">Non-canonical – sub-genres and free text accepted</option>
                 </select>
               </div>
               <div class="adm-chal-section-divider">Grid settings</div>
-              <label for="admChalBingo-gridSize">Grid size</label>
+              <label class="adm-form-label" for="admChalBingo-gridSize">Grid size</label>
               <select id="admChalBingo-gridSize" class="adm-input" onchange="admChalRenderBingoBuilder()">
                 <option value="3">3 × 3  (9 cells)</option>
                 <option value="4">4 × 4  (16 cells)</option>
                 <option value="5">5 × 5  (25 cells)</option>
               </select>
-              <label for="admChalBingo-winCondition">Win condition (Winner badge)</label>
+              <label class="adm-form-label" for="admChalBingo-winCondition">Win condition (Winner badge)</label>
               <select id="admChalBingo-winCondition" class="adm-input">
                 <option value="ALL_CELLS">All cells completed</option>
                 <option value="ANY_LINE">Any row, column, or diagonal</option>
               </select>
-              <label for="admChalBingo-finisherCondition">Finisher condition (Finisher badge)</label>
+              <label class="adm-form-label" for="admChalBingo-finisherCondition">Finisher condition (Finisher badge)</label>
               <select id="admChalBingo-finisherCondition" class="adm-input">
                 <option value="ANY_LINE">Any row, column, or diagonal</option>
                 <option value="HALF_CELLS">Half the cells completed</option>
@@ -790,9 +790,9 @@
             <!-- BUDDY_READ -->
             <div id="admChalConfig-BUDDY_READ" class="adm-chal-type-section">
               <div class="adm-chal-section-divider">Book &amp; event</div>
-              <label for="admChalBuddy-bookTitle">Book title</label>
+              <label class="adm-form-label" for="admChalBuddy-bookTitle">Book title</label>
               <input type="text" id="admChalBuddy-bookTitle" class="adm-input" placeholder="Enter book title…">
-              <label for="admChalBuddy-linkedEvent" style="margin-top:10px;">Linked club event <span class="adm-form-optional">(optional)</span></label>
+              <label class="adm-form-label" for="admChalBuddy-linkedEvent">Linked club event <span class="adm-form-optional">(optional)</span></label>
               <select id="admChalBuddy-linkedEvent" class="adm-input">
                 <option value="">— Not linked to any event —</option>
               </select>
@@ -801,9 +801,9 @@
             <!-- COUNTRY_SPREAD -->
             <div id="admChalConfig-COUNTRY_SPREAD" class="adm-chal-type-section">
               <div class="adm-chal-section-divider">Country goal</div>
-              <label for="admChalCountry-goalValue">Number of distinct countries to reach</label>
+              <label class="adm-form-label" for="admChalCountry-goalValue">Number of distinct countries to reach</label>
               <input type="number" id="admChalCountry-goalValue" class="adm-input" value="10" min="2" max="195">
-              <label for="admChalCountry-qualRule" style="margin-top:10px;">Qualification rule</label>
+              <label class="adm-form-label" for="admChalCountry-qualRule">Qualification rule</label>
               <select id="admChalCountry-qualRule" class="adm-input">
                 <option value="BOOK_SETTING_OR_AUTHOR">Book setting OR author nationality (either counts)</option>
                 <option value="BOOK_SETTING_ONLY">Book setting only</option>
@@ -814,7 +814,7 @@
             <!-- ALPHABET -->
             <div id="admChalConfig-ALPHABET" class="adm-chal-type-section">
               <div class="adm-chal-section-divider">Letter rules</div>
-              <label for="admChalAlpha-matchRule">Match rule</label>
+              <label class="adm-form-label" for="admChalAlpha-matchRule">Match rule</label>
               <select id="admChalAlpha-matchRule" class="adm-input">
                 <option value="TITLE_FIRST_WORD">First meaningful word of title</option>
                 <option value="TITLE_ANY_WORD">Any word in the title</option>
@@ -827,14 +827,14 @@
                 </div>
                 <div id="admChalAlpha-skipToggle" class="toggle-pill on" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
               </div>
-              <label for="admChalAlpha-optionalLetters" style="margin-top:10px;">Optional letters — members may skip these</label>
+              <label class="adm-form-label" for="admChalAlpha-optionalLetters">Optional letters — members may skip these</label>
               <input type="text" id="admChalAlpha-optionalLetters" class="adm-input" value="Q, X, Z" placeholder="Comma-separated e.g. Q, X, Z">
             </div>
 
             <!-- BOOK_COUNT -->
             <div id="admChalConfig-BOOK_COUNT" class="adm-chal-type-section">
               <div class="adm-chal-section-divider">Book goal</div>
-              <label for="admChalBookCount-default">Default goal (books) — used if member doesn't set their own</label>
+              <label class="adm-form-label" for="admChalBookCount-default">Default goal (books) — used if member doesn't set their own</label>
               <input type="number" id="admChalBookCount-default" class="adm-input" value="24" min="1" max="999">
               <div class="adm-chal-toggle-row" style="margin-top:12px;">
                 <div>
@@ -848,7 +848,7 @@
             <!-- PAGE_COUNT -->
             <div id="admChalConfig-PAGE_COUNT" class="adm-chal-type-section">
               <div class="adm-chal-section-divider">Page goal</div>
-              <label for="admChalPageCount-default">Default goal (pages) — used if member doesn't set their own</label>
+              <label class="adm-form-label" for="admChalPageCount-default">Default goal (pages) — used if member doesn't set their own</label>
               <input type="number" id="admChalPageCount-default" class="adm-input" value="5000" min="100" max="99999" step="100">
               <div class="adm-chal-toggle-row" style="margin-top:12px;">
                 <div>
@@ -866,16 +866,16 @@
             </p>
             <div class="adm-chal-form-row">
               <div>
-                <label for="admChalEnrollPoints">Enrol points</label>
+                <label class="adm-form-label adm-form-label--no-top" for="admChalEnrollPoints">Enrol points</label>
                 <input type="number" id="admChalEnrollPoints" class="adm-input" value="100" min="0" step="50">
               </div>
               <div>
-                <label for="admChalFinishPoints">Finish points</label>
+                <label class="adm-form-label adm-form-label--no-top" for="admChalFinishPoints">Finish points</label>
                 <input type="number" id="admChalFinishPoints" class="adm-input" value="500" min="0" step="50">
               </div>
             </div>
             <div style="margin-top:10px;">
-              <label for="admChalWinPoints">Win points <span class="adm-form-optional">(0 = no winner concept)</span></label>
+              <label class="adm-form-label" for="admChalWinPoints">Win points <span class="adm-form-optional">(0 = no winner concept)</span></label>
               <input type="number" id="admChalWinPoints" class="adm-input" value="1500" min="0" step="100">
             </div>
 
@@ -888,8 +888,8 @@
               </div>
               <div id="admChalPinToggle" class="toggle-pill" role="button" tabindex="0" onclick="this.classList.toggle('on')"></div>
             </div>
-            <div class="adm-form-row">
-              <label class="adm-label" for="admChalCompetitionMode">🏆 Competition Mode</label>
+            <div>
+              <label class="adm-form-label" for="admChalCompetitionMode">🏆 Competition Mode</label>
               <select id="admChalCompetitionMode" class="adm-input">
                 <option value="NONE">None – personal challenge, no leaderboard</option>
                 <option value="INDIVIDUAL">Individual – ranked leaderboard per member</option>
@@ -1160,6 +1160,6 @@
 
 <div id="admToast"></div>
 
-<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=2.7"></script>
+<script src="https://abhish3kjain.github.io/arkaapp-frontend/arkaadmin_app.js?v=2.8"></script>
 </body>
 </html>
