@@ -27535,14 +27535,86 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const container = document.getElementById('meStreakContainer');
         if (!container) return;
 
-        // ── Core metrics — all delegated to canonical ISO-week helpers ────────────
-        // computeCurrentStreak_  : walks backwards via isoWeekToEpochWeeks_, so
-        //                          year boundaries are transparent (W52 → W01 is gap=1).
-        // computeAllTimeBestStreak_: same epoch-week arithmetic, cross-year safe.
-        // computeUniqueWeeksLogged_: all-time unique ISO weeks — matches PLogger badge.
+        // ── Core metrics (still needed for the stat circle) ───────────────────────
         const currentStreak    = computeCurrentStreak_(allUserLogs);
         const bestStreak       = computeAllTimeBestStreak_(allUserLogs);
         const totalWeeksActive = computeUniqueWeeksLogged_(allUserLogs);
+
+        // ── Update the streak stat circle ─────────────────────────────────────────
+        const streakPillValEl   = document.getElementById('meStatStreakValue');
+        const streakPillFireEl  = document.getElementById('meStatStreakFire');
+        const streakPillTileEl  = document.getElementById('meStatStreakTile');
+        const streakPillLblEl   = document.getElementById('meStatStreakLabel');
+        const streakWeeksLblEl  = document.getElementById('meStatWeeksLabel');
+
+        if (streakPillValEl) streakPillValEl.innerText = currentStreak > 0 ? currentStreak : '–';
+        if (streakPillFireEl) streakPillFireEl.style.display = currentStreak > 0 ? '' : 'none';
+
+        if (streakPillTileEl) {
+          if (currentStreak > 0) {
+            streakPillTileEl.style.background  = '#fff8f0';
+            streakPillTileEl.style.borderColor = '#f0c070';
+            if (streakPillValEl)   streakPillValEl.style.color   = 'var(--color-warning)';
+            if (streakPillFireEl)  streakPillFireEl.style.color  = 'var(--color-warning)';
+            if (streakPillLblEl)   streakPillLblEl.style.color   = '#854F0B';
+            if (streakWeeksLblEl)  streakWeeksLblEl.style.color  = '#854F0B';
+          } else {
+            streakPillTileEl.style.background  = 'var(--surface-alt)';
+            streakPillTileEl.style.borderColor = 'var(--border-soft)';
+          }
+        }
+
+        // ── Build "this week" day-tick banner ─────────────────────────────────────
+        // Determine which days of the current ISO week had at least one page log.
+        const thisWeekStr = getISOWeekString_(new Date());
+        const loggedDays  = new Set(); // 0=Mon … 6=Sun (ISO day − 1)
+        allUserLogs.forEach(function(log) {
+          if ((Number(log.pagesDelta) || 0) <= 0) return;
+          const d = parseGoogleDate(log.timestamp);
+          if (isNaN(d.getTime())) return;
+          if (getISOWeekString_(d) !== thisWeekStr) return;
+          // JS getDay(): 0=Sun,1=Mon…6=Sat → convert to ISO 0=Mon…6=Sun
+          const isoDay = (d.getDay() + 6) % 7;
+          loggedDays.add(isoDay);
+        });
+
+        // Today's ISO day index (0=Mon … 6=Sun)
+        const todayIso = (new Date().getDay() + 6) % 7;
+        const DAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+
+        const pagesThisWeek = weeklyPagesCurrentYear[getISOWeekNumber(new Date())] || 0;
+
+        const dayChips = DAY_LABELS.map(function(lbl, i) {
+          const isToday   = i === todayIso;
+          const isLogged  = loggedDays.has(i);
+          // Days after today haven't happened yet — show as neutral dot
+          const isFuture  = i > todayIso;
+          const icon      = isFuture ? '·' : (isLogged ? '✓' : '✕');
+          const iconColor = isFuture ? '#ccc'
+                          : isLogged ? '#15803d'
+                          : '#d1d5db';
+          const lblColor  = isToday ? 'var(--arka-accent)' : (isLogged ? '#15803d' : 'var(--text-faint)');
+          const todayRing = isToday
+            ? 'border:1.5px solid var(--arka-accent);border-radius:50%;padding:1px 2px;line-height:1;display:inline-block;'
+            : '';
+          return `
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+              <div style="font-size:9px;font-weight:700;color:${lblColor};text-transform:uppercase;line-height:1;">${lbl}</div>
+              <div style="${todayRing}font-size:11px;color:${iconColor};line-height:1;">${icon}</div>
+            </div>`;
+        }).join('');
+
+        container.style.display = 'block';
+        container.innerHTML = `
+          <div style="background:var(--accent-light,#ede9fe);border-radius:10px;padding:9px 12px;">
+            <div style="font-size:12px;font-weight:600;color:var(--arka-accent);margin-bottom:7px;">
+              You logged <strong>${pagesThisWeek.toLocaleString()}</strong> pages this week
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              ${dayChips}
+            </div>
+          </div>`;
+      }
 
         // ── Derive the calendar year the best streak ENDED in ────────────────────
         // We find the ISO week string of the last week in the best consecutive run
@@ -27583,88 +27655,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           bestStreakEndYear = parseInt(sortedWeeks[bestEndIdx].split('-W')[0], 10);
         }
 
-        // ── Update the streak stat circle ─────────────────────────────────────────
-        const streakPillValEl   = document.getElementById('meStatStreakValue');
-        const streakPillFireEl  = document.getElementById('meStatStreakFire');
-        const streakPillTileEl  = document.getElementById('meStatStreakTile');
-        const streakPillLblEl   = document.getElementById('meStatStreakLabel');
-        const streakWeeksLblEl  = document.getElementById('meStatWeeksLabel');
-
-        if (streakPillValEl) streakPillValEl.innerText = currentStreak > 0 ? currentStreak : '–';
-        if (streakPillFireEl) streakPillFireEl.style.display = currentStreak > 0 ? '' : 'none';
-
-        if (streakPillTileEl) {
-          if (currentStreak > 0) {
-            streakPillTileEl.style.background  = '#fff8f0';
-            streakPillTileEl.style.borderColor = '#f0c070';
-            if (streakPillValEl)   streakPillValEl.style.color   = 'var(--color-warning)';
-            if (streakPillFireEl)  streakPillFireEl.style.color  = 'var(--color-warning)';
-            if (streakPillLblEl)   streakPillLblEl.style.color   = '#854F0B';
-            if (streakWeeksLblEl)  streakWeeksLblEl.style.color  = '#854F0B';
-          } else {
-            streakPillTileEl.style.background  = 'var(--surface-alt)';
-            streakPillTileEl.style.borderColor = 'var(--border-soft)';
-          }
-        }
-
-        // ── Build the best-streak badge (right side of card) ─────────────────────
-        // Show "🏆 Personal best!" when current streak equals the all-time best.
-        // Show "Best: N wks / in YYYY" when there IS a best but current < best.
-        // Show nothing if bestStreak is 0 (no logs at all).
-        let bestBadgeHtml = '';
-        if (bestStreak > 0 && currentStreak === bestStreak) {
-          bestBadgeHtml = `
-            <div style="font-size:0.75rem; color:#27ae60; font-weight:500; text-align:right;">
-              🏆 Personal best!
-            </div>`;
-        } else if (bestStreak > 0 && currentStreak < bestStreak) {
-          bestBadgeHtml = `
-            <div style="text-align:right;">
-              <div style="font-size:0.82rem; font-weight:500; color:var(--text-strong);">
-                Best: ${bestStreak} wk${bestStreak !== 1 ? 's' : ''}
-              </div>
-              <div style="font-size:0.68rem; color:var(--text-faint); margin-top:2px;">
-                in ${bestStreakEndYear}
-              </div>
-            </div>`;
-        }
-
-        // ── Render streak card ────────────────────────────────────────────────────
-        container.style.display = 'block';
-
-        if (currentStreak === 0) {
-          // No active streak — still show the best ever (motivational) if one exists.
-          container.innerHTML = `
-            <div style="background:var(--surface-alt); border:1px solid var(--border-soft); border-radius:8px;
-                        padding:10px 14px; display:flex; align-items:center;
-                        justify-content:space-between;">
-              <div style="font-size:0.82rem; color:var(--text-faint); font-style:italic;">
-                No active streak — log pages to start one! 🔥
-              </div>
-              ${bestBadgeHtml}
-            </div>`;
-          return;
-        }
-
-        container.innerHTML = `
-          <div style="background:#fff8f0; border:1px solid #f0c070; border-radius:8px;
-                      padding:10px 14px; display:flex; align-items:center;
-                      justify-content:space-between;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div style="font-size:1.5rem; line-height:1; flex-shrink:0;">🔥</div>
-              <div>
-                <div style="font-size:1.2rem; font-weight:bold; color:var(--color-warning); line-height:1;">
-                  ${currentStreak} week${currentStreak !== 1 ? 's' : ''}
-                </div>
-                <div style="font-size:0.68rem; color:#854F0B; text-transform:uppercase;
-                            letter-spacing:0.5px; margin-top:2px;">
-                  Current streak
-                </div>
-              </div>
-            </div>
-            ${bestBadgeHtml}
-          </div>
-        `;
       }
 
       /**
