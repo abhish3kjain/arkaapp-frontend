@@ -823,3 +823,55 @@ function forceRunArkaAIPassNow() {
   console.log('ArkaAIPass: forcing immediate run...');
   runArkaAIPass();
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEV UTILITY — Run ArkaAIPass for a single member and write result to Col S.
+// Bypasses cursor, activity gate, and fingerprint check so advice always
+// regenerates. Use for testing only.
+// ─────────────────────────────────────────────────────────────────────────────
+function testAIPassForMe_() {
+  var TEST_MEMBER_ID = 'ARKA_MEMBER_1'; // ← change if needed
+
+  var props  = PropertiesService.getScriptProperties();
+  var apiKey = props.getProperty('GEMINI_API_KEY');
+  if (!apiKey) { console.error('GEMINI_API_KEY not set'); return; }
+
+  var ss       = SpreadsheetApp.openById(AIPASS_SPREADSHEET_ID);
+  var memSheet = ss.getSheetByName(AIPASS_MEMBERS_SHEET);
+  var memData  = memSheet.getDataRange().getValues();
+
+  var targetRow = -1;
+  for (var i = 1; i < memData.length; i++) {
+    if ((memData[i][0] || '').toString() === TEST_MEMBER_ID) { targetRow = i; break; }
+  }
+  if (targetRow === -1) { console.error('Member not found: ' + TEST_MEMBER_ID); return; }
+
+  var row         = memData[targetRow];
+  var displayName = (row[3]  || '').toString().trim();
+  var colSRaw     = (row[18] || '').toString();
+  var existingParsed = {};
+  try { existingParsed = JSON.parse(colSRaw); } catch(e) {}
+
+  var statSnapshot = existingParsed.statSnapshot;
+  if (!statSnapshot) { console.error('No statSnapshot in Col S — run MasterEngine first.'); return; }
+
+  var insights = existingParsed.insights || [];
+
+  console.log('Running AI pass for: ' + displayName + ' (' + TEST_MEMBER_ID + ')');
+  console.log('Fingerprint: ' + _aiPassBuildFingerprint_(statSnapshot));
+
+  // Force fresh Gemini call — clear stored fingerprint so staleness check is skipped
+  delete existingParsed.aiFingerprint;
+
+  var aiAdvice = _aiPassCallGemini_(apiKey, displayName, insights, statSnapshot);
+  if (!aiAdvice) { console.error('Gemini call returned empty — check API key or quota.'); return; }
+
+  existingParsed.aiAdvice      = aiAdvice;
+  existingParsed.aiFingerprint = _aiPassBuildFingerprint_(statSnapshot);
+
+  var newColS = JSON.stringify(existingParsed);
+  memSheet.getRange(targetRow + 1, 19).setValue(newColS); // Col S = index 18 = column 19
+
+  console.log('Done. aiAdvice written to Col S:');
+  console.log(aiAdvice);
+}
