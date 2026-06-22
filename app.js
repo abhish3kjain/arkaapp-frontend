@@ -27616,46 +27616,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           </div>`;
       }
 
-        // ── Derive the calendar year the best streak ENDED in ────────────────────
-        // We find the ISO week string of the last week in the best consecutive run
-        // and extract the year from it (ISO week year, which is what we want).
-        // This means an Oct 2024 – Mar 2025 streak correctly shows "in 2025".
-        let bestStreakEndYear = new Date().getFullYear(); // sensible fallback
-        if (bestStreak > 0) {
-          const weekSet = {};
-          allUserLogs.forEach(function(log) {
-            if ((Number(log.pagesDelta) || 0) > 0) {
-              const d = parseGoogleDate(log.timestamp);
-              if (!isNaN(d.getTime())) weekSet[getISOWeekString_(d)] = true;
-            }
-          });
-          const sortedWeeks = Object.keys(weekSet).sort(function(a, b) {
-            return isoWeekToEpochWeeks_(a) - isoWeekToEpochWeeks_(b);
-          });
-          // Walk forward through sorted weeks, track the last week of the longest run.
-          let curRun = 1;
-          let curEndIdx = 0;
-          let bestEndIdx = 0;
-          let bestRun = 1;
-          for (let i = 1; i < sortedWeeks.length; i++) {
-            const gap = isoWeekToEpochWeeks_(sortedWeeks[i]) - isoWeekToEpochWeeks_(sortedWeeks[i - 1]);
-            if (gap === 1) {
-              curRun++;
-              curEndIdx = i;
-              if (curRun > bestRun) {
-                bestRun = curRun;
-                bestEndIdx = i;
-              }
-            } else {
-              curRun = 1;
-              curEndIdx = i;
-            }
-          }
-          // Extract the ISO week year from the end-of-best-run week string ("YYYY-Www")
-          bestStreakEndYear = parseInt(sortedWeeks[bestEndIdx].split('-W')[0], 10);
-        }
-
-      }
 
       /**
        * Math Helper: Calculates the median of an array of numbers.
