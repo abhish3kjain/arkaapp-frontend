@@ -153,6 +153,7 @@
     border-radius: 50%;
     border: 2.5px solid #f0c070;
     text-align: center;
+    gap: 3px;
   }
   .streak-num {
     font-size: clamp(16px, 4.5vw, 22px);
@@ -160,8 +161,15 @@
     color: var(--color-warning);
     line-height: 1;
   }
-  .streak-icon {
-    font-size: clamp(10px, 3vw, 14px);
+  .streak-bottom {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: clamp(7px, 2vw, 9px);
+    color: var(--color-warning);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
     line-height: 1;
   }
 
@@ -291,8 +299,7 @@
         <div class="streak-circle">
           <div class="streak-circle-inner">
             <div class="streak-num">5</div>
-            <div class="streak-icon">🔥</div>
-            <div class="ring-label" style="color:#e0900a; margin-top:2px;">streak</div>
+            <div class="streak-bottom"><span>🔥</span><span>streak</span></div>
           </div>
         </div>
       </div>
@@ -345,8 +352,7 @@
         <div class="streak-circle">
           <div class="streak-circle-inner">
             <div class="streak-num">5</div>
-            <div class="streak-icon">🔥</div>
-            <div class="ring-label" style="color:#e0900a; margin-top:2px;">streak</div>
+            <div class="streak-bottom"><span>🔥</span><span>streak</span></div>
           </div>
         </div>
       </div>
@@ -396,7 +402,7 @@
         <div class="streak-circle">
           <div class="streak-circle-inner" style="background:var(--surface-alt); border-color:var(--border-soft);">
             <div class="streak-num" style="color:var(--text-muted);">–</div>
-            <div class="ring-label" style="color:var(--text-muted); margin-top:2px;">streak</div>
+            <div class="streak-bottom" style="color:var(--text-muted);">streak</div>
           </div>
         </div>
       </div>
