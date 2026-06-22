@@ -4920,13 +4920,23 @@ function generateMemberCoachInsights_(
                      '" may take longer than you\'d expect.';
           }
         } else if (gmpHasSessionBase && genrePaceMap[gmpGenre]) {
-          // Fall back to session-based
+          // Fall back to session-based genrePaceMap.
+          // If RSE overall pace is available, convert session ratio → day equivalent
+          // so the sub-text stays in pages/day. Otherwise fall back to pages/session.
           var gmpSessionPace = genrePaceMap[gmpGenre];
           var gmpRatioSess   = gmpSessionPace / overallAvgPagesPerSession;
           if (gmpRatioSess < 0.7) {
-            gmpSub = 'Historically you average ' + gmpSessionPace + ' pages/session in ' + gmpGenre +
-                     ' vs your usual ' + overallAvgPagesPerSession + ' pages/session. "' + gmpBook.title +
-                     '" may take longer than you\'d expect.';
+            if (gmpHasRseOverall) {
+              // Scale RSE overall pace by the genre's session ratio to estimate genre pages/day
+              var gmpEstGenreDayPace = Math.round(gmpRseOverallPace * gmpRatioSess);
+              gmpSub = 'Historically you average ~' + gmpEstGenreDayPace + ' pages/day in ' + gmpGenre +
+                       ' vs your usual ' + Math.round(gmpRseOverallPace) + ' pages/day. "' + gmpBook.title +
+                       '" may take longer than you\'d expect.';
+            } else {
+              gmpSub = 'Historically you average ' + gmpSessionPace + ' pages/session in ' + gmpGenre +
+                       ' vs your usual ' + overallAvgPagesPerSession + ' pages/session. "' + gmpBook.title +
+                       '" may take longer than you\'d expect.';
+            }
           }
         }
 
