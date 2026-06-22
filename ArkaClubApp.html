@@ -2952,52 +2952,52 @@
 
       <!-- ── Challenges full view ────────────────────────────────────────────────── -->
       <div id="challengesView" class="view-section" style="display: none;">
-        <div class="card">
-      
-          <!-- Header -->
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-            <button class="btn-back-circle"
-                    onclick="navPop(function(e){ switchTab(e.viewName || 'home'); })"
-                    aria-label="Go back">
-              <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
-            </button>
-            <h2 style="margin:0; color:var(--text-strong); font-size:1.15rem;">Challenges</h2>
-          </div>
-      
-          <!-- Sub-tabs: All / Mine (members) or Active / Upcoming / Archived (admins see all) -->
-          <div class="library-tabs" style="margin-bottom:16px;" id="chalSubTabBar">
-            <div class="lib-tab active" role="button" tabindex="0" data-action id="tabChalAll"      onclick="switchChallengesTab('all')">All</div>
-            <div class="lib-tab"        role="button" tabindex="0" data-action id="tabChalMine"     onclick="switchChallengesTab('mine')">Mine</div>
-            <div class="lib-tab"        role="button" tabindex="0" data-action id="tabChalUpcoming" onclick="switchChallengesTab('upcoming')">Upcoming</div>
-            <div class="lib-tab"        role="button" tabindex="0" data-action id="tabChalArchived" onclick="switchChallengesTab('archived')">Archived</div>
-          </div>
-      
-          <!-- Tab content panels -->
-          <div id="chalAllContent">
-            <div id="chalAllList">
-              <p style="text-align:center; color:var(--text-muted); padding:20px 0; font-style:italic;">Loading challenges...</p>
+
+        <!-- ── Challenges Hero Banner ────────────────────────────────────────── -->
+        <div id="chalBanner">
+
+          <button id="chalBackBtn"
+                  class="btn-back-circle btn-back-circle--dark"
+                  onclick="navPop(function(e){ switchTab(e.viewName || 'home'); })"
+                  aria-label="Go back"
+                  style="position:absolute; top:12px; left:12px; z-index:3; display:none;">
+            <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
+          </button>
+
+          <div style="position:relative; z-index:2;">
+            <div class="chal-banner-icon-wrap">
+              <i class="fa-solid fa-trophy" style="color:rgba(255,255,255,0.8); font-size:1.2rem;"></i>
             </div>
+            <div class="chal-banner-title">CHALLENGES</div>
+            <div class="chal-banner-sub">Arka Readers Club</div>
+
+            <!-- Bento grid — populated by renderChallengesBanner() -->
+            <div id="chalBentoGrid" class="chal-bento"></div>
           </div>
-      
-          <div id="chalMineContent" style="display:none;">
-            <div id="chalMineList">
-              <p style="text-align:center; color:var(--text-muted); padding:20px 0; font-style:italic;">Loading your challenges...</p>
-            </div>
+
+        </div><!-- /chalBanner -->
+
+        <!-- ── White content area ────────────────────────────────────────────── -->
+        <div id="chalContentArea">
+
+          <div class="chal-filter-bar">
+            <div class="chal-fchip active" id="chalChipAll"        onclick="switchChallengesFilter('all')">All</div>
+            <div class="chal-fchip"        id="chalChipEnrolled"   onclick="switchChallengesFilter('enrolled')">Enrolled</div>
+            <div class="chal-fchip"        id="chalChipUnenrolled" onclick="switchChallengesFilter('unenrolled')">Un-enrolled</div>
           </div>
-      
-          <div id="chalUpcomingContent" style="display:none;">
-            <div id="chalUpcomingList">
-              <p style="text-align:center; color:var(--text-muted); padding:20px 0; font-style:italic;">No upcoming challenges.</p>
-            </div>
+
+          <div id="chalListContent">
+            <p style="text-align:center; color:var(--text-muted); padding:20px 0; font-style:italic;">Loading challenges...</p>
           </div>
-      
-          <div id="chalArchivedContent" style="display:none;">
-            <div id="chalArchivedList">
-              <p style="text-align:center; color:var(--text-muted); padding:20px 0; font-style:italic;">No archived challenges.</p>
-            </div>
-          </div>
-      
-        </div>
+
+        </div><!-- /chalContentArea -->
+
+        <!-- Legacy panel IDs kept for backward compatibility with existing call sites -->
+        <div id="chalAllContent"      style="display:none;"><div id="chalAllList"></div></div>
+        <div id="chalMineContent"     style="display:none;"><div id="chalMineList"></div></div>
+        <div id="chalUpcomingContent" style="display:none;"><div id="chalUpcomingList"></div></div>
+        <div id="chalArchivedContent" style="display:none;"><div id="chalArchivedList"></div></div>
+
       </div>
       <!-- ── Enrol confirmation bottom sheet ──────────────────────────────────────── -->
       <div id="chalEnrolModal" class="drawer-overlay" onclick="closeChalEnrolSheet()">
