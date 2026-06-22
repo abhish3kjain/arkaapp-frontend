@@ -963,7 +963,7 @@
             <!-- Pages ring circle -->
             <div style="aspect-ratio:1/1; position:relative;" id="meStatPagesCircleWrap">
               <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
-                <circle cx="50" cy="50" r="44" fill="white" stroke="var(--border-soft)" stroke-width="11"/>
+                <circle cx="50" cy="50" r="44" fill="white" stroke="var(--border-soft)" stroke-width="9"/>
                 <circle id="meStatPagesRingArc" cx="50" cy="50" r="44" fill="none"
                         stroke="var(--arka-accent,#7c3aed)" stroke-width="11"
                         stroke-dasharray="0 277" stroke-dashoffset="0"
@@ -990,7 +990,7 @@
                  onclick="openFullShelf(currentUser,'Finished',new Date().getFullYear().toString())"
                  title="View my finished books this year">
               <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
-                <circle cx="50" cy="50" r="44" fill="white" stroke="var(--border-soft)" stroke-width="11"/>
+                <circle cx="50" cy="50" r="44" fill="white" stroke="var(--border-soft)" stroke-width="9"/>
                 <circle id="meStatBooksRingArc" cx="50" cy="50" r="44" fill="none"
                         stroke="var(--arka-accent,#7c3aed)" stroke-width="11"
                         stroke-dasharray="0 277" stroke-dashoffset="0"
@@ -1024,7 +1024,8 @@
                 <span id="meStatStreakFire"
                       style="font-size:clamp(18px,5.85vw,26px);line-height:1;display:none;">🔥</span>
               </div>
-              <div style="font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);
+              <div id="meStatWeeksLabel"
+                   style="font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);
                           text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">weeks</div>
               <div id="meStatStreakLabel"
                    style="font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);
