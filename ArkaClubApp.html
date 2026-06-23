@@ -10,6 +10,18 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&family=Cinzel:wght@400;700&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+    <!-- Layout fix overrides: remote styles.css?v=1.8 still carries chalBanner negative
+         margins that conflict with the corrected wrapper layout below. These !important
+         rules win cascade after the linked sheet and remove the conflict. -->
+    <style>
+      /* Challenges page: banner no longer needs negative margins — the wrapper
+         (margin:-40px -20px 0) already extends to the viewport edge exactly. */
+      #chalBanner { margin-left: 0 !important; margin-right: 0 !important; }
+
+      /* Challenge detail tabs and body: rendered inside the full-width flush wrapper,
+         so they inherit viewport width — no extra side padding needed from .container. */
+      .chal-detail-inner-tabs { margin: 0; }
+    </style>
   </head>
   <body>
     <div class="app-header">
@@ -3108,8 +3120,9 @@
             </div>
           </div>
 
-          <!-- Bookshelf Hero — shown only for BOOK_COUNT challenges -->
-          <div id="chalDetailBookshelfHero" class="chal-shelf-hero" style="display:none; overflow:hidden;">
+          <!-- Bookshelf Hero — shown only for BOOK_COUNT challenges.
+               No overflow:hidden here — chal-shelf-spines needs to scroll horizontally. -->
+          <div id="chalDetailBookshelfHero" class="chal-shelf-hero" style="display:none;">
             <div class="chal-shelf-inner">
               <div class="chal-shelf-section-lbl">Your Reading Shelf</div>
               <div id="shelfSpinesRow" class="chal-shelf-spines"></div>
