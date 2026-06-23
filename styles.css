@@ -4033,8 +4033,6 @@
         background: var(--text-strong);
         color: white;
         padding: 12px 16px;
-        /* Break out of .container's 20px padding so header sits flush under app-header */
-        margin: -40px 0px 0;
         display: flex;
         align-items: center;
       }
@@ -4078,7 +4076,6 @@
       /* ── Bookshelf Hero (BOOK_COUNT challenges) ─────────────────────────── */
       .chal-shelf-hero {
         background: linear-gradient(160deg, #1a2332 0%, #2d1b4e 100%);
-        margin: 0 -20px; /* break out of .container's 20px padding for full-bleed effect */
       }
       .chal-shelf-inner { padding: 14px 20px 0; }
       .chal-shelf-section-lbl {
@@ -4640,7 +4637,7 @@
         overflow: hidden;
       }
       .chal-toprow {
-        display: flex; justify-content: space-between; align-items: center;
+        display: flex; justify-content: space-between; align-items: center; gap: 8px;
         margin-bottom: 14px;
       }
       .chal-banner-title {
@@ -4651,7 +4648,7 @@
         font-size: 0.57rem; color: rgba(255,255,255,0.38);
         text-transform: uppercase; letter-spacing: 0.05em;
       }
-      .chal-toprow-tags { display: flex; gap: 6px; align-items: center; }
+      .chal-toprow-tags { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
       .chal-toprow-tag {
         padding: 4px 10px; border-radius: 20px; font-size: 0.64rem; font-weight: 600;
         background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
