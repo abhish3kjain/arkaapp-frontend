@@ -32460,14 +32460,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
           const avatarHtml = buildAvatarHtml(member, 28);
 
-          // For the current user, surface recentPace from RSE V1 as pace context.
-          const rseRecent = isMe
-            ? (((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {}).recentPace || 0
-            : 0;
-
           return { isMe, name, member, memberId: enrollment.memberId,
                   personalGoal, currentTotal, projection, pct,
-                  paceIcon, paceColor, avatarHtml, rseRecent };
+                  paceIcon, paceColor, avatarHtml };
         }).sort(function(a, b) { return b.pct - a.pct; });
 
         const rowsHtml = rows.map(function(r) {
@@ -32525,7 +32520,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   ${r.paceIcon}
                 </div>
                 <div style="font-size:0.68rem;color:${r.paceColor};white-space:nowrap;">
-                  ${r.isMe && r.rseRecent > 0 && isPages ? Math.round(r.rseRecent) + ' pg/d' : projStr}
+                  ${projStr}
                 </div>
               </div>
 
@@ -32553,7 +32548,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               <div style="width:52px;flex-shrink:0;text-align:right;font-size:0.68rem;
                           font-weight:600;color:var(--text-faint);text-transform:uppercase;
                           letter-spacing:0.4px;">
-                ${isPages ? 'Pace' : 'Yr Pace'}
+                Yr Pace
               </div>
             </div>
             ${rowsHtml}
