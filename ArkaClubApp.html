@@ -2993,21 +2993,22 @@
         <!-- ── Challenges Hero Banner ────────────────────────────────────────── -->
         <div id="chalBanner">
 
-          <button id="chalBackBtn"
-                  class="btn-back-circle btn-back-circle--dark"
-                  onclick="navPop(function(e){ switchTab(e.viewName || 'home'); })"
-                  aria-label="Go back"
-                  style="position:absolute; top:12px; left:12px; z-index:3; display:none;">
-            <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
-          </button>
-
           <div style="position:relative; z-index:2;">
 
-            <!-- Top row: wordmark left, tag pills right -->
+            <!-- Top row: back button + wordmark left, tag pills right -->
             <div class="chal-toprow">
-              <div>
-                <div class="chal-banner-title">CHALLENGES</div>
-                <div class="chal-banner-sub">Arka Readers Club</div>
+              <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                <button id="chalBackBtn"
+                        class="btn-back-circle btn-back-circle--dark"
+                        onclick="navPop(function(e){ switchTab(e.viewName || 'home'); })"
+                        aria-label="Go back"
+                        style="flex-shrink:0;">
+                  <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
+                </button>
+                <div style="min-width:0;">
+                  <div class="chal-banner-title">CHALLENGES</div>
+                  <div class="chal-banner-sub">Arka Readers Club</div>
+                </div>
               </div>
               <div class="chal-toprow-tags" id="chalTopRowTags"></div>
             </div>
