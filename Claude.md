@@ -588,16 +588,47 @@ goalValue = defaultGoal, goalUnit = "pages"
 #### 10PAGESADAY
 ```json
 {
-  "year": 2026,
+  "year": 2027,
   "dailyGoal": 10,
-  "challengerBadge": "ARKA_BADGE_233",
-  "finisherBadge": "ARKA_BADGE_234",
-  "winnerBadge": "ARKA_BADGE_235"
+  "qualifyingAvgPagesPerDay": 10,
+  "enrollmentDeadline": "28-Feb-2027",
+  "finisherPages": 1825,
+  "consistencyMode": true,
+  "challengerBadge": "ARKA_BADGE_XXX",
+  "finisherBadge":   "ARKA_BADGE_XXX",
+  "qualifierBadge":  "ARKA_BADGE_XXX",
+  "winnerBadge":     "ARKA_BADGE_XXX"
 }
 ```
 goalValue = dailyGoal × 365, goalUnit = "pages"
 Badge award triggered manually by admin via `award10PagesADayBadges(challengeId)`.
 Page data sourced from PageLogDB (all sources count, including legacy `Data_10PagesADay_*`).
+
+**Mechanic (from 2027, `consistencyMode: true`):**
+- Qualification is a live rolling check: `totalPagesSinceEnrollment / daysSinceEnrollment >= 10`. Drops below = disqualified in real time. Recoverable if avg climbs back.
+- Winner = highest `habitScore` among currently-qualified members at year end.
+- Finisher = `totalPages >= finisherPages` (half-pace threshold, independent of qualification).
+- Enrollment closes on `enrollmentDeadline` — late enrollments rejected by GAS.
+- `earlyWeeksHit` counts weeks 1–10 from **enrollment date**, not Jan 1.
+
+**habitScore formula:**
+```
+habitScore = (weeksHit × 10)
+           + (earlyWeeksHit × 10)   ← double weight, anchored to enrollment date
+           + (recoveryRate × 50)    ← 0–50 pts; recovery after a missed week
+           - (maxGap × 5)           ← penalty for longest consecutive zero-page-week gap
+```
+All inputs derived at sync time from PageLogDB — nothing extra stored in PageLogDB.
+
+**Badge tiers:**
+| Badge | Condition |
+|---|---|
+| Challenger | Enrolled + any pages logged |
+| Finisher | totalPages >= finisherPages (1,825 for a 365-day year) |
+| Qualifier | Rolling avg >= 10 pages/day sustained to year end |
+| Winner | Highest habitScore among Qualifiers |
+
+**2023–2026 legacy:** ran as pure PAGE_COUNT (highest total pages wins). `award10PagesADayBadges` reads PageLogDB total — no consistency logic applied to past years.
 
 #### BOOK_HUNT
 ```json
@@ -646,9 +677,20 @@ Claiming a clue: member links a **currently-reading** book from their shelf.
 
 #### 10PAGESADAY
 ```json
-{ "year": 2026, "dailyGoal": 10, "yearlyGoal": 3650, "totalPages": 0,
-  "monthlyBreakdown": {}, "avgPagesPerDay": 0, "isFinisher": false }
+{
+  "totalPages": 3240,
+  "daysSinceEnrollment": 180,
+  "avgPagesPerDay": 18.0,
+  "isQualified": true,
+  "weeksHit": 24,
+  "earlyWeeksHit": 9,
+  "maxGap": 1,
+  "recoveryRate": 0.85,
+  "habitScore": 431,
+  "lastSyncedOn": "01-Jul-2027"
+}
 ```
+All fields computed from PageLogDB on sync. No day-by-day map stored — derived on demand.
 
 #### BOOK_HUNT
 ```json
@@ -675,6 +717,14 @@ Claiming a clue: member links a **currently-reading** book from their shelf.
 #### 10PAGESADAY — Member-side display
 - Progress bar vs yearly goal + monthly breakdown circles (matching legacy TenPagesADay_v3.html UI)
 - No new logging needed — reads PageLogDB automatically
+- Live leaderboard: two sections — "Qualified (avg ≥ 10 pages/day)" ranked by habitScore, then "Not yet qualified" ranked by avgPagesPerDay with gap-to-qualify shown
+
+#### 10PAGESADAY — Auto-enroll toggle (NOT YET BUILT)
+- A toggle on the member's 10PAGESADAY challenge page: "Auto-enroll me next year"
+- Toggle state stored as `autoEnrollNextYear: true/false` in ChallengeEnrollmentDB (new col or inside progressStateJson)
+- At year-end award computation (`award10PagesADayBadges`): scan all enrollments for the current year's challenge where `autoEnrollNextYear = true`, find next year's challenge record with the same `seriesTag`, create enrollment records for those members
+- If next year's challenge record doesn't exist yet, queue them (store pending list somewhere) or skip and let admin trigger manually
+- Default state: OFF — member must opt in deliberately (preserves commitment signal)
 
 ### Admin Panel Version Control
 When bumping the admin panel cache-bust version (`v3.X` in `AkraAdminControlPanel.html`):
