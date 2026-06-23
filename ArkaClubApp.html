@@ -10,18 +10,6 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&family=Cinzel:wght@400;700&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
-    <!-- Layout fix overrides: remote styles.css?v=1.8 still carries chalBanner negative
-         margins that conflict with the corrected wrapper layout below. These !important
-         rules win cascade after the linked sheet and remove the conflict. -->
-    <style>
-      /* Challenges page: banner no longer needs negative margins — the wrapper
-         (margin:-40px -20px 0) already extends to the viewport edge exactly. */
-      #chalBanner { margin-left: 0 !important; margin-right: 0 !important; }
-
-      /* Challenge detail tabs and body: rendered inside the full-width flush wrapper,
-         so they inherit viewport width — no extra side padding needed from .container. */
-      .chal-detail-inner-tabs { margin: 0; }
-    </style>
   </head>
   <body>
     <div class="app-header">
@@ -3000,8 +2988,7 @@
       <!-- ── Challenges full view ────────────────────────────────────────────────── -->
       <div id="challengesView" class="view-section" style="display: none;">
 
-        <!-- Flush banner to container edges — same pattern as Members/Badges/HOF -->
-        <div style="overflow:hidden; margin:-40px -20px 0;">
+        <div style="margin:-40px 0 0;">
 
         <!-- ── Challenges Hero Banner ────────────────────────────────────────── -->
         <div id="chalBanner">
@@ -3102,13 +3089,10 @@
 
       <div id="challengeDetailView" class="view-section" style="display:none;">
 
-        <!-- Flush wrapper: breaks out of .container's 20px padding so all content
-             sits edge-to-edge — same pattern as membersView.
-             overflow:hidden only on inner elements that need it (header, shelf hero). -->
         <div style="margin:-40px -20px 0;">
 
           <!-- Dark header bar -->
-          <div class="chal-detail-header" style="overflow:hidden;">
+          <div class="chal-detail-header">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
               <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
                 <button class="btn-back-circle btn-back-circle--dark" onclick="closeChallengeDetailView()" aria-label="Back">
@@ -3120,8 +3104,7 @@
             </div>
           </div>
 
-          <!-- Bookshelf Hero — shown only for BOOK_COUNT challenges.
-               No overflow:hidden here — chal-shelf-spines needs to scroll horizontally. -->
+          <!-- Bookshelf Hero — shown only for BOOK_COUNT challenges -->
           <div id="chalDetailBookshelfHero" class="chal-shelf-hero" style="display:none;">
             <div class="chal-shelf-inner">
               <div class="chal-shelf-section-lbl">Your Reading Shelf</div>
@@ -3151,26 +3134,26 @@
 
         </div><!-- /flush wrapper -->
 
-          <!-- My Progress / Club tabs -->
-          <div class="chal-detail-inner-tabs" id="chalDetailTabBar">
-            <div class="chal-detail-tab active" id="tabChalDetailMine"
-                onclick="switchChalDetailTab('mine')">My Progress</div>
-            <div class="chal-detail-tab" id="tabChalDetailClub"
-                onclick="switchChalDetailTab('club')">Club</div>
+        <!-- My Progress / Club tabs -->
+        <div class="chal-detail-inner-tabs" id="chalDetailTabBar">
+          <div class="chal-detail-tab active" id="tabChalDetailMine"
+              onclick="switchChalDetailTab('mine')">My Progress</div>
+          <div class="chal-detail-tab" id="tabChalDetailClub"
+              onclick="switchChalDetailTab('club')">Club</div>
+        </div>
+
+        <!-- Tab content panels -->
+        <div style="padding: 16px;" id="chalDetailBody">
+
+          <div id="chalDetailMineContent">
+            <!-- Rendered by renderChalDetailMyProgress() -->
           </div>
 
-          <!-- Tab content panels -->
-          <div style="padding: 16px;" id="chalDetailBody">
-
-            <div id="chalDetailMineContent">
-              <!-- Rendered by renderChalDetailMyProgress() -->
-            </div>
-
-            <div id="chalDetailClubContent" style="display:none;">
-              <!-- Rendered by renderChalDetailClub() -->
-            </div>
-
+          <div id="chalDetailClubContent" style="display:none;">
+            <!-- Rendered by renderChalDetailClub() -->
           </div>
+
+        </div>
 
       </div>
       
