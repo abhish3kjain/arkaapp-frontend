@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/styles.css?v=1.8">
+    <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/styles.css?v=1.9">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3119,6 +3119,25 @@
             <div id="shelfStatsRow" class="chal-shelf-stats"></div>
           </div>
 
+          <!-- Velocity Hero — shown only for PAGE_COUNT challenges -->
+          <div id="chalDetailVelocityHero" class="rv-hero" style="display:none;">
+            <div class="rv-gauge-area">
+              <div class="rv-gauge-wrap">
+                <canvas id="rvGaugeCanvas" width="200" height="110"></canvas>
+                <div class="rv-gauge-center">
+                  <div id="rvGaugePace" class="rv-gauge-big">—</div>
+                  <div class="rv-gauge-unit">pg / day</div>
+                  <div class="rv-gauge-lbl">current pace</div>
+                </div>
+              </div>
+            </div>
+            <div id="rvMomentumDots" class="rv-momentum"></div>
+            <div id="rvMomentumLbl" class="rv-momentum-lbl"></div>
+            <div id="rvHeroStats" class="rv-hero-stats"></div>
+          </div>
+
+        </div><!-- /flush wrapper -->
+
           <!-- My Progress / Club tabs -->
           <div class="chal-detail-inner-tabs" id="chalDetailTabBar">
             <div class="chal-detail-tab active" id="tabChalDetailMine"
@@ -3140,7 +3159,6 @@
 
           </div>
 
-        </div><!-- /flush wrapper -->
       </div>
       
       <!-- Bingo cell link bottom sheet -->
@@ -4343,7 +4361,7 @@
       // here so app.js can read it from window.ARKA_ADMIN_PANEL_URL.
       window.ARKA_ADMIN_PANEL_URL = '<?!= ScriptApp.getService().getUrl() ?>?page=admin';
     </script>
-    <script src="https://abhish3kjain.github.io/arkaapp-frontend/app.js?v=1.8"></script>
+    <script src="https://abhish3kjain.github.io/arkaapp-frontend/app.js?v=1.9"></script>
 
   </body>
 </html>

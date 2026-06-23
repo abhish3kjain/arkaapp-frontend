@@ -31344,9 +31344,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // ── Navigate to view ──────────────────────────────────────────────────
         switchTab('challengeDetail');
 
-        // Reset bookshelf hero visibility — renderCountProgress will show it for BOOK_COUNT
+        // Reset both heroes — renderCountProgress will show the right one per challenge type
         const shelfHero = document.getElementById('chalDetailBookshelfHero');
         if (shelfHero) shelfHero.style.display = 'none';
+        const velHero = document.getElementById('chalDetailVelocityHero');
+        if (velHero) velHero.style.display = 'none';
 
         // ── Render immediately from cached data ──────────────────────────────
         // No spinner. User sees current data right away.
@@ -31839,14 +31841,94 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             heroEl.style.display = '';
           }
         } else {
-          // Hide hero for PAGE_COUNT — stat tiles handle it in the body
-          const heroEl = document.getElementById('chalDetailBookshelfHero');
-          if (heroEl) heroEl.style.display = 'none';
+          // Hide bookshelf hero for PAGE_COUNT
+          const bookshelfHero = document.getElementById('chalDetailBookshelfHero');
+          if (bookshelfHero) bookshelfHero.style.display = 'none';
+
+          // ── Velocity Hero (PAGE_COUNT) ──────────────────────────────────────
+          const velHero  = document.getElementById('chalDetailVelocityHero');
+          const gaugePaceEl  = document.getElementById('rvGaugePace');
+          const dotsEl   = document.getElementById('rvMomentumDots');
+          const dotLblEl = document.getElementById('rvMomentumLbl');
+          const statsEl  = document.getElementById('rvHeroStats');
+
+          if (velHero && statsEl) {
+            // Current pace from RSE
+            const rse = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {};
+            const currentPace = Math.round(rse.recentPace || rse.overallAvgPace || 0);
+
+            // Needed pace to hit goal
+            const now2        = new Date();
+            const yearEnd2    = new Date(now2.getFullYear(), 11, 31);
+            const remainDays  = Math.max(1, Math.round((yearEnd2 - now2) / 86400000));
+            const neededPace  = total < goal ? Math.ceil((goal - total) / remainDays) : 0;
+
+            // Projected year-end using current pace
+            const elapsedDays2 = Math.max(1, 365 - remainDays);
+            const proj2 = projection > 0 ? projection : (currentPace > 0 ? currentPace * 365 : 0);
+
+            // Ahead / behind pages
+            const expectedNow = Math.round(goal * (elapsedDays2 / 365));
+            const aheadPages  = total - expectedNow;
+            const isAheadPg   = aheadPages > 0;
+
+            // Gauge number
+            if (gaugePaceEl) gaugePaceEl.textContent = currentPace > 0 ? currentPace : '—';
+
+            // Momentum dots — 14 days
+            const today      = new Date();
+            const activeDays = new Set(
+              globalMyPageLogDB
+                .filter(function(l) {
+                  if ((Number(l.pagesDelta) || 0) <= 0) return false;
+                  const d = parseGoogleDate(l.timestamp);
+                  return d && (today - d) <= 14 * 86400000;
+                })
+                .map(function(l) {
+                  const d = parseGoogleDate(l.timestamp);
+                  return d ? d.toISOString().split('T')[0] : '';
+                })
+                .filter(Boolean)
+            );
+            const streakCount = activeDays.size;
+            if (dotsEl) {
+              dotsEl.innerHTML = Array.from({length: 14}, function(_, i) {
+                const d = new Date(today.getTime() - (13 - i) * 86400000);
+                const key = d.toISOString().split('T')[0];
+                return '<span class="rv-dot' + (activeDays.has(key) ? ' on' : '') + '"></span>';
+              }).join('');
+            }
+            if (dotLblEl) {
+              dotLblEl.textContent = streakCount + '-day reading streak (last 14 days) ●●●';
+            }
+
+            // Stats strip
+            const projStr = proj2 >= 1000 ? (Math.round(proj2 / 100) / 10) + 'k' : proj2.toString();
+            const totalStr = total >= 1000 ? (Math.round(total / 100) / 10) + 'k' : total.toString();
+            statsEl.innerHTML =
+              '<div class="rv-hero-stat pages">'
+                + '<div class="n">' + totalStr + '</div>'
+                + '<div class="l">Pages Read</div>'
+              + '</div>'
+              + '<div class="rv-hero-stat goal">'
+                + '<div class="n">' + (goal >= 1000 ? (Math.round(goal/100)/10)+'k' : goal) + '</div>'
+                + '<div class="l">Goal</div>'
+              + '</div>'
+              + '<div class="rv-hero-stat proj">'
+                + '<div class="n">' + projStr + '</div>'
+                + '<div class="l">Yr Projection</div>'
+              + '</div>';
+
+            velHero.style.display = '';
+
+            // Draw gauge after paint tick
+            setTimeout(function() {
+              drawVelocityGauge('rvGaugeCanvas', currentPace, neededPace);
+            }, 50);
+          }
         }
 
-        // ── Sync button (BOOK_COUNT / PAGE_COUNT only) ────────────────────────
-        // Rendered above the tab label in renderChalDetailMyProgress's wrapper.
-        // We inject it here as a section at the top.
+        // ── Sync button ────────────────────────────────────────────────────────
         const syncBtn = `
           <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
             <button id="chalSyncBtn" onclick="syncChallengeProgressNow()"
@@ -31856,89 +31938,163 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               <i class="fas fa-bolt"></i> Sync
             </button>
           </div>`;
-    
-        // ── Stat tiles — only shown for PAGE_COUNT; BOOK_COUNT uses the bookshelf hero ──
-        const statTiles = isPages ? `
-          <div class="chal-stat-strip">
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num" style="color:${colour};">
-                ${isPages ? total.toLocaleString() : total}
-              </div>
-              <div class="chal-stat-label">${unit} read</div>
-            </div>
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num">${isPages ? goal.toLocaleString() : goal}</div>
-              <div class="chal-stat-label">your goal</div>
-            </div>
-            <div class="chal-stat-tile" role="button" tabindex="0" data-action onclick="showPaceInfo()" style="cursor:pointer;">
-              <div class="chal-stat-num">
-                ${projection > 0 ? (isPages ? projection.toLocaleString() : projection) : '—'}
-              </div>
-              <div class="chal-stat-label" style="display:flex;align-items:center;
-                  justify-content:center;gap:3px;">
-                pace
-                <span style="display:inline-flex;align-items:center;justify-content:center;
-                            width:13px;height:13px;border-radius:50%;background:var(--neutral-mid);
-                            color:white;font-size:0.55rem;font-weight:700;flex-shrink:0;">ⓘ</span>
-              </div>
-            </div>
-          </div>` : '';
+
+        // No stat tiles for PAGE_COUNT (hero handles it) or BOOK_COUNT (bookshelf handles it)
+        const statTiles = '';
 
         // ── Progress bar ────────────────────────────────────────────────────────
         const progressBar = `
-          <div style="height:10px;background:var(--border-soft);border-radius:6px;overflow:hidden;margin-bottom:6px;">
-            <div style="height:100%;width:${pct}%;background:${colour};border-radius:6px;transition:width 0.4s;"></div>
+          <div style="height:${isPages?8:10}px;background:var(--border-soft);border-radius:6px;overflow:hidden;margin-bottom:6px;">
+            <div style="height:100%;width:${pct}%;background:${isPages?'linear-gradient(90deg,#534AB7,#A984BA)':colour};border-radius:6px;transition:width 0.4s;"></div>
           </div>
-          <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-muted);margin-bottom:${isPages?'14':'16'}px;">
             <span>${pct}% of goal</span>
             <span>${escapeHtml(isPages ? aheadBehind : '')}</span>
           </div>`;
     
-        // ── Monthly breakdown — FIX B ──────────────────────────────────────────
-        // Layout per column (top→bottom):
-        //   [value text  — 14px fixed, blank if 0]
-        //   [bar         — grows from bottom in fixed 50px zone]
-        //   [month label — 14px fixed]
-        // Outer row uses align-items:flex-end so all bars touch the same baseline.
+        // ── Monthly data ────────────────────────────────────────────────────────
         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const MONTH_DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
         const monthBreakdown = state.monthlyBreakdown || {};
         const maxMonthVal    = Math.max(1, ...Object.values(monthBreakdown).map(Number));
-        const BAR_ZONE_PX    = 50; // fixed pixel height for the bar zone
-    
-        const monthCols = months.map(function(m) {
-          const val    = Number(monthBreakdown[m]) || 0;
-          const barPx  = val > 0 ? Math.max(2, Math.round((val / maxMonthVal) * BAR_ZONE_PX)) : 0;
-          const valStr = val > 0
-            ? (isPages ? (val >= 1000 ? Math.round(val/100)/10 + 'k' : val.toString()) : val.toString())
-            : '';
-    
-          return `
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;">
-              <!-- Value above bar — fixed 14px height so all columns are same total height -->
-              <div style="height:14px;display:flex;align-items:flex-end;justify-content:center;
-                          font-size:0.5rem;color:${colour};font-weight:600;line-height:1;">
-                ${valStr}
+        const BAR_ZONE_PX    = 50;
+        const curMonthIdx    = new Date().getMonth();
+
+        // ── PAGE_COUNT: Velocity Timeline + Projection Card ────────────────────
+        let barChart = '';
+        if (isPages) {
+          // Needed pace for the "threshold" line
+          const nowV       = new Date();
+          const yearEndV   = new Date(nowV.getFullYear(), 11, 31);
+          const remainDaysV= Math.max(1, Math.round((yearEndV - nowV) / 86400000));
+          const neededPaceV= total < goal ? Math.ceil((goal - total) / remainDaysV) : 0;
+          const rseV       = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {};
+          const curPaceV   = Math.round(rseV.recentPace || rseV.overallAvgPace || 0);
+          const projV      = projection > 0 ? projection : (curPaceV > 0 ? curPaceV * 365 : 0);
+
+          // Monthly avg pg/day velocity bars
+          const paces = months.map(function(m, i) {
+            const p = Number(monthBreakdown[m]) || 0;
+            return (i <= curMonthIdx && p > 0) ? Math.round(p / MONTH_DAYS[i]) : 0;
+          });
+          const maxPaceV = Math.max(...paces, neededPaceV + 5, 1);
+
+          const velCols = months.map(function(m, i) {
+            const p = paces[i];
+            const pct2 = p > 0 ? p / maxPaceV : 0;
+            const isCur = i === curMonthIdx;
+            const isFut = i > curMonthIdx;
+            const barH = isFut ? 2 : Math.max(pct2 * 55, 2);
+            const col = isCur ? '#A984BA' : (!isFut && p >= neededPaceV ? '#5effc2' : !isFut && p > 0 ? '#534AB7' : 'rgba(255,255,255,.08)');
+            return '<div class="vel-bar-col">'
+              + '<div class="vel-bar" style="height:' + barH + 'px;background:' + col + ';">'
+              + (!isFut && p > 0 ? '<div class="vel-bar-glow"></div>' : '')
+              + '</div>'
+              + '<div class="vel-lbl">' + m[0] + '</div>'
+              + '</div>';
+          }).join('');
+
+          // Threshold line position (% from bottom of 60px chart)
+          const needLineY = Math.round((1 - neededPaceV / maxPaceV) * 55);
+
+          // Projection pillars data
+          const projOver  = projV > 0 ? (projV - goal) : 0;
+          const projOverStr = projOver > 0 ? ('+' + (projOver >= 1000 ? (Math.round(projOver/100)/10)+'k' : projOver)) : '—';
+          const projStr2 = projV >= 1000 ? (Math.round(projV/100)/10)+'k' : projV.toString();
+          const paceBuffer = curPaceV > 0 && neededPaceV > 0 ? Math.round((curPaceV - neededPaceV) / neededPaceV * 100) : 0;
+
+          barChart = `
+            <div class="vel-wrap">
+              <div class="vel-title">Monthly Velocity (pg / day avg)</div>
+              <div class="vel-chart" style="position:relative;">
+                ${velCols}
+                ${neededPaceV > 0 ? '<div style="position:absolute;left:0;right:0;top:' + needLineY + 'px;height:1px;background:rgba(249,185,48,.4);border-top:1px dashed rgba(249,185,48,.5);pointer-events:none;"><span style=\'position:absolute;right:2px;top:-9px;font-size:0.38rem;color:rgba(249,185,48,.65);\'>need ' + neededPaceV + '/d</span></div>' : ''}
               </div>
-              <!-- Bar zone — fixed 50px, bar grows from bottom -->
-              <div style="height:${BAR_ZONE_PX}px;width:80%;display:flex;align-items:flex-end;">
-                <div style="width:100%;height:${barPx}px;background:${val > 0 ? colour : 'var(--border-soft)'};
-                            border-radius:3px 3px 0 0;transition:height 0.4s;min-height:${val>0?2:0}px;">
+              <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                <span style="font-size:0.42rem;color:rgba(255,255,255,.25);">Jan</span>
+                <span style="font-size:0.42rem;color:rgba(255,255,255,.25);">Dec</span>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;">
+                <span style="font-size:0.48rem;color:#5effc2;">● above needed</span>
+                <span style="font-size:0.48rem;color:#534AB7;">● below needed</span>
+                <span style="font-size:0.48rem;color:#A984BA;">● this month</span>
+              </div>
+            </div>
+            <div class="rv-proj-card">
+              <div class="rv-proj-top">
+                <div class="rv-proj-icon">🚀</div>
+                <div class="rv-proj-info">
+                  <div class="big">${projStr2} pages</div>
+                  <div class="sub">projected by year end at ${curPaceV || neededPaceV} pg/day</div>
                 </div>
               </div>
-              <!-- Month label — fixed 14px height -->
-              <div style="height:14px;display:flex;align-items:center;justify-content:center;
-                          font-size:0.52rem;color:var(--text-faint);margin-top:2px;">
-                ${m}
+              <div class="rv-proj-bottom">
+                <div class="rv-proj-pill">
+                  <div class="n">${projOverStr}</div>
+                  <div class="l">above goal</div>
+                </div>
+                <div class="rv-proj-pill">
+                  <div class="n">${neededPaceV} pg/d</div>
+                  <div class="l">needed pace</div>
+                </div>
+                <div class="rv-proj-pill">
+                  <div class="n">${paceBuffer > 0 ? '+' + paceBuffer + '%' : '—'}</div>
+                  <div class="l">pace buffer</div>
+                </div>
               </div>
             </div>`;
-        }).join('');
-    
-        const barChart = `
-          <div class="card" style="padding:12px 14px;margin-bottom:14px;">
-            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;
-                        letter-spacing:0.5px;margin-bottom:10px;">Monthly breakdown</div>
-            <div style="display:flex;gap:2px;align-items:flex-end;">${monthCols}</div>
-          </div>`;
+
+        } else {
+          // BOOK_COUNT: original bar chart
+          const monthCols = months.map(function(m) {
+            const val    = Number(monthBreakdown[m]) || 0;
+            const barPx  = val > 0 ? Math.max(2, Math.round((val / maxMonthVal) * BAR_ZONE_PX)) : 0;
+            const valStr = val > 0 ? val.toString() : '';
+            return `
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;">
+                <div style="height:14px;display:flex;align-items:flex-end;justify-content:center;
+                            font-size:0.5rem;color:${colour};font-weight:600;line-height:1;">${valStr}</div>
+                <div style="height:${BAR_ZONE_PX}px;width:80%;display:flex;align-items:flex-end;">
+                  <div style="width:100%;height:${barPx}px;background:${val > 0 ? colour : 'var(--border-soft)'};
+                              border-radius:3px 3px 0 0;transition:height 0.4s;min-height:${val>0?2:0}px;"></div>
+                </div>
+                <div style="height:14px;display:flex;align-items:center;justify-content:center;
+                            font-size:0.52rem;color:var(--text-faint);margin-top:2px;">${m}</div>
+              </div>`;
+          }).join('');
+          barChart = `
+            <div class="card" style="padding:12px 14px;margin-bottom:14px;">
+              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;
+                          letter-spacing:0.5px;margin-bottom:10px;">Monthly breakdown</div>
+              <div style="display:flex;gap:2px;align-items:flex-end;">${monthCols}</div>
+            </div>`;
+        }
+
+        // PAGE_COUNT: monthly breakdown as a compact list below projection card
+        let pagesMonthlyList = '';
+        if (isPages) {
+          const pastMonths = months.slice(0, curMonthIdx + 1).map(function(m, i) {
+            return { m: m, p: Number(monthBreakdown[m]) || 0, d: MONTH_DAYS[i] };
+          }).reverse();
+          const nowP = new Date();
+          const yearEndP = new Date(nowP.getFullYear(), 11, 31);
+          const remDaysP = Math.max(1, Math.round((yearEndP - nowP) / 86400000));
+          const needP = total < goal ? Math.ceil((goal - total) / remDaysP) : 0;
+          const listRows = pastMonths.map(function(obj) {
+            const avg = obj.p > 0 ? Math.round(obj.p / obj.d) : 0;
+            const ahead = avg >= needP;
+            const pStr = obj.p >= 1000 ? (Math.round(obj.p/100)/10)+'k' : obj.p.toString();
+            return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f8f8ff;border-radius:8px;margin-bottom:5px;">'
+              + '<span style="font-size:0.65rem;font-weight:700;color:var(--text-muted);width:28px;">' + obj.m + '</span>'
+              + '<div style="flex:1;height:4px;background:#e8e8f5;border-radius:2px;overflow:hidden;">'
+              +   '<div style="height:100%;width:' + Math.min(obj.p / maxMonthVal * 100, 100) + '%;background:' + (ahead && obj.p > 0 ? '#5effc2' : '#534AB7') + ';border-radius:2px;"></div>'
+              + '</div>'
+              + '<span style="font-size:0.65rem;font-weight:700;color:#534AB7;min-width:32px;text-align:right;">' + pStr + '</span>'
+              + (avg > 0 ? '<span style="font-size:0.58rem;color:' + (ahead ? 'var(--color-success)' : 'var(--text-muted)') + ';min-width:38px;text-align:right;">' + avg + ' pg/d</span>' : '<span style="min-width:38px;"></span>')
+              + '</div>';
+          }).join('');
+          pagesMonthlyList = '<div style="font-size:0.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Monthly Breakdown</div>' + listRows;
+        }
     
         // ── Book list — FIX C ─────────────────────────────────────────────────
         // Uses same cover pattern as library and shelf views:
@@ -32031,7 +32187,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         }
     
-        return syncBtn + statTiles + progressBar + barChart + booksHtml;
+        return syncBtn + statTiles + progressBar + barChart + (isPages ? pagesMonthlyList : '') + booksHtml;
       }
 
       /**
@@ -32039,6 +32195,85 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        */
       function showPaceInfo() {
         showToast({ type: 'info', icon: 'fa-solid fa-gauge', title: 'About Pace', sub: 'Projected year-end total at your current reading speed.' });
+      }
+
+      /**
+       * Draws the Reading Velocity speedometer gauge on a canvas.
+       * @param {string} canvasId
+       * @param {number} currentPace  - Current pg/day (RSE recentPace)
+       * @param {number} neededPace   - Minimum pg/day to hit goal
+       */
+      function drawVelocityGauge(canvasId, currentPace, neededPace) {
+        const cv = document.getElementById(canvasId);
+        if (!cv) return;
+        const ctx = cv.getContext('2d');
+        const cx = 100, cy = 95, r = 75;
+        const startA = Math.PI * 1.1;
+        const endA   = Math.PI * 1.9;   // 144° arc
+        const maxPace = Math.max(currentPace * 1.5, neededPace * 2, 80);
+
+        ctx.clearRect(0, 0, cv.width, cv.height);
+
+        // Background arc
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, startA, endA);
+        ctx.strokeStyle = 'rgba(255,255,255,.1)';
+        ctx.lineWidth = 10; ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Coloured filled arc
+        if (currentPace > 0) {
+          const pct = Math.min(currentPace / maxPace, 1);
+          const fillEnd = startA + (endA - startA) * pct;
+          const grad = ctx.createLinearGradient(cx - r, cy, cx + r, cy);
+          grad.addColorStop(0, '#534AB7');
+          grad.addColorStop(0.5, '#A984BA');
+          grad.addColorStop(1, '#5effc2');
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, startA, fillEnd);
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 10; ctx.lineCap = 'round';
+          ctx.stroke();
+        }
+
+        // Tick marks
+        for (let i = 0; i <= 10; i++) {
+          const a = startA + (endA - startA) * (i / 10);
+          const inner = i % 5 === 0 ? r - 16 : r - 10;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+          ctx.lineTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+          ctx.strokeStyle = i % 5 === 0 ? 'rgba(255,255,255,.4)' : 'rgba(255,255,255,.15)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        // Needle
+        if (currentPace > 0) {
+          const needleA = startA + (endA - startA) * Math.min(currentPace / maxPace, 1);
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(needleA) * (r - 18), cy + Math.sin(needleA) * (r - 18));
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2; ctx.lineCap = 'round';
+          ctx.stroke();
+        }
+        // Centre dot
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+
+        // Needed pace marker (orange tick)
+        if (neededPace > 0 && neededPace <= maxPace) {
+          const neededA = startA + (endA - startA) * (neededPace / maxPace);
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(neededA) * (r + 3), cy + Math.sin(neededA) * (r + 3));
+          ctx.lineTo(cx + Math.cos(neededA) * (r - 16), cy + Math.sin(neededA) * (r - 16));
+          ctx.strokeStyle = '#f39c12';
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+        }
       }
 
       /**
