@@ -592,11 +592,9 @@ goalValue = defaultGoal, goalUnit = "pages"
   "dailyGoal": 10,
   "qualifyingAvgPagesPerDay": 10,
   "enrollmentDeadline": "28-Feb-2027",
-  "finisherPages": 1825,
   "consistencyMode": true,
   "challengerBadge": "ARKA_BADGE_XXX",
   "finisherBadge":   "ARKA_BADGE_XXX",
-  "qualifierBadge":  "ARKA_BADGE_XXX",
   "winnerBadge":     "ARKA_BADGE_XXX"
 }
 ```
@@ -624,9 +622,10 @@ All inputs derived at sync time from PageLogDB — nothing extra stored in PageL
 | Badge | Condition |
 |---|---|
 | Challenger | Enrolled + any pages logged |
-| Finisher | totalPages >= finisherPages (1,825 for a 365-day year) |
-| Qualifier | Rolling avg >= 10 pages/day sustained to year end |
-| Winner | Highest habitScore among Qualifiers |
+| Finisher | Sustained rolling avg ≥ 10 pages/day through year end |
+| Winner | Highest habitScore among Finishers |
+
+Finisher = the qualification threshold. No separate Qualifier badge. The `finisherPages` half-pace concept is dropped.
 
 **2023–2026 legacy:** ran as pure PAGE_COUNT (highest total pages wins). `award10PagesADayBadges` reads PageLogDB total — no consistency logic applied to past years.
 
