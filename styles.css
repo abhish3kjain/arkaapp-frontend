@@ -4032,34 +4032,22 @@
       .chal-detail-header {
         background: var(--text-strong);
         color: white;
-        padding: 14px 16px 12px;
+        padding: 12px 16px;
         /* Break out of .container's 20px padding so header sits flush under app-header */
         margin: -40px 0px 0;
-      }
-    
-      .chal-detail-back {
-        background: none;
-        border: none;
-        color: rgba(255,255,255,0.65);
-        font-size: 0.85rem;
-        padding: 0;
-        cursor: pointer;
-        font-family: inherit;
-        /* Fix: prevent global button { width:100% } from stretching this */
-        width: auto;
         display: flex;
         align-items: center;
-        gap: 4px;
-        margin-bottom: 8px;
       }
-      .chal-detail-back:hover { color: white; }
-    
-      /* Title sits below back button — no flex row fighting for space */
+      .chal-detail-header > div { width: 100%; }
+
+      /* Title — truncate long names, inline with back button */
       .chal-detail-title {
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 700;
         line-height: 1.2;
-        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .chal-detail-status-badge {
@@ -4647,7 +4635,7 @@
       #chalBanner {
         background: #2c3e50;
         position: relative;
-        padding: 16px 14px 0;
+        padding: 16px 14px 0 20px; /* 20px left prevents Cinzel "C" from clipping at flush-wrapper edge */
         overflow: hidden;
         margin: 0 -20px;
       }

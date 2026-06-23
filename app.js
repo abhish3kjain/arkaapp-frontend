@@ -31833,7 +31833,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 + '<span class="chal-shelf-num">'
                   + (booksAheadVal !== 0 ? (isAhead ? '+' : '') + booksAheadVal : (projection > 0 ? projection : '—'))
                 + '</span>'
-                + '<span class="chal-shelf-lbl">' + (isAhead ? 'Ahead' : isBehind ? 'Behind' : 'Pace') + '</span>'
+                + '<span class="chal-shelf-lbl">' + (isAhead ? 'BKS AHEAD' : isBehind ? 'BKS BEHIND' : 'YR PACE') + '</span>'
               + '</div>';
 
             heroEl.style.display = '';
@@ -32244,9 +32244,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             ? (Math.round(r.personalGoal / 100) / 10) + 'k'
             : r.personalGoal.toLocaleString();
           const projStr = r.projection > 0
-            ? (isPages && r.projection >= 1000
-                ? (Math.round(r.projection / 100) / 10) + 'k'
-                : r.projection.toLocaleString())
+            ? (isPages
+                ? (r.projection >= 1000
+                    ? (Math.round(r.projection / 100) / 10) + 'k'
+                    : r.projection.toLocaleString())
+                : r.projection + ' bk')
             : '—';
 
           return `
@@ -32288,7 +32290,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   ${r.paceIcon}
                 </div>
                 <div style="font-size:0.68rem;color:${r.paceColor};white-space:nowrap;">
-                  ${r.isMe && r.rseRecent > 0 ? Math.round(r.rseRecent) + ' pg/d' : projStr}
+                  ${r.isMe && r.rseRecent > 0 && isPages ? Math.round(r.rseRecent) + ' pg/d' : projStr}
                 </div>
               </div>
 
@@ -32316,7 +32318,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               <div style="width:52px;flex-shrink:0;text-align:right;font-size:0.68rem;
                           font-weight:600;color:var(--text-faint);text-transform:uppercase;
                           letter-spacing:0.4px;">
-                Pace
+                ${isPages ? 'Pace' : 'Yr Pace'}
               </div>
             </div>
             ${rowsHtml}
@@ -32328,7 +32330,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             <span style="color:var(--color-danger);">↓ behind</span>
           </div>
           <div style="font-size:0.7rem;color:var(--text-faint);text-align:center;margin-top:4px;">
-            Pace = projected year-end total at your current reading speed.
+            ${isPages ? 'Pace = projected year-end pages at current speed.' : 'Yr Pace = projected books you\'ll finish by year-end.'}
           </div>`;
       }
     
