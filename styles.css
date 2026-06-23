@@ -4635,7 +4635,6 @@
         position: relative;
         padding: 14px 14px 0;
         overflow: hidden;
-        margin: 0 -20px;
       }
       .chal-toprow {
         display: flex; justify-content: space-between; align-items: center; gap: 8px;
