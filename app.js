@@ -31343,7 +31343,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     
         // ── Navigate to view ──────────────────────────────────────────────────
         switchTab('challengeDetail');
-    
+
+        // Reset bookshelf hero visibility — renderCountProgress will show it for BOOK_COUNT
+        const shelfHero = document.getElementById('chalDetailBookshelfHero');
+        if (shelfHero) shelfHero.style.display = 'none';
+
         // ── Render immediately from cached data ──────────────────────────────
         // No spinner. User sees current data right away.
         switchChalDetailTab('mine');
@@ -31752,7 +31756,94 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const projection = state.pacingProjection || 0;
         const pct        = Math.min(100, Math.round((total / goal) * 100));
         const aheadBehind = state.aheadBehindTarget || '';
-    
+
+        // ── Bookshelf Hero — BOOK_COUNT only ─────────────────────────────────
+        // Populate the hero div that lives between the challenge header and the tabs.
+        // For PAGE_COUNT we hide it and fall back to the standard stat-tile layout.
+        if (!isPages) {
+          const heroEl   = document.getElementById('chalDetailBookshelfHero');
+          const spinesEl = document.getElementById('shelfSpinesRow');
+          const statsEl  = document.getElementById('shelfStatsRow');
+          const captEl   = document.getElementById('shelfCaption');
+
+          if (heroEl && spinesEl && statsEl) {
+            // Rich hex spine colours — safe for use in CSS gradients
+            const SPINE_COLS = [
+              '#8B4513','#C0392B','#1a5276','#27AE60','#D35400',
+              '#6C3483','#1B4F72','#7B241C','#B7950B','#0E6655',
+              '#6E2F2F','#4A235A','#145A32','#1A237E','#993C1D',
+              '#185FA5','#993556','#633806','#27500A','#3C3489'
+            ];
+            // Varying heights (px) for a natural-looking shelf
+            const SPINE_HEIGHTS = [75,70,80,65,72,78,60,75,68,80,70,65,72,78,68,74,62,78,66,72];
+
+            const books = (state.booksRead || []).slice().reverse(); // newest-first
+            let spinesHtml = '';
+            books.forEach(function(b, i) {
+              const rec  = booksMap.get(b.bookId);
+              const ttl  = rec ? rec.title : (b.title || '');
+              // Deterministic colour from title (mirrors getBookColor logic but returns hex only)
+              let ci = 0;
+              for (let k = 0; k < ttl.length; k++) ci = ttl.charCodeAt(k) + ((ci << 5) - ci);
+              const col  = SPINE_COLS[Math.abs(ci) % SPINE_COLS.length];
+              const h    = SPINE_HEIGHTS[i % SPINE_HEIGHTS.length];
+              const abbr = ttl.split(/\s+/).filter(Boolean).slice(0, 3)
+                             .map(function(w) { return w[0] || ''; })
+                             .join('').toUpperCase() || '?';
+              const cattr = b.bookId
+                ? 'onclick="openBookDetailView(\'' + b.bookId + '\',\'challengeDetail\')" role="button" tabindex="0" data-action'
+                : '';
+              spinesHtml += '<div class="chal-spine" style="height:' + h + 'px;background:linear-gradient(180deg,' + col + ',' + col + 'bb);" title="' + escapeHtml(ttl) + '" ' + cattr + '>'
+                          + '<span class="chal-spine-txt">' + escapeHtml(abbr) + '</span></div>';
+            });
+
+            // Ghost slots for unread books (show up to 8 so the shelf doesn't look empty)
+            const remaining = Math.max(0, goal - books.length);
+            for (let i = 0; i < Math.min(remaining, 8); i++) {
+              spinesHtml += '<div class="chal-spine-empty"></div>';
+            }
+            spinesEl.innerHTML = spinesHtml;
+            if (captEl) captEl.textContent = books.length + ' read · ' + remaining + ' remaining';
+
+            // Compute books ahead/behind for the third stat tile
+            const challenge2 = challengesMap.get(currentViewedChallengeId);
+            let booksAheadVal = 0;
+            if (challenge2 && challenge2.startDate) {
+              const startMs     = parseGoogleDate(challenge2.startDate).getTime();
+              const now         = new Date();
+              const yearEnd     = new Date(now.getFullYear(), 11, 31);
+              const totalDays   = Math.max(1, (yearEnd.getTime() - startMs) / 86400000);
+              const elapsedDays = Math.max(1, (now.getTime() - startMs) / 86400000);
+              const expected    = Math.round(goal * (elapsedDays / totalDays));
+              booksAheadVal     = total - expected;
+            }
+            const isAhead  = booksAheadVal > 0;
+            const isBehind = booksAheadVal < 0;
+
+            statsEl.innerHTML =
+              '<div class="chal-shelf-stat">'
+                + '<span class="chal-shelf-num" style="color:var(--color-gamification);">' + total + '</span>'
+                + '<span class="chal-shelf-lbl">Books Read</span>'
+              + '</div>'
+              + '<div class="chal-shelf-stat">'
+                + '<span class="chal-shelf-num">' + goal + '</span>'
+                + '<span class="chal-shelf-lbl">Your Goal</span>'
+              + '</div>'
+              + '<div class="chal-shelf-stat' + (isAhead ? ' chal-shelf-stat--ahead' : isBehind ? ' chal-shelf-stat--behind' : '') + '">'
+                + '<span class="chal-shelf-num">'
+                  + (booksAheadVal !== 0 ? (isAhead ? '+' : '') + booksAheadVal : (projection > 0 ? projection : '—'))
+                + '</span>'
+                + '<span class="chal-shelf-lbl">' + (isAhead ? 'Ahead' : isBehind ? 'Behind' : 'Pace') + '</span>'
+              + '</div>';
+
+            heroEl.style.display = '';
+          }
+        } else {
+          // Hide hero for PAGE_COUNT — stat tiles handle it in the body
+          const heroEl = document.getElementById('chalDetailBookshelfHero');
+          if (heroEl) heroEl.style.display = 'none';
+        }
+
         // ── Sync button (BOOK_COUNT / PAGE_COUNT only) ────────────────────────
         // Rendered above the tab label in renderChalDetailMyProgress's wrapper.
         // We inject it here as a section at the top.
@@ -31766,8 +31857,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             </button>
           </div>`;
     
-        // ── Stat tiles ─────────────────────────────────────────────────────────
-        const statTiles = `
+        // ── Stat tiles — only shown for PAGE_COUNT; BOOK_COUNT uses the bookshelf hero ──
+        const statTiles = isPages ? `
           <div class="chal-stat-strip">
             <div class="chal-stat-tile">
               <div class="chal-stat-num" style="color:${colour};">
@@ -31791,8 +31882,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                             color:white;font-size:0.55rem;font-weight:700;flex-shrink:0;">ⓘ</span>
               </div>
             </div>
-          </div>`;
-    
+          </div>` : '';
+
         // ── Progress bar ────────────────────────────────────────────────────────
         const progressBar = `
           <div style="height:10px;background:var(--border-soft);border-radius:6px;overflow:hidden;margin-bottom:6px;">
@@ -31800,7 +31891,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           </div>
           <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;">
             <span>${pct}% of goal</span>
-            <span>${escapeHtml(aheadBehind)}</span>
+            <span>${escapeHtml(isPages ? aheadBehind : '')}</span>
           </div>`;
     
         // ── Monthly breakdown — FIX B ──────────────────────────────────────────
