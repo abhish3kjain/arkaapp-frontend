@@ -3090,9 +3090,13 @@
  
         <!-- Sticky header -->
         <div class="chal-detail-header">
-          <button class="chal-detail-back" onclick="closeChallengeDetailView()">⬅ Back</button>
-          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <div class="chal-detail-title" id="chalDetailTitle">Challenge</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+              <button class="btn-back-circle btn-back-circle--dark" onclick="closeChallengeDetailView()" aria-label="Back">
+                <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
+              </button>
+              <div class="chal-detail-title" id="chalDetailTitle">Challenge</div>
+            </div>
             <span class="chal-detail-status-badge" id="chalDetailStatusBadge"></span>
           </div>
         </div>
