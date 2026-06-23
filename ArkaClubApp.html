@@ -4338,6 +4338,10 @@
        * @type {{ eid: string }}
        */
       const ARKA_LAUNCH_PARAMS = <?!= launchParamsJson ?>;
+      // Scriptlets are only evaluated in GAS-served .html files, not in
+      // external .js files loaded via <script src>.  Expose the exec URL
+      // here so app.js can read it from window.ARKA_ADMIN_PANEL_URL.
+      window.ARKA_ADMIN_PANEL_URL = '<?!= ScriptApp.getService().getUrl() ?>?page=admin';
     </script>
     <script src="https://abhish3kjain.github.io/arkaapp-frontend/app.js?v=1.8"></script>
 

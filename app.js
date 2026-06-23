@@ -33107,13 +33107,13 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     }
 
     /**
-     * ARKA_ADMIN_PANEL_URL — GAS deployment URL injected at serve time.
-     * Points to the merged ArkaAdminControlPanel (?page=admin).
-     * Using ScriptApp.getService().getUrl() because window.location.href
-     * is the sandbox googleusercontent.com URL, not the real exec URL.
+     * ARKA_ADMIN_PANEL_URL — GAS exec URL + ?page=admin.
+     * Read from window.ARKA_ADMIN_PANEL_URL, which is set by the GAS-served
+     * ArkaClubApp.html template (scriptlets run there, not in this static file).
+     * Falls back to '' so openAdminPanel() silently no-ops if somehow unset.
      * @type {string}
      */
-    const ARKA_ADMIN_PANEL_URL = '<?!= ScriptApp.getService().getUrl() ?>?page=admin';
+    const ARKA_ADMIN_PANEL_URL = window.ARKA_ADMIN_PANEL_URL || '';
 
     /**
      * Opens the Admin Control Panel in a new tab.
