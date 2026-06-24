@@ -103,13 +103,14 @@ Full history lives here.
 
 ## ArkaChallengePass.gs
 
-**Current: `1.1.0`**
+**Current: `1.3.0`**
 
 | Version | Date | Summary |
 |---|---|---|
 | 1.0.0 | Jun 2026 | Standalone nightly challenge pass — 10PAGESADAY habitScore engine (weeksHit, maxGap, recoveryRate, earlyWeeksHit hidden), zero-state bootstrap, LockService guard, installArkaChallengePassTrigger() |
 | 1.1.0 | Jun 2026 | BOOK_COUNT: booksRead entries now store `bookId` (from ActivityLogDB desc) + `finishedOn` in dd-MMM-yyyy format; added `_chalpassFmtDdMmmYyyy_()` helper |
 | 1.2.0 | Jun 2026 | BOOK_COUNT: switch source from ActivityLogDB to MemberShelfDB; booksRead entries now store `shelfId` (not bookId); Deleted shelf rows excluded; added MemberShelfDB sheet read + SHELF_COL_* constants |
+| 1.3.0 | Jun 2026 | Compute and store `habitScoreNorm` (0–100, null before first complete week) in progressStateJson; frontend reads this directly instead of recomputing |
 
 ---
 

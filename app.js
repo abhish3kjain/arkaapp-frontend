@@ -30540,14 +30540,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           let fireState = {};
           try { fireState = JSON.parse(fireEnr.progressStateJson || '{}'); } catch(e) {}
 
-          const habitScore  = fireState.habitScore || 0;
           const avgPpd      = fireState.avgPagesPerDay ? (+fireState.avgPagesPerDay).toFixed(1) : '—';
           const isQual      = !!fireState.isQualified;
-          const fireEnrMs   = fireEnr.enrollmentDate ? (grExport_parseArkaDateClient_(fireEnr.enrollmentDate) || 0) : 0;
-          const fireDays    = fireEnrMs ? Math.floor((Date.now() - fireEnrMs) / 86400000) : 0;
-          const fireWeeks   = Math.floor(fireDays / 7);
-          const fireMax     = (fireWeeks * 10) + (Math.min(fireWeeks, 10) * 10) + 50;
-          const fireNorm    = fireWeeks >= 1 ? Math.min(100, Math.round(habitScore / fireMax * 100)) : null;
+          const fireNorm    = fireState.habitScoreNorm != null ? fireState.habitScoreNorm : null;
           const fireDisplay = fireNorm !== null ? fireNorm + '/100' : '—';
 
           html += '<div class="chal-fire-tile">' +
@@ -30726,16 +30721,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             done  = doneSet.size; total = cells.length || 1;
             unit  = done + ' / ' + total + ' cells done'; colour = '#7F77DD';
           } else if (c.challengeType === '10PAGESADAY') {
-            // Habit-centric: habit score (normalized /100) + rank
-            const hs       = state.habitScore || 0;
+            // Habit-centric: normalized habit score + rank
             const ppd      = state.avgPagesPerDay ? (+state.avgPagesPerDay).toFixed(1) : '—';
             const qual     = !!state.isQualified;
             const wksHit   = state.weeksHit || 0;
-            const cardEnrMs = myEnr.enrollmentDate ? (grExport_parseArkaDateClient_(myEnr.enrollmentDate) || 0) : 0;
-            const cardDays  = cardEnrMs ? Math.floor((Date.now() - cardEnrMs) / 86400000) : 0;
-            const cardWeeks = Math.floor(cardDays / 7);
-            const cardMax   = (cardWeeks * 10) + (Math.min(cardWeeks, 10) * 10) + 50;
-            const cardNorm  = cardWeeks >= 1 ? Math.min(100, Math.round(hs / cardMax * 100)) : null;
+            const cardNorm  = state.habitScoreNorm != null ? state.habitScoreNorm : null;
             const cardDisplay = cardNorm !== null ? cardNorm + '/100' : '—';
             const allEnr   = globalChallengeEnrollmentsDB.filter(function(e) {
               return e.challengeId === c.challengeId && e.enrollmentStatus !== 'Dropped';
@@ -31859,14 +31849,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const weeklyPages         = state.weeklyPages         || {};
         const recPct              = Math.round(recoveryRate * 100);
 
-        // ── Normalized score (0–100) ─────────────────────────────────────────
-        // Max achievable = all weeks hit + all early weeks hit + perfect recovery.
-        // Only meaningful after at least 1 complete week; before that show "—".
-        const totalWeeks = Math.floor(daysSinceEnrollment / 7);
-        const maxScore   = (totalWeeks * 10) + (Math.min(totalWeeks, 10) * 10) + 50;
-        const normScore  = totalWeeks >= 1
-          ? Math.min(100, Math.round(habitScore / maxScore * 100))
-          : null;
+        // ── Normalized score (0–100) — stored by ArkaChallengePass ─────────────
+        const normScore = state.habitScoreNorm != null ? state.habitScoreNorm : null;
 
         // ── Score block ──────────────────────────────────────────────────────
         const qualPillHtml = isQualified
@@ -32183,10 +32167,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             ? (rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉'
               : '<span style="min-width:20px;display:inline-block;text-align:center;font-size:0.7rem;color:rgba(255,255,255,.25);">' + rank + '</span>')
             : '<span style="min-width:20px;display:inline-block;"></span>';
-          const itemDays     = item.state.daysSinceEnrollment || 0;
-          const itemWeeks    = Math.floor(itemDays / 7);
-          const itemMax      = (itemWeeks * 10) + (Math.min(itemWeeks, 10) * 10) + 50;
-          const itemNorm     = itemWeeks >= 1 ? Math.min(100, Math.round(item.habitScore / itemMax * 100)) : null;
+          const itemNorm     = item.state.habitScoreNorm != null ? item.state.habitScoreNorm : null;
           const scoreStr = item.isQualified
             ? '<span style="color:#5effc2;font-weight:700;">' + (itemNorm !== null ? itemNorm : '—') + '</span><span style="color:rgba(255,255,255,.25);font-size:0.65rem;margin-left:2px;">/100</span>'
             : '<span style="color:rgba(255,255,255,.4);">' + item.avgPagesPerDay.toFixed(1) + '</span><span style="color:rgba(255,255,255,.2);font-size:0.65rem;margin-left:2px;">pg/d</span>';
