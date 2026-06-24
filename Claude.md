@@ -616,10 +616,42 @@ Page data sourced from PageLogDB (all sources count, including legacy `Data_10Pa
 **habitScore formula:**
 ```
 habitScore = (weeksHit × 10)
-           + (earlyWeeksHit × 10)   ← double weight, anchored to enrollment date
-           + (recoveryRate × 50)    ← 0–50 pts; recovery after a missed week
-           - (maxGap × 5)           ← penalty for longest consecutive zero-page-week gap
+           + (earlyWeeksHit × 10)
+           + (recoveryRate × 50)
+           - (maxGap × 5)
 ```
+
+**Parameter definitions and theory basis:**
+
+**`weeksHit`** — *Weeks where the member logged ≥ 70 pages (7 days × 10 pages)*
+The primary consistency signal. Weekly window (not daily) deliberately forgives members who read every day but log once on Sunday — the reading behaviour is rewarded, not the logging behaviour. Max possible contribution: 52 × 10 = 520 points.
+Theory: BJ Fogg (Tiny Habits) — habit formation is measured by showing up regularly, not by volume per session.
+
+**`earlyWeeksHit`** — *weeksHit restricted to the first 10 weeks from enrollment date, counted again at double weight*
+The first 10 weeks are when habit formation is hardest and most predictive of long-term success. A member who is consistent in their first 10 weeks has done the neurologically difficult part. Someone who gets consistent in November is responding to year-end pressure, not a formed habit. Anchored to enrollment date (not Jan 1) so late enrollees are not structurally penalised. Max possible contribution: 10 × 10 = 100 points.
+Theory: Phillippa Lally (UCL, 2010) — habits take an average of 66 days (~10 weeks) to form; early-period consistency is the strongest predictor of habit durability.
+
+**`recoveryRate`** — *Proportion of gap events that were exactly 1 week long*
+```
+gapEvents      = stretches of consecutive weeks with < 70 pages logged
+recoveryRate   = (gap events of length exactly 1) / (total gap events)
+               = 0.0 if no gaps ever occurred (set to 1.0 in this case — perfect)
+```
+Measures resilience. A member who always bounces back after one missed week has a robust habit — the automaticity is intact even when life disrupts. A member who spirals into multi-week gaps after one miss has a fragile habit. Contributes 0–50 points.
+Theory: Fogg — "never miss twice" is the key recovery heuristic; one miss is noise, two consecutive misses signals habit breakdown.
+
+**`maxGap`** — *Longest consecutive stretch of weeks with < 70 pages logged, subtracted as a penalty*
+A direct penalty for the longest dark period. Even if a member recovers well overall, a very long gap (illness, travel, burnout) indicates the habit was not resilient enough to survive adversity. Each week in the longest gap costs 5 points. Uncapped — a 10-week gap costs 50 points.
+Theory: Charles Duhigg (The Power of Habit) — low variance in behaviour is the signature of a true habit; a long gap reveals the behaviour was still effortful, not automatic.
+
+**Score range examples:**
+| Member profile | weeksHit | earlyWeeksHit | recoveryRate | maxGap | habitScore |
+|---|---|---|---|---|---|
+| Perfect year, enrolled Jan 1 | 52 | 10 | 1.0 (no gaps) | 0 | 670 |
+| Strong but 2-week gap in Aug | 48 | 10 | 0.5 | 2 | 560 |
+| Slow start, strong finish | 40 | 4 | 0.8 | 3 | 475 |
+| Binge reader, inconsistent | 28 | 3 | 0.2 | 8 | 320 |
+
 All inputs derived at sync time from PageLogDB — nothing extra stored in PageLogDB.
 
 **Badge tiers:**
