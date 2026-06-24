@@ -1,4 +1,4 @@
-<!-- ArkaClubApp.html    v1.2.0 | Full version history: VERSIONS.md -->
+<!-- ArkaClubApp.html    v1.3.0 | Full version history: VERSIONS.md -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -3134,6 +3134,16 @@
             <div id="rvMomentumDots" class="rv-momentum"></div>
             <div id="rvMomentumLbl" class="rv-momentum-lbl"></div>
             <div id="rvHeroStats" class="rv-hero-stats"></div>
+          </div>
+
+          <!-- 10 Pages a Day EKG Hero — shown only for 10PAGESADAY challenges -->
+          <div id="chalDetailTenPpaHero" style="display:none;background:linear-gradient(160deg,#050f0a 0%,#0a1f14 50%,#112a1a 100%);position:relative;overflow:hidden;">
+            <div id="tenPpaHeroScoreRow" style="padding:10px 14px 4px;display:flex;align-items:flex-end;gap:10px;"></div>
+            <div id="tenPpaHeroAvgNote" style="font-size:0.62rem;color:rgba(255,255,255,.35);padding:0 14px 4px;"></div>
+            <div style="position:relative;height:80px;">
+              <canvas id="tenPpaEkgCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+            </div>
+            <div id="tenPpaStatStrip" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.05);"></div>
           </div>
 
         </div><!-- /flush wrapper -->

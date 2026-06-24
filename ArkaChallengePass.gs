@@ -50,7 +50,6 @@ const CHALPASS_ENROLLMENT_SHEET   = 'ChallengeEnrollmentDB';
 const CHALPASS_PAGELOG_SHEET      = 'PageLogDB';
 const CHALPASS_ACTIVITYLOG_SHEET  = 'ActivityLogDB';
 
-const CHALPASS_READY_FLAG_KEY    = 'ARKAENGINE_READY';   // set by MasterEngine
 const CHALPASS_ENABLED_PROP      = 'CHALLENGE_PASS_ENABLED';
 
 // ChallengeDB column indices (0-based)
@@ -103,8 +102,8 @@ const TEN_PPA_EARLY_WEEKS      = 10;  // first N weeks from enrollment = "early"
  * Parameters: none
  * Return Type: void
  * Logic Summary: Main entry point called by the daily time-based trigger.
- *   Checks kill switch + MasterEngine readiness gate, then calls
- *   _processAllChallengeEnrollments_().
+ *   Checks kill switch, then calls _processAllChallengeEnrollments_().
+ *   Runs independently — no dependency on MasterEngine completion flag.
  */
 function runArkaChallengePass() {
   const props = PropertiesService.getScriptProperties();
@@ -112,12 +111,6 @@ function runArkaChallengePass() {
   const enabled = props.getProperty(CHALPASS_ENABLED_PROP);
   if (enabled === 'false') {
     console.log('ArkaChallengePass: disabled via kill switch. Exiting.');
-    return;
-  }
-
-  const engineReady = props.getProperty(CHALPASS_READY_FLAG_KEY);
-  if (!engineReady || engineReady !== 'true') {
-    console.warn('ArkaChallengePass: ARKAENGINE_READY flag not set. MasterEngine may not have completed. Exiting.');
     return;
   }
 
