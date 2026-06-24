@@ -4045,11 +4045,16 @@
         padding: 12px 16px;
         display: flex;
         align-items: center;
-        position: relative;
+        position: absolute;
+        top: 20px;  /* flush wrapper sits 20px inside the app-header zone; offset to appear below app-header */
+        left: 0;
+        right: 0;
         z-index: 2;
-        margin-bottom: -52px;
       }
       .chal-detail-header > div { width: 100%; }
+
+      /* Flush wrapper must be relative so the absolute header anchors to it */
+      #challengeDetailView > div:first-child { position: relative; }
 
       /* Title — truncate long names, inline with back button */
       .chal-detail-title {
@@ -4089,7 +4094,7 @@
       /* ── Bookshelf Hero (BOOK_COUNT challenges) ─────────────────────────── */
       .chal-shelf-hero {
         background: linear-gradient(160deg, #1a2332 0%, #2d1b4e 100%);
-        padding-top: 52px;
+        padding-top: 72px;
       }
       .chal-shelf-inner { padding: 14px 20px 0; }
       .chal-shelf-section-lbl {
@@ -4147,7 +4152,7 @@
       .rv-hero {
         background: linear-gradient(135deg, #0a0a20 0%, #1c1250 60%, #2d0b5e 100%);
         position: relative; overflow: hidden;
-        padding-top: 52px;
+        padding-top: 72px;
       }
       .rv-hero::before {
         content: ''; position: absolute; top: -40px; right: -40px;
