@@ -605,7 +605,7 @@ Page data sourced from PageLogDB (all sources count, including legacy `Data_10Pa
 **Mechanic (from 2027, `consistencyMode: true`):**
 - Qualification is a live rolling check: `totalPagesSinceEnrollment / daysSinceEnrollment >= 10`. Drops below = disqualified in real time. Recoverable if avg climbs back.
 - Winner = highest `habitScore` among currently-qualified members at year end.
-- Finisher = `totalPages >= finisherPages` (half-pace threshold, independent of qualification).
+- Finisher = sustained rolling avg ≥ 10 pages/day through year end (same as qualification gate).
 - Enrollment closes on `enrollmentDeadline` — late enrollments rejected by GAS.
 - `earlyWeeksHit` counts weeks 1–10 from **enrollment date**, not Jan 1.
 
