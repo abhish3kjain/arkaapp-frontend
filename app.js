@@ -1,5 +1,5 @@
 		/**
-       * ArkaClubApp — frontend    v3.9.2
+       * ArkaClubApp — frontend    v3.9.3
        * Full version history: VERSIONS.md
        *
        * T0: JS execution start time.
@@ -32268,13 +32268,6 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           const captEl   = document.getElementById('shelfCaption');
 
           if (heroEl && spinesEl && statsEl) {
-            // Rich hex spine colours — safe for use in CSS gradients
-            const SPINE_COLS = [
-              '#8B4513','#C0392B','#1a5276','#27AE60','#D35400',
-              '#6C3483','#1B4F72','#7B241C','#B7950B','#0E6655',
-              '#6E2F2F','#4A235A','#145A32','#1A237E','#993C1D',
-              '#185FA5','#993556','#633806','#27500A','#3C3489'
-            ];
             // Varying heights (px) for a natural-looking shelf
             const SPINE_HEIGHTS = [75,70,80,65,72,78,60,75,68,80,70,65,72,78,68,74,62,78,66,72];
 
@@ -32285,19 +32278,13 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               const bookId = shelf ? shelf.bookId : '';
               const rec  = bookId ? booksMap.get(bookId) : null;
               const ttl  = rec ? rec.title : '';
-              // Deterministic colour from title (mirrors getBookColor logic but returns hex only)
-              let ci = 0;
-              for (let k = 0; k < ttl.length; k++) ci = ttl.charCodeAt(k) + ((ci << 5) - ci);
-              const col  = SPINE_COLS[Math.abs(ci) % SPINE_COLS.length];
+              const col  = getBookColor(ttl || '?');
               const h    = SPINE_HEIGHTS[i % SPINE_HEIGHTS.length];
-              const abbr = ttl.split(/\s+/).filter(Boolean).slice(0, 3)
-                             .map(function(w) { return w[0] || ''; })
-                             .join('').toUpperCase() || '?';
               const cattr = bookId
                 ? 'onclick="openBookDetailView(\'' + bookId + '\',\'challengeDetail\')" role="button" tabindex="0" data-action'
                 : '';
               spinesHtml += '<div class="chal-spine" style="height:' + h + 'px;background:linear-gradient(180deg,' + col + ',' + col + 'bb);" title="' + escapeHtml(ttl) + '" ' + cattr + '>'
-                          + '<span class="chal-spine-txt">' + escapeHtml(abbr) + '</span></div>';
+                          + '<span class="chal-spine-txt">' + escapeHtml(ttl || '?') + '</span></div>';
             });
 
             // Ghost slots for unread books (show up to 8 so the shelf doesn't look empty)
