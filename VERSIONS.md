@@ -61,7 +61,7 @@ Full history lives here.
 
 ## app.js (ArkaClubApp frontend)
 
-**Current: `3.8.4`**
+**Current: `3.8.5`**
 
 | Version | Date | Summary |
 |---|---|---|
@@ -82,6 +82,7 @@ Full history lives here.
 | 3.8.3 | Jun 2026 | BOOK_COUNT: booksRead entries use shelfId (not bookId); spine and book-list renderers resolve bookId via shelvesMap.get(shelfId) at render time; globalShelvesDB already excludes Deleted rows |
 | 3.8.4 | Jun 2026 | 10PAGESADAY UI polish: brighten suppressed text across hero/stats/monthly/qual sections; fix June week count (include current in-progress week in monthly ring denominator); fix Club section headers for light background |
 | 3.8.4 | Jun 2026 | Fix 10PAGESADAY banner fire tile and list card progress bar: targetPages was falling back to 1 (goalConfigJson uses dailyGoal, not targetPages/durationDays); now uses dailyGoal×365 || goalValue; fire tile stat text shows avg pg/day + qualified status |
+| 3.8.5 | Jun 2026 | 10PAGESADAY: normalize habitScore to 0–100 display (raw score / max achievable × 100); show "—" before first complete week; club sort adds avgPagesPerDay tiebreaker; both sections rank by habitScore primary |
 
 ---
 
