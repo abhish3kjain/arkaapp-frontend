@@ -1,5 +1,5 @@
 		/**
-       * ArkaClubApp — frontend    v3.8.4
+       * ArkaClubApp — frontend    v3.8.5
        * Full version history: VERSIONS.md
        *
        * T0: JS execution start time.
@@ -31827,6 +31827,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const weeklyPages         = state.weeklyPages         || {};
         const recPct              = Math.round(recoveryRate * 100);
 
+        // ── Normalized score (0–100) ─────────────────────────────────────────
+        // Max achievable = all weeks hit + all early weeks hit + perfect recovery.
+        // Only meaningful after at least 1 complete week; before that show "—".
+        const totalWeeks = Math.floor(daysSinceEnrollment / 7);
+        const maxScore   = (totalWeeks * 10) + (Math.min(totalWeeks, 10) * 10) + 50;
+        const normScore  = totalWeeks >= 1
+          ? Math.min(100, Math.round(habitScore / maxScore * 100))
+          : null;
+
         // ── Score block ──────────────────────────────────────────────────────
         const qualPillHtml = isQualified
           ? '<div style="padding:4px 9px;border-radius:20px;font-size:0.58rem;font-weight:700;letter-spacing:.5px;background:rgba(94,255,194,.15);color:#5effc2;border:1px solid rgba(94,255,194,.3);">✓ Qualified</div>'
@@ -31834,9 +31843,13 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         const scoreRow = document.getElementById('tenPpaHeroScoreRow');
         if (scoreRow) {
+          const scoreDisplay = normScore !== null ? normScore : '—';
           scoreRow.innerHTML =
             '<div style="flex:1;">' +
-              '<div style="font-size:3.2rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-2px;">' + habitScore + '</div>' +
+              '<div style="display:flex;align-items:flex-end;gap:6px;line-height:1;">' +
+                '<div style="font-size:3.2rem;font-weight:900;color:#fff;letter-spacing:-2px;">' + scoreDisplay + '</div>' +
+                (normScore !== null ? '<div style="font-size:1rem;font-weight:700;color:rgba(255,255,255,.4);padding-bottom:6px;">/100</div>' : '') +
+              '</div>' +
               '<div style="font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:3px;">Habit Score</div>' +
             '</div>' +
             qualPillHtml;
@@ -32119,8 +32132,16 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           else notQualified.push(item);
         });
 
-        qualified.sort(function(a, b)    { return b.habitScore     - a.habitScore; });
-        notQualified.sort(function(a, b) { return b.avgPagesPerDay - a.avgPagesPerDay; });
+        qualified.sort(function(a, b) {
+          return b.habitScore !== a.habitScore
+            ? b.habitScore - a.habitScore
+            : b.avgPagesPerDay - a.avgPagesPerDay;  // tiebreaker: enrollment-relative rolling avg
+        });
+        notQualified.sort(function(a, b) {
+          return b.habitScore !== a.habitScore
+            ? b.habitScore - a.habitScore
+            : b.avgPagesPerDay - a.avgPagesPerDay;
+        });
 
         function _clubRow_(item, rank, showRank) {
           const member = membersMap.get(item.enrollment.memberId);
@@ -32130,8 +32151,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             ? (rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉'
               : '<span style="min-width:20px;display:inline-block;text-align:center;font-size:0.7rem;color:rgba(255,255,255,.25);">' + rank + '</span>')
             : '<span style="min-width:20px;display:inline-block;"></span>';
+          const itemDays     = item.state.daysSinceEnrollment || 0;
+          const itemWeeks    = Math.floor(itemDays / 7);
+          const itemMax      = (itemWeeks * 10) + (Math.min(itemWeeks, 10) * 10) + 50;
+          const itemNorm     = itemWeeks >= 1 ? Math.min(100, Math.round(item.habitScore / itemMax * 100)) : null;
           const scoreStr = item.isQualified
-            ? '<span style="color:#5effc2;font-weight:700;">' + item.habitScore + '</span><span style="color:rgba(255,255,255,.25);font-size:0.65rem;margin-left:2px;">hs</span>'
+            ? '<span style="color:#5effc2;font-weight:700;">' + (itemNorm !== null ? itemNorm : '—') + '</span><span style="color:rgba(255,255,255,.25);font-size:0.65rem;margin-left:2px;">/100</span>'
             : '<span style="color:rgba(255,255,255,.4);">' + item.avgPagesPerDay.toFixed(1) + '</span><span style="color:rgba(255,255,255,.2);font-size:0.65rem;margin-left:2px;">pg/d</span>';
 
           return '<div style="display:flex;align-items:center;gap:8px;padding:7px ' + (item.isMe ? '8px' : '0') + ';' +
