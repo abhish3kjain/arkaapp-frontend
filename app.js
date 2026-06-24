@@ -30539,24 +30539,21 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           const fireEnr = myEnrollmentsMap.get(fireChal.challengeId);
           let fireState = {};
           try { fireState = JSON.parse(fireEnr.progressStateJson || '{}'); } catch(e) {}
-          let fireCfg = {};
-          try { fireCfg = JSON.parse(fireChal.goalConfigJson || '{}'); } catch(e) {}
 
-          const totalPages  = fireState.totalPages  || 0;
-          const targetPages = (fireCfg.dailyGoal || 10) * 365 || fireChal.goalValue || 3650;
-          const barPct      = Math.min(100, Math.round(totalPages / targetPages * 100));
-          const avgPpd      = fireState.avgPagesPerDay ? (+fireState.avgPagesPerDay).toFixed(1) : null;
-          const statText    = avgPpd
-            ? avgPpd + ' avg pg/day' + (fireState.isQualified ? ' · ✓ Qualified' : '')
-            : barPct + '%';
+          const habitScore  = fireState.habitScore || 0;
+          const avgPpd      = fireState.avgPagesPerDay ? (+fireState.avgPagesPerDay).toFixed(1) : '—';
+          const isQual      = !!fireState.isQualified;
 
           html += '<div class="chal-fire-tile">' +
-            '<div class="chal-tile-label">🔥 10 Pages/Day</div>' +
-            '<div class="chal-tile-title">' + escapeHtml(fireChal.title) + '</div>' +
-            '<div class="chal-fire-big">' + totalPages.toLocaleString() + '</div>' +
-            '<div class="chal-fire-sub">pages this year</div>' +
-            '<div class="chal-tile-bar"><div class="chal-tile-bar-fill" style="width:' + barPct + '%;background:#E05A47;"></div></div>' +
-            '<div class="chal-tile-stat">' + statText + '</div>' +
+            '<div class="chal-tile-label">🔥 10 Pages / Day</div>' +
+            '<div class="chal-fire-big">' + habitScore + '</div>' +
+            '<div class="chal-fire-sub">habit score</div>' +
+            '<div class="chal-fire-footer">' +
+              (isQual
+                ? '<span class="chal-fire-qual-chip">✓ Qualified</span>'
+                : '<span class="chal-fire-noq-chip">Not qualified yet</span>') +
+              '<span class="chal-fire-pace">' + avgPpd + ' pg/day</span>' +
+            '</div>' +
           '</div>';
         } else {
           html += '<div class="chal-bento-placeholder"><span>No active<br>10ppa enrolled</span></div>';
@@ -30723,10 +30720,36 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             done  = doneSet.size; total = cells.length || 1;
             unit  = done + ' / ' + total + ' cells done'; colour = '#7F77DD';
           } else if (c.challengeType === '10PAGESADAY') {
-            const target = (cfg.dailyGoal || 10) * 365 || c.goalValue || 3650;
-            done  = state.totalPages || 0; total = target;
-            unit  = (done).toLocaleString() + ' / ' + target.toLocaleString() + ' pages';
-            colour = '#E05A47';
+            // Habit-centric: habit score + rank instead of misleading page-count bar
+            const hs       = state.habitScore || 0;
+            const ppd      = state.avgPagesPerDay ? (+state.avgPagesPerDay).toFixed(1) : '—';
+            const qual     = !!state.isQualified;
+            const wksHit   = state.weeksHit || 0;
+            const allEnr   = globalChallengeEnrollmentsDB.filter(function(e) {
+              return e.challengeId === c.challengeId && e.enrollmentStatus !== 'Dropped';
+            });
+            allEnr.sort(function(a, b) { return (b.progressValue || 0) - (a.progressValue || 0); });
+            const myRank   = allEnr.findIndex(function(e) { return e.memberId === currentUser; }) + 1;
+            const totEnr   = allEnr.length;
+            const qualChip = qual
+              ? '<span class="chal-10ppa-qual-chip">✓ QUALIFIED</span>'
+              : '<span class="chal-10ppa-noq-chip">Building habit</span>';
+            return '<div class="chal-10ppa-stats">' +
+              '<div class="chal-10ppa-box chal-10ppa-score-box">' +
+                '<div class="chal-10ppa-box-label">Habit Score</div>' +
+                '<div class="chal-10ppa-box-big" style="color:#E05A47;">' + hs + '</div>' +
+                '<div class="chal-10ppa-box-sub">' + wksHit + ' wks on target</div>' +
+              '</div>' +
+              '<div class="chal-10ppa-box chal-10ppa-rank-box">' +
+                '<div class="chal-10ppa-box-label">Rank</div>' +
+                '<div class="chal-10ppa-box-big" style="color:#534AB7;"><span class="chal-10ppa-hash">#</span>' + (myRank || '—') + '</div>' +
+                '<div class="chal-10ppa-box-sub">of ' + totEnr + ' enrolled</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="chal-10ppa-qual-row">' +
+              qualChip +
+              '<span class="chal-10ppa-pace"><b>' + ppd + '</b> pg/day avg</span>' +
+            '</div>';
           } else if (c.challengeType === 'BOOK_COUNT') {
             done  = state.totalBooks || 0;
             total = state.personalGoal || c.goalValue || 1;
