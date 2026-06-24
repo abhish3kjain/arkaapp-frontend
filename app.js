@@ -26386,7 +26386,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // Populate stat circles with current-year page count and drive the ring arc.
         const meStatPagesYearEl = document.getElementById('meStatPagesYear');
         if (meStatPagesYearEl) meStatPagesYearEl.innerText = pagesThisYear.toLocaleString();
-        updateStatRing('PAGE_COUNT', 'PAGE_READING_GOAL', pagesThisYear, currentYear,
+        updateStatRing('PAGE_COUNT', 'ANNUAL_PAGE_GOAL', pagesThisYear, currentYear,
                        'meStatPagesRingArc', 'meStatPagesGoalSub', 'meStatPagesAddGoalCta');
 
         const meStatBooksYearEl = document.getElementById('meStatBooksYear');
@@ -33196,7 +33196,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        * Drives a stat circle's SVG ring arc and goal CTA based on challenge enrollment.
        *
        * @param {string} challengeType  - 'PAGE_COUNT' or 'BOOK_COUNT'
-       * @param {string} seriesTag      - 'PAGE_READING_GOAL' or 'BOOK_READING_GOAL'
+       * @param {string} seriesTag      - 'ANNUAL_PAGE_GOAL' or 'ANNUAL_BOOK_GOAL'
        * @param {number} currentValue   - pages or books logged so far this year
        * @param {number} currentYear    - e.g. 2026
        * @param {string} arcId          - id of the <circle> ring arc element
@@ -33264,21 +33264,21 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         }
       }
 
-      /** Navigates to the PAGE_READING_GOAL challenge enrollment page. */
+      /** Navigates to the ANNUAL_PAGE_GOAL challenge enrollment page. */
       function openPageGoalEnroll() {
         const yr = new Date().getFullYear();
         const c = globalChallengesDB.find(function(ch) {
-          return ch.challengeType === 'PAGE_COUNT' && ch.seriesTag === 'PAGE_READING_GOAL'
+          return ch.challengeType === 'PAGE_COUNT' && ch.seriesTag === 'ANNUAL_PAGE_GOAL'
               && ch.startDate && ch.startDate.slice(-4) === String(yr);
         });
         if (c) openChallengeDetailView(c.challengeId);
       }
 
-      /** Navigates to the BOOK_READING_GOAL challenge enrollment page. */
+      /** Navigates to the ANNUAL_BOOK_GOAL challenge enrollment page. */
       function openBookGoalEnroll() {
         const yr = new Date().getFullYear();
         const c = globalChallengesDB.find(function(ch) {
-          return ch.challengeType === 'BOOK_COUNT' && ch.seriesTag === 'BOOK_READING_GOAL'
+          return ch.challengeType === 'BOOK_COUNT' && ch.seriesTag === 'ANNUAL_BOOK_GOAL'
               && ch.startDate && ch.startDate.slice(-4) === String(yr);
         });
         if (c) openChallengeDetailView(c.challengeId);
@@ -33289,7 +33289,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         var count = _getFinishedBooksCountForYear(memberId, yr);
         var el = document.getElementById('meStatBooksYear');
         if (el) el.innerText = count;
-        updateStatRing('BOOK_COUNT', 'BOOK_READING_GOAL', count, yr,
+        updateStatRing('BOOK_COUNT', 'ANNUAL_BOOK_GOAL', count, yr,
                        'meStatBooksRingArc', 'meStatBooksGoalSub', 'meStatBooksAddGoalCta');
       }
 
