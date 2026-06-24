@@ -95,11 +95,12 @@ Full history lives here.
 
 ## ArkaChallengePass.gs
 
-**Current: `1.0.0`**
+**Current: `1.1.0`**
 
 | Version | Date | Summary |
 |---|---|---|
 | 1.0.0 | Jun 2026 | Standalone nightly challenge pass — 10PAGESADAY habitScore engine (weeksHit, maxGap, recoveryRate, earlyWeeksHit hidden), zero-state bootstrap, LockService guard, installArkaChallengePassTrigger() |
+| 1.1.0 | Jun 2026 | BOOK_COUNT: booksRead entries now store `bookId` (from ActivityLogDB desc) + `finishedOn` in dd-MMM-yyyy format; added `_chalpassFmtDdMmmYyyy_()` helper |
 
 ---
 

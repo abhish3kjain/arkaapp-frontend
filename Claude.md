@@ -641,6 +641,13 @@ Claiming a clue: member links a **currently-reading** book from their shelf.
 ```json
 { "personalGoal": 24, "booksRead": [], "totalBooks": 0, "pacingProjection": 0, "monthlyBreakdown": {} }
 ```
+Each entry in `booksRead` is sourced from **ActivityLogDB** `ARKA_ACTTYP_BOOKREAD` rows — `desc` column holds the bookId:
+```json
+{ "bookId": "ARKA_BOOK_232", "finishedOn": "05-Jan-2026" }
+```
+- `bookId` — Arka book identifier (ActivityLogDB Col E / `ACT_COL_DESC`)
+- `finishedOn` — `dd-MMM-yyyy` display format (e.g. `"05-Jan-2026"`)
+- `monthlyBreakdown` — `{ "2026-01": 2, "2026-02": 1, … }` count of books finished per month
 
 #### PAGE_COUNT
 ```json
