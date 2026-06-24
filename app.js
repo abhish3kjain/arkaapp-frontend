@@ -1,5 +1,5 @@
 		/**
-       * ArkaClubApp — frontend    v3.8.0
+       * ArkaClubApp — frontend    v3.8.1
        * Full version history: VERSIONS.md
        *
        * T0: JS execution start time.
@@ -31473,10 +31473,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
             totalPages += pages;
 
-            const mKey = months[logDate.getMonth()] || '?';
+            const mKey = logDate.getFullYear() + '-' + String(logDate.getMonth() + 1).padStart(2, '0');
             monthlyBreakdown[mKey] = (monthlyBreakdown[mKey] || 0) + pages;
 
-            const wKey = 'W' + String(getISOWeekNumber(logDate)).padStart(2, '0');
+            const wKey = logDate.getFullYear() + '-W' + String(getISOWeekNumber(logDate)).padStart(2, '0');
             weeklyBreakdown[wKey] = (weeklyBreakdown[wKey] || 0) + pages;
           });
 
@@ -31518,7 +31518,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               finishedOn: shelf.dateFinished || shelf.dateUpdated || ''
             });
 
-            const mKey = months[finishDate.getMonth()] || '?';
+            const mKey = finishDate.getFullYear() + '-' + String(finishDate.getMonth() + 1).padStart(2, '0');
             monthlyBreakdown[mKey] = (monthlyBreakdown[mKey] || 0) + 1;
           });
 
