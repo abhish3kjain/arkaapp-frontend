@@ -61,7 +61,7 @@ Full history lives here.
 
 ## app.js (ArkaClubApp frontend)
 
-**Current: `3.9.1`**
+**Current: `3.9.2`**
 
 | Version | Date | Summary |
 |---|---|---|
@@ -84,6 +84,7 @@ Full history lives here.
 | 3.8.4 | Jun 2026 | Fix 10PAGESADAY banner fire tile and list card progress bar: targetPages was falling back to 1 (goalConfigJson uses dailyGoal, not targetPages/durationDays); now uses dailyGoal×365 || goalValue; fire tile stat text shows avg pg/day + qualified status |
 | 3.9.0 | Jun 2026 | 10PAGESADAY habit-centric redesign: banner fire tile shows habitScore as hero + QUALIFIED chip + avg pg/day (no page-count bar, no challenge title); list card replaces page bar with twin stat boxes (Habit Score + Rank computed from progressValue) + qual chip + pace row |
 | 3.9.1 | Jun 2026 | Enrollment deadline enforcement: unenrolled card reads `enrollmentDeadline` from goalConfigJson; shows "⏳ Enrol by dd-MMM-yyyy" when open or "🔒 Enrolment closed" when past; Enrol button replaced with grey "Closed" pill once deadline passes |
+| 3.9.2 | Jun 2026 | Challenge detail header merges into hero banner for BOOK_COUNT, PAGE_COUNT, 10PAGESADAY — transparent header floats over dark hero with translucent status badge; heroes gain padding-top to clear back button |
 
 ---
 
