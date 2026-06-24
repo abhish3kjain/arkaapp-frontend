@@ -32283,7 +32283,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               const cattr = bookId
                 ? 'onclick="openBookDetailView(\'' + bookId + '\',\'challengeDetail\')" role="button" tabindex="0" data-action'
                 : '';
-              spinesHtml += '<div class="chal-spine" style="height:' + h + 'px;background:linear-gradient(180deg,' + col + ',' + col + 'bb);" title="' + escapeHtml(ttl) + '" ' + cattr + '>'
+              spinesHtml += '<div class="chal-spine" style="height:' + h + 'px;background:' + col + ';" title="' + escapeHtml(ttl) + '" ' + cattr + '>'
                           + '<span class="chal-spine-txt">' + escapeHtml(ttl || '?') + '</span></div>';
             });
 
