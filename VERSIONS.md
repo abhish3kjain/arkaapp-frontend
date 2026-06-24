@@ -61,7 +61,7 @@ Full history lives here.
 
 ## app.js (ArkaClubApp frontend)
 
-**Current: `3.9.3`**
+**Current: `3.9.4`**
 
 | Version | Date | Summary |
 |---|---|---|
@@ -86,6 +86,7 @@ Full history lives here.
 | 3.9.1 | Jun 2026 | Enrollment deadline enforcement: unenrolled card reads `enrollmentDeadline` from goalConfigJson; shows "⏳ Enrol by dd-MMM-yyyy" when open or "🔒 Enrolment closed" when past; Enrol button replaced with grey "Closed" pill once deadline passes |
 | 3.9.2 | Jun 2026 | Challenge detail header merges into hero banner for BOOK_COUNT, PAGE_COUNT, 10PAGESADAY — transparent header floats over dark hero with translucent status badge; heroes gain padding-top to clear back button |
 | 3.9.3 | Jun 2026 | BOOK_COUNT bookshelf spines: colors now use getBookColor(title) (matches book detail page); spine text shows full truncated title in vertical writing mode instead of initials |
+| 3.9.4 | Jun 2026 | Me tab stat circles: pages and books circles tap through to challenge detail when user is enrolled; not enrolled = no tap (Add goal CTA unchanged) |
 
 ---
 
