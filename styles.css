@@ -4120,6 +4120,7 @@
         font-weight: 600; letter-spacing: 0.03em;
         padding: 4px 0; overflow: hidden;
         max-height: 100%; line-height: 1.2;
+        white-space: nowrap;
       }
       .chal-spine-empty {
         flex-shrink: 0; width: 17px; height: 58px;
