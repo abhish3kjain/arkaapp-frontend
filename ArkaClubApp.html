@@ -2988,8 +2988,7 @@
       <!-- ── Challenges full view ────────────────────────────────────────────────── -->
       <div id="challengesView" class="view-section" style="display: none;">
 
-        <!-- Flush banner to container edges — same pattern as Members/Badges/HOF -->
-        <div style="overflow:hidden; margin:-40px -20px 0;">
+        <div style="margin:-40px 0 0;">
 
         <!-- ── Challenges Hero Banner ────────────────────────────────────────── -->
         <div id="chalBanner">
@@ -3090,13 +3089,10 @@
 
       <div id="challengeDetailView" class="view-section" style="display:none;">
 
-        <!-- Flush wrapper: breaks out of .container's 20px padding so all content
-             sits edge-to-edge — same pattern as membersView.
-             overflow:hidden only on inner elements that need it (header, shelf hero). -->
-        <div style="margin:-40px -20px 0;">
+        <div style="margin:-40px 0 0;">
 
           <!-- Dark header bar -->
-          <div class="chal-detail-header" style="overflow:hidden;">
+          <div class="chal-detail-header">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
               <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
                 <button class="btn-back-circle btn-back-circle--dark" onclick="closeChallengeDetailView()" aria-label="Back">
@@ -3109,7 +3105,7 @@
           </div>
 
           <!-- Bookshelf Hero — shown only for BOOK_COUNT challenges -->
-          <div id="chalDetailBookshelfHero" class="chal-shelf-hero" style="display:none; overflow:hidden;">
+          <div id="chalDetailBookshelfHero" class="chal-shelf-hero" style="display:none;">
             <div class="chal-shelf-inner">
               <div class="chal-shelf-section-lbl">Your Reading Shelf</div>
               <div id="shelfSpinesRow" class="chal-shelf-spines"></div>
@@ -3148,26 +3144,26 @@
 
         </div><!-- /flush wrapper -->
 
-          <!-- My Progress / Club tabs -->
-          <div class="chal-detail-inner-tabs" id="chalDetailTabBar">
-            <div class="chal-detail-tab active" id="tabChalDetailMine"
-                onclick="switchChalDetailTab('mine')">My Progress</div>
-            <div class="chal-detail-tab" id="tabChalDetailClub"
-                onclick="switchChalDetailTab('club')">Club</div>
+        <!-- My Progress / Club tabs -->
+        <div class="chal-detail-inner-tabs" id="chalDetailTabBar">
+          <div class="chal-detail-tab active" id="tabChalDetailMine"
+              onclick="switchChalDetailTab('mine')">My Progress</div>
+          <div class="chal-detail-tab" id="tabChalDetailClub"
+              onclick="switchChalDetailTab('club')">Club</div>
+        </div>
+
+        <!-- Tab content panels -->
+        <div style="padding: 16px;" id="chalDetailBody">
+
+          <div id="chalDetailMineContent">
+            <!-- Rendered by renderChalDetailMyProgress() -->
           </div>
 
-          <!-- Tab content panels -->
-          <div style="padding: 16px;" id="chalDetailBody">
-
-            <div id="chalDetailMineContent">
-              <!-- Rendered by renderChalDetailMyProgress() -->
-            </div>
-
-            <div id="chalDetailClubContent" style="display:none;">
-              <!-- Rendered by renderChalDetailClub() -->
-            </div>
-
+          <div id="chalDetailClubContent" style="display:none;">
+            <!-- Rendered by renderChalDetailClub() -->
           </div>
+
+        </div>
 
       </div>
       

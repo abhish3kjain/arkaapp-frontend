@@ -30543,9 +30543,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           try { fireCfg = JSON.parse(fireChal.goalConfigJson || '{}'); } catch(e) {}
 
           const totalPages  = fireState.totalPages  || 0;
-          const targetPages = fireCfg.targetPages   || fireCfg.durationDays * 10 || 1;
+          const targetPages = (fireCfg.dailyGoal || 10) * 365 || fireChal.goalValue || 3650;
           const barPct      = Math.min(100, Math.round(totalPages / targetPages * 100));
-          const statText    = barPct + '%' + (fireState.aheadBehindTarget ? ' · ' + fireState.aheadBehindTarget : '');
+          const avgPpd      = fireState.avgPagesPerDay ? (+fireState.avgPagesPerDay).toFixed(1) : null;
+          const statText    = avgPpd
+            ? avgPpd + ' avg pg/day' + (fireState.isQualified ? ' · ✓ Qualified' : '')
+            : barPct + '%';
 
           html += '<div class="chal-fire-tile">' +
             '<div class="chal-tile-label">🔥 10 Pages/Day</div>' +
@@ -30720,7 +30723,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             done  = doneSet.size; total = cells.length || 1;
             unit  = done + ' / ' + total + ' cells done'; colour = '#7F77DD';
           } else if (c.challengeType === '10PAGESADAY') {
-            const target = cfg.targetPages || (cfg.durationDays * 10) || 1;
+            const target = (cfg.dailyGoal || 10) * 365 || c.goalValue || 3650;
             done  = state.totalPages || 0; total = target;
             unit  = (done).toLocaleString() + ' / ' + target.toLocaleString() + ' pages';
             colour = '#E05A47';
