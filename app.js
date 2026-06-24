@@ -30543,7 +30543,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           const avgPpd      = fireState.avgPagesPerDay ? (+fireState.avgPagesPerDay).toFixed(1) : '—';
           const isQual      = !!fireState.isQualified;
           const fireNorm    = fireState.habitScoreNorm != null ? fireState.habitScoreNorm : null;
-          const fireDisplay = fireNorm !== null ? fireNorm + '/100' : '—';
+          const fireDisplay = fireNorm !== null
+            ? fireNorm + '<span style="font-size:0.45em;font-weight:600;color:rgba(255,255,255,.35);margin-left:3px;">/100</span>'
+            : '—';
 
           html += '<div class="chal-fire-tile">' +
             '<div class="chal-tile-label">🔥 10 Pages / Day</div>' +
@@ -30726,11 +30728,18 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             const qual     = !!state.isQualified;
             const wksHit   = state.weeksHit || 0;
             const cardNorm  = state.habitScoreNorm != null ? state.habitScoreNorm : null;
-            const cardDisplay = cardNorm !== null ? cardNorm + '/100' : '—';
+            const cardScoreBig = cardNorm !== null
+              ? cardNorm + '<span style="font-size:0.55em;font-weight:600;color:var(--text-muted);margin-left:3px;">/100</span>'
+              : '—';
             const allEnr   = globalChallengeEnrollmentsDB.filter(function(e) {
               return e.challengeId === c.challengeId && e.enrollmentStatus !== 'Dropped';
             });
-            allEnr.sort(function(a, b) { return (b.progressValue || 0) - (a.progressValue || 0); });
+            allEnr.sort(function(a, b) {
+              let sa = 0, sb = 0;
+              try { sa = JSON.parse(a.progressStateJson || '{}').habitScore || 0; } catch(e) {}
+              try { sb = JSON.parse(b.progressStateJson || '{}').habitScore || 0; } catch(e) {}
+              return sb - sa;
+            });
             const myRank   = allEnr.findIndex(function(e) { return e.memberId === currentUser; }) + 1;
             const totEnr   = allEnr.length;
             const qualChip = qual
@@ -30739,7 +30748,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             return '<div class="chal-10ppa-stats">' +
               '<div class="chal-10ppa-box chal-10ppa-score-box">' +
                 '<div class="chal-10ppa-box-label">Habit Score</div>' +
-                '<div class="chal-10ppa-box-big" style="color:#E05A47;">' + cardDisplay + '</div>' +
+                '<div class="chal-10ppa-box-big" style="color:#E05A47;">' + cardScoreBig + '</div>' +
                 '<div class="chal-10ppa-box-sub">' + wksHit + ' wks on target</div>' +
               '</div>' +
               '<div class="chal-10ppa-box chal-10ppa-rank-box">' +
