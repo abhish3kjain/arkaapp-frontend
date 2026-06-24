@@ -30543,10 +30543,16 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           const habitScore  = fireState.habitScore || 0;
           const avgPpd      = fireState.avgPagesPerDay ? (+fireState.avgPagesPerDay).toFixed(1) : '—';
           const isQual      = !!fireState.isQualified;
+          const fireEnrMs   = fireEnr.enrollmentDate ? (grExport_parseArkaDateClient_(fireEnr.enrollmentDate) || 0) : 0;
+          const fireDays    = fireEnrMs ? Math.floor((Date.now() - fireEnrMs) / 86400000) : 0;
+          const fireWeeks   = Math.floor(fireDays / 7);
+          const fireMax     = (fireWeeks * 10) + (Math.min(fireWeeks, 10) * 10) + 50;
+          const fireNorm    = fireWeeks >= 1 ? Math.min(100, Math.round(habitScore / fireMax * 100)) : null;
+          const fireDisplay = fireNorm !== null ? fireNorm + '/100' : '—';
 
           html += '<div class="chal-fire-tile">' +
             '<div class="chal-tile-label">🔥 10 Pages / Day</div>' +
-            '<div class="chal-fire-big">' + habitScore + '</div>' +
+            '<div class="chal-fire-big">' + fireDisplay + '</div>' +
             '<div class="chal-fire-sub">habit score</div>' +
             '<div class="chal-fire-footer">' +
               (isQual
@@ -30720,11 +30726,17 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             done  = doneSet.size; total = cells.length || 1;
             unit  = done + ' / ' + total + ' cells done'; colour = '#7F77DD';
           } else if (c.challengeType === '10PAGESADAY') {
-            // Habit-centric: habit score + rank instead of misleading page-count bar
+            // Habit-centric: habit score (normalized /100) + rank
             const hs       = state.habitScore || 0;
             const ppd      = state.avgPagesPerDay ? (+state.avgPagesPerDay).toFixed(1) : '—';
             const qual     = !!state.isQualified;
             const wksHit   = state.weeksHit || 0;
+            const cardEnrMs = myEnr.enrollmentDate ? (grExport_parseArkaDateClient_(myEnr.enrollmentDate) || 0) : 0;
+            const cardDays  = cardEnrMs ? Math.floor((Date.now() - cardEnrMs) / 86400000) : 0;
+            const cardWeeks = Math.floor(cardDays / 7);
+            const cardMax   = (cardWeeks * 10) + (Math.min(cardWeeks, 10) * 10) + 50;
+            const cardNorm  = cardWeeks >= 1 ? Math.min(100, Math.round(hs / cardMax * 100)) : null;
+            const cardDisplay = cardNorm !== null ? cardNorm + '/100' : '—';
             const allEnr   = globalChallengeEnrollmentsDB.filter(function(e) {
               return e.challengeId === c.challengeId && e.enrollmentStatus !== 'Dropped';
             });
@@ -30737,7 +30749,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             return '<div class="chal-10ppa-stats">' +
               '<div class="chal-10ppa-box chal-10ppa-score-box">' +
                 '<div class="chal-10ppa-box-label">Habit Score</div>' +
-                '<div class="chal-10ppa-box-big" style="color:#E05A47;">' + hs + '</div>' +
+                '<div class="chal-10ppa-box-big" style="color:#E05A47;">' + cardDisplay + '</div>' +
                 '<div class="chal-10ppa-box-sub">' + wksHit + ' wks on target</div>' +
               '</div>' +
               '<div class="chal-10ppa-box chal-10ppa-rank-box">' +
