@@ -1,5 +1,5 @@
 /**
- * ARKA CHALLENGE PASS    v1.0.0
+ * ARKA CHALLENGE PASS    v1.1.0
  * Full version history: VERSIONS.md
  *
  * Standalone nightly pass — computes and persists progressStateJson for all
@@ -216,9 +216,9 @@ function _processAllChallengeEnrollments_() {
       if (!mid) continue;
       const ts   = _chalpassParseDate_(row[ACT_COL_DATE]);
       if (isNaN(ts.getTime())) continue;
-      const desc = (row[ACT_COL_DESC] || '').toString();
+      const bookId = (row[ACT_COL_DESC] || '').toString();
       if (!bookReadByMember[mid]) bookReadByMember[mid] = [];
-      bookReadByMember[mid].push({ dateMs: ts.getTime(), desc: desc });
+      bookReadByMember[mid].push({ dateMs: ts.getTime(), bookId: bookId });
     }
 
     // ── Collect updates: {rowIndex (1-based), progressValue, stateJson, tsStr} ──
@@ -518,7 +518,7 @@ function _computePageCountState_(chal, memberId, enrolledOn, pageLogs, now, exis
  *   chal       {Object} - challenge record
  *   memberId   {string}
  *   enrolledOn {Date}
- *   bookReads  {Array}  - [{dateMs, desc}] from ActivityLogDB ARKA_ACTTYP_BOOKREAD
+ *   bookReads  {Array}  - [{dateMs, bookId}] from ActivityLogDB ARKA_ACTTYP_BOOKREAD
  *   now        {Date}
  *   existing   {Object} - existing progressStateJson
  * Return Type: {progressValue: number, state: Object}
@@ -541,7 +541,7 @@ function _computeBookCountState_(chal, memberId, enrolledOn, bookReads, now, exi
   for (let bi = 0; bi < bookReads.length; bi++) {
     const ev = bookReads[bi];
     if (ev.dateMs < windowStartMs || ev.dateMs > windowEndMs) continue;
-    booksRead.push({ finishedOn: new Date(ev.dateMs).toISOString().slice(0, 10), title: ev.desc });
+    booksRead.push({ bookId: ev.bookId, finishedOn: _chalpassFmtDdMmmYyyy_(new Date(ev.dateMs)) });
 
     const d    = new Date(ev.dateMs);
     const mKey = d.getFullYear() + '-' + _pad2_(d.getMonth() + 1);
@@ -615,6 +615,14 @@ function _isoWeekKey_(date) {
 /** Zero-pads a number to 2 digits. */
 function _pad2_(n) {
   return n < 10 ? '0' + n : '' + n;
+}
+
+/**
+ * Formats a Date as "dd-MMM-yyyy" (e.g. "05-Jan-2026") for booksRead.finishedOn.
+ */
+function _chalpassFmtDdMmmYyyy_(date) {
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return _pad2_(date.getDate()) + '-' + MONTHS[date.getMonth()] + '-' + date.getFullYear();
 }
 
 /**

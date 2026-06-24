@@ -703,12 +703,22 @@ Claiming a clue: member links a **currently-reading** book from their shelf.
 ```json
 { "personalGoal": 24, "booksRead": [], "totalBooks": 0, "pacingProjection": 0, "monthlyBreakdown": {} }
 ```
+Each entry in `booksRead` is sourced from **ActivityLogDB** `ARKA_ACTTYP_BOOKREAD` rows — `desc` column holds the bookId:
+```json
+{ "bookId": "ARKA_BOOK_232", "finishedOn": "05-Jan-2026" }
+```
+- `bookId` — Arka book identifier (ActivityLogDB Col E / `ACT_COL_DESC`)
+- `finishedOn` — `dd-MMM-yyyy` display format (e.g. `"05-Jan-2026"`)
+- `monthlyBreakdown` — `{ "2026-01": 2, "2026-02": 1, … }` count of books finished per month (key = `"YYYY-MM"`)
 
 #### PAGE_COUNT
 ```json
 { "personalGoal": 5000, "totalPages": 0, "monthlyBreakdown": {}, "weeklyBreakdown": {},
   "pacingProjection": 0, "aheadBehindTarget": "" }
 ```
+- `monthlyBreakdown` — `{ "2026-01": 320, "2026-02": 210, … }` pages logged per calendar month (key = `"YYYY-MM"`)
+- `weeklyBreakdown` — `{ "2026-W03": 85, "2026-W04": 120, … }` pages logged per ISO week (key = `"YYYY-Www"`, Monday-anchored ISO 8601)
+- `aheadBehindTarget` — `"ahead"` | `"on track"` | `"behind"` (pace vs personalGoal over days elapsed; ahead ≥ 105%, behind < 90%)
 
 #### 10PAGESADAY
 ```json
