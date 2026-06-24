@@ -1,5 +1,5 @@
 		/**
-       * ArkaClubApp — frontend    v3.8.5
+       * ArkaClubApp — frontend    v3.9.2
        * Full version history: VERSIONS.md
        *
        * T0: JS execution start time.
@@ -31372,11 +31372,14 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         document.getElementById('chalDetailTitle').textContent = challenge.title;
     
         const badge      = document.getElementById('chalDetailStatusBadge');
-        const statusCols = {
-          Active  : 'background:#EAF3DE;color:#27500A;',
-          Finisher: 'background:#E1F5EE;color:#085041;',
-          Winner  : 'background:#FAEEDA;color:#633806;'
-        };
+        const hasDarkHero = ['BOOK_COUNT', 'PAGE_COUNT', '10PAGESADAY'].indexOf(challenge.challengeType) !== -1;
+        const statusCols = hasDarkHero
+          ? { Active  : 'background:rgba(94,255,194,.15);color:#5effc2;border:1px solid rgba(94,255,194,.3);',
+              Finisher: 'background:rgba(94,255,194,.15);color:#5effc2;border:1px solid rgba(94,255,194,.3);',
+              Winner  : 'background:rgba(255,200,100,.15);color:#ffc864;border:1px solid rgba(255,200,100,.3);' }
+          : { Active  : 'background:#EAF3DE;color:#27500A;',
+              Finisher: 'background:#E1F5EE;color:#085041;',
+              Winner  : 'background:#FAEEDA;color:#633806;' };
         badge.style.cssText = statusCols[enrollment.enrollmentStatus] || '';
         badge.textContent   = enrollment.enrollmentStatus;
     
@@ -31441,11 +31444,14 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
               // Update status badge if changed (e.g. just became Finisher)
               const badge = document.getElementById('chalDetailStatusBadge');
-              const statusCols = {
-                Active  : 'background:#EAF3DE;color:#27500A;',
-                Finisher: 'background:#E1F5EE;color:#085041;',
-                Winner  : 'background:#FAEEDA;color:#633806;'
-              };
+              const hasDarkHeroSync = ['BOOK_COUNT', 'PAGE_COUNT', '10PAGESADAY'].indexOf(challenge.challengeType) !== -1;
+              const statusCols = hasDarkHeroSync
+                ? { Active  : 'background:rgba(94,255,194,.15);color:#5effc2;border:1px solid rgba(94,255,194,.3);',
+                    Finisher: 'background:rgba(94,255,194,.15);color:#5effc2;border:1px solid rgba(94,255,194,.3);',
+                    Winner  : 'background:rgba(255,200,100,.15);color:#ffc864;border:1px solid rgba(255,200,100,.3);' }
+                : { Active  : 'background:#EAF3DE;color:#27500A;',
+                    Finisher: 'background:#E1F5EE;color:#085041;',
+                    Winner  : 'background:#FAEEDA;color:#633806;' };
               if (badge) {
                 badge.style.cssText = statusCols[fresh.enrollmentStatus] || '';
                 badge.textContent   = fresh.enrollmentStatus;
