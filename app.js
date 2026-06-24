@@ -32205,19 +32205,19 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const bdr = 'rgba(255,255,255,.05)';
 
         let html = '<div style="display:flex;justify-content:space-between;margin-bottom:10px;">' +
-          '<span style="font-size:0.72rem;color:rgba(0,0,0,.5);">' + enrollments.length + ' enrolled</span>' +
-          '<span style="font-size:0.66rem;color:rgba(0,0,0,.35);">Qualified ranked by Habit Score</span>' +
+          '<span style="font-size:0.72rem;color:rgba(255,255,255,.45);">' + enrollments.length + ' enrolled</span>' +
+          '<span style="font-size:0.66rem;color:rgba(255,255,255,.3);">Qualified ranked by Habit Score</span>' +
         '</div>';
 
         if (qualified.length > 0) {
-          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:#1a7a4a;font-weight:700;margin-bottom:7px;">✓ Qualified (' + qualified.length + ')</div>' +
+          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:#5effc2;font-weight:700;margin-bottom:7px;">✓ Qualified (' + qualified.length + ')</div>' +
             '<div style="background:' + bg + ';border:1px solid ' + bdr + ';border-radius:10px;padding:10px 12px;margin-bottom:12px;">';
           qualified.forEach(function(item, idx) { html += _clubRow_(item, idx + 1, true); });
           html += '</div>';
         }
 
         if (notQualified.length > 0) {
-          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(0,0,0,.4);font-weight:600;margin-bottom:7px;">Working Toward It (' + notQualified.length + ')</div>' +
+          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);font-weight:600;margin-bottom:7px;">Working Toward It (' + notQualified.length + ')</div>' +
             '<div style="background:' + bg + ';border:1px solid ' + bdr + ';border-radius:10px;padding:10px 12px;">';
           notQualified.forEach(function(item, idx) { html += _clubRow_(item, idx + 1, false); });
           html += '</div>';
