@@ -61,7 +61,7 @@ Full history lives here.
 
 ## app.js (ArkaClubApp frontend)
 
-**Current: `3.7.0`**
+**Current: `3.8.0`**
 
 | Version | Date | Summary |
 |---|---|---|
@@ -76,18 +76,30 @@ Full history lives here.
 | 3.6.0 | Jun 2026 | RSE V1 wired into 4 features: insight card pace, pace warning (genre/mood context), serendipity MOOD_MATCH, challenge pace table |
 | 3.7.0 | Jun 2026 | Badge proximity confidence bands — 🟢 Easy / 🟡 Stretch / 🔴 Aggressive based on moodMultiplier |
 | 3.7.1 | Jun 2026 | Remove confidence band labels from badge proximity strip (too much explanation needed) |
+| 3.8.0 | Jun 2026 | 10PAGESADAY challenge detail page — Habit Pulse EKG hero, monthly constellation rings, 3-stat strip (Wks Hit / Max Gap / Recovery), qualification tracker bar, habit science blurb (B.J. Fogg / James Clear) |
 
 ---
 
 ## ArkaClubApp.html
 
-**Current: `1.2.0`**
+**Current: `1.3.0`**
 
 | Version | Date | Summary |
 |---|---|---|
 | 1.0.0 | pre-2025 | Initial HTML shell — GAS HtmlService entry point, stylesheet links, app.js script tag |
 | 1.1.0 | 2025 | Added styles.css versioned cache-bust param |
 | 1.2.0 | 2025 | styles.css cache-bust updated to `?v=1.2` |
+| 1.3.0 | Jun 2026 | 10PAGESADAY EKG hero div added to flush wrapper — persistent DOM for canvas drawing |
+
+---
+
+## ArkaChallengePass.gs
+
+**Current: `1.0.0`**
+
+| Version | Date | Summary |
+|---|---|---|
+| 1.0.0 | Jun 2026 | Standalone nightly challenge pass — 10PAGESADAY habitScore engine (weeksHit, maxGap, recoveryRate, earlyWeeksHit hidden), zero-state bootstrap, LockService guard, installArkaChallengePassTrigger() |
 
 ---
 

@@ -1,5 +1,5 @@
 		/**
-       * ArkaClubApp — frontend    v3.7.0
+       * ArkaClubApp — frontend    v3.8.0
        * Full version history: VERSIONS.md
        *
        * T0: JS execution start time.
@@ -31344,11 +31344,13 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // ── Navigate to view ──────────────────────────────────────────────────
         switchTab('challengeDetail');
 
-        // Reset both heroes — renderCountProgress will show the right one per challenge type
-        const shelfHero = document.getElementById('chalDetailBookshelfHero');
-        if (shelfHero) shelfHero.style.display = 'none';
-        const velHero = document.getElementById('chalDetailVelocityHero');
-        if (velHero) velHero.style.display = 'none';
+        // Reset all heroes — each renderer shows the right one per challenge type
+        const shelfHero  = document.getElementById('chalDetailBookshelfHero');
+        if (shelfHero)  shelfHero.style.display  = 'none';
+        const velHero    = document.getElementById('chalDetailVelocityHero');
+        if (velHero)    velHero.style.display    = 'none';
+        const tenPpaHero = document.getElementById('chalDetailTenPpaHero');
+        if (tenPpaHero) tenPpaHero.style.display = 'none';
 
         // ── Render immediately from cached data ──────────────────────────────
         // No spinner. User sees current data right away.
@@ -31618,7 +31620,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const renderers = {
           BINGO_GRID    : renderBingoProgress,
           BOOK_COUNT    : renderCountProgress,
-          PAGE_COUNT    : renderCountProgress
+          PAGE_COUNT    : renderCountProgress,
+          '10PAGESADAY' : render10PagesProgress
         };
     
         const renderer = renderers[challenge.challengeType];
@@ -31631,6 +31634,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // Attach Bingo tile click handlers after render
         if (challenge.challengeType === 'BINGO_GRID') {
           attachBingoTileHandlers(challenge, enrollment, state);
+        }
+
+        // Draw 10PAGESADAY EKG hero after DOM is updated
+        if (challenge.challengeType === '10PAGESADAY') {
+          populate10PagesHero(challenge, enrollment, state);
         }
       }
     
@@ -31741,6 +31749,406 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       }
     
     
+
+      // ── 10PAGESADAY renderer ─────────────────────────────────────────────────────
+
+      /**
+       * Function: populate10PagesHero()
+       * Parameters:
+       *   challenge  {ChallengeRecord}
+       *   enrollment {ChallengeEnrollmentRecord}
+       *   state      {Object} - parsed progressStateJson from ArkaChallengePass
+       * Return Type: void
+       * Logic Summary:
+       *   Populates and shows the #chalDetailTenPpaHero flush element:
+       *   score block, avg note, EKG canvas, 3-stat strip (Wks Hit / Max Gap / Recovery).
+       *   Called after renderChalDetailMyProgress() sets innerHTML so the canvas exists.
+       *   "Early Weeks" stat intentionally omitted — not surfaced to members.
+       */
+      function populate10PagesHero(challenge, enrollment, state) {
+        const hero = document.getElementById('chalDetailTenPpaHero');
+        if (!hero) return;
+
+        const cfg        = {};
+        try { Object.assign(cfg, JSON.parse(challenge.goalConfigJson || '{}')); } catch (e) {}
+        const dailyGoal  = cfg.dailyGoal || 10;
+        const weekThresh = dailyGoal * 7;
+
+        const habitScore          = state.habitScore          || 0;
+        const weeksHit            = state.weeksHit            || 0;
+        const maxGap              = state.maxGap              || 0;
+        const recoveryRate        = state.recoveryRate        != null ? state.recoveryRate : 1;
+        const totalPages          = state.totalPages          || 0;
+        const avgPagesPerDay      = state.avgPagesPerDay      || 0;
+        const daysSinceEnrollment = state.daysSinceEnrollment || 0;
+        const isQualified         = state.isQualified         || false;
+        const weeklyPages         = state.weeklyPages         || {};
+        const recPct              = Math.round(recoveryRate * 100);
+
+        // ── Score block ──────────────────────────────────────────────────────
+        const qualPillHtml = isQualified
+          ? '<div style="padding:4px 9px;border-radius:20px;font-size:0.58rem;font-weight:700;letter-spacing:.5px;background:rgba(94,255,194,.15);color:#5effc2;border:1px solid rgba(94,255,194,.3);">✓ Qualified</div>'
+          : '<div style="padding:4px 9px;border-radius:20px;font-size:0.58rem;font-weight:700;letter-spacing:.5px;background:rgba(231,126,22,.15);color:#e67e22;border:1px solid rgba(231,126,22,.3);">Not Qualified</div>';
+
+        const scoreRow = document.getElementById('tenPpaHeroScoreRow');
+        if (scoreRow) {
+          scoreRow.innerHTML =
+            '<div style="flex:1;">' +
+              '<div style="font-size:3.2rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-2px;">' + habitScore + '</div>' +
+              '<div style="font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:3px;">Habit Score</div>' +
+            '</div>' +
+            qualPillHtml;
+        }
+
+        const avgNote = document.getElementById('tenPpaHeroAvgNote');
+        if (avgNote) {
+          avgNote.innerHTML = 'Rolling avg <strong style="color:rgba(255,255,255,.6);">' +
+            avgPagesPerDay.toFixed(1) + ' pg/day</strong> · ' + daysSinceEnrollment + ' days in · ' +
+            totalPages.toLocaleString() + ' total pages';
+        }
+
+        // ── EKG canvas ───────────────────────────────────────────────────────
+        const canvas = document.getElementById('tenPpaEkgCanvas');
+        if (canvas) {
+          const totalWeeks = Math.floor(daysSinceEnrollment / 7);
+          const W          = canvas.parentElement.offsetWidth || 360;
+          const H          = 80;
+          const dpr        = window.devicePixelRatio || 1;
+          canvas.width     = W * dpr;
+          canvas.height    = H * dpr;
+          const ctx        = canvas.getContext('2d');
+          ctx.scale(dpr, dpr);
+
+          const past = [];
+          for (var wi = 0; wi < totalWeeks; wi++) past.push(weeklyPages[wi] || 0);
+          if (past.length < 2) past.push(0, 0);
+
+          const maxPg = Math.max(weekThresh * 1.5, Math.max.apply(null, past));
+          const step  = W / past.length;
+
+          // Faint grid lines
+          ctx.strokeStyle = 'rgba(255,255,255,.04)'; ctx.lineWidth = 1;
+          [20, 40, 60, H - 10].forEach(function(y) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+          });
+
+          // Threshold line (orange dashes at weekly goal)
+          const ty = H - (weekThresh / maxPg) * (H - 12) - 6;
+          ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(231,126,22,.5)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(0, ty); ctx.lineTo(W, ty); ctx.stroke();
+          ctx.setLineDash([]);
+
+          const pts = past.map(function(pg, i) {
+            return { x: i * step + step / 2, y: H - (pg / maxPg) * (H - 12) - 6, hit: pg >= weekThresh, pg: pg };
+          });
+
+          // Fill gradient under the line
+          const grad = ctx.createLinearGradient(0, 0, 0, H);
+          grad.addColorStop(0, 'rgba(94,255,194,.12)');
+          grad.addColorStop(1, 'rgba(94,255,194,0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath(); ctx.moveTo(pts[0].x, H);
+          pts.forEach(function(p) { ctx.lineTo(p.x, p.y); });
+          ctx.lineTo(pts[pts.length - 1].x, H); ctx.closePath(); ctx.fill();
+
+          // Line segments coloured by status
+          for (var si = 1; si < pts.length; si++) {
+            ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+            ctx.strokeStyle = pts[si].hit ? '#5effc2' : pts[si].pg > 0 ? '#534AB7' : 'rgba(255,255,255,.15)';
+            ctx.beginPath(); ctx.moveTo(pts[si-1].x, pts[si-1].y); ctx.lineTo(pts[si].x, pts[si].y); ctx.stroke();
+          }
+
+          // Dots
+          pts.forEach(function(p) {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
+            ctx.fillStyle = p.hit ? '#5effc2' : p.pg > 0 ? '#534AB7' : 'rgba(255,255,255,.15)';
+            ctx.fill();
+          });
+
+          // Current-week glow
+          const last = pts[pts.length - 1];
+          ctx.beginPath(); ctx.arc(last.x, last.y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(94,255,194,.2)'; ctx.fill();
+          ctx.beginPath(); ctx.arc(last.x, last.y, 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#5effc2'; ctx.fill();
+        }
+
+        // ── 3-stat strip ─────────────────────────────────────────────────────
+        const strip = document.getElementById('tenPpaStatStrip');
+        if (strip) {
+          const stats = [
+            { v: weeksHit,     l: 'Wks Hit',  col: '#5effc2' },
+            { v: maxGap + 'w', l: 'Max Gap',  col: '#e74c3c' },
+            { v: recPct + '%', l: 'Recovery', col: '#A984BA' }
+          ];
+          strip.innerHTML = stats.map(function(s) {
+            return '<div style="background:#050f0a;padding:10px 6px;text-align:center;">' +
+              '<div style="font-size:1rem;font-weight:800;line-height:1;color:' + s.col + ';">' + s.v + '</div>' +
+              '<div style="font-size:0.4rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:3px;">' + s.l + '</div>' +
+            '</div>';
+          }).join('');
+        }
+
+        hero.style.display = '';
+      }
+
+      /**
+       * Function: render10PagesProgress()
+       * Parameters:
+       *   challenge  {ChallengeRecord}
+       *   enrollment {ChallengeEnrollmentRecord}
+       *   state      {Object} - parsed progressStateJson from ArkaChallengePass
+       * Return Type: {string} HTML
+       * Logic Summary:
+       *   Returns the scrollable body content for chalDetailMineContent.
+       *   Hero is rendered separately by populate10PagesHero() called after this.
+       *   Shows:
+       *     - Monthly consistency rings (constellation-style SVG rings)
+       *     - Qualification tracker bar + habit theory blurb
+       *   No weekly grid (would confuse vs Me tab heatmap).
+       *   No early-weeks detail (algorithm not surfaced to members).
+       */
+      function render10PagesProgress(challenge, enrollment, state) {
+        const cfg        = {};
+        try { Object.assign(cfg, JSON.parse(challenge.goalConfigJson || '{}')); } catch (e) {}
+        const dailyGoal  = cfg.dailyGoal || 10;
+        const weekThresh = dailyGoal * 7;
+
+        // ── Bootstrap zero-state if pass hasn't run yet ──────────────────────
+        const hasData = state && (state.totalPages !== undefined);
+        if (!hasData) {
+          return '<div style="text-align:center;padding:32px 16px;">' +
+            '<div style="font-size:2.4rem;margin-bottom:8px;">🔥</div>' +
+            '<div style="font-weight:700;font-size:1rem;color:var(--text-strong);margin-bottom:6px;">Enrolled!</div>' +
+            '<div style="font-size:0.82rem;color:var(--text-muted);line-height:1.5;">' +
+              'Your Habit Score and progress will appear here after the nightly sync.' +
+            '</div>' +
+          '</div>';
+        }
+
+        const daysSinceEnrollment = state.daysSinceEnrollment || 0;
+        const avgPagesPerDay      = state.avgPagesPerDay      || 0;
+        const isQualified         = state.isQualified         || false;
+        const weeklyPages         = state.weeklyPages         || {};
+        const monthlyBreakdown    = state.monthlyBreakdown    || {};
+
+        const qualPct = Math.min(100, Math.round((avgPagesPerDay / dailyGoal) * 100));
+
+        // ── Monthly habit rings ──────────────────────────────────────────────
+        // For each calendar month: pages logged + weeks hit in that month.
+        // Week-to-month mapping derived from enrollment.enrolledOn + week index.
+        const enrolledOn    = _parseEnrolledOn_(enrollment.enrolledOn);
+        const totalWeeksEl  = Math.floor(daysSinceEnrollment / 7);
+        const mData         = {};  // "YYYY-MM" → { hitWeeks, totalWeeks }
+
+        for (var wi = 0; wi < totalWeeksEl; wi++) {
+          const wStartMs = enrolledOn.getTime() + wi * 7 * 86400000;
+          const wDate    = new Date(wStartMs);
+          const mKey     = wDate.getFullYear() + '-' + _pad2Str_(wDate.getMonth() + 1);
+          if (!mData[mKey]) mData[mKey] = { hitWeeks: 0, totalWeeks: 0 };
+          const pg = weeklyPages[wi] || 0;
+          mData[mKey].totalWeeks++;
+          if (pg >= weekThresh) mData[mKey].hitWeeks++;
+        }
+
+        const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const C = 2 * Math.PI * 12; // SVG ring circumference (r=12)
+
+        let ringsHtml = '';
+        Object.keys(monthlyBreakdown).sort().forEach(function(mk) {
+          const md       = mData[mk] || { hitWeeks: 0, totalWeeks: 0 };
+          const fillFrac = md.totalWeeks > 0 ? md.hitWeeks / md.totalWeeks : 0;
+          const offset   = C * (1 - fillFrac);
+          const pages    = monthlyBreakdown[mk] || 0;
+          const pgLabel  = pages >= 1000 ? (Math.round(pages / 100) / 10) + 'k' : pages;
+          const parts    = mk.split('-');
+          const mName    = MONTH_ABBR[parseInt(parts[1], 10) - 1] || mk;
+
+          const ringCol = fillFrac >= 0.75 ? '#5effc2' : fillFrac >= 0.5 ? '#A984BA' : fillFrac > 0 ? '#e67e22' : 'rgba(255,255,255,.1)';
+          const cardBdr = fillFrac >= 0.75 ? 'rgba(94,255,194,.25)' : fillFrac >= 0.5 ? 'rgba(169,132,186,.25)' : fillFrac > 0 ? 'rgba(231,126,22,.25)' : 'rgba(255,255,255,.06)';
+          const cardBg  = fillFrac >= 0.75 ? 'rgba(94,255,194,.05)' : fillFrac >= 0.5 ? 'rgba(169,132,186,.05)' : 'rgba(255,255,255,.03)';
+
+          ringsHtml +=
+            '<div style="flex-shrink:0;width:56px;background:' + cardBg + ';border:1px solid ' + cardBdr + ';' +
+              'border-radius:10px;padding:8px 4px;text-align:center;">' +
+              '<div style="font-size:0.5rem;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:5px;">' + mName + '</div>' +
+              '<div style="position:relative;width:32px;height:32px;margin:0 auto 5px;">' +
+                '<svg width="32" height="32" viewBox="0 0 30 30" style="transform:rotate(-90deg);">' +
+                  '<circle cx="15" cy="15" r="12" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="3"/>' +
+                  '<circle cx="15" cy="15" r="12" fill="none" stroke="' + ringCol + '" stroke-width="3"' +
+                    ' stroke-dasharray="' + C.toFixed(1) + '"' +
+                    ' stroke-dashoffset="' + offset.toFixed(1) + '"' +
+                    ' stroke-linecap="round"/>' +
+                '</svg>' +
+                '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);' +
+                  'font-size:0.52rem;font-weight:700;color:' + (fillFrac >= 0.5 ? ringCol : 'rgba(255,255,255,.3)') + ';">' +
+                  md.hitWeeks + '/' + md.totalWeeks +
+                '</div>' +
+              '</div>' +
+              '<div style="font-size:0.58rem;font-weight:700;color:rgba(255,255,255,.7);">' + pgLabel + '</div>' +
+              '<div style="font-size:0.44rem;color:rgba(255,255,255,.2);margin-top:1px;">pages</div>' +
+            '</div>';
+        });
+
+        let html = '';
+
+        if (ringsHtml) {
+          html += '<div style="background:#060d08;border-radius:10px;padding:12px;margin-bottom:12px;">' +
+            '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:10px;">Monthly Consistency</div>' +
+            '<div style="display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;">' +
+              ringsHtml +
+            '</div>' +
+            '<div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">' +
+              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.25);">' +
+                '<div style="width:7px;height:7px;border-radius:50%;background:#5effc2;"></div>Great (≥75% wks)' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.25);">' +
+                '<div style="width:7px;height:7px;border-radius:50%;background:#A984BA;"></div>Good (≥50%)' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.25);">' +
+                '<div style="width:7px;height:7px;border-radius:50%;background:#e67e22;"></div>Building' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }
+
+        // ── Qualification tracker ────────────────────────────────────────────
+        html += '<div style="background:#0a1a0e;border-radius:10px;padding:12px;margin-bottom:12px;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;">' +
+            '<div style="font-size:0.55rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);">Qualification — Rolling Avg</div>' +
+            '<div style="font-size:1rem;font-weight:800;color:#5effc2;">' + avgPagesPerDay.toFixed(1) + ' pg/day</div>' +
+          '</div>' +
+          '<div style="height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;position:relative;">' +
+            '<div style="height:100%;width:' + qualPct + '%;background:linear-gradient(90deg,#1D6B52,#5effc2);border-radius:3px;transition:width 1s ease;"></div>' +
+            '<div style="position:absolute;top:-3px;left:50%;width:2px;height:12px;background:#e67e22;border-radius:1px;"></div>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:0.46rem;color:rgba(255,255,255,.2);margin-top:4px;">' +
+            '<span>0</span><span style="color:#e67e22;">10 pg/day ← threshold</span><span>20+</span>' +
+          '</div>' +
+        '</div>';
+
+        // ── Habit theory blurb ───────────────────────────────────────────────
+        html += '<div style="background:#060d08;border:1px solid rgba(94,255,194,.08);border-radius:10px;padding:12px;">' +
+          '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(94,255,194,.4);margin-bottom:7px;">The Science Behind This Challenge</div>' +
+          '<div style="font-size:0.7rem;color:rgba(255,255,255,.45);line-height:1.65;">' +
+            'This challenge applies B.J. Fogg’s <em>Tiny Habits</em> (Stanford, 2019): small, consistent daily actions ' +
+            'wire new behaviours into identity faster than large sporadic efforts. James Clear’s <em>Atomic Habits</em> (2018) ' +
+            'extends this — what matters is not how much you read in a session, but whether you show up. ' +
+            'Miss one week, no problem. Miss two in a row — that’s the habit to break.' +
+            '<br><br>' +
+            'Your Habit Score measures <strong style="color:rgba(255,255,255,.65);">consistency over volume</strong> — ' +
+            'sustained weekly reading scores higher than occasional binges. Bouncing back quickly after a miss is rewarded. ' +
+            'Long stretches without reading reduce your score. The goal: become someone who reads every day, ' +
+            'not just someone who has read a lot.' +
+          '</div>' +
+        '</div>';
+
+        return html;
+      }
+
+      /**
+       * Function: render10PagesClub()
+       * Parameters:
+       *   challenge   {ChallengeRecord}
+       *   enrollments {ChallengeEnrollmentRecord[]} - all non-Dropped enrollments
+       * Return Type: {string} HTML
+       * Logic Summary:
+       *   Splits members into Qualified (isQualified=true) and Not Qualified.
+       *   Qualified ranked by habitScore (desc); not-qualified by avgPagesPerDay (desc).
+       */
+      function render10PagesClub(challenge, enrollments) {
+        const qualified    = [];
+        const notQualified = [];
+
+        enrollments.forEach(function(enr) {
+          let st = {};
+          try { st = JSON.parse(enr.progressStateJson || '{}'); } catch (e) {}
+          const item = {
+            enrollment    : enr,
+            state         : st,
+            habitScore    : st.habitScore     || 0,
+            avgPagesPerDay: st.avgPagesPerDay  || 0,
+            isQualified   : st.isQualified    || false,
+            isMe          : enr.memberId === currentUser
+          };
+          if (item.isQualified) qualified.push(item);
+          else notQualified.push(item);
+        });
+
+        qualified.sort(function(a, b)    { return b.habitScore     - a.habitScore; });
+        notQualified.sort(function(a, b) { return b.avgPagesPerDay - a.avgPagesPerDay; });
+
+        function _clubRow_(item, rank, showRank) {
+          const member = membersMap.get(item.enrollment.memberId);
+          const name   = member ? member.displayName : item.enrollment.memberId;
+          const avatar = buildAvatarHtml(member, 30);
+          const rankBadge = showRank
+            ? (rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉'
+              : '<span style="min-width:20px;display:inline-block;text-align:center;font-size:0.7rem;color:rgba(255,255,255,.25);">' + rank + '</span>')
+            : '<span style="min-width:20px;display:inline-block;"></span>';
+          const scoreStr = item.isQualified
+            ? '<span style="color:#5effc2;font-weight:700;">' + item.habitScore + '</span><span style="color:rgba(255,255,255,.25);font-size:0.65rem;margin-left:2px;">hs</span>'
+            : '<span style="color:rgba(255,255,255,.4);">' + item.avgPagesPerDay.toFixed(1) + '</span><span style="color:rgba(255,255,255,.2);font-size:0.65rem;margin-left:2px;">pg/d</span>';
+
+          return '<div style="display:flex;align-items:center;gap:8px;padding:7px ' + (item.isMe ? '8px' : '0') + ';' +
+            'border-radius:' + (item.isMe ? '7px' : '0') + ';' +
+            'background:' + (item.isMe ? 'rgba(83,74,183,.15)' : 'transparent') + ';' +
+            'margin:' + (item.isMe ? '3px -8px' : '0') + ';' +
+            'border-bottom:' + (item.isMe ? 'none' : '1px solid rgba(255,255,255,.04)') + ';' +
+            'cursor:' + (member ? 'pointer' : 'default') + ';"' +
+            (member ? ' onclick="showMemberProfile(\'' + item.enrollment.memberId + '\')"' : '') + '>' +
+            '<div style="width:22px;text-align:center;">' + rankBadge + '</div>' +
+            avatar +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                '<span style="font-size:0.72rem;color:' + (item.isMe ? '#A984BA' : 'rgba(255,255,255,.75)') + ';font-weight:' + (item.isMe ? '600' : '400') + ';">' +
+                  escapeHtml(name) + (item.isMe ? ' (you)' : '') +
+                '</span>' +
+                '<span>' + scoreStr + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }
+
+        const bg  = '#060d08';
+        const bdr = 'rgba(255,255,255,.05)';
+
+        let html = '<div style="display:flex;justify-content:space-between;margin-bottom:10px;">' +
+          '<span style="font-size:0.72rem;color:rgba(255,255,255,.3);">' + enrollments.length + ' enrolled</span>' +
+          '<span style="font-size:0.66rem;color:rgba(255,255,255,.2);">Qualified ranked by Habit Score</span>' +
+        '</div>';
+
+        if (qualified.length > 0) {
+          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:#5effc2;margin-bottom:7px;">✓ Qualified (' + qualified.length + ')</div>' +
+            '<div style="background:' + bg + ';border:1px solid ' + bdr + ';border-radius:10px;padding:10px 12px;margin-bottom:12px;">';
+          qualified.forEach(function(item, idx) { html += _clubRow_(item, idx + 1, true); });
+          html += '</div>';
+        }
+
+        if (notQualified.length > 0) {
+          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:7px;">Working Toward It (' + notQualified.length + ')</div>' +
+            '<div style="background:' + bg + ';border:1px solid ' + bdr + ';border-radius:10px;padding:10px 12px;">';
+          notQualified.forEach(function(item, idx) { html += _clubRow_(item, idx + 1, false); });
+          html += '</div>';
+        }
+
+        return html;
+      }
+
+      /** Parses enrollment.enrolledOn (Arka Z-format or Date object) into a JS Date. */
+      function _parseEnrolledOn_(raw) {
+        if (!raw) return new Date();
+        if (raw instanceof Date) return raw;
+        const s = raw.toString().trim();
+        const z = s.match(/^(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+([\+\-]\d{4})$/);
+        if (z) return new Date(z[3]+'-'+z[2]+'-'+z[1]+'T'+z[4]+':'+z[5]+':'+z[6]+z[7]);
+        return new Date(s);
+      }
+
+      /** Zero-pads a number to a 2-character string. */
+      function _pad2Str_(n) { return n < 10 ? '0' + n : '' + n; }
+
+
       /**
        * Renders the My Progress view for BOOK_COUNT and PAGE_COUNT challenges.
        *
@@ -32336,7 +32744,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           return;
         }
     
-        if (challenge.competitionMode && challenge.competitionMode !== 'NONE') {
+        if (challenge.challengeType === '10PAGESADAY') {
+          container.innerHTML = render10PagesClub(challenge, challEnrollments);
+        } else if (challenge.competitionMode && challenge.competitionMode !== 'NONE') {
           container.innerHTML = renderCompetitiveLeaderboard(challenge, challEnrollments);
         } else {
           container.innerHTML = renderPaceTable(challenge, challEnrollments);
