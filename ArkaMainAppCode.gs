@@ -7227,17 +7227,15 @@ function syncCountChallengeProgress(memberId, ss, preReadShelfRows = null, preRe
 
           if (isNaN(finishedMs) || finishedMs < startDateMs || finishedMs > endDateMs) continue;
 
-          const bookId     = sRow[2].toString();
+          const shelfId    = sRow[0].toString();
           const finishedOn = Utilities.formatDate(
             finishedDate, Session.getScriptTimeZone(), 'dd-MMM-yyyy'
           );
 
-          // Get book title from globalBooksDB equivalent — just store bookId
-          booksRead.push({ bookId: bookId, title: '', finishedOn: finishedOn });
+          booksRead.push({ shelfId: shelfId, finishedOn: finishedOn });
 
-          // Monthly breakdown key: 'Jan', 'Feb', etc.
-          const monthKey = ['Jan','Feb','Mar','Apr','May','Jun',
-                            'Jul','Aug','Sep','Oct','Nov','Dec'][finishedDate.getMonth()] || '?';
+          const monthKey = finishedDate.getFullYear() + '-' +
+                           String(finishedDate.getMonth() + 1).padStart(2, '0');
           monthlyBreakdown[monthKey] = (monthlyBreakdown[monthKey] || 0) + 1;
         }
  
@@ -7281,12 +7279,12 @@ function syncCountChallengeProgress(memberId, ss, preReadShelfRows = null, preRe
 
           totalPages += pages;
 
-          const monthKey = ['Jan','Feb','Mar','Apr','May','Jun',
-                            'Jul','Aug','Sep','Oct','Nov','Dec'][logDate.getMonth()] || '?';
+          const monthKey = logDate.getFullYear() + '-' +
+                           String(logDate.getMonth() + 1).padStart(2, '0');
           monthlyBreakdown[monthKey] = (monthlyBreakdown[monthKey] || 0) + pages;
 
           const weekNum = getISOWeekNumber(logDate);
-          const weekKey = 'W' + String(weekNum).padStart(2, '0');
+          const weekKey = logDate.getFullYear() + '-W' + String(weekNum).padStart(2, '0');
           weeklyBreakdown[weekKey] = (weeklyBreakdown[weekKey] || 0) + pages;
         }
  
