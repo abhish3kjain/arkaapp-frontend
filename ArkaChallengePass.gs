@@ -1,5 +1,5 @@
 /**
- * ARKA CHALLENGE PASS    v1.2.0
+ * ARKA CHALLENGE PASS    v1.3.0
  * Full version history: VERSIONS.md
  *
  * Standalone nightly pass — computes and persists progressStateJson for all
@@ -431,6 +431,11 @@ function _compute10PagesState_(chal, memberId, enrolledOn, pageLogs, now, existi
     (maxGap        * 5)
   );
 
+  const maxAchievableScore = (totalWeeksElapsed * 10) + (Math.min(totalWeeksElapsed, 10) * 10) + 50;
+  const habitScoreNorm = totalWeeksElapsed >= 1
+    ? Math.min(100, Math.round(habitScore / maxAchievableScore * 100))
+    : null;
+
   const avgPagesPerDay = daysSinceEnrollment > 0
     ? Math.round((totalPages / daysSinceEnrollment) * 10) / 10
     : 0;
@@ -452,6 +457,7 @@ function _compute10PagesState_(chal, memberId, enrolledOn, pageLogs, now, existi
       maxGap              : maxGap,
       recoveryRate        : Math.round(recoveryRate * 1000) / 1000,
       habitScore          : habitScore,
+      habitScoreNorm      : habitScoreNorm,   // normalized 0–100; null before first complete week
       weeklyPages         : weekPages,        // {weekIndex: pages} — sparse map
       monthlyBreakdown    : monthlyBreakdown,
       lastSyncedOn        : _chalpassTimestamp_(now)
