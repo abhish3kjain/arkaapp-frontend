@@ -3572,6 +3572,8 @@ function getAdminPanelData() {
         displayName    : (memberRows[i][3] || '').toString().trim(),
         joinDate       : joinDateStr,
         country        : (memberRows[i][5] || '').toString().trim(),
+        bio            : (memberRows[i][6]  || '').toString().trim(),
+        goal           : (memberRows[i][11] || '').toString().trim(),
         lastAccessed   : lastAccessedStr,   // formatted string for display
         lastAccessedTs : lastAccessedTs,    // unix ms for JS comparisons
         totalCp        : _parseColOStats_(memberRows[i][14]).allTime.arkaPoints, // Col O Stats JSON
@@ -7225,17 +7227,15 @@ function syncCountChallengeProgress(memberId, ss, preReadShelfRows = null, preRe
 
           if (isNaN(finishedMs) || finishedMs < startDateMs || finishedMs > endDateMs) continue;
 
-          const bookId     = sRow[2].toString();
+          const shelfId    = sRow[0].toString();
           const finishedOn = Utilities.formatDate(
             finishedDate, Session.getScriptTimeZone(), 'dd-MMM-yyyy'
           );
 
-          // Get book title from globalBooksDB equivalent — just store bookId
-          booksRead.push({ bookId: bookId, title: '', finishedOn: finishedOn });
+          booksRead.push({ shelfId: shelfId, finishedOn: finishedOn });
 
-          // Monthly breakdown key: 'Jan', 'Feb', etc.
-          const monthKey = ['Jan','Feb','Mar','Apr','May','Jun',
-                            'Jul','Aug','Sep','Oct','Nov','Dec'][finishedDate.getMonth()] || '?';
+          const monthKey = finishedDate.getFullYear() + '-' +
+                           String(finishedDate.getMonth() + 1).padStart(2, '0');
           monthlyBreakdown[monthKey] = (monthlyBreakdown[monthKey] || 0) + 1;
         }
  
@@ -7279,12 +7279,12 @@ function syncCountChallengeProgress(memberId, ss, preReadShelfRows = null, preRe
 
           totalPages += pages;
 
-          const monthKey = ['Jan','Feb','Mar','Apr','May','Jun',
-                            'Jul','Aug','Sep','Oct','Nov','Dec'][logDate.getMonth()] || '?';
+          const monthKey = logDate.getFullYear() + '-' +
+                           String(logDate.getMonth() + 1).padStart(2, '0');
           monthlyBreakdown[monthKey] = (monthlyBreakdown[monthKey] || 0) + pages;
 
           const weekNum = getISOWeekNumber(logDate);
-          const weekKey = 'W' + String(weekNum).padStart(2, '0');
+          const weekKey = logDate.getFullYear() + '-W' + String(weekNum).padStart(2, '0');
           weeklyBreakdown[weekKey] = (weeklyBreakdown[weekKey] || 0) + pages;
         }
  
@@ -9786,6 +9786,122 @@ function getAdminChallengesData() {
   } catch (err) {
     console.error('getAdminChallengesData error:', err);
     return { status: 'error', message: 'Failed to load challenges: ' + (err.message || String(err)) };
+  }
+}
+
+/**
+ * ADMIN ONLY: Updates a member's editable profile fields by member ID.
+ * Admin-gated; enforces display-name uniqueness across the whole MemberDB.
+ *
+ * @param {{ targetMemberId:string, fullName:string, displayName:string,
+ *            country:string, bio:string, goal:string }} formData
+ * @returns {{ status:'success', memberId:string }|{ status:'error', message:string }}
+ */
+function adminUpdateMemberProfile(formData) {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId)                return { status: 'error', message: 'Unauthorized session.' };
+  if (!isAdminMember(currentMemberId)) return { status: 'error', message: 'Admin access required.' };
+
+  const targetId = (formData.targetMemberId || '').toString().trim();
+  if (!targetId) return { status: 'error', message: 'Target member ID is required.' };
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return { status: 'error', message: 'System is currently busy. Please try again.' };
+  }
+  try {
+    const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(MEMBERS_SHEET);
+    if (!sheet) return { status: 'error', message: 'MemberDB sheet not found.' };
+
+    const data = sheet.getDataRange().getValues();
+
+    let targetRowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      if ((data[i][0] || '').toString().trim() === targetId) {
+        targetRowIndex = i;
+        break;
+      }
+    }
+    if (targetRowIndex === -1) {
+      return { status: 'error', message: 'Member not found: ' + targetId };
+    }
+
+    // Display-name uniqueness check (skip the target member's own row)
+    const desiredName = (formData.displayName || '').toLowerCase().trim();
+    if (desiredName) {
+      for (let i = 1; i < data.length; i++) {
+        if (i === targetRowIndex) continue;
+        if ((data[i][3] || '').toString().toLowerCase().trim() === desiredName) {
+          return { status: 'error', message: 'That Display Name is already taken by another member.' };
+        }
+      }
+    }
+
+    // Batch-write only the five editable fields (cols C, D, F, G, L = 1-indexed 3,4,6,7,12)
+    const row = targetRowIndex + 1; // 1-indexed
+    sheet.getRange(row, 3).setValue((formData.fullName    || '').toString().trim());  // Col C
+    sheet.getRange(row, 4).setValue((formData.displayName || '').toString().trim());  // Col D
+    sheet.getRange(row, 6).setValue((formData.country     || '').toString().trim());  // Col F
+    sheet.getRange(row, 7).setValue((formData.bio         || '').toString().trim());  // Col G
+    sheet.getRange(row, 12).setValue((formData.goal       || '').toString().trim());  // Col L
+
+    console.log('adminUpdateMemberProfile: admin=' + currentMemberId + ' updated member=' + targetId);
+    return { status: 'success', memberId: targetId };
+
+  } catch (err) {
+    console.error('adminUpdateMemberProfile error:', err);
+    return { status: 'error', message: 'Save failed: ' + (err.message || String(err)) };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * ADMIN ONLY: Returns the full library catalogue for the admin panel.
+ *
+ * @returns {{ status:'success', bookList:Array }|{ status:'error', message:string }}
+ */
+function getAdminLibraryData() {
+  const currentMemberId = getVerifiedMemberId();
+  if (!currentMemberId)                return { status: 'error', message: 'Unauthorized session.' };
+  if (!isAdminMember(currentMemberId)) return { status: 'error', message: 'Admin access required.' };
+
+  try {
+    const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(LIBRARY_SHEET);
+    if (!sheet) return { status: 'error', message: 'LibraryDB sheet not found.' };
+
+    const data     = sheet.getDataRange().getValues();
+    const bookList = [];
+
+    for (let i = 1; i < data.length; i++) {
+      const r = data[i];
+      if (!r[0]) continue;
+      const rawAdded = r[6];
+      const addedDate = rawAdded instanceof Date
+        ? Utilities.formatDate(rawAdded, Session.getScriptTimeZone(), 'dd-MMM-yyyy')
+        : (rawAdded || '').toString().trim();
+      bookList.push({
+        bookId   : r[0].toString().trim(),
+        title    : (r[1]  || '').toString().trim(),
+        author   : (r[2]  || '').toString().trim(),
+        genre    : (r[3]  || '').toString().trim(),
+        pages    : Number(r[4]) || 0,
+        addedBy  : (r[5]  || '').toString().trim(),
+        addedDate: addedDate,
+        coverURL : (r[9]  || '').toString().trim(),
+        isbn13   : (r[10] || '').toString().trim(),
+        pubDate  : (r[11] || '').toString().trim(),
+        blurb    : (r[12] || '').toString().trim()
+      });
+    }
+
+    return { status: 'success', bookList: bookList };
+
+  } catch (err) {
+    console.error('getAdminLibraryData error:', err);
+    return { status: 'error', message: 'Failed to load library: ' + (err.message || String(err)) };
   }
 }
 

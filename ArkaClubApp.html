@@ -1,8 +1,9 @@
-<!-- ArkaClubApp.html    v1.2.0 | Full version history: VERSIONS.md -->
+<!-- ArkaClubApp.html    v1.3.0 | Full version history: VERSIONS.md -->
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/styles.css?v=1.7">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://abhish3kjain.github.io/arkaapp-frontend/styles.css?v=1.9">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -349,7 +350,7 @@
                 </div>
                 <div class="lib-stat-pill lib-stat-reading">
                   <span class="lib-stat-value" id="mbrStatActiveWeek">&mdash;</span>
-                  <span class="lib-stat-label">Active This Week</span>
+                  <span class="lib-stat-label">Active</span>
                 </div>
                 <div class="lib-stat-pill">
                   <span class="lib-stat-value" id="mbrStatPagesYear">&mdash;</span>
@@ -957,40 +958,79 @@
                2a. Stat pills  2b. Weekly page log heatmap  2c. Level progress bar
           ──────────────────────────────────────────────────────────────────────── -->
 
-          <!-- Stat pills — split design: current year (top) / lifetime total (bottom) -->
+          <!-- Stat circles — 3-column grid matching the former pill widths -->
           <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px;">
 
-            <!-- Pages: year on top, lifetime below -->
-            <div style="background:white; border:0.5px solid var(--border-soft); border-radius:10px; padding:10px; text-align:center;">
-              <div style="font-size:18px; font-weight:700; color:var(--text-strong); line-height:1;" id="meStatPagesYear">–</div>
-              <div style="font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:3px;" id="meStatPagesYearLabel">pages</div>
-              <div style="height:1px; background:var(--border-soft); margin:6px 4px;"></div>
-              <div style="font-size:12px; font-weight:600; color:var(--text-faint); line-height:1;" id="meStatPagesTotal">0</div>
-              <div style="font-size:9px; color:var(--text-faint); margin-top:2px;">total</div>
+            <!-- Pages ring circle -->
+            <div style="aspect-ratio:1/1; position:relative;" id="meStatPagesCircleWrap">
+              <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
+                <circle cx="50" cy="50" r="44" fill="white" stroke="var(--border-soft)" stroke-width="9"/>
+                <circle id="meStatPagesRingArc" cx="50" cy="50" r="44" fill="none"
+                        stroke="var(--arka-accent,#7c3aed)" stroke-width="11"
+                        stroke-dasharray="0 277" stroke-dashoffset="0"
+                        stroke-linecap="round" transform="rotate(-90 50 50)"
+                        style="transition:stroke-dasharray 0.6s ease;"/>
+              </svg>
+              <div style="position:absolute;top:0;left:0;right:0;bottom:0;
+                          display:flex;flex-direction:column;align-items:center;justify-content:center;
+                          text-align:center;gap:2px;">
+                <div id="meStatPagesYear"
+                     style="font-size:clamp(17px,5.4vw,24px);font-weight:800;color:var(--text-strong);line-height:1;">–</div>
+                <div style="font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);text-transform:uppercase;
+                            letter-spacing:0.5px;line-height:1;font-weight:600;">pages</div>
+                <div id="meStatPagesGoalSub"
+                     style="font-size:clamp(7px,2vw,10px);color:var(--text-faint);line-height:1;display:none;"></div>
+                <a id="meStatPagesAddGoalCta" href="#" onclick="event.preventDefault();switchTab('challenges');"
+                   style="font-size:clamp(7px,2vw,10px);color:var(--arka-accent,#7c3aed);font-weight:700;
+                          text-decoration:none;line-height:1;display:none;">＋ Add goal</a>
+              </div>
             </div>
 
-            <!-- Books: year on top, lifetime below -->
-            <!-- Tapping the pill opens My Finished Books filtered to the current year -->
-            <div style="background:white; border:0.5px solid var(--border-soft); border-radius:10px; padding:10px; text-align:center;
-                        cursor:pointer; transition:background 0.15s;"
-                 onclick="openFullShelf(currentUser, 'Finished', new Date().getFullYear().toString())"
-                 onmouseover="this.style.background='#f5f0ff'"
-                 onmouseout="this.style.background='white'"
+            <!-- Books ring circle -->
+            <div style="aspect-ratio:1/1; position:relative; cursor:pointer;" id="meStatBooksCircleWrap"
+                 onclick="openFullShelf(currentUser,'Finished',new Date().getFullYear().toString())"
                  title="View my finished books this year">
-              <div style="font-size:18px; font-weight:700; color:var(--text-strong); line-height:1;" id="meStatBooksYear">–</div>
-              <div style="font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:3px;" id="meStatBooksYearLabel">books</div>
-              <div style="height:1px; background:var(--border-soft); margin:6px 4px;"></div>
-              <div style="font-size:12px; font-weight:600; color:var(--text-faint); line-height:1;" id="meStatBooksTotal">0</div>
-              <div style="font-size:9px; color:var(--text-faint); margin-top:2px;">total</div>
+              <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
+                <circle cx="50" cy="50" r="44" fill="white" stroke="var(--border-soft)" stroke-width="9"/>
+                <circle id="meStatBooksRingArc" cx="50" cy="50" r="44" fill="none"
+                        stroke="var(--arka-accent,#7c3aed)" stroke-width="11"
+                        stroke-dasharray="0 277" stroke-dashoffset="0"
+                        stroke-linecap="round" transform="rotate(-90 50 50)"
+                        style="transition:stroke-dasharray 0.6s ease;"/>
+              </svg>
+              <div style="position:absolute;top:0;left:0;right:0;bottom:0;
+                          display:flex;flex-direction:column;align-items:center;justify-content:center;
+                          text-align:center;gap:2px;">
+                <div id="meStatBooksYear"
+                     style="font-size:clamp(17px,5.4vw,24px);font-weight:800;color:var(--text-strong);line-height:1;">–</div>
+                <div style="font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);text-transform:uppercase;
+                            letter-spacing:0.5px;line-height:1;font-weight:600;">books</div>
+                <div id="meStatBooksGoalSub"
+                     style="font-size:clamp(7px,2vw,10px);color:var(--text-faint);line-height:1;display:none;"></div>
+                <a id="meStatBooksAddGoalCta" href="#" onclick="event.preventDefault();event.stopPropagation();switchTab('challenges');"
+                   style="font-size:clamp(7px,2vw,10px);color:var(--arka-accent,#7c3aed);font-weight:700;
+                          text-decoration:none;line-height:1;display:none;">＋ Add goal</a>
+              </div>
             </div>
 
-            <!-- Streak: current streak on top, active weeks this year below -->
-            <div id="meStatStreakTile" style="background:var(--surface-alt); border:0.5px solid var(--border-soft); border-radius:10px; padding:10px; text-align:center;">
-              <div style="font-size:18px; font-weight:700; color:var(--text-muted); line-height:1;" id="meStatStreakValue">–</div>
-              <div id="meStatStreakLabel" style="font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:3px;">streak</div>
-              <div style="height:1px; background:var(--border-soft); margin:6px 4px;"></div>
-              <div style="font-size:12px; font-weight:600; color:var(--text-faint); line-height:1;" id="meStatWeeksActive">–</div>
-              <div style="font-size:9px; color:var(--text-faint); margin-top:2px;" id="meStatWeeksLabel">wks logged</div>
+            <!-- Streak circle (no ring — just warm bordered circle) -->
+            <div id="meStatStreakTile"
+                 style="aspect-ratio:1/1;position:relative;border-radius:50%;
+                        background:var(--surface-alt);border:3.5px solid var(--border-soft);
+                        display:flex;flex-direction:column;align-items:center;justify-content:center;
+                        text-align:center;gap:2px;">
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span id="meStatStreakValue"
+                      style="font-size:clamp(18px,5.85vw,26px);font-weight:900;color:var(--text-muted);line-height:1;">–</span>
+                <span id="meStatStreakFire"
+                      style="font-size:clamp(18px,5.85vw,26px);line-height:1;display:none;">🔥</span>
+              </div>
+              <div id="meStatWeeksLabel"
+                   style="font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);
+                          text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">weeks</div>
+              <div id="meStatStreakLabel"
+                   style="font-size:clamp(9px,2.8vw,13px);color:var(--text-muted);
+                          text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">streak</div>
             </div>
 
           </div>
@@ -1009,13 +1049,8 @@
 
             <div id="meStreakContainer" style="display: none; margin-bottom: 14px;"></div>
             <div id="heatmapGrid" class="heatmap-grid"></div>
-            <!-- Heatmap footer: current-week page tally (left) + range label (right) -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-top:5px;">
-              <div style="font-size:10px; color:var(--arka-accent);">
-                You logged <span id="meHeatmapThisWeekPages">–</span> pages this week
-              </div>
-              <div style="font-size:10px; color:#999;">Week 1 to 52</div>
-            </div>
+            <!-- Heatmap footer: week range label -->
+            <div style="text-align:right; margin-top:5px; font-size:10px; color:#999;">Week 1 to 52</div>
           </div>
 
           <!-- Level progress bar -->
@@ -2953,27 +2988,27 @@
       <!-- ── Challenges full view ────────────────────────────────────────────────── -->
       <div id="challengesView" class="view-section" style="display: none;">
 
-        <!-- Flush banner to container edges — same pattern as Members/Badges/HOF -->
-        <div style="overflow:hidden; margin:-40px 0 0;">
+        <div style="margin:-40px 0 0;">
 
         <!-- ── Challenges Hero Banner ────────────────────────────────────────── -->
         <div id="chalBanner">
 
-          <button id="chalBackBtn"
-                  class="btn-back-circle btn-back-circle--dark"
-                  onclick="navPop(function(e){ switchTab(e.viewName || 'home'); })"
-                  aria-label="Go back"
-                  style="position:absolute; top:12px; left:12px; z-index:3; display:none;">
-            <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
-          </button>
-
           <div style="position:relative; z-index:2;">
 
-            <!-- Top row: wordmark left, tag pills right -->
+            <!-- Top row: back button + wordmark left, tag pills right -->
             <div class="chal-toprow">
-              <div>
-                <div class="chal-banner-title">CHALLENGES</div>
-                <div class="chal-banner-sub">Arka Readers Club</div>
+              <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                <button id="chalBackBtn"
+                        class="btn-back-circle btn-back-circle--dark"
+                        onclick="navPop(function(e){ switchTab(e.viewName || 'home'); })"
+                        aria-label="Go back"
+                        style="flex-shrink:0;">
+                  <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
+                </button>
+                <div style="min-width:0;">
+                  <div class="chal-banner-title">CHALLENGES</div>
+                  <div class="chal-banner-sub">Arka Readers Club</div>
+                </div>
               </div>
               <div class="chal-toprow-tags" id="chalTopRowTags"></div>
             </div>
@@ -3053,16 +3088,62 @@
       </div>
 
       <div id="challengeDetailView" class="view-section" style="display:none;">
- 
-        <!-- Sticky header -->
-        <div class="chal-detail-header">
-          <button class="chal-detail-back" onclick="closeChallengeDetailView()">⬅ Back</button>
-          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <div class="chal-detail-title" id="chalDetailTitle">Challenge</div>
-            <span class="chal-detail-status-badge" id="chalDetailStatusBadge"></span>
+
+        <div style="margin:-40px 0 0;">
+
+          <!-- Dark header bar -->
+          <div class="chal-detail-header">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                <button class="btn-back-circle btn-back-circle--dark" onclick="closeChallengeDetailView()" aria-label="Back">
+                  <i class="fa-solid fa-chevron-left" style="font-size:11px;"></i>
+                </button>
+                <div class="chal-detail-title" id="chalDetailTitle">Challenge</div>
+              </div>
+              <span class="chal-detail-status-badge" id="chalDetailStatusBadge"></span>
+            </div>
           </div>
-        </div>
-      
+
+          <!-- Bookshelf Hero — shown only for BOOK_COUNT challenges -->
+          <div id="chalDetailBookshelfHero" class="chal-shelf-hero" style="display:none;">
+            <div class="chal-shelf-inner">
+              <div class="chal-shelf-section-lbl">Your Reading Shelf</div>
+              <div id="shelfSpinesRow" class="chal-shelf-spines"></div>
+              <div class="chal-shelf-base"></div>
+              <div id="shelfCaption" class="chal-shelf-caption"></div>
+            </div>
+            <div id="shelfStatsRow" class="chal-shelf-stats"></div>
+          </div>
+
+          <!-- Velocity Hero — shown only for PAGE_COUNT challenges -->
+          <div id="chalDetailVelocityHero" class="rv-hero" style="display:none;">
+            <div class="rv-gauge-area">
+              <div class="rv-gauge-wrap">
+                <canvas id="rvGaugeCanvas" width="200" height="110"></canvas>
+                <div class="rv-gauge-center">
+                  <div id="rvGaugePace" class="rv-gauge-big">—</div>
+                  <div class="rv-gauge-unit">pg / day</div>
+                  <div class="rv-gauge-lbl">current pace</div>
+                </div>
+              </div>
+            </div>
+            <div id="rvMomentumDots" class="rv-momentum"></div>
+            <div id="rvMomentumLbl" class="rv-momentum-lbl"></div>
+            <div id="rvHeroStats" class="rv-hero-stats"></div>
+          </div>
+
+          <!-- 10 Pages a Day EKG Hero — shown only for 10PAGESADAY challenges -->
+          <div id="chalDetailTenPpaHero" style="display:none;background:linear-gradient(160deg,#050f0a 0%,#0a1f14 50%,#112a1a 100%);position:relative;overflow:hidden;">
+            <div id="tenPpaHeroScoreRow" style="padding:10px 14px 4px;display:flex;align-items:flex-end;gap:10px;"></div>
+            <div id="tenPpaHeroAvgNote" style="font-size:0.62rem;color:rgba(255,255,255,.35);padding:0 14px 4px;"></div>
+            <div style="position:relative;height:80px;">
+              <canvas id="tenPpaEkgCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+            </div>
+            <div id="tenPpaStatStrip" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.05);"></div>
+          </div>
+
+        </div><!-- /flush wrapper -->
+
         <!-- My Progress / Club tabs -->
         <div class="chal-detail-inner-tabs" id="chalDetailTabBar">
           <div class="chal-detail-tab active" id="tabChalDetailMine"
@@ -3070,19 +3151,20 @@
           <div class="chal-detail-tab" id="tabChalDetailClub"
               onclick="switchChalDetailTab('club')">Club</div>
         </div>
-      
+
         <!-- Tab content panels -->
         <div style="padding: 16px;" id="chalDetailBody">
-      
+
           <div id="chalDetailMineContent">
             <!-- Rendered by renderChalDetailMyProgress() -->
           </div>
-      
+
           <div id="chalDetailClubContent" style="display:none;">
             <!-- Rendered by renderChalDetailClub() -->
           </div>
-      
+
         </div>
+
       </div>
       
       <!-- Bingo cell link bottom sheet -->
@@ -4280,8 +4362,12 @@
        * @type {{ eid: string }}
        */
       const ARKA_LAUNCH_PARAMS = <?!= launchParamsJson ?>;
+      // Scriptlets are only evaluated in GAS-served .html files, not in
+      // external .js files loaded via <script src>.  Expose the exec URL
+      // here so app.js can read it from window.ARKA_ADMIN_PANEL_URL.
+      window.ARKA_ADMIN_PANEL_URL = '<?!= ScriptApp.getService().getUrl() ?>?page=admin';
     </script>
-    <script src="https://abhish3kjain.github.io/arkaapp-frontend/app.js?v=1.7"></script>
+    <script src="https://abhish3kjain.github.io/arkaapp-frontend/app.js?v=1.9"></script>
 
   </body>
 </html>

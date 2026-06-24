@@ -4032,34 +4032,20 @@
       .chal-detail-header {
         background: var(--text-strong);
         color: white;
-        padding: 14px 16px 12px;
-        /* Break out of .container's 20px padding so header sits flush under app-header */
-        margin: -40px 0px 0;
-      }
-    
-      .chal-detail-back {
-        background: none;
-        border: none;
-        color: rgba(255,255,255,0.65);
-        font-size: 0.85rem;
-        padding: 0;
-        cursor: pointer;
-        font-family: inherit;
-        /* Fix: prevent global button { width:100% } from stretching this */
-        width: auto;
+        padding: 12px 16px;
         display: flex;
         align-items: center;
-        gap: 4px;
-        margin-bottom: 8px;
       }
-      .chal-detail-back:hover { color: white; }
-    
-      /* Title sits below back button — no flex row fighting for space */
+      .chal-detail-header > div { width: 100%; }
+
+      /* Title — truncate long names, inline with back button */
       .chal-detail-title {
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 700;
         line-height: 1.2;
-        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .chal-detail-status-badge {
@@ -4086,6 +4072,148 @@
         background: var(--surface-alt); border: 1px solid var(--border-soft); border-radius: 10px;
         padding: 10px 8px; text-align: center;
       }
+
+      /* ── Bookshelf Hero (BOOK_COUNT challenges) ─────────────────────────── */
+      .chal-shelf-hero {
+        background: linear-gradient(160deg, #1a2332 0%, #2d1b4e 100%);
+      }
+      .chal-shelf-inner { padding: 14px 20px 0; }
+      .chal-shelf-section-lbl {
+        font-size: 0.5rem; letter-spacing: 1.5px;
+        color: rgba(255,255,255,0.35); text-transform: uppercase; margin-bottom: 8px;
+      }
+      .chal-shelf-spines {
+        display: flex; gap: 3px; align-items: flex-end;
+        overflow-x: auto; -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .chal-shelf-spines::-webkit-scrollbar { display: none; }
+      .chal-spine {
+        flex-shrink: 0; width: 17px; border-radius: 2px 2px 0 0;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: transform 0.15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .chal-spine:hover, .chal-spine:focus { transform: translateY(-6px); outline: none; }
+      .chal-spine-txt {
+        font-size: 0.28rem; color: rgba(255,255,255,0.72);
+        writing-mode: vertical-rl; font-weight: 800; padding: 3px 0;
+      }
+      .chal-spine-empty {
+        flex-shrink: 0; width: 17px; height: 58px;
+        border-radius: 2px 2px 0 0;
+        border: 1px dashed rgba(255,255,255,0.18);
+      }
+      .chal-shelf-base {
+        height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px;
+      }
+      .chal-shelf-caption {
+        font-size: 0.55rem; color: rgba(255,255,255,0.3);
+        text-align: center; padding: 5px 0 2px;
+      }
+      .chal-shelf-stats {
+        display: flex; gap: 8px; padding: 12px 20px 16px;
+      }
+      .chal-shelf-stat {
+        flex: 1; background: rgba(255,255,255,0.08); border-radius: 10px;
+        padding: 10px 6px; display: flex; flex-direction: column;
+        align-items: center; gap: 2px;
+      }
+      .chal-shelf-num {
+        font-size: 1.3rem; font-weight: 800; color: #fff; line-height: 1;
+      }
+      .chal-shelf-lbl {
+        font-size: 0.48rem; color: rgba(255,255,255,0.45);
+        letter-spacing: 1px; text-transform: uppercase;
+      }
+      .chal-shelf-stat--ahead .chal-shelf-num { color: #5effc2; }
+      .chal-shelf-stat--behind .chal-shelf-num { color: #ff8080; }
+
+      /* ── PAGE_COUNT Velocity Hero ───────────────────────────────────────────── */
+      .rv-hero {
+        background: linear-gradient(135deg, #0a0a20 0%, #1c1250 60%, #2d0b5e 100%);
+        position: relative; overflow: hidden;
+      }
+      .rv-hero::before {
+        content: ''; position: absolute; top: -40px; right: -40px;
+        width: 180px; height: 180px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(169,132,186,.15) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .rv-gauge-area { display: flex; justify-content: center; padding: 14px 14px 0; }
+      .rv-gauge-wrap { position: relative; width: 200px; height: 110px; }
+      .rv-gauge-wrap canvas { position: absolute; top: 0; left: 0; }
+      .rv-gauge-center {
+        position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+        text-align: center; pointer-events: none;
+      }
+      .rv-gauge-big { font-size: 1.8rem; font-weight: 900; color: #fff; line-height: 1; }
+      .rv-gauge-unit {
+        font-size: 0.55rem; color: rgba(255,255,255,.5);
+        letter-spacing: 1.5px; text-transform: uppercase;
+      }
+      .rv-gauge-lbl {
+        font-size: 0.48rem; color: rgba(255,255,255,.35); letter-spacing: 1px; margin-top: 1px;
+      }
+      .rv-momentum { display: flex; justify-content: center; gap: 4px; padding: 6px 14px 0; }
+      .rv-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.2); }
+      .rv-dot.on { background: #5effc2; }
+      .rv-momentum-lbl {
+        text-align: center; font-size: 0.45rem;
+        color: rgba(255,255,255,.25); letter-spacing: 1px; padding: 3px 0 2px;
+      }
+      .rv-hero-stats { display: flex; gap: 6px; padding: 10px 14px 14px; }
+      .rv-hero-stat { flex: 1; border-radius: 10px; padding: 8px 6px; text-align: center; }
+      .rv-hero-stat .n { font-size: 1rem; font-weight: 800; line-height: 1; }
+      .rv-hero-stat .l {
+        font-size: 0.42rem; letter-spacing: 1px; text-transform: uppercase; margin-top: 3px;
+      }
+      .rv-hero-stat.pages { background: rgba(255,255,255,.1); }
+      .rv-hero-stat.pages .n { color: #A984BA; }
+      .rv-hero-stat.pages .l { color: rgba(255,255,255,.5); }
+      .rv-hero-stat.goal  { background: rgba(255,255,255,.06); }
+      .rv-hero-stat.goal  .n { color: #fff; }
+      .rv-hero-stat.goal  .l { color: rgba(255,255,255,.4); }
+      .rv-hero-stat.proj  { background: rgba(94,255,194,.1); }
+      .rv-hero-stat.proj  .n { color: #5effc2; }
+      .rv-hero-stat.proj  .l { color: rgba(94,255,194,.5); }
+
+      /* Velocity timeline chart (dark card in My Progress) */
+      .vel-wrap {
+        background: #0d0d28; border-radius: 14px; padding: 14px;
+        margin-bottom: 12px; position: relative; overflow: hidden;
+      }
+      .vel-title {
+        font-size: 0.58rem; letter-spacing: 1.8px; text-transform: uppercase;
+        color: rgba(255,255,255,.35); margin-bottom: 10px;
+      }
+      .vel-chart { display: flex; align-items: flex-end; gap: 3px; height: 60px; position: relative; }
+      .vel-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+      .vel-bar { width: 100%; border-radius: 3px 3px 0 0; position: relative; overflow: hidden; min-height: 2px; }
+      .vel-bar-glow {
+        position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        background: rgba(255,255,255,.3); border-radius: 3px 3px 0 0;
+      }
+      .vel-lbl { font-size: 0.4rem; color: rgba(255,255,255,.3); }
+
+      /* Projection card (dark-to-light card) */
+      .rv-proj-card { border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+      .rv-proj-top {
+        background: linear-gradient(135deg, #1c1250, #2d0b5e);
+        padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+      }
+      .rv-proj-icon {
+        width: 38px; height: 38px; border-radius: 10px;
+        background: rgba(255,255,255,.1);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; flex-shrink: 0;
+      }
+      .rv-proj-info .big { font-size: 1.2rem; font-weight: 800; color: #5effc2; line-height: 1; }
+      .rv-proj-info .sub { font-size: 0.6rem; color: rgba(255,255,255,.5); margin-top: 2px; }
+      .rv-proj-bottom { background: #f8f8ff; padding: 10px 14px; display: flex; gap: 8px; }
+      .rv-proj-pill { flex: 1; text-align: center; }
+      .rv-proj-pill .n { font-size: 0.8rem; font-weight: 700; color: #534AB7; }
+      .rv-proj-pill .l { font-size: 0.48rem; color: var(--text-muted); letter-spacing: .5px; }
       .chal-stat-num   { font-size: 1.3rem; font-weight: 700; color: var(--text-strong); line-height: 1; }
       .chal-stat-label { font-size: 0.65rem; color: var(--text-faint); text-transform: uppercase;
                         letter-spacing: 0.4px; margin-top: 3px; }
@@ -4591,12 +4719,11 @@
       #chalBanner {
         background: #2c3e50;
         position: relative;
-        padding: 16px 14px 0;
+        padding: 14px 14px 0;
         overflow: hidden;
-        margin: 0 -20px;
       }
       .chal-toprow {
-        display: flex; justify-content: space-between; align-items: flex-start;
+        display: flex; justify-content: space-between; align-items: center; gap: 8px;
         margin-bottom: 14px;
       }
       .chal-banner-title {
@@ -4607,7 +4734,7 @@
         font-size: 0.57rem; color: rgba(255,255,255,0.38);
         text-transform: uppercase; letter-spacing: 0.05em;
       }
-      .chal-toprow-tags { display: flex; gap: 6px; align-items: center; }
+      .chal-toprow-tags { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
       .chal-toprow-tag {
         padding: 4px 10px; border-radius: 20px; font-size: 0.64rem; font-weight: 600;
         background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);

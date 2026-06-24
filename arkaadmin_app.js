@@ -23,6 +23,17 @@
   ];
   var PERF_MS_FAST      = 3000;
   var PERF_MS_SLOW      = 6000;
+  var CHART_COLORS = {
+    accent:     '#A984BA',
+    accentFill: 'rgba(169,132,186,0.10)',
+    ok:         '#1d9e75',
+    okFill:     'rgba(29,158,117,0.07)',
+    okThresh:   'rgba(29,158,117,0.30)',
+    danger:     '#e74c3c',
+    dangerFill: 'rgba(231,76,60,0.30)',
+    blue:       '#3498db',
+    blueFill:   'rgba(52,152,219,0.07)'
+  };
   var ACTIVE_WINDOW_MS  = 30 * 24 * 60 * 60 * 1000;
 
   /* ── Admin state ──────────────────────────────────────────────────── */
@@ -79,6 +90,9 @@
   /** Challenges — lazy-loaded on first visit to the section. */
   var admChallengeDB          = [];
   var admChallengeLoaded      = false;
+
+  /** Library — lazy-loaded on first visit to the section. */
+  var admLibraryLoaded        = false;
   var admChalSubTab           = 'list';
   var admChalStatusFilter     = 'All';
   var admChalEditingId        = null;
@@ -179,6 +193,10 @@
     // Lazy-load challenges on first visit
     if (name === 'challenges' && !admChallengeLoaded) {
       admLoadChallenges();
+    }
+    // Lazy-load library on first visit
+    if (name === 'library' && !admLibraryLoaded) {
+      admLoadLibrary();
     }
   }
 
@@ -904,12 +922,12 @@
         data: {
           labels: labelsA,
           datasets: [
-            { label:'3 s threshold', data:thresh3s, borderColor:'rgba(29,158,117,0.3)', borderDash:[6,5], borderWidth:1.2, pointRadius:0, fill:false, tension:0 },
-            { label:'6 s threshold', data:thresh6s, borderColor:'rgba(231,76,60,0.3)',  borderDash:[6,5], borderWidth:1.2, pointRadius:0, fill:false, tension:0 },
-            { label:'Avg BigGulp',   data:avgBigGulpS, borderColor:'#3498db', backgroundColor:'rgba(52,152,219,0.07)', fill:'origin', tension:0.3, borderWidth:1.5, pointRadius:3, pointHoverRadius:5 },
-            { label:'Avg Render',    data:avgRenderS,  borderColor:'#1d9e75', backgroundColor:'rgba(29,158,117,0.07)', fill:'origin', tension:0.3, borderWidth:1.5, pointRadius:3, pointHoverRadius:5 },
-            { label:'P90 Total',     data:p90TotalS,   borderColor:'#e74c3c', backgroundColor:'transparent',           fill:false,    tension:0.3, borderWidth:1.8, borderDash:[5,4], pointRadius:3, pointHoverRadius:5 },
-            { label:'Avg Total',     data:avgTotalS,   borderColor:'#A984BA', backgroundColor:'rgba(169,132,186,0.1)', fill:'origin', tension:0.3, borderWidth:2.5, pointRadius:4, pointHoverRadius:7, pointBackgroundColor:'#A984BA' }
+            { label:'3 s threshold', data:thresh3s, borderColor:CHART_COLORS.okThresh,    borderDash:[6,5], borderWidth:1.2, pointRadius:0, fill:false, tension:0 },
+            { label:'6 s threshold', data:thresh6s, borderColor:CHART_COLORS.dangerFill,  borderDash:[6,5], borderWidth:1.2, pointRadius:0, fill:false, tension:0 },
+            { label:'Avg BigGulp',   data:avgBigGulpS, borderColor:CHART_COLORS.blue,    backgroundColor:CHART_COLORS.blueFill,   fill:'origin', tension:0.3, borderWidth:1.5, pointRadius:3, pointHoverRadius:5 },
+            { label:'Avg Render',    data:avgRenderS,  borderColor:CHART_COLORS.ok,      backgroundColor:CHART_COLORS.okFill,     fill:'origin', tension:0.3, borderWidth:1.5, pointRadius:3, pointHoverRadius:5 },
+            { label:'P90 Total',     data:p90TotalS,   borderColor:CHART_COLORS.danger,  backgroundColor:'transparent',           fill:false,    tension:0.3, borderWidth:1.8, borderDash:[5,4], pointRadius:3, pointHoverRadius:5 },
+            { label:'Avg Total',     data:avgTotalS,   borderColor:CHART_COLORS.accent,  backgroundColor:CHART_COLORS.accentFill, fill:'origin', tension:0.3, borderWidth:2.5, pointRadius:4, pointHoverRadius:7, pointBackgroundColor:CHART_COLORS.accent }
           ]
         },
         options: {
@@ -1073,7 +1091,7 @@
         + '<span>' + m.totalBooks + ' bk</span>'
         + (m.joinDate ? '<span style="opacity:0.4">·</span><span>' + _esc(m.joinDate) + '</span>' : '')
         + '</div>';
-      return '<tr>'
+      return '<tr style="cursor:pointer" onclick="admOpenMemberDetail(\''+_esc(m.memberId)+'\')">'
         + '<td data-label="Rank"><span class="adm-rank '+rcls+'">'+rank+'</span></td>'
         + '<td data-label="Member"><div class="adm-member-name">'+dot+_esc(m.displayName)+'</div><div class="adm-td-mono">'+_esc(m.memberId)+'</div>' + memberSub + '</td>'
         + '<td data-label="Country" class="adm-col-mob adm-td-muted adm-td-sm">'+_esc(m.country||'—')+'</td>'
@@ -1109,6 +1127,247 @@
     if (btn) btn.innerHTML = admMembersCardView
       ? '<i class="fa-solid fa-table"></i> Table View'
       : '<i class="fa-solid fa-table-cells-large"></i> Card View';
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     MEMBER DETAIL MODAL — admin edit of profile fields
+     ══════════════════════════════════════════════════════════════════ */
+
+  var _admDetailMemberId = null;
+
+  function admOpenMemberDetail(memberId) {
+    var m = admMemberMap[memberId];
+    if (!m) return;
+    _admDetailMemberId = memberId;
+
+    var idEl = document.getElementById('admMemberDetailId');
+    if (idEl) idEl.textContent = memberId + (m.email ? '  ·  ' + m.email : '');
+
+    _admDetailSet('admMDetailFullName',    m.fullName    || '');
+    _admDetailSet('admMDetailDisplayName', m.displayName || '');
+    _admDetailSet('admMDetailCountry',     m.country     || '');
+    _admDetailSet('admMDetailBio',         m.bio         || '');
+    _admDetailSet('admMDetailGoal',        m.goal        || '');
+
+    var errEl = document.getElementById('admMemberDetailErr');
+    if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+
+    var saveBtn = document.getElementById('admMemberDetailSaveBtn');
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+
+    var modal = document.getElementById('admMemberDetailModal');
+    if (modal) modal.classList.add('open');
+  }
+
+  function _admDetailSet(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.value = val;
+  }
+
+  function admCloseMemberDetail() {
+    var modal = document.getElementById('admMemberDetailModal');
+    if (modal) modal.classList.remove('open');
+    _admDetailMemberId = null;
+  }
+
+  function admSaveMemberDetail() {
+    if (!_admDetailMemberId) return;
+    var saveBtn = document.getElementById('admMemberDetailSaveBtn');
+    var errEl   = document.getElementById('admMemberDetailErr');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+    if (errEl)   { errEl.style.display = 'none'; errEl.textContent = ''; }
+
+    var payload = {
+      targetMemberId: _admDetailMemberId,
+      fullName:    (document.getElementById('admMDetailFullName')    || {}).value || '',
+      displayName: (document.getElementById('admMDetailDisplayName') || {}).value || '',
+      country:     (document.getElementById('admMDetailCountry')     || {}).value || '',
+      bio:         (document.getElementById('admMDetailBio')         || {}).value || '',
+      goal:        (document.getElementById('admMDetailGoal')        || {}).value || ''
+    };
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res.status === 'success') {
+          var m = admMemberMap[_admDetailMemberId];
+          if (m) {
+            m.fullName    = payload.fullName;
+            m.displayName = payload.displayName;
+            m.country     = payload.country;
+            m.bio         = payload.bio;
+            m.goal        = payload.goal;
+          }
+          admCloseMemberDetail();
+          admRenderMemberStats();
+          admShowToast('Member profile updated.', 'ok');
+        } else {
+          if (errEl) { errEl.textContent = res.message || 'Save failed.'; errEl.style.display = 'block'; }
+          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+        }
+      })
+      .withFailureHandler(function(err) {
+        if (errEl) { errEl.textContent = 'Error: ' + (err.message || String(err)); errEl.style.display = 'block'; }
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+      })
+      .adminUpdateMemberProfile(payload);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     LIBRARY MANAGEMENT — list, add, edit books
+     ══════════════════════════════════════════════════════════════════ */
+
+  var admLibraryData = [];
+  var admLibraryMap  = {};
+  var _admBookModalMode  = 'add'; // 'add' | 'edit'
+  var _admBookEditId     = null;
+
+  function admLoadLibrary() {
+    var tbody = document.getElementById('admLibraryTbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading…</p></div></td></tr>';
+    google.script.run
+      .withSuccessHandler(function(res) {
+        admLibraryLoaded = true;
+        if (res.status !== 'success') {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>' + _esc(res.message || 'Failed to load.') + '</p></div></td></tr>';
+          return;
+        }
+        admLibraryData = res.bookList || [];
+        admLibraryMap  = {};
+        admLibraryData.forEach(function(b) { admLibraryMap[b.bookId] = b; });
+        admRenderLibraryList();
+      })
+      .withFailureHandler(function(err) {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error: ' + _esc((err && err.message) || 'Request failed.') + '</p></div></td></tr>';
+      })
+      .getAdminLibraryData();
+  }
+
+  function admFilterLibrary() { admRenderLibraryList(); }
+
+  function admRenderLibraryList() {
+    var tbody   = document.getElementById('admLibraryTbody');
+    var countEl = document.getElementById('admLibraryCount');
+    if (!tbody) return;
+
+    var search = ((document.getElementById('admLibrarySearch') || {}).value || '').toLowerCase().trim();
+    var books  = search
+      ? admLibraryData.filter(function(b) {
+          return b.title.toLowerCase().includes(search) || b.author.toLowerCase().includes(search);
+        })
+      : admLibraryData;
+
+    if (countEl) countEl.textContent = books.length + ' of ' + admLibraryData.length + ' books';
+
+    if (!books.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="adm-empty"><i class="fa-solid fa-books"></i><p>No books found.</p></div></td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = books.map(function(b) {
+      return '<tr style="cursor:pointer" onclick="admOpenBookModal(\'' + _esc(b.bookId) + '\')">'
+        + '<td data-label="Title"><strong>' + _esc(b.title) + '</strong>'
+          + (b.blurb ? '<div class="adm-td-muted adm-td-sm" style="margin-top:2px;white-space:normal;max-width:260px">' + _esc(b.blurb.slice(0, 80)) + (b.blurb.length > 80 ? '…' : '') + '</div>' : '')
+          + '</td>'
+        + '<td data-label="Author">' + _esc(b.author) + '</td>'
+        + '<td data-label="Genre" class="adm-col-meta adm-td-sm">' + _esc(b.genre || '—') + '</td>'
+        + '<td data-label="Pages" class="adm-col-mob adm-td-sm">' + (b.pages || '—') + '</td>'
+        + '<td data-label="Added" class="adm-col-mob adm-td-sm adm-nowrap">' + _esc(b.addedDate || '—') + '</td>'
+        + '<td><button class="adm-btn adm-btn-light adm-btn-sm adm-btn-icon" onclick="event.stopPropagation();admOpenBookModal(\'' + _esc(b.bookId) + '\')"><i class="fa-solid fa-pen"></i></button></td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  function admOpenBookModal(bookId) {
+    var titleEl   = document.getElementById('admBookModalTitle');
+    var saveBtnEl = document.getElementById('admBookModalSaveBtn');
+    var errEl     = document.getElementById('admBookModalErr');
+    if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    if (saveBtnEl) { saveBtnEl.disabled = false; }
+
+    if (bookId) {
+      _admBookModalMode = 'edit';
+      _admBookEditId    = bookId;
+      var b = admLibraryMap[bookId];
+      if (!b) return;
+      if (titleEl)   titleEl.textContent      = 'Edit Book';
+      if (saveBtnEl) saveBtnEl.textContent    = 'Save Changes';
+      _admBkSet('admBkTitle',   b.title);
+      _admBkSet('admBkAuthor',  b.author);
+      _admBkSet('admBkGenre',   b.genre);
+      _admBkSet('admBkPages',   b.pages || '');
+      _admBkSet('admBkIsbn',    b.isbn13);
+      _admBkSet('admBkPubDate', b.pubDate);
+      _admBkSet('admBkBlurb',   b.blurb);
+    } else {
+      _admBookModalMode = 'add';
+      _admBookEditId    = null;
+      if (titleEl)   titleEl.textContent   = 'Add Book';
+      if (saveBtnEl) saveBtnEl.textContent = 'Add Book';
+      ['admBkTitle','admBkAuthor','admBkGenre','admBkPages','admBkIsbn','admBkPubDate','admBkBlurb']
+        .forEach(function(id) { _admBkSet(id, ''); });
+    }
+
+    var modal = document.getElementById('admBookModal');
+    if (modal) modal.classList.add('open');
+  }
+
+  function _admBkSet(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.value = val != null ? val : '';
+  }
+
+  function admCloseBookModal() {
+    var modal = document.getElementById('admBookModal');
+    if (modal) modal.classList.remove('open');
+    _admBookEditId = null;
+  }
+
+  function admSubmitBookForm() {
+    var saveBtn = document.getElementById('admBookModalSaveBtn');
+    var errEl   = document.getElementById('admBookModalErr');
+    var title   = ((document.getElementById('admBkTitle')  || {}).value || '').trim();
+    var author  = ((document.getElementById('admBkAuthor') || {}).value || '').trim();
+
+    if (!title || !author) {
+      if (errEl) { errEl.textContent = 'Title and Author are required.'; errEl.style.display = 'block'; }
+      return;
+    }
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+    if (errEl)   { errEl.style.display = 'none'; }
+
+    var payload = {
+      title         : title,
+      author        : author,
+      genre         : ((document.getElementById('admBkGenre')   || {}).value || '').trim(),
+      pages         : Number(((document.getElementById('admBkPages')  || {}).value || '0')) || 0,
+      isbn13        : ((document.getElementById('admBkIsbn')    || {}).value || '').trim(),
+      publishedDate : ((document.getElementById('admBkPubDate') || {}).value || '').trim(),
+      blurb         : ((document.getElementById('admBkBlurb')   || {}).value || '').trim(),
+      clientTzOffset: ''
+    };
+
+    var successHandler = function(res) {
+      if (res.status !== 'success') {
+        if (errEl) { errEl.textContent = res.message || 'Save failed.'; errEl.style.display = 'block'; }
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = _admBookModalMode === 'add' ? 'Add Book' : 'Save Changes'; }
+        return;
+      }
+      admCloseBookModal();
+      admShowToast(_admBookModalMode === 'add' ? 'Book added to library.' : 'Book updated.', 'ok');
+      admLoadLibrary();
+    };
+    var failureHandler = function(err) {
+      if (errEl) { errEl.textContent = 'Error: ' + ((err && err.message) || String(err)); errEl.style.display = 'block'; }
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = _admBookModalMode === 'add' ? 'Add Book' : 'Save Changes'; }
+    };
+
+    if (_admBookModalMode === 'edit') {
+      payload.bookId           = _admBookEditId;
+      payload.activityPointsMap = {};
+      google.script.run.withSuccessHandler(successHandler).withFailureHandler(failureHandler).updateLibraryBook(payload);
+    } else {
+      google.script.run.withSuccessHandler(successHandler).withFailureHandler(failureHandler).addBookToLibrary(payload);
+    }
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -3542,6 +3801,33 @@
         _rptRenderCurrentSlide();
         _rptRenderDots();
         _rptRenderThumbnails();
+        _rptRenderMobileSummary(data, periodInfo);
+      }
+
+      function _rptRenderMobileSummary(data, periodInfo) {
+        var el = document.getElementById('rptMobileSummary');
+        if (!el) return;
+
+        var topRows = (data.topReaders || []).map(function(r, i) {
+          return '<div class="rpt-mob-reader-row">'
+            + '<span class="rpt-mob-reader-rank">' + (i + 1) + '</span>'
+            + '<span class="rpt-mob-reader-name">' + escapeHtml(r.displayName) + '</span>'
+            + '<span class="rpt-mob-reader-pages">' + r.pages.toLocaleString() + ' pg</span>'
+            + '</div>';
+        }).join('');
+
+        var badgeCount = Array.isArray(data.badgesAwarded) ? data.badgesAwarded.length : (data.badgesAwarded || 0);
+
+        el.innerHTML = '<div class="adm-card" style="padding:14px 16px">'
+          + '<div class="rpt-mob-grid">'
+          + '<div class="rpt-mob-stat"><div class="rpt-mob-stat-val">' + (data.totalPages || 0).toLocaleString() + '</div><div class="rpt-mob-stat-label">Pages Read</div></div>'
+          + '<div class="rpt-mob-stat"><div class="rpt-mob-stat-val">' + (data.totalBooksFinished || 0) + '</div><div class="rpt-mob-stat-label">Books Finished</div></div>'
+          + '<div class="rpt-mob-stat"><div class="rpt-mob-stat-val">' + (data.activeMembers || 0) + '</div><div class="rpt-mob-stat-label">Active Members</div></div>'
+          + '<div class="rpt-mob-stat"><div class="rpt-mob-stat-val">' + (data.totalAP || 0).toLocaleString() + '</div><div class="rpt-mob-stat-label">Total AP</div></div>'
+          + '<div class="rpt-mob-stat"><div class="rpt-mob-stat-val">' + badgeCount + '</div><div class="rpt-mob-stat-label">Badges Awarded</div></div>'
+          + '</div>'
+          + (topRows ? '<div class="rpt-mob-section-title">Top Readers</div>' + topRows : '')
+          + '</div>';
       }
 
       /**

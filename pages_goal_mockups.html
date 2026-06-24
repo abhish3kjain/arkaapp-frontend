@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arka Pages Challenge — 3 Design Options</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --arka-accent:#A984BA;
+  --pages-col:#534AB7;   /* indigo — pages challenge color */
+  --pages-light:#EAE8FF;
+  --pages-text:#1e1a6b;
+  --text-strong:#2c3e50;
+  --text-muted:#5b6b6e;
+  --surface-alt:#f8f9fa;
+  --border-soft:#ecf0f1;
+  --color-success:#1D9E75;
+  --color-danger:#e74c3c;
+  --font-body:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  --font-display:'Cinzel',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-body);background:#d4d8e0;min-height:100vh;}
+
+/* PAGE CHROME */
+.page-header{background:#1a1a3e;color:#fff;padding:14px 20px;text-align:center;}
+.page-header h1{font-family:var(--font-display);font-size:1.1rem;letter-spacing:1px;color:#A984BA;}
+.page-header p{font-size:0.7rem;opacity:.6;margin-top:3px;}
+
+.opt-nav{display:flex;background:#0d0d28;overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid #070718;}
+.opt-nav::-webkit-scrollbar{display:none;}
+.onb{flex:none;padding:11px 16px;background:transparent;border:none;color:rgba(255,255,255,.5);font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:all .2s;letter-spacing:.3px;}
+.onb.active{color:#A984BA;border-bottom-color:#A984BA;}
+
+.opt-desc{background:#fff;border-bottom:1px solid var(--border-soft);padding:10px 16px;display:flex;gap:12px;align-items:flex-start;}
+.opt-badge{flex-shrink:0;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+.opt-body{flex:1;min-width:0;}
+.opt-body strong{font-size:0.78rem;color:var(--text-strong);}
+.opt-body p{font-size:0.68rem;color:var(--text-muted);margin-top:2px;line-height:1.45;}
+
+.phones{display:flex;gap:16px;justify-content:center;padding:20px 16px 40px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.phones::-webkit-scrollbar{height:4px;}
+.phones::-webkit-scrollbar-thumb{background:rgba(0,0,0,.25);border-radius:2px;}
+
+.phone-frame{flex-shrink:0;width:360px;border-radius:44px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);background:#fff;border:6px solid #1a1a1a;}
+.phone-statusbar{background:#1a1a3e;padding:8px 20px 6px;display:flex;justify-content:space-between;align-items:center;}
+.phone-statusbar span{color:#fff;font-size:0.6rem;}
+.app-header{background:#1a1a3e;display:flex;align-items:center;padding:10px 14px 10px;gap:10px;}
+.app-logo{width:34px;height:34px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#1a1a3e;overflow:hidden;}
+.app-logo img{width:100%;height:100%;object-fit:cover;}
+.app-title{font-family:var(--font-display);font-size:0.9rem;color:#fff;font-weight:700;letter-spacing:1px;}
+
+.bottom-nav{display:flex;background:#fff;border-top:1px solid #eee;padding:8px 0 12px;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
+.bnav-item i{font-size:1.1rem;color:#888;}
+.bnav-item.active i{color:var(--pages-col);}
+.bnav-item span{font-size:0.52rem;color:#888;}
+.bnav-item.active span{color:var(--pages-col);}
+
+.view{display:none;overflow-y:auto;max-height:580px;}
+.view.active{display:block;}
+
+/* ── OPTION 1: THE INK TIDE ───────────────────────────────────────────────── */
+/* A rising tide of ink that fills up the page as reading progresses */
+
+.it-hero{
+  background:linear-gradient(175deg,#0d0d28 0%,#1a1a3e 40%,#2d1b5e 100%);
+  position:relative; overflow:hidden; padding:0;
+}
+.it-back-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 0;}
+.it-title-txt{font-size:1rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.it-badge{background:#EAE8FF;color:#2d1b5e;font-size:0.65rem;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;}
+
+/* Tide canvas area */
+.it-tide-wrap{position:relative;height:160px;overflow:hidden;}
+.it-tide-label{position:absolute;top:14px;left:0;right:0;z-index:4;text-align:center;}
+.it-tide-label .big{font-size:2.2rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-1px;}
+.it-tide-label .sub{font-size:0.6rem;color:rgba(255,255,255,.5);letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
+.it-tide-label .pct{font-size:0.9rem;font-weight:700;color:#A984BA;margin-top:4px;}
+canvas.tide-canvas{position:absolute;bottom:0;left:0;width:100%;height:130px;z-index:2;}
+.it-glow{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(83,74,183,.35) 0%,transparent 70%);z-index:1;pointer-events:none;}
+
+.it-stats-row{display:flex;gap:6px;padding:10px 14px 14px;background:linear-gradient(0deg,#0d0d28,#1a1a3e);}
+.it-stat{flex:1;background:rgba(255,255,255,.08);border-radius:10px;padding:9px 6px;text-align:center;border:1px solid rgba(255,255,255,.07);}
+.it-stat .n{font-size:1.1rem;font-weight:800;color:#fff;line-height:1;}
+.it-stat .l{font-size:0.42rem;color:rgba(255,255,255,.4);letter-spacing:1.2px;text-transform:uppercase;margin-top:3px;}
+.it-stat.ahead .n{color:#5effc2;}
+.it-stat.pace-ok .n{color:#A984BA;}
+
+.it-tabs{display:flex;background:#f2f2f8;border-bottom:1px solid #ddd;}
+.it-tab{flex:1;padding:11px;text-align:center;font-size:0.72rem;font-weight:700;color:#888;cursor:pointer;border-bottom:2px solid transparent;}
+.it-tab.active{color:var(--pages-col);border-bottom-color:var(--pages-col);}
+.it-body{padding:14px;background:#fff;}
+
+/* Month river chart */
+.river-wrap{background:#f8f8ff;border-radius:12px;padding:12px;margin-bottom:12px;}
+.river-title{font-size:0.6rem;font-weight:700;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px;}
+.river-bars{display:flex;align-items:flex-end;gap:4px;height:70px;}
+.river-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.river-bar-outer{width:100%;background:#e8e8f5;border-radius:4px 4px 0 0;position:relative;overflow:hidden;}
+.river-bar-fill{position:absolute;bottom:0;left:0;right:0;border-radius:4px 4px 0 0;transition:height .6s ease;}
+.river-bar-num{font-size:0.42rem;font-weight:700;color:var(--pages-col);}
+.river-bar-lbl{font-size:0.42rem;color:var(--text-muted);}
+
+.it-streak{display:flex;gap:8px;align-items:center;background:linear-gradient(120deg,#EAE8FF,#f0eaff);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
+.it-streak .icon{font-size:1.3rem;}
+.it-streak .info{flex:1;}
+.it-streak .info strong{font-size:0.75rem;color:#2d1b5e;}
+.it-streak .info p{font-size:0.62rem;color:#5b5b8a;margin-top:1px;}
+
+.it-pace-card{background:#fff;border:1.5px solid #EAE8FF;border-radius:12px;padding:12px;margin-bottom:12px;}
+.it-pace-card .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.it-pace-card .header span{font-size:0.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);}
+.pace-compare{display:flex;gap:6px;}
+.pace-box{flex:1;border-radius:8px;padding:8px;text-align:center;}
+.pace-box .n{font-size:1.1rem;font-weight:800;line-height:1;}
+.pace-box .l{font-size:0.48rem;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;}
+.pace-box.current{background:#EAE8FF;color:#2d1b5e;}
+.pace-box.needed{background:#e8f5ee;color:#0b4a2f;}
+.pace-box.projected{background:#fff3e8;color:#633806;}
+
+/* Club tab */
+.club-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;margin-bottom:6px;background:#f8f8ff;}
+.club-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#fff;flex-shrink:0;}
+.club-me{outline:2px solid var(--pages-col);outline-offset:2px;}
+.club-info{flex:1;min-width:0;}
+.club-name{font-size:0.72rem;font-weight:700;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.club-sub{font-size:0.58rem;color:var(--text-muted);}
+.club-pg{font-size:0.72rem;font-weight:700;color:var(--pages-col);white-space:nowrap;}
+.club-bar-wrap{height:4px;background:#e0e0f0;border-radius:2px;margin-top:3px;}
+.club-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#534AB7,#A984BA);}
+
+/* ── OPTION 2: THE READING VELOCITY ──────────────────────────────────────── */
+/* A bold speedometer / gauge showing reading momentum */
+
+.rv-hero{
+  background:linear-gradient(135deg,#0a0a20 0%,#1c1250 60%,#2d0b5e 100%);
+  padding:0; position:relative; overflow:hidden;
+}
+.rv-hero::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(169,132,186,.15) 0%,transparent 70%);
+}
+.rv-back-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 6px;}
+.rv-title-txt{font-size:1rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rv-badge{background:rgba(255,255,255,.12);color:#fff;font-size:0.65rem;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.2);}
+
+/* Speedometer */
+.rv-gauge-area{display:flex;justify-content:center;padding:10px 14px 0;}
+.rv-gauge-wrap{position:relative;width:200px;height:110px;}
+.rv-gauge-wrap canvas{position:absolute;top:0;left:0;}
+.rv-gauge-center{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);text-align:center;}
+.rv-gauge-center .big{font-size:1.8rem;font-weight:900;color:#fff;line-height:1;}
+.rv-gauge-center .unit{font-size:0.55rem;color:rgba(255,255,255,.5);letter-spacing:1.5px;text-transform:uppercase;}
+.rv-gauge-center .lbl{font-size:0.48rem;color:rgba(255,255,255,.35);letter-spacing:1px;margin-top:1px;}
+
+.rv-momentum{display:flex;justify-content:center;gap:4px;padding:6px 14px 0;}
+.rv-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);}
+.rv-dot.on{background:#5effc2;}
+
+.rv-stats{display:flex;gap:6px;padding:10px 14px 14px;}
+.rv-stat{flex:1;border-radius:10px;padding:8px 6px;text-align:center;}
+.rv-stat .n{font-size:1rem;font-weight:800;line-height:1;}
+.rv-stat .l{font-size:0.42rem;letter-spacing:1px;text-transform:uppercase;margin-top:3px;}
+.rv-stat.pages{background:rgba(255,255,255,.1);color:#fff;}
+.rv-stat.pages .n{color:#A984BA;}
+.rv-stat.goal{background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);}
+.rv-stat.goal .n{color:#fff;}
+.rv-stat.proj{background:rgba(94,255,194,.1);color:#5effc2;}
+.rv-stat.proj .n{color:#5effc2;}
+
+.rv-tabs{display:flex;background:#f2f2f8;border-bottom:1px solid #ddd;}
+.rv-tab{flex:1;padding:11px;text-align:center;font-size:0.72rem;font-weight:700;color:#888;cursor:pointer;border-bottom:2px solid transparent;}
+.rv-tab.active{color:var(--pages-col);border-bottom-color:var(--pages-col);}
+.rv-body{padding:14px;background:#fff;}
+
+/* velocity timeline */
+.vel-wrap{background:#0d0d28;border-radius:14px;padding:14px;margin-bottom:12px;position:relative;overflow:hidden;}
+.vel-title{font-size:0.58rem;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:10px;}
+.vel-chart{display:flex;align-items:flex-end;gap:3px;height:60px;}
+.vel-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.vel-bar{width:100%;border-radius:3px 3px 0 0;position:relative;overflow:hidden;min-height:2px;}
+.vel-glow{position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0;}
+.vel-lbl{font-size:0.4rem;color:rgba(255,255,255,.3);}
+.vel-need-line{position:absolute;left:0;right:0;height:1px;background:rgba(255,255,255,.2);z-index:2;}
+.vel-need-label{position:absolute;right:6px;font-size:0.42rem;color:rgba(255,255,255,.4);}
+
+/* Projection card */
+.rv-proj-card{border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.rv-proj-top{background:linear-gradient(135deg,#1c1250,#2d0b5e);padding:12px 14px;display:flex;align-items:center;gap:10px;}
+.rv-proj-icon{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.rv-proj-info{flex:1;}
+.rv-proj-info .big{font-size:1.2rem;font-weight:800;color:#5effc2;line-height:1;}
+.rv-proj-info .sub{font-size:0.6rem;color:rgba(255,255,255,.5);margin-top:2px;}
+.rv-proj-bottom{background:#f8f8ff;padding:10px 14px;display:flex;gap:8px;}
+.rv-proj-pill{flex:1;text-align:center;}
+.rv-proj-pill .n{font-size:0.8rem;font-weight:700;color:var(--pages-col);}
+.rv-proj-pill .l{font-size:0.48rem;color:var(--text-muted);letter-spacing:.5px;}
+
+/* ── OPTION 3: THE CHAPTER SCROLL ─────────────────────────────────────────── */
+/* An illuminated manuscript / chapter scroll — each month is a "chapter" */
+
+.cs-hero{
+  background:linear-gradient(160deg,#1c0e2e 0%,#2d1b5e 50%,#1a0e3a 100%);
+  position:relative; overflow:hidden;
+}
+/* Decorative corner ornament */
+.cs-hero::before{
+  content:'❧';position:absolute;top:8px;right:12px;font-size:2.5rem;
+  color:rgba(169,132,186,.15);pointer-events:none;
+}
+.cs-back-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;}
+.cs-title-txt{font-size:1rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cs-badge{background:rgba(169,132,186,.25);color:#d4b8e8;font-size:0.65rem;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid rgba(169,132,186,.4);flex-shrink:0;}
+
+/* The illuminated progress scroll */
+.cs-scroll-area{padding:0 14px 0;}
+.cs-scroll-label{font-size:0.48rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:6px;}
+.cs-chapters{display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px;}
+.cs-chapters::-webkit-scrollbar{display:none;}
+.cs-chapter{flex-shrink:0;position:relative;width:28px;}
+.cs-chapter-fill{height:50px;border-radius:2px;position:relative;overflow:hidden;}
+.cs-chapter-fill .ink{position:absolute;bottom:0;left:0;right:0;border-radius:2px;}
+.cs-chapter-fill .lines{position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,transparent 1px,transparent 5px);}
+.cs-chapter-future{height:50px;border:1px dashed rgba(255,255,255,.1);border-radius:2px;}
+.cs-chapter-num{font-size:0.38rem;text-align:center;color:rgba(255,255,255,.35);margin-top:3px;}
+.cs-chapter.current .cs-chapter-fill::after{
+  content:''; position:absolute;top:0;left:0;right:0;bottom:0;
+  background:rgba(255,255,255,.12);animation:pulse-chapter 1.5s ease-in-out infinite;
+}
+.cs-chapter.current::before{
+  content:'▼';position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  font-size:0.45rem;color:#A984BA;
+}
+@keyframes pulse-chapter{0%,100%{opacity:0}50%{opacity:1}}
+
+/* Ink progress text */
+.cs-ink-stat{text-align:center;padding:10px 0 0;}
+.cs-ink-stat .fraction{display:flex;align-items:baseline;justify-content:center;gap:6px;}
+.cs-ink-stat .read{font-size:2rem;font-weight:900;color:#fff;line-height:1;}
+.cs-ink-stat .sep{font-size:0.8rem;color:rgba(255,255,255,.3);}
+.cs-ink-stat .goal{font-size:1rem;font-weight:600;color:rgba(255,255,255,.5);}
+.cs-ink-stat .pct-row{font-size:0.62rem;color:#A984BA;margin-top:2px;letter-spacing:1px;}
+
+/* Progress track */
+.cs-track{margin:10px 14px 0;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+.cs-track-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#534AB7,#A984BA);position:relative;}
+.cs-track-fill::after{content:'';position:absolute;top:0;right:0;bottom:0;width:8px;background:rgba(255,255,255,.4);border-radius:3px;}
+
+.cs-stats-row{display:flex;gap:6px;padding:10px 14px 14px;}
+.cs-stat{flex:1;background:rgba(255,255,255,.08);border-radius:10px;padding:9px 6px;text-align:center;border:1px solid rgba(255,255,255,.08);}
+.cs-stat .n{font-size:1rem;font-weight:800;color:#fff;line-height:1;}
+.cs-stat .l{font-size:0.42rem;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;margin-top:3px;}
+.cs-stat.ahead .n{color:#5effc2;}
+
+.cs-tabs{display:flex;background:#f2f2f8;border-bottom:1px solid #ddd;}
+.cs-tab{flex:1;padding:11px;text-align:center;font-size:0.72rem;font-weight:700;color:#888;cursor:pointer;border-bottom:2px solid transparent;}
+.cs-tab.active{color:var(--pages-col);border-bottom-color:var(--pages-col);}
+.cs-body{padding:14px;background:#fff;}
+
+/* Monthly "chapter" card list */
+.cs-month-card{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;margin-bottom:6px;background:#f8f8ff;border-left:3px solid transparent;}
+.cs-month-card.done{border-left-color:var(--pages-col);}
+.cs-month-card.current-month{border-left-color:#A984BA;background:#f0eaff;}
+.cs-month-card.future{opacity:.5;}
+.cs-month-num{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;flex-shrink:0;}
+.cs-month-num.done{background:var(--pages-col);color:#fff;}
+.cs-month-num.cur{background:#A984BA;color:#fff;}
+.cs-month-num.fut{background:#e8e8f5;color:#999;}
+.cs-month-info{flex:1;min-width:0;}
+.cs-month-name{font-size:0.72rem;font-weight:700;color:var(--text-strong);}
+.cs-month-sub{font-size:0.58rem;color:var(--text-muted);}
+.cs-month-pg{font-size:0.72rem;font-weight:700;color:var(--pages-col);white-space:nowrap;}
+.cs-month-card.future .cs-month-pg{color:#bbb;}
+
+/* Shared: btn-back-circle replica */
+.btn-back{
+  width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;color:rgba(255,255,255,.8);font-size:0.7rem;
+  -webkit-tap-highlight-color:transparent;transition:background .15s;
+}
+.btn-back:hover{background:rgba(255,255,255,.25);}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Pages Goal Challenge — Design Options</h1>
+  <p>3 interactive mockups · 10,000 pages · 5,600 read · 56% complete</p>
+</div>
+
+<div class="opt-nav">
+  <button class="onb active" onclick="showOpt(1,this)">① Ink Tide</button>
+  <button class="onb" onclick="showOpt(2,this)">② Reading Velocity</button>
+  <button class="onb" onclick="showOpt(3,this)">③ Chapter Scroll</button>
+</div>
+
+<!-- OPTION DESCRIPTIONS -->
+<div id="desc1" class="opt-desc">
+  <div class="opt-badge" style="background:#EAE8FF;">🌊</div>
+  <div class="opt-body">
+    <strong>Option 1 — The Ink Tide</strong>
+    <p>A rising tide of ink that visually fills the screen as pages accumulate. Animated wave shows real-time momentum. Pace comparison card (current vs needed) makes it instantly clear if the reader is ahead or behind.</p>
+  </div>
+</div>
+<div id="desc2" class="opt-desc" style="display:none;">
+  <div class="opt-badge" style="background:#1c1250;color:#A984BA;">⚡</div>
+  <div class="opt-body">
+    <strong>Option 2 — Reading Velocity</strong>
+    <p>A bold speedometer shows today's reading pace (pg/day). Momentum dots track consistency streak. A velocity timeline shows monthly pace bars against the "needed" threshold line — instantly surfacing strong vs weak months.</p>
+  </div>
+</div>
+<div id="desc3" class="opt-desc" style="display:none;">
+  <div class="opt-badge" style="background:#2d1b5e;">📜</div>
+  <div class="opt-body">
+    <strong>Option 3 — The Chapter Scroll</strong>
+    <p>Each month is an illuminated "chapter" — done months show filled ink columns, current month pulses, future months are ghost outlines. A Chapter Log below shows a narrative read of progress month by month. Feels literary and personal.</p>
+  </div>
+</div>
+
+<div class="phones">
+
+  <!-- ══════════════════════════════════════════════════════ OPTION 1 -->
+  <div id="opt1" class="phone-frame">
+    <div class="phone-statusbar">
+      <span>9:41</span><span>▮▮▮ 🔋</span>
+    </div>
+    <div class="app-header">
+      <div class="app-logo"><img src="https://abhish3kjain.github.io/arkaapp-frontend/arka_logo.png" onerror="this.parentNode.textContent='A'"></div>
+      <div class="app-title">ARKA READERS CLUB</div>
+    </div>
+
+    <!-- VIEW SCROLL AREA -->
+    <div style="overflow-y:auto;max-height:590px;background:#fff;">
+
+      <!-- HERO -->
+      <div class="it-hero">
+        <div class="it-back-row">
+          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+            <div class="btn-back"><i class="fa-solid fa-chevron-left"></i></div>
+            <span class="it-title-txt">Pages Goal 2026</span>
+          </div>
+          <span class="it-badge">Active</span>
+        </div>
+
+        <!-- Tide animation -->
+        <div class="it-tide-wrap">
+          <div class="it-glow"></div>
+          <div class="it-tide-label">
+            <div class="big">5,600</div>
+            <div class="sub">pages read</div>
+            <div class="pct">56% of 10,000</div>
+          </div>
+          <canvas class="tide-canvas" id="tideCanvas" width="360" height="130"></canvas>
+        </div>
+
+        <!-- Stats strip -->
+        <div class="it-stats-row">
+          <div class="it-stat ahead">
+            <div class="n">+1,234</div>
+            <div class="l">PGS AHEAD</div>
+          </div>
+          <div class="it-stat">
+            <div class="n">10k</div>
+            <div class="l">YOUR GOAL</div>
+          </div>
+          <div class="it-stat pace-ok">
+            <div class="n">38</div>
+            <div class="l">PG / DAY</div>
+          </div>
+          <div class="it-stat">
+            <div class="n">13.9k</div>
+            <div class="l">YR PROJ.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="it-tabs">
+        <div class="it-tab active" onclick="itTab('mine',this)">My Progress</div>
+        <div class="it-tab" onclick="itTab('club',this)">Club</div>
+      </div>
+
+      <!-- MINE CONTENT -->
+      <div id="it-mine" class="it-body">
+
+        <!-- Sync row -->
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:6px;background:#f0f0fa;border-radius:20px;padding:6px 12px;font-size:0.65rem;font-weight:700;color:var(--pages-col);cursor:pointer;">
+            <i class="fa-solid fa-bolt" style="font-size:0.6rem;"></i> Sync
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div style="height:8px;background:#e8e8f5;border-radius:4px;overflow:hidden;margin-bottom:5px;">
+          <div style="height:100%;width:56%;background:linear-gradient(90deg,#534AB7,#A984BA);border-radius:4px;"></div>
+        </div>
+        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:14px;">56% of goal</div>
+
+        <!-- Pace comparison card -->
+        <div class="it-pace-card">
+          <div class="header">
+            <span>📊 Pace Check</span>
+            <span style="font-size:0.58rem;color:var(--color-success);font-weight:700;">You're ahead ✓</span>
+          </div>
+          <div class="pace-compare">
+            <div class="pace-box current">
+              <div class="n">38</div>
+              <div class="l">Current pg/d</div>
+            </div>
+            <div class="pace-box needed">
+              <div class="n">23</div>
+              <div class="l">Needed pg/d</div>
+            </div>
+            <div class="pace-box projected">
+              <div class="n">13.9k</div>
+              <div class="l">Yr Projection</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reading streak -->
+        <div class="it-streak">
+          <div class="icon">🔥</div>
+          <div class="info">
+            <strong>14-day reading streak</strong>
+            <p>Keep going! You're building great momentum.</p>
+          </div>
+        </div>
+
+        <!-- Monthly river -->
+        <div class="river-wrap">
+          <div class="river-title">Monthly Breakdown</div>
+          <div class="river-bars" id="it-river-bars"></div>
+          <div style="display:flex;gap:4px;margin-top:4px;" id="it-river-lbls"></div>
+        </div>
+
+      </div>
+
+      <!-- CLUB CONTENT -->
+      <div id="it-club" class="it-body" style="display:none;">
+        <div style="font-size:0.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Club Leaderboard</div>
+        <div id="it-club-rows"></div>
+        <div style="font-size:0.58rem;color:var(--text-muted);margin-top:8px;text-align:center;font-style:italic;">Yr Pace = projected pages at current speed · Updated on Sync</div>
+      </div>
+
+    </div><!-- /scroll -->
+
+    <div class="bottom-nav">
+      <div class="bnav-item"><i class="fa-solid fa-house"></i><span>Home</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-book-open"></i><span>Library</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-users"></i><span>Members</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-circle-user"></i><span>Me</span></div>
+      <div class="bnav-item active"><i class="fa-solid fa-compass"></i><span>More</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ OPTION 2 -->
+  <div id="opt2" class="phone-frame" style="display:none;">
+    <div class="phone-statusbar">
+      <span>9:41</span><span>▮▮▮ 🔋</span>
+    </div>
+    <div class="app-header" style="background:#0a0a20;">
+      <div class="app-logo"><img src="https://abhish3kjain.github.io/arkaapp-frontend/arka_logo.png" onerror="this.parentNode.textContent='A'"></div>
+      <div class="app-title">ARKA READERS CLUB</div>
+    </div>
+
+    <div style="overflow-y:auto;max-height:590px;background:#fff;">
+
+      <!-- HERO -->
+      <div class="rv-hero">
+        <div class="rv-back-row">
+          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+            <div class="btn-back"><i class="fa-solid fa-chevron-left"></i></div>
+            <span class="rv-title-txt">Pages Goal 2026</span>
+          </div>
+          <span class="rv-badge">Active</span>
+        </div>
+
+        <!-- Speedometer -->
+        <div class="rv-gauge-area">
+          <div class="rv-gauge-wrap">
+            <canvas id="gaugeCanvas" width="200" height="110"></canvas>
+            <div class="rv-gauge-center">
+              <div class="big">38</div>
+              <div class="unit">pg / day</div>
+              <div class="lbl">current pace</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Momentum dots (14-day streak indicator) -->
+        <div class="rv-momentum" title="Reading days in the last 14 days">
+          <div class="rv-dot on"></div><div class="rv-dot on"></div><div class="rv-dot on"></div>
+          <div class="rv-dot on"></div><div class="rv-dot on"></div><div class="rv-dot"></div>
+          <div class="rv-dot on"></div><div class="rv-dot on"></div><div class="rv-dot on"></div>
+          <div class="rv-dot on"></div><div class="rv-dot on"></div><div class="rv-dot on"></div>
+          <div class="rv-dot on"></div><div class="rv-dot on"></div>
+        </div>
+        <div style="text-align:center;font-size:0.45rem;color:rgba(255,255,255,.25);letter-spacing:1px;padding:3px 0 2px;">14-DAY READING STREAK ●●●</div>
+
+        <!-- Stats strip -->
+        <div class="rv-stats">
+          <div class="rv-stat pages">
+            <div class="n">5,600</div>
+            <div class="l">Pages Read</div>
+          </div>
+          <div class="rv-stat goal">
+            <div class="n">10,000</div>
+            <div class="l">Goal</div>
+          </div>
+          <div class="rv-stat proj">
+            <div class="n">13,870</div>
+            <div class="l">Yr Projection</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="rv-tabs">
+        <div class="rv-tab active" onclick="rvTab('mine',this)">My Progress</div>
+        <div class="rv-tab" onclick="rvTab('club',this)">Club</div>
+      </div>
+
+      <!-- MINE -->
+      <div id="rv-mine" class="rv-body">
+
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:6px;background:#f0f0fa;border-radius:20px;padding:6px 12px;font-size:0.65rem;font-weight:700;color:var(--pages-col);cursor:pointer;">
+            <i class="fa-solid fa-bolt" style="font-size:0.6rem;"></i> Sync
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div style="height:8px;background:#e8e8f5;border-radius:4px;overflow:hidden;margin-bottom:5px;">
+          <div style="height:100%;width:56%;background:linear-gradient(90deg,#534AB7,#A984BA);border-radius:4px;"></div>
+        </div>
+        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:14px;">56% of goal · 4,400 pages remaining</div>
+
+        <!-- Velocity timeline -->
+        <div class="vel-wrap">
+          <div class="vel-title">Monthly Velocity (pg/day avg)</div>
+          <div class="vel-chart" id="vel-chart"></div>
+          <!-- Need line drawn via JS -->
+          <div style="display:flex;justify-content:space-between;margin-top:4px;">
+            <span style="font-size:0.42rem;color:rgba(255,255,255,.25);">Jan</span>
+            <span style="font-size:0.42rem;color:rgba(255,255,255,.25);">Jun</span>
+          </div>
+        </div>
+
+        <!-- Projection card -->
+        <div class="rv-proj-card">
+          <div class="rv-proj-top">
+            <div class="rv-proj-icon">🚀</div>
+            <div class="rv-proj-info">
+              <div class="big">13,870 pages</div>
+              <div class="sub">projected by year end at 38 pg/day</div>
+            </div>
+          </div>
+          <div class="rv-proj-bottom">
+            <div class="rv-proj-pill">
+              <div class="n">+3,870</div>
+              <div class="l">above goal</div>
+            </div>
+            <div class="rv-proj-pill">
+              <div class="n">23 pg/d</div>
+              <div class="l">needed pace</div>
+            </div>
+            <div class="rv-proj-pill">
+              <div class="n">+65%</div>
+              <div class="l">pace buffer</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pace history table -->
+        <div style="font-size:0.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Monthly Breakdown</div>
+        <div id="rv-monthly"></div>
+
+      </div>
+
+      <!-- CLUB -->
+      <div id="rv-club" class="rv-body" style="display:none;">
+        <div style="font-size:0.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Club Standings</div>
+        <div id="rv-club-rows"></div>
+        <div style="font-size:0.58rem;color:var(--text-muted);margin-top:8px;text-align:center;font-style:italic;">Yr Pace = projected pages at current speed</div>
+      </div>
+
+    </div>
+
+    <div class="bottom-nav">
+      <div class="bnav-item"><i class="fa-solid fa-house"></i><span>Home</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-book-open"></i><span>Library</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-users"></i><span>Members</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-circle-user"></i><span>Me</span></div>
+      <div class="bnav-item active"><i class="fa-solid fa-compass"></i><span>More</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ OPTION 3 -->
+  <div id="opt3" class="phone-frame" style="display:none;">
+    <div class="phone-statusbar" style="background:#1c0e2e;">
+      <span>9:41</span><span>▮▮▮ 🔋</span>
+    </div>
+    <div class="app-header" style="background:#1c0e2e;">
+      <div class="app-logo"><img src="https://abhish3kjain.github.io/arkaapp-frontend/arka_logo.png" onerror="this.parentNode.textContent='A'"></div>
+      <div class="app-title">ARKA READERS CLUB</div>
+    </div>
+
+    <div style="overflow-y:auto;max-height:590px;background:#fff;">
+
+      <!-- HERO -->
+      <div class="cs-hero">
+        <div class="cs-back-row">
+          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+            <div class="btn-back"><i class="fa-solid fa-chevron-left"></i></div>
+            <span class="cs-title-txt">Pages Goal 2026</span>
+          </div>
+          <span class="cs-badge">Active</span>
+        </div>
+
+        <!-- Chapter scroll visual -->
+        <div class="cs-scroll-area">
+          <div class="cs-scroll-label">Your Reading Journey — Chapter by Chapter</div>
+          <div class="cs-chapters" id="cs-chapters"></div>
+        </div>
+
+        <!-- Ink stat -->
+        <div class="cs-ink-stat">
+          <div class="fraction">
+            <span class="read">5,600</span>
+            <span class="sep">/</span>
+            <span class="goal">10,000 pg</span>
+          </div>
+          <div class="pct-row">You are in Chapter 6 of 12 · 56% inked</div>
+        </div>
+
+        <!-- Progress track -->
+        <div class="cs-track">
+          <div class="cs-track-fill" style="width:56%;"></div>
+        </div>
+
+        <!-- Stats -->
+        <div class="cs-stats-row">
+          <div class="cs-stat ahead">
+            <div class="n">+1,234</div>
+            <div class="l">PGS AHEAD</div>
+          </div>
+          <div class="cs-stat">
+            <div class="n">38</div>
+            <div class="l">PG/DAY</div>
+          </div>
+          <div class="cs-stat">
+            <div class="n">13.9k</div>
+            <div class="l">YR PROJ.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="cs-tabs">
+        <div class="cs-tab active" onclick="csTab('mine',this)">My Progress</div>
+        <div class="cs-tab" onclick="csTab('club',this)">Club</div>
+      </div>
+
+      <!-- MINE -->
+      <div id="cs-mine" class="cs-body">
+
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:6px;background:#f0f0fa;border-radius:20px;padding:6px 12px;font-size:0.65rem;font-weight:700;color:var(--pages-col);cursor:pointer;">
+            <i class="fa-solid fa-bolt" style="font-size:0.6rem;"></i> Sync
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div style="height:8px;background:#e8e8f5;border-radius:4px;overflow:hidden;margin-bottom:5px;">
+          <div style="height:100%;width:56%;background:linear-gradient(90deg,#534AB7,#A984BA);border-radius:4px;"></div>
+        </div>
+        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:14px;">56% of goal</div>
+
+        <!-- Chapter log -->
+        <div style="font-size:0.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Chapter Log</div>
+        <div id="cs-chapter-log"></div>
+
+      </div>
+
+      <!-- CLUB -->
+      <div id="cs-club" class="cs-body" style="display:none;">
+        <div style="font-size:0.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Club Standings</div>
+        <div id="cs-club-rows"></div>
+        <div style="font-size:0.58rem;color:var(--text-muted);margin-top:8px;text-align:center;font-style:italic;">Yr Pace = projected pages at current speed</div>
+      </div>
+
+    </div>
+
+    <div class="bottom-nav">
+      <div class="bnav-item"><i class="fa-solid fa-house"></i><span>Home</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-book-open"></i><span>Library</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-users"></i><span>Members</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-circle-user"></i><span>Me</span></div>
+      <div class="bnav-item active"><i class="fa-solid fa-compass"></i><span>More</span></div>
+    </div>
+  </div>
+
+</div><!-- /phones -->
+
+<script>
+/* ── DATA ──────────────────────────────────────────────────────────────────── */
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHLY_PAGES = [800,600,900,300,600,1400,0,0,0,0,0,0];
+const MONTHLY_DAYS  = [31,28,31,30,31,30,31,31,30,31,30,31];
+const CURRENT_MONTH = 5; // June = index 5
+
+const CLUB = [
+  {name:'Abhishek', init:'AB', col:'#534AB7', pages:5600, rse:38, me:true},
+  {name:'Sushma',   init:'SU', col:'#1D9E75', pages:4200, rse:28},
+  {name:'Santhosh', init:'SA', col:'#E74C3C', pages:3800, rse:22},
+  {name:'Priya',    init:'PR', col:'#E67E22', pages:6100, rse:42},
+  {name:'Rahul',    init:'RA', col:'#2980B9', pages:2900, rse:18},
+  {name:'Meena',    init:'ME', col:'#8E44AD', pages:5100, rse:35},
+  {name:'Kiran',    init:'KI', col:'#16A085', pages:3200, rse:24},
+];
+
+const GOAL = 10000;
+const PAGES_READ = 5600;
+const ELAPSED = 173; // days into year
+const TOTAL_DAYS = 365;
+const EXPECTED = Math.round(GOAL * ELAPSED / TOTAL_DAYS);
+const AHEAD = PAGES_READ - EXPECTED;
+const CURRENT_PG_DAY = 38;
+const NEEDED_PG_DAY = Math.round((GOAL - PAGES_READ) / (TOTAL_DAYS - ELAPSED));
+const PROJ = Math.round(CURRENT_PG_DAY * TOTAL_DAYS);
+
+/* ── OPTION SWITCHER ───────────────────────────────────────────────────────── */
+function showOpt(n, btn) {
+  [1,2,3].forEach(i => {
+    document.getElementById('opt'+i).style.display = i===n ? 'block' : 'none';
+    document.getElementById('desc'+i).style.display = i===n ? 'flex' : 'none';
+  });
+  document.querySelectorAll('.onb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ── TAB SWITCHERS ─────────────────────────────────────────────────────────── */
+function itTab(tab, btn) {
+  document.getElementById('it-mine').style.display = tab==='mine' ? 'block' : 'none';
+  document.getElementById('it-club').style.display = tab==='club' ? 'block' : 'none';
+  btn.closest('.it-tabs').querySelectorAll('.it-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+function rvTab(tab, btn) {
+  document.getElementById('rv-mine').style.display = tab==='mine' ? 'block' : 'none';
+  document.getElementById('rv-club').style.display = tab==='club' ? 'block' : 'none';
+  btn.closest('.rv-tabs').querySelectorAll('.rv-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+function csTab(tab, btn) {
+  document.getElementById('cs-mine').style.display = tab==='mine' ? 'block' : 'none';
+  document.getElementById('cs-club').style.display = tab==='club' ? 'block' : 'none';
+  btn.closest('.cs-tabs').querySelectorAll('.cs-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ── OPT 1: TIDE ANIMATION ─────────────────────────────────────────────────── */
+function drawTide() {
+  const cv = document.getElementById('tideCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const pct = 0.56;
+  let t = 0;
+
+  function frame() {
+    ctx.clearRect(0,0,W,H);
+    const fillY = H * (1 - pct * 0.85); // tide fills from bottom
+
+    // Draw waves
+    ctx.beginPath();
+    ctx.moveTo(0, fillY);
+    for (let x = 0; x <= W; x++) {
+      const y = fillY + Math.sin((x / W * 4 + t) * Math.PI) * 5
+                      + Math.sin((x / W * 7 - t*1.3) * Math.PI) * 3;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+
+    const grad = ctx.createLinearGradient(0, fillY, 0, H);
+    grad.addColorStop(0, 'rgba(83,74,183,0.85)');
+    grad.addColorStop(0.4, 'rgba(83,74,183,0.7)');
+    grad.addColorStop(1, 'rgba(45,27,94,0.9)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Foam highlights
+    ctx.beginPath();
+    ctx.moveTo(0, fillY+2);
+    for (let x=0;x<=W;x++) {
+      const y = fillY + Math.sin((x/W*4+t)*Math.PI)*5 + Math.sin((x/W*7-t*1.3)*Math.PI)*3 + 2;
+      ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle = 'rgba(169,132,186,0.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    t += 0.015;
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+/* ── OPT 1: RIVER BARS ──────────────────────────────────────────────────────── */
+function buildRiverBars() {
+  const barsEl = document.getElementById('it-river-bars');
+  const lblsEl = document.getElementById('it-river-lbls');
+  if (!barsEl) return;
+  const max = Math.max(...MONTHLY_PAGES.filter(p=>p>0));
+  barsEl.innerHTML = '';
+  lblsEl.innerHTML = '';
+  MONTHLY_PAGES.forEach((p, i) => {
+    const pct = max > 0 ? p / max : 0;
+    const isCur = i === CURRENT_MONTH;
+    const isFut = i > CURRENT_MONTH;
+    const col = isFut ? '#e8e8f5' : isCur ? '#A984BA' : '#534AB7';
+    const barH = isFut ? 2 : Math.max(pct * 60, 2);
+    barsEl.innerHTML += `
+      <div class="river-bar-col" style="height:70px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;">
+        <div style="font-size:0.4rem;font-weight:700;color:${isFut?'transparent':col};">${p||''}</div>
+        <div style="width:100%;height:${barH}px;background:${col};border-radius:3px 3px 0 0;"></div>
+        <div style="font-size:0.4rem;color:var(--text-muted);">${MONTHS[i].slice(0,1)}</div>
+      </div>`;
+  });
+}
+
+/* ── OPT 1: CLUB ROWS ──────────────────────────────────────────────────────── */
+function buildItClub() {
+  const el = document.getElementById('it-club-rows');
+  if (!el) return;
+  const sorted = [...CLUB].sort((a,b)=>b.pages-a.pages);
+  el.innerHTML = sorted.map((m,i) => {
+    const proj = Math.round(m.rse * TOTAL_DAYS);
+    const pct = Math.round(m.pages / GOAL * 100);
+    return `
+      <div class="club-row">
+        <div style="font-size:0.6rem;font-weight:700;color:var(--text-muted);width:14px;">${i+1}</div>
+        <div class="club-av ${m.me?'club-me':''}" style="background:${m.col};">${m.init}</div>
+        <div class="club-info">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="club-name" style="${m.me?'color:var(--pages-col);':''}">${m.name}${m.me?' (me)':''}</div>
+            <div class="club-pg">${(m.pages/1000).toFixed(1)}k</div>
+          </div>
+          <div class="club-bar-wrap"><div class="club-bar-fill" style="width:${pct}%;"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:0.52rem;color:var(--text-muted);margin-top:2px;">
+            <span>${m.me ? m.rse+' pg/d' : pct+'%'}</span>
+            <span>${(proj/1000).toFixed(0)}k yr proj</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── OPT 2: SPEEDOMETER ─────────────────────────────────────────────────────── */
+function drawGauge() {
+  const cv = document.getElementById('gaugeCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const cx=100, cy=95, r=75;
+  const startA = Math.PI * 1.1;
+  const endA = Math.PI * 1.9; // 144° arc
+
+  // BG arc
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,startA,endA);
+  ctx.strokeStyle='rgba(255,255,255,.1)';
+  ctx.lineWidth=10;
+  ctx.lineCap='round';
+  ctx.stroke();
+
+  // Gradient filled arc (0–100 pg/day range, current=38)
+  const maxPace = 80;
+  const pct = Math.min(CURRENT_PG_DAY / maxPace, 1);
+  const fillEnd = startA + (endA-startA)*pct;
+  const grad = ctx.createLinearGradient(cx-r,cy,cx+r,cy);
+  grad.addColorStop(0,'#534AB7');
+  grad.addColorStop(0.5,'#A984BA');
+  grad.addColorStop(1,'#5effc2');
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,startA,fillEnd);
+  ctx.strokeStyle=grad;
+  ctx.lineWidth=10;
+  ctx.lineCap='round';
+  ctx.stroke();
+
+  // Tick marks
+  for (let i=0;i<=10;i++) {
+    const a = startA + (endA-startA)*(i/10);
+    const inner = i%5===0 ? r-16 : r-10;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);
+    ctx.lineTo(cx+Math.cos(a)*inner,cy+Math.sin(a)*inner);
+    ctx.strokeStyle=i%5===0?'rgba(255,255,255,.4)':'rgba(255,255,255,.15)';
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+  }
+
+  // Needle
+  const needleA = startA + (endA-startA)*pct;
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.lineTo(cx+Math.cos(needleA)*(r-18),cy+Math.sin(needleA)*(r-18));
+  ctx.strokeStyle='#fff';
+  ctx.lineWidth=2;
+  ctx.lineCap='round';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx,cy,5,0,Math.PI*2);
+  ctx.fillStyle='#fff';
+  ctx.fill();
+
+  // Needed pace marker
+  const neededPct = NEEDED_PG_DAY / maxPace;
+  const neededA = startA + (endA-startA)*neededPct;
+  ctx.beginPath();
+  ctx.moveTo(cx+Math.cos(neededA)*(r+3),cy+Math.sin(neededA)*(r+3));
+  ctx.lineTo(cx+Math.cos(neededA)*(r-16),cy+Math.sin(neededA)*(r-16));
+  ctx.strokeStyle='#f39c12';
+  ctx.lineWidth=2;
+  ctx.stroke();
+}
+
+/* ── OPT 2: VELOCITY CHART ──────────────────────────────────────────────────── */
+function buildVelChart() {
+  const el = document.getElementById('vel-chart');
+  if (!el) return;
+  // Monthly avg pace = pages/days
+  const paces = MONTHLY_PAGES.map((p,i) => i <= CURRENT_MONTH && p > 0 ? Math.round(p/MONTHLY_DAYS[i]) : 0);
+  const maxP = Math.max(...paces, NEEDED_PG_DAY + 5);
+  const needPct = NEEDED_PG_DAY / maxP;
+
+  el.style.position='relative';
+  el.innerHTML = MONTHS.map((m,i) => {
+    const p = paces[i];
+    const pct = p > 0 ? p/maxP : 0;
+    const isCur = i===CURRENT_MONTH;
+    const isFut = i>CURRENT_MONTH;
+    const barH = pct * 55;
+    const col = isCur ? '#A984BA' : (!isFut && p >= NEEDED_PG_DAY ? '#5effc2' : !isFut ? '#534AB7' : 'rgba(255,255,255,.08)');
+    return `<div class="vel-col">
+      <div class="vel-bar" style="height:${Math.max(barH,2)}px;background:${col};">
+        ${!isFut&&p>0?`<div class="vel-glow" style="background:rgba(255,255,255,.3);"></div>`:''}
+      </div>
+      <div class="vel-lbl">${m[0]}</div>
+    </div>`;
+  }).join('');
+
+  // "Needed" dashed line
+  const lineY = 60 - (needPct * 55);
+  el.insertAdjacentHTML('beforeend',`
+    <div style="position:absolute;left:0;right:0;top:${lineY}px;height:1px;background:rgba(249,185,48,.4);border-top:1px dashed rgba(249,185,48,.5);pointer-events:none;">
+      <span style="position:absolute;right:2px;top:-8px;font-size:0.38rem;color:rgba(249,185,48,.6);">need ${NEEDED_PG_DAY}/d</span>
+    </div>`);
+}
+
+/* ── OPT 2: MONTHLY TABLE ───────────────────────────────────────────────────── */
+function buildRvMonthly() {
+  const el = document.getElementById('rv-monthly');
+  if (!el) return;
+  const past = MONTHLY_PAGES.slice(0, CURRENT_MONTH+1).map((p,i)=>({m:MONTHS[i],p,d:MONTHLY_DAYS[i]}));
+  el.innerHTML = past.reverse().map(({m,p,d}) => {
+    const avg = Math.round(p/d);
+    const ahead = avg >= NEEDED_PG_DAY;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f8f8ff;border-radius:8px;margin-bottom:5px;">
+      <span style="font-size:0.65rem;font-weight:700;color:var(--text-muted);width:28px;">${m}</span>
+      <div style="flex:1;height:4px;background:#e8e8f5;border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:${Math.min(p/100*100/10,100)}%;background:${ahead?'#5effc2':'#534AB7'};border-radius:2px;"></div>
+      </div>
+      <span style="font-size:0.65rem;font-weight:700;color:var(--pages-col);min-width:32px;text-align:right;">${p}</span>
+      <span style="font-size:0.58rem;color:${ahead?'var(--color-success)':'var(--text-muted)'};min-width:34px;text-align:right;">${avg} pg/d</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── OPT 2: CLUB ROWS ───────────────────────────────────────────────────────── */
+function buildRvClub() {
+  const el = document.getElementById('rv-club-rows');
+  if (!el) return;
+  const sorted = [...CLUB].sort((a,b)=>b.pages-a.pages);
+  el.innerHTML = sorted.map((m,i) => {
+    const proj = Math.round(m.rse * TOTAL_DAYS);
+    const pct = Math.round(m.pages / GOAL * 100);
+    return `
+      <div class="club-row">
+        <div style="font-size:0.6rem;font-weight:700;color:var(--text-muted);width:14px;">${i+1}</div>
+        <div class="club-av ${m.me?'club-me':''}" style="background:${m.col};">${m.init}</div>
+        <div class="club-info">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="club-name" style="${m.me?'color:var(--pages-col);':''}">${m.name}${m.me?' (me)':''}</div>
+            <div class="club-pg">${(m.pages/1000).toFixed(1)}k pg</div>
+          </div>
+          <div class="club-bar-wrap"><div class="club-bar-fill" style="width:${pct}%;"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:0.52rem;color:var(--text-muted);margin-top:2px;">
+            <span>${m.me ? m.rse+' pg/d' : pct+'% of goal'}</span>
+            <span>${(proj/1000).toFixed(0)}k yr proj</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── OPT 3: CHAPTER SCROLL ──────────────────────────────────────────────────── */
+function buildChapters() {
+  const el = document.getElementById('cs-chapters');
+  if (!el) return;
+  const maxP = Math.max(...MONTHLY_PAGES.filter(p=>p>0));
+  el.innerHTML = MONTHS.map((m,i) => {
+    const p = MONTHLY_PAGES[i];
+    const pct = p > 0 ? p/maxP : 0;
+    const isDone = i < CURRENT_MONTH;
+    const isCur = i === CURRENT_MONTH;
+    const isFut = i > CURRENT_MONTH;
+    const cols = ['#534AB7','#4a3faa','#6b5ec4','#7b6ed0','#8a7dd8','#A984BA'];
+    const col = cols[i % cols.length];
+    if (isFut) {
+      return `<div class="cs-chapter" style="margin-right:3px;"><div class="cs-chapter-future"></div><div class="cs-chapter-num">${m[0]}</div></div>`;
+    }
+    return `<div class="cs-chapter ${isCur?'current':''}" style="margin-right:3px;">
+      <div class="cs-chapter-fill" style="background:rgba(255,255,255,.08);">
+        <div class="ink" style="height:${Math.max(pct*100,8)}%;background:${col};${isCur?'opacity:.9':''}"></div>
+        <div class="lines"></div>
+      </div>
+      <div class="cs-chapter-num">${m[0]}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── OPT 3: CHAPTER LOG ─────────────────────────────────────────────────────── */
+function buildChapterLog() {
+  const el = document.getElementById('cs-chapter-log');
+  if (!el) return;
+  const past = MONTHLY_PAGES.slice(0, CURRENT_MONTH+1)
+    .map((p,i)=>({m:MONTHS[i],p,i})).reverse();
+  el.innerHTML = past.map(({m,p,i}) => {
+    const isCur = i===CURRENT_MONTH;
+    const avg = Math.round(p / MONTHLY_DAYS[i]);
+    const label = isCur ? 'current-month' : 'done';
+    const numClass = isCur ? 'cur' : 'done';
+    const word = p > 1000 ? '📖 Great month!' : p > 600 ? '✨ Solid' : '📝 Quiet';
+    return `<div class="cs-month-card ${label}">
+      <div class="cs-month-num ${numClass}">${m}</div>
+      <div class="cs-month-info">
+        <div class="cs-month-name">Chapter ${i+1}${isCur?' <span style="font-size:0.55rem;background:#A984BA;color:#fff;border-radius:4px;padding:1px 5px;margin-left:4px;">In progress</span>':''}</div>
+        <div class="cs-month-sub">${word} · ${avg} pg/day avg</div>
+      </div>
+      <div class="cs-month-pg">${p} pg</div>
+    </div>`;
+  }).join('');
+
+  // Future chapters (ghost)
+  el.innerHTML += MONTHS.slice(CURRENT_MONTH+1).map((m,i) => {
+    const idx = CURRENT_MONTH+1+i;
+    const needed = Math.round(NEEDED_PG_DAY * MONTHLY_DAYS[idx]);
+    return `<div class="cs-month-card future">
+      <div class="cs-month-num fut">${m}</div>
+      <div class="cs-month-info">
+        <div class="cs-month-name">Chapter ${idx+1}</div>
+        <div class="cs-month-sub">Need ~${needed} pg to stay on track</div>
+      </div>
+      <div class="cs-month-pg">${needed} pg</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── OPT 3: CLUB ROWS ───────────────────────────────────────────────────────── */
+function buildCsClub() {
+  const el = document.getElementById('cs-club-rows');
+  if (!el) return;
+  const sorted = [...CLUB].sort((a,b)=>b.pages-a.pages);
+  el.innerHTML = sorted.map((m,i) => {
+    const proj = Math.round(m.rse * TOTAL_DAYS);
+    const pct = Math.round(m.pages / GOAL * 100);
+    return `
+      <div class="club-row">
+        <div style="font-size:0.6rem;font-weight:700;color:var(--text-muted);width:14px;">${i+1}</div>
+        <div class="club-av ${m.me?'club-me':''}" style="background:${m.col};">${m.init}</div>
+        <div class="club-info">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="club-name" style="${m.me?'color:var(--pages-col);':''}">${m.name}${m.me?' (me)':''}</div>
+            <div class="club-pg">${(m.pages/1000).toFixed(1)}k</div>
+          </div>
+          <div class="club-bar-wrap"><div class="club-bar-fill" style="width:${pct}%;"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:0.52rem;color:var(--text-muted);margin-top:2px;">
+            <span>${m.me ? m.rse+' pg/d' : pct+'%'}</span>
+            <span>${(proj/1000).toFixed(0)}k yr proj</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── INIT ───────────────────────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  drawTide();
+  buildRiverBars();
+  buildItClub();
+  drawGauge();
+  buildVelChart();
+  buildRvMonthly();
+  buildRvClub();
+  buildChapters();
+  buildChapterLog();
+  buildCsClub();
+});
+</script>
+</body>
+</html>

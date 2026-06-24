@@ -61,7 +61,7 @@ Full history lives here.
 
 ## app.js (ArkaClubApp frontend)
 
-**Current: `3.8.0`**
+**Current: `3.8.4`**
 
 | Version | Date | Summary |
 |---|---|---|
@@ -76,19 +76,48 @@ Full history lives here.
 | 3.6.0 | Jun 2026 | RSE V1 wired into 4 features: insight card pace, pace warning (genre/mood context), serendipity MOOD_MATCH, challenge pace table |
 | 3.7.0 | Jun 2026 | Badge proximity confidence bands — 🟢 Easy / 🟡 Stretch / 🔴 Aggressive based on moodMultiplier |
 | 3.7.1 | Jun 2026 | Remove confidence band labels from badge proximity strip (too much explanation needed) |
-| 3.8.0 | Jun 2026 | Challenges page bento revamp; 10PAGESADAY wired — banner fire tile, list card progress bar, detail view renderer (stat strip, habit stats card, monthly breakdown chart) |
+| 3.8.0 | Jun 2026 | 10PAGESADAY challenge detail page — Habit Pulse EKG hero, monthly constellation rings, 3-stat strip (Wks Hit / Max Gap / Recovery), qualification tracker bar, habit science blurb (B.J. Fogg / James Clear) |
+| 3.8.1 | Jun 2026 | Fix BOOK_COUNT and PAGE_COUNT frontend sync: monthlyBreakdown keys now YYYY-MM (was short name); weeklyBreakdown keys now YYYY-Www (was W03 without year) — matches GAS schema |
+| 3.8.2 | Jun 2026 | Fix chart rendering: monthlyBreakdown lookups in velocity timeline and monthly list now use YYYY-MM keys; BOOK_COUNT bar chart uses YYYY-MM keys — all reads match write format |
+| 3.8.3 | Jun 2026 | BOOK_COUNT: booksRead entries use shelfId (not bookId); spine and book-list renderers resolve bookId via shelvesMap.get(shelfId) at render time; globalShelvesDB already excludes Deleted rows |
+| 3.8.4 | Jun 2026 | Fix 10PAGESADAY banner fire tile and list card progress bar: targetPages was falling back to 1 (goalConfigJson uses dailyGoal, not targetPages/durationDays); now uses dailyGoal×365 || goalValue; fire tile stat text shows avg pg/day + qualified status |
 
 ---
 
 ## ArkaClubApp.html
 
-**Current: `1.2.0`**
+**Current: `1.3.0`**
 
 | Version | Date | Summary |
 |---|---|---|
 | 1.0.0 | pre-2025 | Initial HTML shell — GAS HtmlService entry point, stylesheet links, app.js script tag |
 | 1.1.0 | 2025 | Added styles.css versioned cache-bust param |
 | 1.2.0 | 2025 | styles.css cache-bust updated to `?v=1.2` |
+| 1.3.0 | Jun 2026 | 10PAGESADAY EKG hero div added to flush wrapper — persistent DOM for canvas drawing |
+
+---
+
+## ArkaChallengePass.gs
+
+**Current: `1.1.0`**
+
+| Version | Date | Summary |
+|---|---|---|
+| 1.0.0 | Jun 2026 | Standalone nightly challenge pass — 10PAGESADAY habitScore engine (weeksHit, maxGap, recoveryRate, earlyWeeksHit hidden), zero-state bootstrap, LockService guard, installArkaChallengePassTrigger() |
+| 1.1.0 | Jun 2026 | BOOK_COUNT: booksRead entries now store `bookId` (from ActivityLogDB desc) + `finishedOn` in dd-MMM-yyyy format; added `_chalpassFmtDdMmmYyyy_()` helper |
+| 1.2.0 | Jun 2026 | BOOK_COUNT: switch source from ActivityLogDB to MemberShelfDB; booksRead entries now store `shelfId` (not bookId); Deleted shelf rows excluded; added MemberShelfDB sheet read + SHELF_COL_* constants |
+
+---
+
+## ArkaMainAppCode.gs
+
+**Current: `1.1.0`** *(versioning started Jun 2026)*
+
+| Version | Date | Summary |
+|---|---|---|
+| 1.0.0 | pre-Jun 2026 | Core backend — page logging, shelf writes, challenge sync (BOOK_COUNT/PAGE_COUNT), completion detection |
+| 1.1.0 | Jun 2026 | Fix progressStateJson key formats: monthlyBreakdown → YYYY-MM (was short name), weeklyBreakdown → YYYY-Www (was W03 without year), both BOOK_COUNT and PAGE_COUNT |
+| 1.2.0 | Jun 2026 | BOOK_COUNT: booksRead now uses shelfId from MemberShelfDB Finished rows (not bookId from ActivityLogDB); Deleted status rows excluded |
 
 ---
 

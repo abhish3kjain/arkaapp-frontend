@@ -6612,7 +6612,7 @@
         <div class="huk-related">
           <div class="huk-related-title">Guides for Each Section</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-me-action-band')">The Action Band — Log Reading, Continue Reading &amp; Suggested Task</div>
-          <div class="huk-related-link" onclick="openHelpArticle('help-me-journey')">My Reading Journey — Stats, Heatmap &amp; Level</div>
+          <div class="huk-related-link" onclick="openHelpArticle('help-me-journey')">My Reading Journey — Stat Circles, Heatmap &amp; Level</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-me-coach')">Arka Coach — Personalised Reading Insights</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-full-shelf')">My Shelves — Browsing All Your Books</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-me-reading-story')">My Reading Story — Your Pace, Rhythm, Genres &amp; History</div>
@@ -6778,51 +6778,83 @@
       id: "help-me-journey",
       order: 2,
       category: "Me Tab",
-      title: "My Reading Journey — Stats, Heatmap & Level",
-      tags: "me tab, reading journey, stat pills, pages, books, streak, heatmap, level, progress bar, ap, weekly pages, year stats, my reading story",
-      snippet: "Your year at a glance — the stat pills, 52-week heatmap, level bar, and the My reading story link for deeper charts.",
+      title: "My Reading Journey — Stat Circles, Heatmap & Level",
+      tags: "me tab, reading journey, stat circles, pages ring, books ring, streak circle, heatmap, level, progress bar, ap, weekly pages, year stats, my reading story, reading goal, progress ring",
+      snippet: "Your year at a glance — the stat circles (pages, books, streak), this-week page banner, 52-week heatmap, level bar, and the My reading story link for deeper charts.",
       content: `
-        <span class="huk-last-updated">Last reviewed: June 2026 (App v109).</span>
+        <span class="huk-last-updated">Last reviewed: June 2026 (App v111).</span>
 
         <p>
           The <strong>My Reading Journey</strong> section sits just below the Action Band.
           It answers the question <em>how am I doing this year?</em> in four stacked
-          elements — stats, heatmap, level, and a gateway to your deeper history.
+          elements — stat circles, heatmap (with a this-week banner), level bar, and a
+          gateway to your deeper history.
         </p>
 
-        <h3>The Stat Pills</h3>
+        <h3>The Stat Circles</h3>
         <p>
-          Three compact cards sit at the top of the section:
+          Three circles sit at the top of the section, filling the screen width equally:
         </p>
 
         <div class="huk-screen-mockup">
-          <div class="huk-screen-mockup-label">Stat Pills — three cards</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;">
-            <div style="background:#fff;border:0.5px solid #ecf0f1;border-radius:10px;
-                        padding:10px 4px;text-align:center;">
-              <div style="font-size:20px;font-weight:700;color:#2c3e50;line-height:1;">4,210</div>
-              <div style="font-size:9px;color:#7f8c8d;margin-top:3px;text-transform:uppercase;
-                          letter-spacing:0.3px;">pages '26</div>
+          <div class="huk-screen-mockup-label">Stat circles — enrolled in both goals, active streak</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:4px 0;">
+
+            <!-- Pages ring -->
+            <div style="aspect-ratio:1/1;position:relative;">
+              <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
+                <circle cx="50" cy="50" r="44" fill="white" stroke="#e0ddf5" stroke-width="9"/>
+                <!-- 4210/8000 = 52.6% → 145.4 of 276.5 -->
+                <circle cx="50" cy="50" r="44" fill="none" stroke="#7c3aed" stroke-width="9"
+                        stroke-dasharray="145.4 276.5" stroke-dashoffset="0"
+                        stroke-linecap="round" transform="rotate(-90 50 50)"/>
+              </svg>
+              <div style="position:absolute;top:0;left:0;right:0;bottom:0;
+                          display:flex;flex-direction:column;align-items:center;justify-content:center;
+                          text-align:center;gap:2px;">
+                <div style="font-size:clamp(13px,3.8vw,17px);font-weight:800;color:#1a1a2e;line-height:1;">4,210</div>
+                <div style="font-size:clamp(8px,2.3vw,11px);color:#888;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">pages</div>
+                <div style="font-size:clamp(6px,1.8vw,8px);color:#bbb;line-height:1;">of 8,000</div>
+              </div>
             </div>
-            <div style="background:#fff;border:0.5px solid #ecf0f1;border-radius:10px;
-                        padding:10px 4px;text-align:center;">
-              <div style="font-size:20px;font-weight:700;color:#2c3e50;line-height:1;">17</div>
-              <div style="font-size:9px;color:#7f8c8d;margin-top:3px;text-transform:uppercase;
-                          letter-spacing:0.3px;">books '26</div>
+
+            <!-- Books ring -->
+            <div style="aspect-ratio:1/1;position:relative;">
+              <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
+                <circle cx="50" cy="50" r="44" fill="white" stroke="#e0ddf5" stroke-width="9"/>
+                <!-- 17/24 = 70.8% → 195.9 of 276.5 -->
+                <circle cx="50" cy="50" r="44" fill="none" stroke="#7c3aed" stroke-width="9"
+                        stroke-dasharray="195.9 276.5" stroke-dashoffset="0"
+                        stroke-linecap="round" transform="rotate(-90 50 50)"/>
+              </svg>
+              <div style="position:absolute;top:0;left:0;right:0;bottom:0;
+                          display:flex;flex-direction:column;align-items:center;justify-content:center;
+                          text-align:center;gap:2px;">
+                <div style="font-size:clamp(13px,3.8vw,17px);font-weight:800;color:#1a1a2e;line-height:1;">17</div>
+                <div style="font-size:clamp(8px,2.3vw,11px);color:#888;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">books</div>
+                <div style="font-size:clamp(6px,1.8vw,8px);color:#bbb;line-height:1;">of 24</div>
+              </div>
             </div>
-            <div style="background:#f8f9fa;border:0.5px solid #ecf0f1;border-radius:10px;
-                        padding:10px 4px;text-align:center;">
-              <div style="font-size:20px;font-weight:700;color:#7f8c8d;line-height:1;">6</div>
-              <div style="font-size:9px;color:#7f8c8d;margin-top:3px;text-transform:uppercase;
-                          letter-spacing:0.3px;">wk streak</div>
+
+            <!-- Streak circle -->
+            <div style="aspect-ratio:1/1;border-radius:50%;background:#fff8f0;border:3.5px solid #f0c070;
+                        display:flex;flex-direction:column;align-items:center;justify-content:center;
+                        text-align:center;gap:2px;">
+              <div style="font-size:clamp(8px,2.3vw,11px);color:#854F0B;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">weeks</div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span style="font-size:clamp(16px,4.8vw,22px);font-weight:900;color:#e0900a;line-height:1;">6</span>
+                <span style="font-size:clamp(16px,4.8vw,22px);line-height:1;">🔥</span>
+              </div>
+              <div style="font-size:clamp(8px,2.3vw,11px);color:#854F0B;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">streak</div>
             </div>
+
           </div>
         </div>
 
         <ul>
-          <li><strong>Pages '26</strong> — total pages logged in the current calendar year from all sources (Quick Log, book progress, shelf updates).</li>
-          <li><strong>Books '26</strong> — books you have marked <span class="huk-badge huk-badge--finished">✅ Finished</span> in the current year.</li>
-          <li><strong>Wk streak</strong> — consecutive weeks where you logged at least one page. Resets to zero if a complete calendar week passes with no log. The counter turns grey when your streak is at risk.</li>
+          <li><strong>Pages circle</strong> — pages logged in the current calendar year. If you are enrolled in a <em>Page Reading Goal</em> challenge, a purple ring shows your progress toward your personal goal ("of N"). If the challenge exists but you haven't joined, a <strong>+ Add goal</strong> link appears — tap it to go to the Challenges tab.</li>
+          <li><strong>Books circle</strong> — books marked <span class="huk-badge huk-badge--finished">✅ Finished</span> this year. Same ring behaviour for a <em>Book Reading Goal</em> challenge. Tap the circle to open your Finished shelf filtered to this year.</li>
+          <li><strong>Streak circle</strong> — your current consecutive-week reading streak. The circle turns amber when a streak is active. WEEKS sits above the number, STREAK below.</li>
         </ul>
 
         <h3>The 52-Week Heatmap</h3>
@@ -7163,7 +7195,7 @@
           <div class="huk-related-title">Related Articles</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-reading-personality')">Reading Personality — Your Six-Axis Reading DNA</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-me-action-band')">The Action Band — Your Three Quick Actions</div>
-          <div class="huk-related-link" onclick="openHelpArticle('help-me-journey')">My Reading Journey — Stats, Heatmap &amp; Level</div>
+          <div class="huk-related-link" onclick="openHelpArticle('help-me-journey')">My Reading Journey — Stat Circles, Heatmap &amp; Level</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-me-tab-overview')">The Me Tab — Overview</div>
         </div>
       `
@@ -7173,16 +7205,18 @@
       id: "help-reading-dashboard",
       order: 4,
       category: "Me Tab",
-      title: "The 52-Week Heatmap — Your Year in Green Squares",
-      tags: "heatmap, 52 week, streak, reading consistency, me tab, weekly pages, reading habit, calendar view, green squares, dark green, empty week",
-      snippet: "How to read the 52-week heatmap — what the colours mean, how streaks connect to it, and what empty weeks show.",
+      title: "Reading Journey — Stat Circles, This-Week Banner & 52-Week Heatmap",
+      tags: "heatmap, 52 week, streak, reading consistency, me tab, weekly pages, reading habit, calendar view, green squares, dark green, empty week, stat circles, pages ring, books ring, streak circle, reading goal, progress ring",
+      snippet: "How the stat circles, this-week page banner, and 52-week heatmap work — what the colours mean, how the progress rings fill, and what the streak circle shows.",
       content: `
-        <span class="huk-last-updated">Last reviewed: June 2026 (App v110).</span>
+        <span class="huk-last-updated">Last reviewed: June 2026 (App v111).</span>
 
         <p>
-          The 52-week heatmap is in the <strong>My Reading Journey</strong> section of your
-          Me tab, below the stat pills. It gives you an at-a-glance view of your entire
-          reading year — which weeks you logged, how much, and where the gaps are.
+          The <strong>My Reading Journey</strong> section of your Me tab has three parts
+          stacked top to bottom: the <em>stat circles</em> (pages, books, streak), a
+          <em>this-week page banner</em>, and the <em>52-week heatmap</em>. Together they
+          give you an instant read of your reading year — what you've logged, how consistent
+          you've been, and where the gaps are.
         </p>
 
         <div class="huk-tip">
@@ -7321,14 +7355,19 @@
           and page count.
         </p>
 
+        <h3>This Week Banner</h3>
+        <p>
+          Just above the heatmap grid you'll see a single line — <em>"You logged X pages
+          this week"</em> — that always reflects your running total for the current ISO
+          week. It updates automatically as you log new pages.
+        </p>
+
         <h3>Reading Streak</h3>
         <p>
-          Your current streak counts consecutive weeks where you logged at least some pages —
-          crossing year boundaries without breaking, so a streak that starts in October and
-          runs into the next year is counted as one unbroken run. The app shows your
-          <strong>all-time best streak</strong> alongside, so you have a personal record to
-          beat. The best is only shown when your current streak is lower than it; when
-          you match or beat it you see 🏆 Personal best! instead.
+          Your streak counts consecutive weeks where you logged at least some pages,
+          crossing year boundaries without breaking. It is shown in the
+          <strong>Streak circle</strong> in the stat row at the top of the Reading
+          Journey section (see below).
         </p>
         <div class="huk-tip">
           <strong>💡 Streak tip:</strong> A week counts as active if you logged any pages
@@ -7336,21 +7375,95 @@
           every week to keep your streak alive.
         </div>
 
-        <h3>Stats Grid</h3>
+        <h3>Stat Circles</h3>
         <p>
-          Three tiles at the top of the Me tab show your reading numbers in a split layout.
-          The <strong>Pages</strong> and <strong>Books</strong> tiles each show a current-year
-          figure at the top and your all-time lifetime total below the divider. The
-          <strong>Streak</strong> tile is slightly different: the top half shows your
-          <em>current live streak</em> in weeks (🔥), and the bottom half shows your
-          <em>all-time total weeks active</em> — the same cumulative count that drives your
-          PLogger badge. All figures are recalculated every night and reflect your complete
-          history including any backdated entries.
+          Three circles sit at the top of the My Reading Journey section. Each fills the
+          same width as the old stat tiles, so they fit the screen without overflow.
+        </p>
+
+        <!-- Stat circles mockup -->
+        <div class="huk-screen-mockup">
+          <div class="huk-screen-mockup-label">Stat circles — enrolled in both goals (Week 25 of 2026)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:4px 0;">
+
+            <!-- Pages ring -->
+            <div style="aspect-ratio:1/1;position:relative;">
+              <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
+                <circle cx="50" cy="50" r="44" fill="white" stroke="#e0ddf5" stroke-width="9"/>
+                <!-- 5553/10000 = 55.5% → 0.555 × 2π×44 ≈ 153.5 -->
+                <circle cx="50" cy="50" r="44" fill="none" stroke="#7c3aed" stroke-width="9"
+                        stroke-dasharray="153.5 276.5" stroke-dashoffset="0"
+                        stroke-linecap="round" transform="rotate(-90 50 50)"/>
+              </svg>
+              <div style="position:absolute;top:0;left:0;right:0;bottom:0;
+                          display:flex;flex-direction:column;align-items:center;justify-content:center;
+                          text-align:center;gap:2px;">
+                <div style="font-size:clamp(13px,3.8vw,17px);font-weight:800;color:#1a1a2e;line-height:1;">5,553</div>
+                <div style="font-size:clamp(8px,2.3vw,11px);color:#888;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">pages</div>
+                <div style="font-size:clamp(6px,1.8vw,8px);color:#bbb;line-height:1;">of 10,000</div>
+              </div>
+            </div>
+
+            <!-- Books ring -->
+            <div style="aspect-ratio:1/1;position:relative;">
+              <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
+                <circle cx="50" cy="50" r="44" fill="white" stroke="#e0ddf5" stroke-width="9"/>
+                <!-- 15/20 = 75% → 0.75 × 276.5 ≈ 207.4 -->
+                <circle cx="50" cy="50" r="44" fill="none" stroke="#7c3aed" stroke-width="9"
+                        stroke-dasharray="207.4 276.5" stroke-dashoffset="0"
+                        stroke-linecap="round" transform="rotate(-90 50 50)"/>
+              </svg>
+              <div style="position:absolute;top:0;left:0;right:0;bottom:0;
+                          display:flex;flex-direction:column;align-items:center;justify-content:center;
+                          text-align:center;gap:2px;">
+                <div style="font-size:clamp(13px,3.8vw,17px);font-weight:800;color:#1a1a2e;line-height:1;">15</div>
+                <div style="font-size:clamp(8px,2.3vw,11px);color:#888;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">books</div>
+                <div style="font-size:clamp(6px,1.8vw,8px);color:#bbb;line-height:1;">of 20</div>
+              </div>
+            </div>
+
+            <!-- Streak circle -->
+            <div style="aspect-ratio:1/1;border-radius:50%;background:#fff8f0;border:3.5px solid #f0c070;
+                        display:flex;flex-direction:column;align-items:center;justify-content:center;
+                        text-align:center;gap:2px;">
+              <div style="font-size:clamp(8px,2.3vw,11px);color:#854F0B;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">weeks</div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span style="font-size:clamp(16px,4.8vw,22px);font-weight:900;color:#e0900a;line-height:1;">5</span>
+                <span style="font-size:clamp(16px,4.8vw,22px);line-height:1;">🔥</span>
+              </div>
+              <div style="font-size:clamp(8px,2.3vw,11px);color:#854F0B;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;line-height:1;">streak</div>
+            </div>
+
+          </div>
+          <div style="font-size:0.7rem;color:#aaa;margin-top:8px;border-top:1px solid #f4f6f7;padding-top:8px;">
+            Pages and Books circles show a progress ring when you are enrolled in a
+            matching annual reading goal. "of N" shows your personal goal.
+          </div>
+        </div>
+
+        <p>
+          <strong>Pages circle</strong> — shows the pages you logged this calendar year.
+          If you are enrolled in a <em>Page Reading Goal</em> challenge for the current
+          year, a purple ring fills proportionally to your progress. If the challenge
+          exists but you haven't enrolled, a small <strong>+ Add goal</strong> link
+          appears — tapping it takes you to the Challenges tab to sign up. If no
+          challenge has been set up for this year yet, the ring track shows empty with
+          no CTA.
+        </p>
+        <p>
+          <strong>Books circle</strong> — same behaviour, driven by a
+          <em>Book Reading Goal</em> challenge. Tapping the circle opens your
+          Finished shelf filtered to the current year.
+        </p>
+        <p>
+          <strong>Streak circle</strong> — shows your current consecutive-week streak
+          (🔥) with WEEKS and STREAK labels. The circle turns amber when a streak is
+          active. No ring — it is a plain bordered circle.
         </p>
 
         <div class="huk-related">
           <div class="huk-related-title">Related Articles</div>
-          <div class="huk-related-link" onclick="openHelpArticle('help-me-journey')">My Reading Journey — Stats, Heatmap &amp; Level</div>
+          <div class="huk-related-link" onclick="openHelpArticle('help-me-journey')">My Reading Journey — Stat Circles, Heatmap &amp; Level</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-me-reading-story')">My Reading Story — Pace, Rhythm, Genres &amp; History</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-me-tab-overview')">The Me Tab — Overview</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-full-shelf')">My Shelves — Browsing All Your Books</div>
@@ -7649,7 +7762,7 @@
 
         <div class="huk-related">
           <div class="huk-related-title">Related Articles</div>
-          <div class="huk-related-link" onclick="openHelpArticle('help-me-journey')">My Reading Journey — Stats, Heatmap &amp; Level</div>
+          <div class="huk-related-link" onclick="openHelpArticle('help-me-journey')">My Reading Journey — Stat Circles, Heatmap &amp; Level</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-me-tab-overview')">The Me Tab — Overview</div>
           <div class="huk-related-link" onclick="openHelpArticle('help-reading-personality')">Reading Personality — Your Reading Type Explained</div>
         </div>

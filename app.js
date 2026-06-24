@@ -1,5 +1,5 @@
 		/**
-       * ArkaClubApp — frontend    v3.7.0
+       * ArkaClubApp — frontend    v3.8.3
        * Full version history: VERSIONS.md
        *
        * T0: JS execution start time.
@@ -1103,14 +1103,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         }
 
-        // ── Stat pills — lifetime totals go into the bottom half of each split pill.
-        //    Current-year values are populated later by renderHeatmap() once page log
-        //    data has been processed.
-        const meStatPagesTotalEl = document.getElementById('meStatPagesTotal');
-        if (meStatPagesTotalEl) meStatPagesTotalEl.innerText = (Number(member.pages) || 0).toLocaleString();
-
-        const meStatBooksTotalEl = document.getElementById('meStatBooksTotal');
-        if (meStatBooksTotalEl) meStatBooksTotalEl.innerText = member.books || 0;
+        // Stat circles — current-year values + ring arcs are set by renderHeatmap()
+        // and updateBooksThisYearPill() once wave-2/3 data is available.
+        // (Lifetime totals are no longer shown in the new circle design.)
 
         // ── Level progress bar ────────────────────────────────────────────────
         const lvls = globalMemberLevelsDB;
@@ -3393,10 +3388,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         var pagesYear    = (document.getElementById('meStatPagesYear')   || {}).innerText || '–';
         var booksYear    = (document.getElementById('meStatBooksYear')   || {}).innerText || '–';
         var streakRaw    = (document.getElementById('meStatStreakValue') || {}).innerText || '–';
-        var pagesTotal   = (document.getElementById('meStatPagesTotal')  || {}).innerText || '–';
-        var booksTotal   = (document.getElementById('meStatBooksTotal')  || {}).innerText || '–';
-        // Strip emoji from streak display value (e.g. "9 🔥" → "9")
-        var streak       = streakRaw.replace(/\s*🔥/, '').trim();
+        var me2          = globalMembersDB.find(function(m) { return m.id === currentUser; });
+        var pagesTotal   = me2 ? (Number(me2.pages) || 0).toLocaleString() : '–';
+        var booksTotal   = me2 ? (me2.books || '–') : '–';
+        var streak       = streakRaw.trim();
 
         // ── Read member identity from globals ───────────────────────────────
         var me          = globalMembersDB.find(function(m) { return m.id === currentUser; });
@@ -4146,7 +4141,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         var daysSince = (Date.now() - ts) / (1000 * 60 * 60 * 24);
 
-        if (daysSince < 7)   return { color: '#27ae60', title: 'Active this week' };
+        if (daysSince < 7)   return { color: '#27ae60', title: 'Active recently' };
         if (daysSince < 28)  return { color: '#f39c12', title: 'Active within 4 weeks' };
         if (daysSince < 180) return { color: '#bdc3c7', title: 'Not active for over 4 weeks' };
         return                      { color: 'var(--color-danger)', title: 'Not active for 6+ months' };
@@ -26388,20 +26383,14 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         let booksThisYear = 0; // Will be updated accurately in Wave 3
         // Leave as 0 here — updateBooksThisYearPill() fills it when ShelfDB loads
 
-        // Populate the top half of the split stat pills with current-year data.
-        // The bottom halves (lifetime totals) are set earlier by populateMePage().
+        // Populate stat circles with current-year page count and drive the ring arc.
         const meStatPagesYearEl = document.getElementById('meStatPagesYear');
         if (meStatPagesYearEl) meStatPagesYearEl.innerText = pagesThisYear.toLocaleString();
+        updateStatRing('PAGE_COUNT', 'ANNUAL_PAGE_GOAL', pagesThisYear, currentYear,
+                       'meStatPagesRingArc', 'meStatPagesGoalSub', 'meStatPagesAddGoalCta');
 
         const meStatBooksYearEl = document.getElementById('meStatBooksYear');
         if (meStatBooksYearEl) meStatBooksYearEl.innerText = booksThisYear;
-
-        // Update the sub-labels to show the actual year (e.g. "2026 pages")
-        const meStatPagesYearLabelEl = document.getElementById('meStatPagesYearLabel');
-        if (meStatPagesYearLabelEl) meStatPagesYearLabelEl.innerText = currentYear + ' pages';
-
-        const meStatBooksYearLabelEl = document.getElementById('meStatBooksYearLabel');
-        if (meStatBooksYearLabelEl) meStatBooksYearLabelEl.innerText = currentYear + ' books';
 
         // 6. Draw the 52 Squares in the CSS Grid
         grid.innerHTML = '';
@@ -26434,14 +26423,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           grid.appendChild(square);
         }
 
-        // ── Heatmap footer: populate "X pages this week" label ────────────────
-        // weeklyPages is already fully built above; just read the current-week bucket.
-        // currentWeekNum is declared above the grid loop — no re-declaration needed.
-        const pagesThisWeekVal  = weeklyPages[currentWeekNum] || 0;
-        const heatmapThisWeekEl = document.getElementById('meHeatmapThisWeekPages');
-        if (heatmapThisWeekEl) {
-          heatmapThisWeekEl.innerText = pagesThisWeekVal.toLocaleString();
-        }
+        // pagesThisWeek is passed to renderStreakRow() which renders the banner line
+        const pagesThisWeekVal = weeklyPages[currentWeekNum] || 0;
 
         // Render streak row above the heatmap
         renderStreakRow(weeklyPages, userLogs);
@@ -27546,142 +27529,45 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const container = document.getElementById('meStreakContainer');
         if (!container) return;
 
-        // ── Core metrics — all delegated to canonical ISO-week helpers ────────────
-        // computeCurrentStreak_  : walks backwards via isoWeekToEpochWeeks_, so
-        //                          year boundaries are transparent (W52 → W01 is gap=1).
-        // computeAllTimeBestStreak_: same epoch-week arithmetic, cross-year safe.
-        // computeUniqueWeeksLogged_: all-time unique ISO weeks — matches PLogger badge.
+        // ── Core metrics (still needed for the stat circle) ───────────────────────
         const currentStreak    = computeCurrentStreak_(allUserLogs);
         const bestStreak       = computeAllTimeBestStreak_(allUserLogs);
         const totalWeeksActive = computeUniqueWeeksLogged_(allUserLogs);
 
-        // ── Derive the calendar year the best streak ENDED in ────────────────────
-        // We find the ISO week string of the last week in the best consecutive run
-        // and extract the year from it (ISO week year, which is what we want).
-        // This means an Oct 2024 – Mar 2025 streak correctly shows "in 2025".
-        let bestStreakEndYear = new Date().getFullYear(); // sensible fallback
-        if (bestStreak > 0) {
-          const weekSet = {};
-          allUserLogs.forEach(function(log) {
-            if ((Number(log.pagesDelta) || 0) > 0) {
-              const d = parseGoogleDate(log.timestamp);
-              if (!isNaN(d.getTime())) weekSet[getISOWeekString_(d)] = true;
-            }
-          });
-          const sortedWeeks = Object.keys(weekSet).sort(function(a, b) {
-            return isoWeekToEpochWeeks_(a) - isoWeekToEpochWeeks_(b);
-          });
-          // Walk forward through sorted weeks, track the last week of the longest run.
-          let curRun = 1;
-          let curEndIdx = 0;
-          let bestEndIdx = 0;
-          let bestRun = 1;
-          for (let i = 1; i < sortedWeeks.length; i++) {
-            const gap = isoWeekToEpochWeeks_(sortedWeeks[i]) - isoWeekToEpochWeeks_(sortedWeeks[i - 1]);
-            if (gap === 1) {
-              curRun++;
-              curEndIdx = i;
-              if (curRun > bestRun) {
-                bestRun = curRun;
-                bestEndIdx = i;
-              }
-            } else {
-              curRun = 1;
-              curEndIdx = i;
-            }
+        // ── Update the streak stat circle ─────────────────────────────────────────
+        const streakPillValEl   = document.getElementById('meStatStreakValue');
+        const streakPillFireEl  = document.getElementById('meStatStreakFire');
+        const streakPillTileEl  = document.getElementById('meStatStreakTile');
+        const streakPillLblEl   = document.getElementById('meStatStreakLabel');
+        const streakWeeksLblEl  = document.getElementById('meStatWeeksLabel');
+
+        if (streakPillValEl) streakPillValEl.innerText = currentStreak > 0 ? currentStreak : '–';
+        if (streakPillFireEl) streakPillFireEl.style.display = currentStreak > 0 ? '' : 'none';
+
+        if (streakPillTileEl) {
+          if (currentStreak > 0) {
+            streakPillTileEl.style.background  = '#fff8f0';
+            streakPillTileEl.style.borderColor = '#f0c070';
+            if (streakPillValEl)   streakPillValEl.style.color   = 'var(--color-warning)';
+            if (streakPillFireEl)  streakPillFireEl.style.color  = 'var(--color-warning)';
+            if (streakPillLblEl)   streakPillLblEl.style.color   = '#854F0B';
+            if (streakWeeksLblEl)  streakWeeksLblEl.style.color  = '#854F0B';
+          } else {
+            streakPillTileEl.style.background  = 'var(--surface-alt)';
+            streakPillTileEl.style.borderColor = 'var(--border-soft)';
           }
-          // Extract the ISO week year from the end-of-best-run week string ("YYYY-Www")
-          bestStreakEndYear = parseInt(sortedWeeks[bestEndIdx].split('-W')[0], 10);
         }
 
-        // ── Update the streak stat pill ───────────────────────────────────────────
-        // Top half: current streak value.
-        // Bottom half: all-time unique weeks active (no year suffix — it's all-time).
-        const streakPillValEl  = document.getElementById('meStatStreakValue');
-        const streakPillTileEl = document.getElementById('meStatStreakTile');
-        const streakPillLblEl  = document.getElementById('meStatStreakLabel');
-        const weeksActiveEl    = document.getElementById('meStatWeeksActive');
-        const weeksLabelEl     = document.getElementById('meStatWeeksLabel');
+        // ── "This week" line ──────────────────────────────────────────────────────
+        const pagesThisWeek = weeklyPagesCurrentYear[getISOWeekNumber(new Date())] || 0;
 
-        if (streakPillValEl) {
-          streakPillValEl.innerText = currentStreak > 0 ? currentStreak + ' 🔥' : '–';
-        }
-        if (currentStreak > 0 && streakPillTileEl) {
-          streakPillTileEl.style.background  = '#fff8f0';
-          streakPillTileEl.style.borderColor = '#f0c070';
-          if (streakPillValEl) streakPillValEl.style.color = 'var(--color-warning)';
-          if (streakPillLblEl) streakPillLblEl.style.color = '#854F0B';
-        }
-
-        // All-time weeks active — aligns with PLogger badge; no denominator needed.
-        if (weeksActiveEl) {
-          weeksActiveEl.innerText = totalWeeksActive;
-          if (currentStreak > 0) weeksActiveEl.style.color = '#854F0B';
-        }
-        if (weeksLabelEl) {
-          weeksLabelEl.innerText = 'wks logged';   // removed year suffix — this is now all-time
-          if (currentStreak > 0) weeksLabelEl.style.color = 'var(--color-warning)';
-        }
-
-        // ── Build the best-streak badge (right side of card) ─────────────────────
-        // Show "🏆 Personal best!" when current streak equals the all-time best.
-        // Show "Best: N wks / in YYYY" when there IS a best but current < best.
-        // Show nothing if bestStreak is 0 (no logs at all).
-        let bestBadgeHtml = '';
-        if (bestStreak > 0 && currentStreak === bestStreak) {
-          bestBadgeHtml = `
-            <div style="font-size:0.75rem; color:#27ae60; font-weight:500; text-align:right;">
-              🏆 Personal best!
-            </div>`;
-        } else if (bestStreak > 0 && currentStreak < bestStreak) {
-          bestBadgeHtml = `
-            <div style="text-align:right;">
-              <div style="font-size:0.82rem; font-weight:500; color:var(--text-strong);">
-                Best: ${bestStreak} wk${bestStreak !== 1 ? 's' : ''}
-              </div>
-              <div style="font-size:0.68rem; color:var(--text-faint); margin-top:2px;">
-                in ${bestStreakEndYear}
-              </div>
-            </div>`;
-        }
-
-        // ── Render streak card ────────────────────────────────────────────────────
         container.style.display = 'block';
-
-        if (currentStreak === 0) {
-          // No active streak — still show the best ever (motivational) if one exists.
-          container.innerHTML = `
-            <div style="background:var(--surface-alt); border:1px solid var(--border-soft); border-radius:8px;
-                        padding:10px 14px; display:flex; align-items:center;
-                        justify-content:space-between;">
-              <div style="font-size:0.82rem; color:var(--text-faint); font-style:italic;">
-                No active streak — log pages to start one! 🔥
-              </div>
-              ${bestBadgeHtml}
-            </div>`;
-          return;
-        }
-
         container.innerHTML = `
-          <div style="background:#fff8f0; border:1px solid #f0c070; border-radius:8px;
-                      padding:10px 14px; display:flex; align-items:center;
-                      justify-content:space-between;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div style="font-size:1.5rem; line-height:1; flex-shrink:0;">🔥</div>
-              <div>
-                <div style="font-size:1.2rem; font-weight:bold; color:var(--color-warning); line-height:1;">
-                  ${currentStreak} week${currentStreak !== 1 ? 's' : ''}
-                </div>
-                <div style="font-size:0.68rem; color:#854F0B; text-transform:uppercase;
-                            letter-spacing:0.5px; margin-top:2px;">
-                  Current streak
-                </div>
-              </div>
-            </div>
-            ${bestBadgeHtml}
-          </div>
-        `;
+          <div style="font-size:15px;font-weight:600;color:var(--arka-accent);margin-bottom:4px;">
+            You logged <strong>${pagesThisWeek.toLocaleString()}</strong> pages this week
+          </div>`;
       }
+
 
       /**
        * Math Helper: Calculates the median of an array of numbers.
@@ -31460,7 +31346,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     
         // ── Navigate to view ──────────────────────────────────────────────────
         switchTab('challengeDetail');
-    
+
+        // Reset all heroes — each renderer shows the right one per challenge type
+        const shelfHero  = document.getElementById('chalDetailBookshelfHero');
+        if (shelfHero)  shelfHero.style.display  = 'none';
+        const velHero    = document.getElementById('chalDetailVelocityHero');
+        if (velHero)    velHero.style.display    = 'none';
+        const tenPpaHero = document.getElementById('chalDetailTenPpaHero');
+        if (tenPpaHero) tenPpaHero.style.display = 'none';
+
         // ── Render immediately from cached data ──────────────────────────────
         // No spinner. User sees current data right away.
         switchChalDetailTab('mine');
@@ -31582,10 +31476,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
             totalPages += pages;
 
-            const mKey = months[logDate.getMonth()] || '?';
+            const mKey = logDate.getFullYear() + '-' + String(logDate.getMonth() + 1).padStart(2, '0');
             monthlyBreakdown[mKey] = (monthlyBreakdown[mKey] || 0) + pages;
 
-            const wKey = 'W' + String(getISOWeekNumber(logDate)).padStart(2, '0');
+            const wKey = logDate.getFullYear() + '-W' + String(getISOWeekNumber(logDate)).padStart(2, '0');
             weeklyBreakdown[wKey] = (weeklyBreakdown[wKey] || 0) + pages;
           });
 
@@ -31613,6 +31507,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           globalShelvesDB.forEach(function(shelf) {
             if (shelf.memberId !== currentUser) return;
             if (shelf.status !== 'Finished') return;
+            // globalShelvesDB already excludes Deleted rows (Wave 3 filtering)
 
             const finishDate = parseGoogleDate(
               shelf.dateFinished || shelf.dateUpdated || shelf.lastModifiedOn
@@ -31620,14 +31515,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             const finishMs = finishDate.getTime();
             if (isNaN(finishMs) || finishMs < startDateMs || finishMs > endDateMs) return;
 
-            const book = booksMap.get(shelf.bookId);
             booksRead.push({
-              bookId    : shelf.bookId,
-              title     : '',           // resolved at render time from booksMap
+              shelfId   : shelf.shelfId,
               finishedOn: shelf.dateFinished || shelf.dateUpdated || ''
             });
 
-            const mKey = months[finishDate.getMonth()] || '?';
+            const mKey = finishDate.getFullYear() + '-' + String(finishDate.getMonth() + 1).padStart(2, '0');
             monthlyBreakdown[mKey] = (monthlyBreakdown[mKey] || 0) + 1;
           });
 
@@ -31730,7 +31623,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           BINGO_GRID    : renderBingoProgress,
           BOOK_COUNT    : renderCountProgress,
           PAGE_COUNT    : renderCountProgress,
-          '10PAGESADAY' : render10PagesADayProgress
+          '10PAGESADAY' : render10PagesProgress
         };
     
         const renderer = renderers[challenge.challengeType];
@@ -31743,6 +31636,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // Attach Bingo tile click handlers after render
         if (challenge.challengeType === 'BINGO_GRID') {
           attachBingoTileHandlers(challenge, enrollment, state);
+        }
+
+        // Draw 10PAGESADAY EKG hero after DOM is updated
+        if (challenge.challengeType === '10PAGESADAY') {
+          populate10PagesHero(challenge, enrollment, state);
         }
       }
     
@@ -31853,6 +31751,406 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       }
     
     
+
+      // ── 10PAGESADAY renderer ─────────────────────────────────────────────────────
+
+      /**
+       * Function: populate10PagesHero()
+       * Parameters:
+       *   challenge  {ChallengeRecord}
+       *   enrollment {ChallengeEnrollmentRecord}
+       *   state      {Object} - parsed progressStateJson from ArkaChallengePass
+       * Return Type: void
+       * Logic Summary:
+       *   Populates and shows the #chalDetailTenPpaHero flush element:
+       *   score block, avg note, EKG canvas, 3-stat strip (Wks Hit / Max Gap / Recovery).
+       *   Called after renderChalDetailMyProgress() sets innerHTML so the canvas exists.
+       *   "Early Weeks" stat intentionally omitted — not surfaced to members.
+       */
+      function populate10PagesHero(challenge, enrollment, state) {
+        const hero = document.getElementById('chalDetailTenPpaHero');
+        if (!hero) return;
+
+        const cfg        = {};
+        try { Object.assign(cfg, JSON.parse(challenge.goalConfigJson || '{}')); } catch (e) {}
+        const dailyGoal  = cfg.dailyGoal || 10;
+        const weekThresh = dailyGoal * 7;
+
+        const habitScore          = state.habitScore          || 0;
+        const weeksHit            = state.weeksHit            || 0;
+        const maxGap              = state.maxGap              || 0;
+        const recoveryRate        = state.recoveryRate        != null ? state.recoveryRate : 1;
+        const totalPages          = state.totalPages          || 0;
+        const avgPagesPerDay      = state.avgPagesPerDay      || 0;
+        const daysSinceEnrollment = state.daysSinceEnrollment || 0;
+        const isQualified         = state.isQualified         || false;
+        const weeklyPages         = state.weeklyPages         || {};
+        const recPct              = Math.round(recoveryRate * 100);
+
+        // ── Score block ──────────────────────────────────────────────────────
+        const qualPillHtml = isQualified
+          ? '<div style="padding:4px 9px;border-radius:20px;font-size:0.58rem;font-weight:700;letter-spacing:.5px;background:rgba(94,255,194,.15);color:#5effc2;border:1px solid rgba(94,255,194,.3);">✓ Qualified</div>'
+          : '<div style="padding:4px 9px;border-radius:20px;font-size:0.58rem;font-weight:700;letter-spacing:.5px;background:rgba(231,126,22,.15);color:#e67e22;border:1px solid rgba(231,126,22,.3);">Not Qualified</div>';
+
+        const scoreRow = document.getElementById('tenPpaHeroScoreRow');
+        if (scoreRow) {
+          scoreRow.innerHTML =
+            '<div style="flex:1;">' +
+              '<div style="font-size:3.2rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-2px;">' + habitScore + '</div>' +
+              '<div style="font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:3px;">Habit Score</div>' +
+            '</div>' +
+            qualPillHtml;
+        }
+
+        const avgNote = document.getElementById('tenPpaHeroAvgNote');
+        if (avgNote) {
+          avgNote.innerHTML = 'Rolling avg <strong style="color:rgba(255,255,255,.6);">' +
+            avgPagesPerDay.toFixed(1) + ' pg/day</strong> · ' + daysSinceEnrollment + ' days in · ' +
+            totalPages.toLocaleString() + ' total pages';
+        }
+
+        // ── EKG canvas ───────────────────────────────────────────────────────
+        const canvas = document.getElementById('tenPpaEkgCanvas');
+        if (canvas) {
+          const totalWeeks = Math.floor(daysSinceEnrollment / 7);
+          const W          = canvas.parentElement.offsetWidth || 360;
+          const H          = 80;
+          const dpr        = window.devicePixelRatio || 1;
+          canvas.width     = W * dpr;
+          canvas.height    = H * dpr;
+          const ctx        = canvas.getContext('2d');
+          ctx.scale(dpr, dpr);
+
+          const past = [];
+          for (var wi = 0; wi < totalWeeks; wi++) past.push(weeklyPages[wi] || 0);
+          if (past.length < 2) past.push(0, 0);
+
+          const maxPg = Math.max(weekThresh * 1.5, Math.max.apply(null, past));
+          const step  = W / past.length;
+
+          // Faint grid lines
+          ctx.strokeStyle = 'rgba(255,255,255,.04)'; ctx.lineWidth = 1;
+          [20, 40, 60, H - 10].forEach(function(y) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+          });
+
+          // Threshold line (orange dashes at weekly goal)
+          const ty = H - (weekThresh / maxPg) * (H - 12) - 6;
+          ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(231,126,22,.5)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(0, ty); ctx.lineTo(W, ty); ctx.stroke();
+          ctx.setLineDash([]);
+
+          const pts = past.map(function(pg, i) {
+            return { x: i * step + step / 2, y: H - (pg / maxPg) * (H - 12) - 6, hit: pg >= weekThresh, pg: pg };
+          });
+
+          // Fill gradient under the line
+          const grad = ctx.createLinearGradient(0, 0, 0, H);
+          grad.addColorStop(0, 'rgba(94,255,194,.12)');
+          grad.addColorStop(1, 'rgba(94,255,194,0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath(); ctx.moveTo(pts[0].x, H);
+          pts.forEach(function(p) { ctx.lineTo(p.x, p.y); });
+          ctx.lineTo(pts[pts.length - 1].x, H); ctx.closePath(); ctx.fill();
+
+          // Line segments coloured by status
+          for (var si = 1; si < pts.length; si++) {
+            ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+            ctx.strokeStyle = pts[si].hit ? '#5effc2' : pts[si].pg > 0 ? '#534AB7' : 'rgba(255,255,255,.15)';
+            ctx.beginPath(); ctx.moveTo(pts[si-1].x, pts[si-1].y); ctx.lineTo(pts[si].x, pts[si].y); ctx.stroke();
+          }
+
+          // Dots
+          pts.forEach(function(p) {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
+            ctx.fillStyle = p.hit ? '#5effc2' : p.pg > 0 ? '#534AB7' : 'rgba(255,255,255,.15)';
+            ctx.fill();
+          });
+
+          // Current-week glow
+          const last = pts[pts.length - 1];
+          ctx.beginPath(); ctx.arc(last.x, last.y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(94,255,194,.2)'; ctx.fill();
+          ctx.beginPath(); ctx.arc(last.x, last.y, 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#5effc2'; ctx.fill();
+        }
+
+        // ── 3-stat strip ─────────────────────────────────────────────────────
+        const strip = document.getElementById('tenPpaStatStrip');
+        if (strip) {
+          const stats = [
+            { v: weeksHit,     l: 'Wks Hit',  col: '#5effc2' },
+            { v: maxGap + 'w', l: 'Max Gap',  col: '#e74c3c' },
+            { v: recPct + '%', l: 'Recovery', col: '#A984BA' }
+          ];
+          strip.innerHTML = stats.map(function(s) {
+            return '<div style="background:#050f0a;padding:10px 6px;text-align:center;">' +
+              '<div style="font-size:1rem;font-weight:800;line-height:1;color:' + s.col + ';">' + s.v + '</div>' +
+              '<div style="font-size:0.4rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:3px;">' + s.l + '</div>' +
+            '</div>';
+          }).join('');
+        }
+
+        hero.style.display = '';
+      }
+
+      /**
+       * Function: render10PagesProgress()
+       * Parameters:
+       *   challenge  {ChallengeRecord}
+       *   enrollment {ChallengeEnrollmentRecord}
+       *   state      {Object} - parsed progressStateJson from ArkaChallengePass
+       * Return Type: {string} HTML
+       * Logic Summary:
+       *   Returns the scrollable body content for chalDetailMineContent.
+       *   Hero is rendered separately by populate10PagesHero() called after this.
+       *   Shows:
+       *     - Monthly consistency rings (constellation-style SVG rings)
+       *     - Qualification tracker bar + habit theory blurb
+       *   No weekly grid (would confuse vs Me tab heatmap).
+       *   No early-weeks detail (algorithm not surfaced to members).
+       */
+      function render10PagesProgress(challenge, enrollment, state) {
+        const cfg        = {};
+        try { Object.assign(cfg, JSON.parse(challenge.goalConfigJson || '{}')); } catch (e) {}
+        const dailyGoal  = cfg.dailyGoal || 10;
+        const weekThresh = dailyGoal * 7;
+
+        // ── Bootstrap zero-state if pass hasn't run yet ──────────────────────
+        const hasData = state && (state.totalPages !== undefined);
+        if (!hasData) {
+          return '<div style="text-align:center;padding:32px 16px;">' +
+            '<div style="font-size:2.4rem;margin-bottom:8px;">🔥</div>' +
+            '<div style="font-weight:700;font-size:1rem;color:var(--text-strong);margin-bottom:6px;">Enrolled!</div>' +
+            '<div style="font-size:0.82rem;color:var(--text-muted);line-height:1.5;">' +
+              'Your Habit Score and progress will appear here after the nightly sync.' +
+            '</div>' +
+          '</div>';
+        }
+
+        const daysSinceEnrollment = state.daysSinceEnrollment || 0;
+        const avgPagesPerDay      = state.avgPagesPerDay      || 0;
+        const isQualified         = state.isQualified         || false;
+        const weeklyPages         = state.weeklyPages         || {};
+        const monthlyBreakdown    = state.monthlyBreakdown    || {};
+
+        const qualPct = Math.min(100, Math.round((avgPagesPerDay / dailyGoal) * 100));
+
+        // ── Monthly habit rings ──────────────────────────────────────────────
+        // For each calendar month: pages logged + weeks hit in that month.
+        // Week-to-month mapping derived from enrollment.enrolledOn + week index.
+        const enrolledOn    = _parseEnrolledOn_(enrollment.enrolledOn);
+        const totalWeeksEl  = Math.floor(daysSinceEnrollment / 7);
+        const mData         = {};  // "YYYY-MM" → { hitWeeks, totalWeeks }
+
+        for (var wi = 0; wi < totalWeeksEl; wi++) {
+          const wStartMs = enrolledOn.getTime() + wi * 7 * 86400000;
+          const wDate    = new Date(wStartMs);
+          const mKey     = wDate.getFullYear() + '-' + _pad2Str_(wDate.getMonth() + 1);
+          if (!mData[mKey]) mData[mKey] = { hitWeeks: 0, totalWeeks: 0 };
+          const pg = weeklyPages[wi] || 0;
+          mData[mKey].totalWeeks++;
+          if (pg >= weekThresh) mData[mKey].hitWeeks++;
+        }
+
+        const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const C = 2 * Math.PI * 12; // SVG ring circumference (r=12)
+
+        let ringsHtml = '';
+        Object.keys(monthlyBreakdown).sort().forEach(function(mk) {
+          const md       = mData[mk] || { hitWeeks: 0, totalWeeks: 0 };
+          const fillFrac = md.totalWeeks > 0 ? md.hitWeeks / md.totalWeeks : 0;
+          const offset   = C * (1 - fillFrac);
+          const pages    = monthlyBreakdown[mk] || 0;
+          const pgLabel  = pages >= 1000 ? (Math.round(pages / 100) / 10) + 'k' : pages;
+          const parts    = mk.split('-');
+          const mName    = MONTH_ABBR[parseInt(parts[1], 10) - 1] || mk;
+
+          const ringCol = fillFrac >= 0.75 ? '#5effc2' : fillFrac >= 0.5 ? '#A984BA' : fillFrac > 0 ? '#e67e22' : 'rgba(255,255,255,.1)';
+          const cardBdr = fillFrac >= 0.75 ? 'rgba(94,255,194,.25)' : fillFrac >= 0.5 ? 'rgba(169,132,186,.25)' : fillFrac > 0 ? 'rgba(231,126,22,.25)' : 'rgba(255,255,255,.06)';
+          const cardBg  = fillFrac >= 0.75 ? 'rgba(94,255,194,.05)' : fillFrac >= 0.5 ? 'rgba(169,132,186,.05)' : 'rgba(255,255,255,.03)';
+
+          ringsHtml +=
+            '<div style="flex-shrink:0;width:56px;background:' + cardBg + ';border:1px solid ' + cardBdr + ';' +
+              'border-radius:10px;padding:8px 4px;text-align:center;">' +
+              '<div style="font-size:0.5rem;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:5px;">' + mName + '</div>' +
+              '<div style="position:relative;width:32px;height:32px;margin:0 auto 5px;">' +
+                '<svg width="32" height="32" viewBox="0 0 30 30" style="transform:rotate(-90deg);">' +
+                  '<circle cx="15" cy="15" r="12" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="3"/>' +
+                  '<circle cx="15" cy="15" r="12" fill="none" stroke="' + ringCol + '" stroke-width="3"' +
+                    ' stroke-dasharray="' + C.toFixed(1) + '"' +
+                    ' stroke-dashoffset="' + offset.toFixed(1) + '"' +
+                    ' stroke-linecap="round"/>' +
+                '</svg>' +
+                '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);' +
+                  'font-size:0.52rem;font-weight:700;color:' + (fillFrac >= 0.5 ? ringCol : 'rgba(255,255,255,.3)') + ';">' +
+                  md.hitWeeks + '/' + md.totalWeeks +
+                '</div>' +
+              '</div>' +
+              '<div style="font-size:0.58rem;font-weight:700;color:rgba(255,255,255,.7);">' + pgLabel + '</div>' +
+              '<div style="font-size:0.44rem;color:rgba(255,255,255,.2);margin-top:1px;">pages</div>' +
+            '</div>';
+        });
+
+        let html = '';
+
+        if (ringsHtml) {
+          html += '<div style="background:#060d08;border-radius:10px;padding:12px;margin-bottom:12px;">' +
+            '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:10px;">Monthly Consistency</div>' +
+            '<div style="display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;">' +
+              ringsHtml +
+            '</div>' +
+            '<div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">' +
+              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.25);">' +
+                '<div style="width:7px;height:7px;border-radius:50%;background:#5effc2;"></div>Great (≥75% wks)' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.25);">' +
+                '<div style="width:7px;height:7px;border-radius:50%;background:#A984BA;"></div>Good (≥50%)' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.25);">' +
+                '<div style="width:7px;height:7px;border-radius:50%;background:#e67e22;"></div>Building' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }
+
+        // ── Qualification tracker ────────────────────────────────────────────
+        html += '<div style="background:#0a1a0e;border-radius:10px;padding:12px;margin-bottom:12px;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;">' +
+            '<div style="font-size:0.55rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);">Qualification — Rolling Avg</div>' +
+            '<div style="font-size:1rem;font-weight:800;color:#5effc2;">' + avgPagesPerDay.toFixed(1) + ' pg/day</div>' +
+          '</div>' +
+          '<div style="height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;position:relative;">' +
+            '<div style="height:100%;width:' + qualPct + '%;background:linear-gradient(90deg,#1D6B52,#5effc2);border-radius:3px;transition:width 1s ease;"></div>' +
+            '<div style="position:absolute;top:-3px;left:50%;width:2px;height:12px;background:#e67e22;border-radius:1px;"></div>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:0.46rem;color:rgba(255,255,255,.2);margin-top:4px;">' +
+            '<span>0</span><span style="color:#e67e22;">10 pg/day ← threshold</span><span>20+</span>' +
+          '</div>' +
+        '</div>';
+
+        // ── Habit theory blurb ───────────────────────────────────────────────
+        html += '<div style="background:#060d08;border:1px solid rgba(94,255,194,.08);border-radius:10px;padding:12px;">' +
+          '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(94,255,194,.4);margin-bottom:7px;">The Science Behind This Challenge</div>' +
+          '<div style="font-size:0.7rem;color:rgba(255,255,255,.45);line-height:1.65;">' +
+            'This challenge applies B.J. Fogg’s <em>Tiny Habits</em> (Stanford, 2019): small, consistent daily actions ' +
+            'wire new behaviours into identity faster than large sporadic efforts. James Clear’s <em>Atomic Habits</em> (2018) ' +
+            'extends this — what matters is not how much you read in a session, but whether you show up. ' +
+            'Miss one week, no problem. Miss two in a row — that’s the habit to break.' +
+            '<br><br>' +
+            'Your Habit Score measures <strong style="color:rgba(255,255,255,.65);">consistency over volume</strong> — ' +
+            'sustained weekly reading scores higher than occasional binges. Bouncing back quickly after a miss is rewarded. ' +
+            'Long stretches without reading reduce your score. The goal: become someone who reads every day, ' +
+            'not just someone who has read a lot.' +
+          '</div>' +
+        '</div>';
+
+        return html;
+      }
+
+      /**
+       * Function: render10PagesClub()
+       * Parameters:
+       *   challenge   {ChallengeRecord}
+       *   enrollments {ChallengeEnrollmentRecord[]} - all non-Dropped enrollments
+       * Return Type: {string} HTML
+       * Logic Summary:
+       *   Splits members into Qualified (isQualified=true) and Not Qualified.
+       *   Qualified ranked by habitScore (desc); not-qualified by avgPagesPerDay (desc).
+       */
+      function render10PagesClub(challenge, enrollments) {
+        const qualified    = [];
+        const notQualified = [];
+
+        enrollments.forEach(function(enr) {
+          let st = {};
+          try { st = JSON.parse(enr.progressStateJson || '{}'); } catch (e) {}
+          const item = {
+            enrollment    : enr,
+            state         : st,
+            habitScore    : st.habitScore     || 0,
+            avgPagesPerDay: st.avgPagesPerDay  || 0,
+            isQualified   : st.isQualified    || false,
+            isMe          : enr.memberId === currentUser
+          };
+          if (item.isQualified) qualified.push(item);
+          else notQualified.push(item);
+        });
+
+        qualified.sort(function(a, b)    { return b.habitScore     - a.habitScore; });
+        notQualified.sort(function(a, b) { return b.avgPagesPerDay - a.avgPagesPerDay; });
+
+        function _clubRow_(item, rank, showRank) {
+          const member = membersMap.get(item.enrollment.memberId);
+          const name   = member ? member.displayName : item.enrollment.memberId;
+          const avatar = buildAvatarHtml(member, 30);
+          const rankBadge = showRank
+            ? (rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉'
+              : '<span style="min-width:20px;display:inline-block;text-align:center;font-size:0.7rem;color:rgba(255,255,255,.25);">' + rank + '</span>')
+            : '<span style="min-width:20px;display:inline-block;"></span>';
+          const scoreStr = item.isQualified
+            ? '<span style="color:#5effc2;font-weight:700;">' + item.habitScore + '</span><span style="color:rgba(255,255,255,.25);font-size:0.65rem;margin-left:2px;">hs</span>'
+            : '<span style="color:rgba(255,255,255,.4);">' + item.avgPagesPerDay.toFixed(1) + '</span><span style="color:rgba(255,255,255,.2);font-size:0.65rem;margin-left:2px;">pg/d</span>';
+
+          return '<div style="display:flex;align-items:center;gap:8px;padding:7px ' + (item.isMe ? '8px' : '0') + ';' +
+            'border-radius:' + (item.isMe ? '7px' : '0') + ';' +
+            'background:' + (item.isMe ? 'rgba(83,74,183,.15)' : 'transparent') + ';' +
+            'margin:' + (item.isMe ? '3px -8px' : '0') + ';' +
+            'border-bottom:' + (item.isMe ? 'none' : '1px solid rgba(255,255,255,.04)') + ';' +
+            'cursor:' + (member ? 'pointer' : 'default') + ';"' +
+            (member ? ' onclick="showMemberProfile(\'' + item.enrollment.memberId + '\')"' : '') + '>' +
+            '<div style="width:22px;text-align:center;">' + rankBadge + '</div>' +
+            avatar +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                '<span style="font-size:0.72rem;color:' + (item.isMe ? '#A984BA' : 'rgba(255,255,255,.75)') + ';font-weight:' + (item.isMe ? '600' : '400') + ';">' +
+                  escapeHtml(name) + (item.isMe ? ' (you)' : '') +
+                '</span>' +
+                '<span>' + scoreStr + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }
+
+        const bg  = '#060d08';
+        const bdr = 'rgba(255,255,255,.05)';
+
+        let html = '<div style="display:flex;justify-content:space-between;margin-bottom:10px;">' +
+          '<span style="font-size:0.72rem;color:rgba(255,255,255,.3);">' + enrollments.length + ' enrolled</span>' +
+          '<span style="font-size:0.66rem;color:rgba(255,255,255,.2);">Qualified ranked by Habit Score</span>' +
+        '</div>';
+
+        if (qualified.length > 0) {
+          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:#5effc2;margin-bottom:7px;">✓ Qualified (' + qualified.length + ')</div>' +
+            '<div style="background:' + bg + ';border:1px solid ' + bdr + ';border-radius:10px;padding:10px 12px;margin-bottom:12px;">';
+          qualified.forEach(function(item, idx) { html += _clubRow_(item, idx + 1, true); });
+          html += '</div>';
+        }
+
+        if (notQualified.length > 0) {
+          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:7px;">Working Toward It (' + notQualified.length + ')</div>' +
+            '<div style="background:' + bg + ';border:1px solid ' + bdr + ';border-radius:10px;padding:10px 12px;">';
+          notQualified.forEach(function(item, idx) { html += _clubRow_(item, idx + 1, false); });
+          html += '</div>';
+        }
+
+        return html;
+      }
+
+      /** Parses enrollment.enrolledOn (Arka Z-format or Date object) into a JS Date. */
+      function _parseEnrolledOn_(raw) {
+        if (!raw) return new Date();
+        if (raw instanceof Date) return raw;
+        const s = raw.toString().trim();
+        const z = s.match(/^(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+([\+\-]\d{4})$/);
+        if (z) return new Date(z[3]+'-'+z[2]+'-'+z[1]+'T'+z[4]+':'+z[5]+':'+z[6]+z[7]);
+        return new Date(s);
+      }
+
+      /** Zero-pads a number to a 2-character string. */
+      function _pad2Str_(n) { return n < 10 ? '0' + n : '' + n; }
+
+
       /**
        * Renders the My Progress view for BOOK_COUNT and PAGE_COUNT challenges.
        *
@@ -31870,10 +32168,179 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const projection = state.pacingProjection || 0;
         const pct        = Math.min(100, Math.round((total / goal) * 100));
         const aheadBehind = state.aheadBehindTarget || '';
-    
-        // ── Sync button (BOOK_COUNT / PAGE_COUNT only) ────────────────────────
-        // Rendered above the tab label in renderChalDetailMyProgress's wrapper.
-        // We inject it here as a section at the top.
+
+        // ── Bookshelf Hero — BOOK_COUNT only ─────────────────────────────────
+        // Populate the hero div that lives between the challenge header and the tabs.
+        // For PAGE_COUNT we hide it and fall back to the standard stat-tile layout.
+        if (!isPages) {
+          const heroEl   = document.getElementById('chalDetailBookshelfHero');
+          const spinesEl = document.getElementById('shelfSpinesRow');
+          const statsEl  = document.getElementById('shelfStatsRow');
+          const captEl   = document.getElementById('shelfCaption');
+
+          if (heroEl && spinesEl && statsEl) {
+            // Rich hex spine colours — safe for use in CSS gradients
+            const SPINE_COLS = [
+              '#8B4513','#C0392B','#1a5276','#27AE60','#D35400',
+              '#6C3483','#1B4F72','#7B241C','#B7950B','#0E6655',
+              '#6E2F2F','#4A235A','#145A32','#1A237E','#993C1D',
+              '#185FA5','#993556','#633806','#27500A','#3C3489'
+            ];
+            // Varying heights (px) for a natural-looking shelf
+            const SPINE_HEIGHTS = [75,70,80,65,72,78,60,75,68,80,70,65,72,78,68,74,62,78,66,72];
+
+            const books = (state.booksRead || []).slice().reverse(); // newest-first
+            let spinesHtml = '';
+            books.forEach(function(b, i) {
+              const shelf = shelvesMap.get(b.shelfId);
+              const bookId = shelf ? shelf.bookId : '';
+              const rec  = bookId ? booksMap.get(bookId) : null;
+              const ttl  = rec ? rec.title : '';
+              // Deterministic colour from title (mirrors getBookColor logic but returns hex only)
+              let ci = 0;
+              for (let k = 0; k < ttl.length; k++) ci = ttl.charCodeAt(k) + ((ci << 5) - ci);
+              const col  = SPINE_COLS[Math.abs(ci) % SPINE_COLS.length];
+              const h    = SPINE_HEIGHTS[i % SPINE_HEIGHTS.length];
+              const abbr = ttl.split(/\s+/).filter(Boolean).slice(0, 3)
+                             .map(function(w) { return w[0] || ''; })
+                             .join('').toUpperCase() || '?';
+              const cattr = bookId
+                ? 'onclick="openBookDetailView(\'' + bookId + '\',\'challengeDetail\')" role="button" tabindex="0" data-action'
+                : '';
+              spinesHtml += '<div class="chal-spine" style="height:' + h + 'px;background:linear-gradient(180deg,' + col + ',' + col + 'bb);" title="' + escapeHtml(ttl) + '" ' + cattr + '>'
+                          + '<span class="chal-spine-txt">' + escapeHtml(abbr) + '</span></div>';
+            });
+
+            // Ghost slots for unread books (show up to 8 so the shelf doesn't look empty)
+            const remaining = Math.max(0, goal - books.length);
+            for (let i = 0; i < Math.min(remaining, 8); i++) {
+              spinesHtml += '<div class="chal-spine-empty"></div>';
+            }
+            spinesEl.innerHTML = spinesHtml;
+            if (captEl) captEl.textContent = books.length + ' read · ' + remaining + ' remaining';
+
+            // Compute books ahead/behind for the third stat tile
+            const challenge2 = challengesMap.get(currentViewedChallengeId);
+            let booksAheadVal = 0;
+            if (challenge2 && challenge2.startDate) {
+              const startMs     = parseGoogleDate(challenge2.startDate).getTime();
+              const now         = new Date();
+              const yearEnd     = new Date(now.getFullYear(), 11, 31);
+              const totalDays   = Math.max(1, (yearEnd.getTime() - startMs) / 86400000);
+              const elapsedDays = Math.max(1, (now.getTime() - startMs) / 86400000);
+              const expected    = Math.round(goal * (elapsedDays / totalDays));
+              booksAheadVal     = total - expected;
+            }
+            const isAhead  = booksAheadVal > 0;
+            const isBehind = booksAheadVal < 0;
+
+            statsEl.innerHTML =
+              '<div class="chal-shelf-stat">'
+                + '<span class="chal-shelf-num" style="color:var(--color-gamification);">' + total + '</span>'
+                + '<span class="chal-shelf-lbl">Books Read</span>'
+              + '</div>'
+              + '<div class="chal-shelf-stat">'
+                + '<span class="chal-shelf-num">' + goal + '</span>'
+                + '<span class="chal-shelf-lbl">Your Goal</span>'
+              + '</div>'
+              + '<div class="chal-shelf-stat' + (isAhead ? ' chal-shelf-stat--ahead' : isBehind ? ' chal-shelf-stat--behind' : '') + '">'
+                + '<span class="chal-shelf-num">'
+                  + (booksAheadVal !== 0 ? (isAhead ? '+' : '') + booksAheadVal : (projection > 0 ? projection : '—'))
+                + '</span>'
+                + '<span class="chal-shelf-lbl">' + (isAhead ? 'BKS AHEAD' : isBehind ? 'BKS BEHIND' : 'YR PACE') + '</span>'
+              + '</div>';
+
+            heroEl.style.display = '';
+          }
+        } else {
+          // Hide bookshelf hero for PAGE_COUNT
+          const bookshelfHero = document.getElementById('chalDetailBookshelfHero');
+          if (bookshelfHero) bookshelfHero.style.display = 'none';
+
+          // ── Velocity Hero (PAGE_COUNT) ──────────────────────────────────────
+          const velHero  = document.getElementById('chalDetailVelocityHero');
+          const gaugePaceEl  = document.getElementById('rvGaugePace');
+          const dotsEl   = document.getElementById('rvMomentumDots');
+          const dotLblEl = document.getElementById('rvMomentumLbl');
+          const statsEl  = document.getElementById('rvHeroStats');
+
+          if (velHero && statsEl) {
+            // Current pace from RSE
+            const rse = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {};
+            const currentPace = Math.round(rse.recentPace || rse.overallAvgPace || 0);
+
+            // Needed pace to hit goal
+            const now2        = new Date();
+            const yearEnd2    = new Date(now2.getFullYear(), 11, 31);
+            const remainDays  = Math.max(1, Math.round((yearEnd2 - now2) / 86400000));
+            const neededPace  = total < goal ? Math.ceil((goal - total) / remainDays) : 0;
+
+            // Projected year-end using current pace
+            const elapsedDays2 = Math.max(1, 365 - remainDays);
+            const proj2 = projection > 0 ? projection : (currentPace > 0 ? currentPace * 365 : 0);
+
+            // Ahead / behind pages
+            const expectedNow = Math.round(goal * (elapsedDays2 / 365));
+            const aheadPages  = total - expectedNow;
+            const isAheadPg   = aheadPages > 0;
+
+            // Gauge number
+            if (gaugePaceEl) gaugePaceEl.textContent = currentPace > 0 ? currentPace : '—';
+
+            // Momentum dots — 14 days
+            const today      = new Date();
+            const activeDays = new Set(
+              globalMyPageLogDB
+                .filter(function(l) {
+                  if ((Number(l.pagesDelta) || 0) <= 0) return false;
+                  const d = parseGoogleDate(l.timestamp);
+                  return d && (today - d) <= 14 * 86400000;
+                })
+                .map(function(l) {
+                  const d = parseGoogleDate(l.timestamp);
+                  return d ? d.toISOString().split('T')[0] : '';
+                })
+                .filter(Boolean)
+            );
+            const streakCount = activeDays.size;
+            if (dotsEl) {
+              dotsEl.innerHTML = Array.from({length: 14}, function(_, i) {
+                const d = new Date(today.getTime() - (13 - i) * 86400000);
+                const key = d.toISOString().split('T')[0];
+                return '<span class="rv-dot' + (activeDays.has(key) ? ' on' : '') + '"></span>';
+              }).join('');
+            }
+            if (dotLblEl) {
+              dotLblEl.textContent = streakCount + '-day reading streak (last 14 days) ●●●';
+            }
+
+            // Stats strip
+            const projStr = proj2 >= 1000 ? (Math.round(proj2 / 100) / 10) + 'k' : proj2.toString();
+            const totalStr = total >= 1000 ? (Math.round(total / 100) / 10) + 'k' : total.toString();
+            statsEl.innerHTML =
+              '<div class="rv-hero-stat pages">'
+                + '<div class="n">' + totalStr + '</div>'
+                + '<div class="l">Pages Read</div>'
+              + '</div>'
+              + '<div class="rv-hero-stat goal">'
+                + '<div class="n">' + (goal >= 1000 ? (Math.round(goal/100)/10)+'k' : goal) + '</div>'
+                + '<div class="l">Goal</div>'
+              + '</div>'
+              + '<div class="rv-hero-stat proj">'
+                + '<div class="n">' + projStr + '</div>'
+                + '<div class="l">Yr Projection</div>'
+              + '</div>';
+
+            velHero.style.display = '';
+
+            // Draw gauge after paint tick
+            setTimeout(function() {
+              drawVelocityGauge('rvGaugeCanvas', currentPace, neededPace);
+            }, 50);
+          }
+        }
+
+        // ── Sync button ────────────────────────────────────────────────────────
         const syncBtn = `
           <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
             <button id="chalSyncBtn" onclick="syncChallengeProgressNow()"
@@ -31883,89 +32350,169 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               <i class="fas fa-bolt"></i> Sync
             </button>
           </div>`;
-    
-        // ── Stat tiles ─────────────────────────────────────────────────────────
-        const statTiles = `
-          <div class="chal-stat-strip">
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num" style="color:${colour};">
-                ${isPages ? total.toLocaleString() : total}
-              </div>
-              <div class="chal-stat-label">${unit} read</div>
-            </div>
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num">${isPages ? goal.toLocaleString() : goal}</div>
-              <div class="chal-stat-label">your goal</div>
-            </div>
-            <div class="chal-stat-tile" role="button" tabindex="0" data-action onclick="showPaceInfo()" style="cursor:pointer;">
-              <div class="chal-stat-num">
-                ${projection > 0 ? (isPages ? projection.toLocaleString() : projection) : '—'}
-              </div>
-              <div class="chal-stat-label" style="display:flex;align-items:center;
-                  justify-content:center;gap:3px;">
-                pace
-                <span style="display:inline-flex;align-items:center;justify-content:center;
-                            width:13px;height:13px;border-radius:50%;background:var(--neutral-mid);
-                            color:white;font-size:0.55rem;font-weight:700;flex-shrink:0;">ⓘ</span>
-              </div>
-            </div>
-          </div>`;
-    
+
+        // No stat tiles for PAGE_COUNT (hero handles it) or BOOK_COUNT (bookshelf handles it)
+        const statTiles = '';
+
         // ── Progress bar ────────────────────────────────────────────────────────
         const progressBar = `
-          <div style="height:10px;background:var(--border-soft);border-radius:6px;overflow:hidden;margin-bottom:6px;">
-            <div style="height:100%;width:${pct}%;background:${colour};border-radius:6px;transition:width 0.4s;"></div>
+          <div style="height:${isPages?8:10}px;background:var(--border-soft);border-radius:6px;overflow:hidden;margin-bottom:6px;">
+            <div style="height:100%;width:${pct}%;background:${isPages?'linear-gradient(90deg,#534AB7,#A984BA)':colour};border-radius:6px;transition:width 0.4s;"></div>
           </div>
-          <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-muted);margin-bottom:${isPages?'14':'16'}px;">
             <span>${pct}% of goal</span>
-            <span>${escapeHtml(aheadBehind)}</span>
+            <span>${escapeHtml(isPages ? aheadBehind : '')}</span>
           </div>`;
     
-        // ── Monthly breakdown — FIX B ──────────────────────────────────────────
-        // Layout per column (top→bottom):
-        //   [value text  — 14px fixed, blank if 0]
-        //   [bar         — grows from bottom in fixed 50px zone]
-        //   [month label — 14px fixed]
-        // Outer row uses align-items:flex-end so all bars touch the same baseline.
+        // ── Monthly data ────────────────────────────────────────────────────────
         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const MONTH_DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
         const monthBreakdown = state.monthlyBreakdown || {};
         const maxMonthVal    = Math.max(1, ...Object.values(monthBreakdown).map(Number));
-        const BAR_ZONE_PX    = 50; // fixed pixel height for the bar zone
-    
-        const monthCols = months.map(function(m) {
-          const val    = Number(monthBreakdown[m]) || 0;
-          const barPx  = val > 0 ? Math.max(2, Math.round((val / maxMonthVal) * BAR_ZONE_PX)) : 0;
-          const valStr = val > 0
-            ? (isPages ? (val >= 1000 ? Math.round(val/100)/10 + 'k' : val.toString()) : val.toString())
-            : '';
-    
-          return `
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;">
-              <!-- Value above bar — fixed 14px height so all columns are same total height -->
-              <div style="height:14px;display:flex;align-items:flex-end;justify-content:center;
-                          font-size:0.5rem;color:${colour};font-weight:600;line-height:1;">
-                ${valStr}
+        const BAR_ZONE_PX    = 50;
+        const curMonthIdx    = new Date().getMonth();
+
+        // ── PAGE_COUNT: Velocity Timeline + Projection Card ────────────────────
+        let barChart = '';
+        if (isPages) {
+          // Needed pace for the "threshold" line
+          const nowV       = new Date();
+          const yearEndV   = new Date(nowV.getFullYear(), 11, 31);
+          const remainDaysV= Math.max(1, Math.round((yearEndV - nowV) / 86400000));
+          const neededPaceV= total < goal ? Math.ceil((goal - total) / remainDaysV) : 0;
+          const rseV       = ((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {};
+          const curPaceV   = Math.round(rseV.recentPace || rseV.overallAvgPace || 0);
+          const projV      = projection > 0 ? projection : (curPaceV > 0 ? curPaceV * 365 : 0);
+
+          // Monthly avg pg/day velocity bars
+          const curYear = new Date().getFullYear();
+          const paces = months.map(function(m, i) {
+            const mKey = curYear + '-' + String(i + 1).padStart(2, '0');
+            const p = Number(monthBreakdown[mKey]) || 0;
+            return (i <= curMonthIdx && p > 0) ? Math.round(p / MONTH_DAYS[i]) : 0;
+          });
+          const maxPaceV = Math.max(...paces, neededPaceV + 5, 1);
+
+          const velCols = months.map(function(m, i) {
+            const p = paces[i];
+            const pct2 = p > 0 ? p / maxPaceV : 0;
+            const isCur = i === curMonthIdx;
+            const isFut = i > curMonthIdx;
+            const barH = isFut ? 2 : Math.max(pct2 * 55, 2);
+            const col = isCur ? '#A984BA' : (!isFut && p >= neededPaceV ? '#5effc2' : !isFut && p > 0 ? '#534AB7' : 'rgba(255,255,255,.08)');
+            return '<div class="vel-bar-col">'
+              + '<div class="vel-bar" style="height:' + barH + 'px;background:' + col + ';">'
+              + (!isFut && p > 0 ? '<div class="vel-bar-glow"></div>' : '')
+              + '</div>'
+              + '<div class="vel-lbl">' + m[0] + '</div>'
+              + '</div>';
+          }).join('');
+
+          // Threshold line position (% from bottom of 60px chart)
+          const needLineY = Math.round((1 - neededPaceV / maxPaceV) * 55);
+
+          // Projection pillars data
+          const projOver  = projV > 0 ? (projV - goal) : 0;
+          const projOverStr = projOver > 0 ? ('+' + (projOver >= 1000 ? (Math.round(projOver/100)/10)+'k' : projOver)) : '—';
+          const projStr2 = projV >= 1000 ? (Math.round(projV/100)/10)+'k' : projV.toString();
+          const paceBuffer = curPaceV > 0 && neededPaceV > 0 ? Math.round((curPaceV - neededPaceV) / neededPaceV * 100) : 0;
+
+          barChart = `
+            <div class="vel-wrap">
+              <div class="vel-title">Monthly Velocity (pg / day avg)</div>
+              <div class="vel-chart" style="position:relative;">
+                ${velCols}
+                ${neededPaceV > 0 ? '<div style="position:absolute;left:0;right:0;top:' + needLineY + 'px;height:1px;background:rgba(249,185,48,.4);border-top:1px dashed rgba(249,185,48,.5);pointer-events:none;"><span style=\'position:absolute;right:2px;top:-9px;font-size:0.38rem;color:rgba(249,185,48,.65);\'>need ' + neededPaceV + '/d</span></div>' : ''}
               </div>
-              <!-- Bar zone — fixed 50px, bar grows from bottom -->
-              <div style="height:${BAR_ZONE_PX}px;width:80%;display:flex;align-items:flex-end;">
-                <div style="width:100%;height:${barPx}px;background:${val > 0 ? colour : 'var(--border-soft)'};
-                            border-radius:3px 3px 0 0;transition:height 0.4s;min-height:${val>0?2:0}px;">
+              <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                <span style="font-size:0.42rem;color:rgba(255,255,255,.25);">Jan</span>
+                <span style="font-size:0.42rem;color:rgba(255,255,255,.25);">Dec</span>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;">
+                <span style="font-size:0.48rem;color:#5effc2;">● above needed</span>
+                <span style="font-size:0.48rem;color:#534AB7;">● below needed</span>
+                <span style="font-size:0.48rem;color:#A984BA;">● this month</span>
+              </div>
+            </div>
+            <div class="rv-proj-card">
+              <div class="rv-proj-top">
+                <div class="rv-proj-icon">🚀</div>
+                <div class="rv-proj-info">
+                  <div class="big">${projStr2} pages</div>
+                  <div class="sub">projected by year end at ${curPaceV || neededPaceV} pg/day</div>
                 </div>
               </div>
-              <!-- Month label — fixed 14px height -->
-              <div style="height:14px;display:flex;align-items:center;justify-content:center;
-                          font-size:0.52rem;color:var(--text-faint);margin-top:2px;">
-                ${m}
+              <div class="rv-proj-bottom">
+                <div class="rv-proj-pill">
+                  <div class="n">${projOverStr}</div>
+                  <div class="l">above goal</div>
+                </div>
+                <div class="rv-proj-pill">
+                  <div class="n">${neededPaceV} pg/d</div>
+                  <div class="l">needed pace</div>
+                </div>
+                <div class="rv-proj-pill">
+                  <div class="n">${paceBuffer > 0 ? '+' + paceBuffer + '%' : '—'}</div>
+                  <div class="l">pace buffer</div>
+                </div>
               </div>
             </div>`;
-        }).join('');
-    
-        const barChart = `
-          <div class="card" style="padding:12px 14px;margin-bottom:14px;">
-            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;
-                        letter-spacing:0.5px;margin-bottom:10px;">Monthly breakdown</div>
-            <div style="display:flex;gap:2px;align-items:flex-end;">${monthCols}</div>
-          </div>`;
+
+        } else {
+          // BOOK_COUNT: original bar chart
+          const bcYear = new Date().getFullYear();
+          const monthCols = months.map(function(m, i) {
+            const mKey = bcYear + '-' + String(i + 1).padStart(2, '0');
+            const val    = Number(monthBreakdown[mKey]) || 0;
+            const barPx  = val > 0 ? Math.max(2, Math.round((val / maxMonthVal) * BAR_ZONE_PX)) : 0;
+            const valStr = val > 0 ? val.toString() : '';
+            return `
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;">
+                <div style="height:14px;display:flex;align-items:flex-end;justify-content:center;
+                            font-size:0.5rem;color:${colour};font-weight:600;line-height:1;">${valStr}</div>
+                <div style="height:${BAR_ZONE_PX}px;width:80%;display:flex;align-items:flex-end;">
+                  <div style="width:100%;height:${barPx}px;background:${val > 0 ? colour : 'var(--border-soft)'};
+                              border-radius:3px 3px 0 0;transition:height 0.4s;min-height:${val>0?2:0}px;"></div>
+                </div>
+                <div style="height:14px;display:flex;align-items:center;justify-content:center;
+                            font-size:0.52rem;color:var(--text-faint);margin-top:2px;">${m}</div>
+              </div>`;
+          }).join('');
+          barChart = `
+            <div class="card" style="padding:12px 14px;margin-bottom:14px;">
+              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;
+                          letter-spacing:0.5px;margin-bottom:10px;">Monthly breakdown</div>
+              <div style="display:flex;gap:2px;align-items:flex-end;">${monthCols}</div>
+            </div>`;
+        }
+
+        // PAGE_COUNT: monthly breakdown as a compact list below projection card
+        let pagesMonthlyList = '';
+        if (isPages) {
+          const listYear = new Date().getFullYear();
+          const pastMonths = months.slice(0, curMonthIdx + 1).map(function(m, i) {
+            const mKey = listYear + '-' + String(i + 1).padStart(2, '0');
+            return { m: m, p: Number(monthBreakdown[mKey]) || 0, d: MONTH_DAYS[i] };
+          }).reverse();
+          const nowP = new Date();
+          const yearEndP = new Date(nowP.getFullYear(), 11, 31);
+          const remDaysP = Math.max(1, Math.round((yearEndP - nowP) / 86400000));
+          const needP = total < goal ? Math.ceil((goal - total) / remDaysP) : 0;
+          const listRows = pastMonths.map(function(obj) {
+            const avg = obj.p > 0 ? Math.round(obj.p / obj.d) : 0;
+            const ahead = avg >= needP;
+            const pStr = obj.p >= 1000 ? (Math.round(obj.p/100)/10)+'k' : obj.p.toString();
+            return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f8f8ff;border-radius:8px;margin-bottom:5px;">'
+              + '<span style="font-size:0.65rem;font-weight:700;color:var(--text-muted);width:28px;">' + obj.m + '</span>'
+              + '<div style="flex:1;height:4px;background:#e8e8f5;border-radius:2px;overflow:hidden;">'
+              +   '<div style="height:100%;width:' + Math.min(obj.p / maxMonthVal * 100, 100) + '%;background:' + (ahead && obj.p > 0 ? '#5effc2' : '#534AB7') + ';border-radius:2px;"></div>'
+              + '</div>'
+              + '<span style="font-size:0.65rem;font-weight:700;color:#534AB7;min-width:32px;text-align:right;">' + pStr + '</span>'
+              + (avg > 0 ? '<span style="font-size:0.58rem;color:' + (ahead ? 'var(--color-success)' : 'var(--text-muted)') + ';min-width:38px;text-align:right;">' + avg + ' pg/d</span>' : '<span style="min-width:38px;"></span>')
+              + '</div>';
+          }).join('');
+          pagesMonthlyList = '<div style="font-size:0.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Monthly Breakdown</div>' + listRows;
+        }
     
         // ── Book list — FIX C ─────────────────────────────────────────────────
         // Uses same cover pattern as library and shelf views:
@@ -31987,17 +32534,18 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               </div>`;
           } else {
             const rowsHtml = books.map(function(b) {
-              const bookRecord = booksMap.get(b.bookId);
-    
-              const displayTitle  = bookRecord ? bookRecord.title  : (b.title || b.bookId);
+              const shelf      = shelvesMap.get(b.shelfId);
+              const bookId     = shelf ? shelf.bookId : '';
+              const bookRecord = bookId ? booksMap.get(bookId) : null;
+
+              const displayTitle  = bookRecord ? bookRecord.title  : '';
               const displayAuthor = bookRecord ? bookRecord.author : '';
               const displayGenre  = bookRecord ? bookRecord.genre  : '';
               const finishedOn    = b.finishedOn || '';
-    
+
               // Cover — exact same pattern as library renderLibrary() and shelf views
               let coverHtml;
               if (bookRecord && bookRecord.coverImageURL) {
-                // Real cover URL from Drive — use directly, same as the shelf carousel
                 coverHtml = `
                   <img src="${escapeHtml(bookRecord.coverImageURL)}"
                       style="width:48px;height:72px;object-fit:cover;border-radius:4px;
@@ -32008,12 +32556,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                     ${autoCoverMini(displayTitle, displayAuthor, 48, 72)}
                   </div>`;
               } else {
-                // No cover URL — use auto-cover (coloured spine, same as library list)
                 coverHtml = autoCoverMini(displayTitle, displayAuthor, 48, 72);
               }
-    
-              const bookId = b.bookId || '';
-    
+
               return `
                 <div onclick="${bookId ? 'openBookDetailView(\'' + bookId + '\', \'challengeDetail\')' : ''}"
                     ${bookId ? 'role="button" tabindex="0" data-action' : ''}
@@ -32058,113 +32603,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         }
     
-        return syncBtn + statTiles + progressBar + barChart + booksHtml;
-      }
-
-      /**
-       * Function: render10PagesADayProgress()
-       * Renders the My Progress detail view for 10PAGESADAY challenges.
-       * Stat strip: total pages / avg pg-per-day / qualified status.
-       * Progress bar vs yearly goal. Habit stats card (habitScore, weeksHit).
-       * Monthly breakdown chart (keys are YYYY-MM, distinct from BOOK/PAGE_COUNT
-       * which use month abbreviations).
-       */
-      function render10PagesADayProgress(challenge, enrollment, state) {
-        let cfg = {};
-        try { cfg = JSON.parse(challenge.goalConfigJson || '{}'); } catch(e) {}
-
-        const totalPages  = state.totalPages      || 0;
-        const yearlyGoal  = state.yearlyGoal      || (cfg.dailyGoal || 10) * 365 || challenge.goalValue || 3650;
-        const avgPpd      = state.avgPagesPerDay  ? (+state.avgPagesPerDay).toFixed(1) : '—';
-        const habitScore  = state.habitScore      || 0;
-        const isQualified = !!state.isQualified;
-        const weeksHit    = state.weeksHit        || 0;
-        const dailyGoal   = cfg.dailyGoal         || 10;
-        const pct         = Math.min(100, Math.round(totalPages / yearlyGoal * 100));
-        const colour      = '#E05A47';
-
-        const statTiles = `
-          <div class="chal-stat-strip">
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num" style="color:${colour};">${totalPages.toLocaleString()}</div>
-              <div class="chal-stat-label">pages read</div>
-            </div>
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num">${avgPpd}</div>
-              <div class="chal-stat-label">avg pg / day</div>
-            </div>
-            <div class="chal-stat-tile">
-              <div class="chal-stat-num" style="color:${isQualified ? 'var(--color-success)' : 'var(--text-muted)'};">
-                ${isQualified ? '✓' : '—'}
-              </div>
-              <div class="chal-stat-label">qualified</div>
-            </div>
-          </div>`;
-
-        const progressBarHtml = `
-          <div style="height:10px;background:var(--border-soft);border-radius:6px;overflow:hidden;margin-bottom:6px;">
-            <div style="height:100%;width:${pct}%;background:${colour};border-radius:6px;transition:width 0.4s;"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;">
-            <span>${totalPages.toLocaleString()} / ${yearlyGoal.toLocaleString()} pages (${pct}%)</span>
-            <span>${dailyGoal} pg/day goal</span>
-          </div>`;
-
-        const habitCard = `
-          <div class="card" style="padding:12px 14px;margin-bottom:14px;">
-            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;
-                        letter-spacing:0.5px;margin-bottom:10px;">Habit Stats</div>
-            <div style="display:flex;gap:0;justify-content:space-around;">
-              <div style="text-align:center;">
-                <div style="font-size:1.4rem;font-weight:800;color:${colour};">${habitScore}</div>
-                <div style="font-size:0.62rem;color:var(--text-muted);">habit score</div>
-              </div>
-              <div style="text-align:center;">
-                <div style="font-size:1.4rem;font-weight:800;color:${colour};">${weeksHit}</div>
-                <div style="font-size:0.62rem;color:var(--text-muted);">weeks hit</div>
-              </div>
-            </div>
-          </div>`;
-
-        // Monthly breakdown — keys are YYYY-MM (not month abbreviations)
-        const monthlyBreakdown = state.monthlyBreakdown || {};
-        const year = state.year || new Date().getFullYear();
-        const BAR_ZONE_PX = 50;
-        const monthDefs = [
-          ['Jan','01'],['Feb','02'],['Mar','03'],['Apr','04'],
-          ['May','05'],['Jun','06'],['Jul','07'],['Aug','08'],
-          ['Sep','09'],['Oct','10'],['Nov','11'],['Dec','12']
-        ];
-        const maxMonthVal = Math.max(1, ...monthDefs.map(function(md) {
-          return Number(monthlyBreakdown[year + '-' + md[1]]) || 0;
-        }));
-
-        const monthCols = monthDefs.map(function(md) {
-          const key    = year + '-' + md[1];
-          const val    = Number(monthlyBreakdown[key]) || 0;
-          const barPx  = val > 0 ? Math.max(2, Math.round((val / maxMonthVal) * BAR_ZONE_PX)) : 0;
-          const valStr = val > 0 ? (val >= 1000 ? Math.round(val / 100) / 10 + 'k' : val) : '';
-          return `
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;">
-              <div style="height:14px;display:flex;align-items:flex-end;justify-content:center;
-                          font-size:0.5rem;color:${colour};font-weight:600;line-height:1;">${valStr}</div>
-              <div style="height:${BAR_ZONE_PX}px;width:80%;display:flex;align-items:flex-end;">
-                <div style="width:100%;height:${barPx}px;background:${val > 0 ? colour : 'var(--border-soft)'};
-                            border-radius:3px 3px 0 0;transition:height 0.4s;min-height:${val > 0 ? 2 : 0}px;"></div>
-              </div>
-              <div style="height:14px;display:flex;align-items:center;justify-content:center;
-                          font-size:0.52rem;color:var(--text-faint);margin-top:2px;">${md[0]}</div>
-            </div>`;
-        }).join('');
-
-        const barChart = `
-          <div class="card" style="padding:12px 14px;margin-bottom:14px;">
-            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;
-                        letter-spacing:0.5px;margin-bottom:10px;">Monthly breakdown</div>
-            <div style="display:flex;gap:2px;align-items:flex-end;">${monthCols}</div>
-          </div>`;
-
-        return statTiles + progressBarHtml + habitCard + barChart;
+        return syncBtn + statTiles + progressBar + barChart + (isPages ? pagesMonthlyList : '') + booksHtml;
       }
 
       /**
@@ -32172,6 +32611,85 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        */
       function showPaceInfo() {
         showToast({ type: 'info', icon: 'fa-solid fa-gauge', title: 'About Pace', sub: 'Projected year-end total at your current reading speed.' });
+      }
+
+      /**
+       * Draws the Reading Velocity speedometer gauge on a canvas.
+       * @param {string} canvasId
+       * @param {number} currentPace  - Current pg/day (RSE recentPace)
+       * @param {number} neededPace   - Minimum pg/day to hit goal
+       */
+      function drawVelocityGauge(canvasId, currentPace, neededPace) {
+        const cv = document.getElementById(canvasId);
+        if (!cv) return;
+        const ctx = cv.getContext('2d');
+        const cx = 100, cy = 95, r = 75;
+        const startA = Math.PI * 1.1;
+        const endA   = Math.PI * 1.9;   // 144° arc
+        const maxPace = Math.max(currentPace * 1.5, neededPace * 2, 80);
+
+        ctx.clearRect(0, 0, cv.width, cv.height);
+
+        // Background arc
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, startA, endA);
+        ctx.strokeStyle = 'rgba(255,255,255,.1)';
+        ctx.lineWidth = 10; ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Coloured filled arc
+        if (currentPace > 0) {
+          const pct = Math.min(currentPace / maxPace, 1);
+          const fillEnd = startA + (endA - startA) * pct;
+          const grad = ctx.createLinearGradient(cx - r, cy, cx + r, cy);
+          grad.addColorStop(0, '#534AB7');
+          grad.addColorStop(0.5, '#A984BA');
+          grad.addColorStop(1, '#5effc2');
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, startA, fillEnd);
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 10; ctx.lineCap = 'round';
+          ctx.stroke();
+        }
+
+        // Tick marks
+        for (let i = 0; i <= 10; i++) {
+          const a = startA + (endA - startA) * (i / 10);
+          const inner = i % 5 === 0 ? r - 16 : r - 10;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+          ctx.lineTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+          ctx.strokeStyle = i % 5 === 0 ? 'rgba(255,255,255,.4)' : 'rgba(255,255,255,.15)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        // Needle
+        if (currentPace > 0) {
+          const needleA = startA + (endA - startA) * Math.min(currentPace / maxPace, 1);
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(needleA) * (r - 18), cy + Math.sin(needleA) * (r - 18));
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2; ctx.lineCap = 'round';
+          ctx.stroke();
+        }
+        // Centre dot
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+
+        // Needed pace marker (orange tick)
+        if (neededPace > 0 && neededPace <= maxPace) {
+          const neededA = startA + (endA - startA) * (neededPace / maxPace);
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(neededA) * (r + 3), cy + Math.sin(neededA) * (r + 3));
+          ctx.lineTo(cx + Math.cos(neededA) * (r - 16), cy + Math.sin(neededA) * (r - 16));
+          ctx.strokeStyle = '#f39c12';
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+        }
       }
 
       /**
@@ -32234,7 +32752,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           return;
         }
     
-        if (challenge.competitionMode && challenge.competitionMode !== 'NONE') {
+        if (challenge.challengeType === '10PAGESADAY') {
+          container.innerHTML = render10PagesClub(challenge, challEnrollments);
+        } else if (challenge.competitionMode && challenge.competitionMode !== 'NONE') {
           container.innerHTML = renderCompetitiveLeaderboard(challenge, challEnrollments);
         } else {
           container.innerHTML = renderPaceTable(challenge, challEnrollments);
@@ -32358,14 +32878,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
           const avatarHtml = buildAvatarHtml(member, 28);
 
-          // For the current user, surface recentPace from RSE V1 as pace context.
-          const rseRecent = isMe
-            ? (((membersMap.get(currentUser) || {}).stats || {}).readingSpeed || {}).recentPace || 0
-            : 0;
-
           return { isMe, name, member, memberId: enrollment.memberId,
                   personalGoal, currentTotal, projection, pct,
-                  paceIcon, paceColor, avatarHtml, rseRecent };
+                  paceIcon, paceColor, avatarHtml };
         }).sort(function(a, b) { return b.pct - a.pct; });
 
         const rowsHtml = rows.map(function(r) {
@@ -32377,9 +32892,11 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             ? (Math.round(r.personalGoal / 100) / 10) + 'k'
             : r.personalGoal.toLocaleString();
           const projStr = r.projection > 0
-            ? (isPages && r.projection >= 1000
-                ? (Math.round(r.projection / 100) / 10) + 'k'
-                : r.projection.toLocaleString())
+            ? (isPages
+                ? (r.projection >= 1000
+                    ? (Math.round(r.projection / 100) / 10) + 'k'
+                    : r.projection.toLocaleString())
+                : r.projection + ' bk')
             : '—';
 
           return `
@@ -32421,7 +32938,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   ${r.paceIcon}
                 </div>
                 <div style="font-size:0.68rem;color:${r.paceColor};white-space:nowrap;">
-                  ${r.isMe && r.rseRecent > 0 ? Math.round(r.rseRecent) + ' pg/d' : projStr}
+                  ${projStr}
                 </div>
               </div>
 
@@ -32449,7 +32966,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               <div style="width:52px;flex-shrink:0;text-align:right;font-size:0.68rem;
                           font-weight:600;color:var(--text-faint);text-transform:uppercase;
                           letter-spacing:0.4px;">
-                Pace
+                Yr Pace
               </div>
             </div>
             ${rowsHtml}
@@ -32461,7 +32978,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             <span style="color:var(--color-danger);">↓ behind</span>
           </div>
           <div style="font-size:0.7rem;color:var(--text-faint);text-align:center;margin-top:4px;">
-            Pace = projected year-end total at your current reading speed.
+            ${isPages ? 'Pace = projected year-end pages at current speed.' : 'Yr Pace = projected books you\'ll finish by year-end.'}
           </div>`;
       }
     
@@ -33093,9 +33610,105 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         return count;
       }
 
+      /**
+       * Drives a stat circle's SVG ring arc and goal CTA based on challenge enrollment.
+       *
+       * @param {string} challengeType  - 'PAGE_COUNT' or 'BOOK_COUNT'
+       * @param {string} seriesTag      - 'ANNUAL_PAGE_GOAL' or 'ANNUAL_BOOK_GOAL'
+       * @param {number} currentValue   - pages or books logged so far this year
+       * @param {number} currentYear    - e.g. 2026
+       * @param {string} arcId          - id of the <circle> ring arc element
+       * @param {string} subId          - id of the "of N" sub-label element
+       * @param {string} ctaId          - id of the "+ Add goal" anchor element
+       *
+       * Three states:
+       *  1. Enrolled in matching challenge → fill ring proportionally, show "of N" sub-label
+       *  2. Not enrolled, but challenge exists this year → empty ring, show "+ Add goal"
+       *  3. No challenge exists this year → empty ring, no CTA
+       */
+      function updateStatRing(challengeType, seriesTag, currentValue, currentYear,
+                              arcId, subId, ctaId) {
+        const CIRC = 2 * Math.PI * 44; // circumference for r=44 → ≈ 276.5
+
+        const arcEl = document.getElementById(arcId);
+        const subEl = document.getElementById(subId);
+        const ctaEl = document.getElementById(ctaId);
+        if (!arcEl) return;
+
+        // Hide optional elements by default
+        if (subEl) subEl.style.display = 'none';
+        if (ctaEl) ctaEl.style.display = 'none';
+
+        // Find the challenge for this year with the matching seriesTag
+        const yearChallenge = globalChallengesDB.find(function(c) {
+          if (c.challengeType !== challengeType) return false;
+          if (c.seriesTag !== seriesTag) return false;
+          // Dates are stored as "DD-Mon-YYYY" (e.g. "01-Jan-2026") — year is the last 4 chars
+          const yr = String(currentYear);
+          return c.startDate && c.startDate.slice(-4) === yr
+              && c.endDate   && c.endDate.slice(-4)   === yr;
+        });
+
+        if (!yearChallenge) {
+          // State 3: no challenge configured for this year — empty ring, no CTA
+          arcEl.setAttribute('stroke-dasharray', '0 ' + CIRC);
+          return;
+        }
+
+        // Check if the current user is enrolled
+        const enrollment = globalChallengeEnrollmentsDB.find(function(e) {
+          return e.memberId === currentUser
+              && e.challengeId === yearChallenge.challengeId
+              && e.enrollmentStatus === 'Active';
+        });
+
+        if (!enrollment) {
+          // State 2: challenge exists but user not enrolled — empty ring, show CTA
+          arcEl.setAttribute('stroke-dasharray', '0 ' + CIRC);
+          if (ctaEl) ctaEl.style.display = '';
+          return;
+        }
+
+        // State 1: enrolled — compute progress and fill ring
+        let state = {};
+        try { state = JSON.parse(enrollment.progressStateJson || '{}'); } catch (ex) {}
+        const goal = state.personalGoal || yearChallenge.goalValue || 1;
+        const pct  = Math.min(currentValue / goal, 1);
+        const fill = (pct * CIRC).toFixed(1);
+        arcEl.setAttribute('stroke-dasharray', fill + ' ' + CIRC);
+        if (subEl) {
+          subEl.textContent = 'of ' + goal.toLocaleString();
+          subEl.style.display = '';
+        }
+      }
+
+      /** Navigates to the ANNUAL_PAGE_GOAL challenge enrollment page. */
+      function openPageGoalEnroll() {
+        const yr = new Date().getFullYear();
+        const c = globalChallengesDB.find(function(ch) {
+          return ch.challengeType === 'PAGE_COUNT' && ch.seriesTag === 'ANNUAL_PAGE_GOAL'
+              && ch.startDate && ch.startDate.slice(-4) === String(yr);
+        });
+        if (c) openChallengeDetailView(c.challengeId);
+      }
+
+      /** Navigates to the ANNUAL_BOOK_GOAL challenge enrollment page. */
+      function openBookGoalEnroll() {
+        const yr = new Date().getFullYear();
+        const c = globalChallengesDB.find(function(ch) {
+          return ch.challengeType === 'BOOK_COUNT' && ch.seriesTag === 'ANNUAL_BOOK_GOAL'
+              && ch.startDate && ch.startDate.slice(-4) === String(yr);
+        });
+        if (c) openChallengeDetailView(c.challengeId);
+      }
+
       function updateBooksThisYearPill(memberId) {
+        var yr = new Date().getFullYear();
+        var count = _getFinishedBooksCountForYear(memberId, yr);
         var el = document.getElementById('meStatBooksYear');
-        if (el) el.innerText = _getFinishedBooksCountForYear(memberId, new Date().getFullYear());
+        if (el) el.innerText = count;
+        updateStatRing('BOOK_COUNT', 'ANNUAL_BOOK_GOAL', count, yr,
+                       'meStatBooksRingArc', 'meStatBooksGoalSub', 'meStatBooksAddGoalCta');
       }
 
     // ── Auto-hide app header on scroll ────────────────────────────────────────
@@ -33142,13 +33755,13 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     }
 
     /**
-     * ARKA_ADMIN_PANEL_URL — GAS deployment URL injected at serve time.
-     * Points to the merged ArkaAdminControlPanel (?page=admin).
-     * Using ScriptApp.getService().getUrl() because window.location.href
-     * is the sandbox googleusercontent.com URL, not the real exec URL.
+     * ARKA_ADMIN_PANEL_URL — GAS exec URL + ?page=admin.
+     * Read from window.ARKA_ADMIN_PANEL_URL, which is set by the GAS-served
+     * ArkaClubApp.html template (scriptlets run there, not in this static file).
+     * Falls back to '' so openAdminPanel() silently no-ops if somehow unset.
      * @type {string}
      */
-    const ARKA_ADMIN_PANEL_URL = '<?!= ScriptApp.getService().getUrl() ?>?page=admin';
+    const ARKA_ADMIN_PANEL_URL = window.ARKA_ADMIN_PANEL_URL || '';
 
     /**
      * Opens the Admin Control Panel in a new tab.
