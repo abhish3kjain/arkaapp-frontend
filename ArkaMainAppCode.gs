@@ -7227,13 +7227,12 @@ function syncCountChallengeProgress(memberId, ss, preReadShelfRows = null, preRe
 
           if (isNaN(finishedMs) || finishedMs < startDateMs || finishedMs > endDateMs) continue;
 
-          const bookId     = sRow[2].toString();
+          const shelfId    = sRow[0].toString();
           const finishedOn = Utilities.formatDate(
             finishedDate, Session.getScriptTimeZone(), 'dd-MMM-yyyy'
           );
 
-          // Get book title from globalBooksDB equivalent — just store bookId
-          booksRead.push({ bookId: bookId, title: '', finishedOn: finishedOn });
+          booksRead.push({ shelfId: shelfId, finishedOn: finishedOn });
 
           const monthKey = finishedDate.getFullYear() + '-' +
                            String(finishedDate.getMonth() + 1).padStart(2, '0');

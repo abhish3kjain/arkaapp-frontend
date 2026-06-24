@@ -1,5 +1,5 @@
 		/**
-       * ArkaClubApp — frontend    v3.8.2
+       * ArkaClubApp — frontend    v3.8.3
        * Full version history: VERSIONS.md
        *
        * T0: JS execution start time.
@@ -31504,6 +31504,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           globalShelvesDB.forEach(function(shelf) {
             if (shelf.memberId !== currentUser) return;
             if (shelf.status !== 'Finished') return;
+            // globalShelvesDB already excludes Deleted rows (Wave 3 filtering)
 
             const finishDate = parseGoogleDate(
               shelf.dateFinished || shelf.dateUpdated || shelf.lastModifiedOn
@@ -31511,10 +31512,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             const finishMs = finishDate.getTime();
             if (isNaN(finishMs) || finishMs < startDateMs || finishMs > endDateMs) return;
 
-            const book = booksMap.get(shelf.bookId);
             booksRead.push({
-              bookId    : shelf.bookId,
-              title     : '',           // resolved at render time from booksMap
+              shelfId   : shelf.shelfId,
               finishedOn: shelf.dateFinished || shelf.dateUpdated || ''
             });
 
@@ -32190,8 +32189,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             const books = (state.booksRead || []).slice().reverse(); // newest-first
             let spinesHtml = '';
             books.forEach(function(b, i) {
-              const rec  = booksMap.get(b.bookId);
-              const ttl  = rec ? rec.title : (b.title || '');
+              const shelf = shelvesMap.get(b.shelfId);
+              const bookId = shelf ? shelf.bookId : '';
+              const rec  = bookId ? booksMap.get(bookId) : null;
+              const ttl  = rec ? rec.title : '';
               // Deterministic colour from title (mirrors getBookColor logic but returns hex only)
               let ci = 0;
               for (let k = 0; k < ttl.length; k++) ci = ttl.charCodeAt(k) + ((ci << 5) - ci);
@@ -32200,8 +32201,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               const abbr = ttl.split(/\s+/).filter(Boolean).slice(0, 3)
                              .map(function(w) { return w[0] || ''; })
                              .join('').toUpperCase() || '?';
-              const cattr = b.bookId
-                ? 'onclick="openBookDetailView(\'' + b.bookId + '\',\'challengeDetail\')" role="button" tabindex="0" data-action'
+              const cattr = bookId
+                ? 'onclick="openBookDetailView(\'' + bookId + '\',\'challengeDetail\')" role="button" tabindex="0" data-action'
                 : '';
               spinesHtml += '<div class="chal-spine" style="height:' + h + 'px;background:linear-gradient(180deg,' + col + ',' + col + 'bb);" title="' + escapeHtml(ttl) + '" ' + cattr + '>'
                           + '<span class="chal-spine-txt">' + escapeHtml(abbr) + '</span></div>';
@@ -32530,17 +32531,18 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               </div>`;
           } else {
             const rowsHtml = books.map(function(b) {
-              const bookRecord = booksMap.get(b.bookId);
-    
-              const displayTitle  = bookRecord ? bookRecord.title  : (b.title || b.bookId);
+              const shelf      = shelvesMap.get(b.shelfId);
+              const bookId     = shelf ? shelf.bookId : '';
+              const bookRecord = bookId ? booksMap.get(bookId) : null;
+
+              const displayTitle  = bookRecord ? bookRecord.title  : '';
               const displayAuthor = bookRecord ? bookRecord.author : '';
               const displayGenre  = bookRecord ? bookRecord.genre  : '';
               const finishedOn    = b.finishedOn || '';
-    
+
               // Cover — exact same pattern as library renderLibrary() and shelf views
               let coverHtml;
               if (bookRecord && bookRecord.coverImageURL) {
-                // Real cover URL from Drive — use directly, same as the shelf carousel
                 coverHtml = `
                   <img src="${escapeHtml(bookRecord.coverImageURL)}"
                       style="width:48px;height:72px;object-fit:cover;border-radius:4px;
@@ -32551,12 +32553,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                     ${autoCoverMini(displayTitle, displayAuthor, 48, 72)}
                   </div>`;
               } else {
-                // No cover URL — use auto-cover (coloured spine, same as library list)
                 coverHtml = autoCoverMini(displayTitle, displayAuthor, 48, 72);
               }
-    
-              const bookId = b.bookId || '';
-    
+
               return `
                 <div onclick="${bookId ? 'openBookDetailView(\'' + bookId + '\', \'challengeDetail\')' : ''}"
                     ${bookId ? 'role="button" tabindex="0" data-action' : ''}

@@ -1,5 +1,5 @@
 /**
- * ARKA CHALLENGE PASS    v1.1.0
+ * ARKA CHALLENGE PASS    v1.2.0
  * Full version history: VERSIONS.md
  *
  * Standalone nightly pass — computes and persists progressStateJson for all
@@ -49,6 +49,7 @@ const CHALPASS_CHALLENGE_SHEET    = 'ChallengeDB';
 const CHALPASS_ENROLLMENT_SHEET   = 'ChallengeEnrollmentDB';
 const CHALPASS_PAGELOG_SHEET      = 'PageLogDB';
 const CHALPASS_ACTIVITYLOG_SHEET  = 'ActivityLogDB';
+const CHALPASS_SHELF_SHEET        = 'MemberShelfDB';
 
 const CHALPASS_ENABLED_PROP      = 'CHALLENGE_PASS_ENABLED';
 
@@ -86,6 +87,16 @@ const ACT_COL_TYPE        = 1;
 const ACT_COL_DATE        = 2;
 const ACT_COL_MEMBER_ID   = 3;
 const ACT_COL_DESC        = 4;
+
+// MemberShelfDB column indices (0-based)
+// Col A(0)=shelfId  Col B(1)=memberId  Col C(2)=bookId  Col D(3)=status
+// Col H(7)=dateUpdated  Col I(8)=dateFinished  Col K(10)=lastModifiedOn
+const SHELF_COL_SHELF_ID      = 0;
+const SHELF_COL_MEMBER_ID     = 1;
+const SHELF_COL_BOOK_ID       = 2;
+const SHELF_COL_STATUS        = 3;
+const SHELF_COL_DATE_UPDATED  = 7;
+const SHELF_COL_DATE_FINISHED = 8;
 
 // Supported challenge types processed by this pass
 const CHALPASS_TYPES = new Set(['10PAGESADAY', 'PAGE_COUNT', 'BOOK_COUNT']);
@@ -154,8 +165,9 @@ function _processAllChallengeEnrollments_() {
     const enrollSheet  = ss.getSheetByName(CHALPASS_ENROLLMENT_SHEET);
     const plogSheet    = ss.getSheetByName(CHALPASS_PAGELOG_SHEET);
     const actSheet     = ss.getSheetByName(CHALPASS_ACTIVITYLOG_SHEET);
+    const shelfSheet   = ss.getSheetByName(CHALPASS_SHELF_SHEET);
 
-    if (!chalSheet || !enrollSheet || !plogSheet || !actSheet) {
+    if (!chalSheet || !enrollSheet || !plogSheet || !actSheet || !shelfSheet) {
       console.error('ArkaChallengePass: one or more required sheets not found.');
       return;
     }
@@ -164,6 +176,7 @@ function _processAllChallengeEnrollments_() {
     const enrollData = enrollSheet.getDataRange().getValues();
     const plogData   = plogSheet.getDataRange().getValues();
     const actData    = actSheet.getDataRange().getValues();
+    const shelfData  = shelfSheet.getDataRange().getValues();
 
     const nowMs   = Date.now();
     const nowDate = new Date(nowMs);
@@ -206,19 +219,21 @@ function _processAllChallengeEnrollments_() {
       });
     }
 
-    // ── Pre-index activity logs: memberId → [{dateMs, bookId}] for BOOKREAD ─
+    // ── Pre-index shelf records: memberId → [{dateMs, shelfId, bookId}] for Finished, non-Deleted ─
     const bookReadByMember = {};
-    for (let ai = 1; ai < actData.length; ai++) {
-      const row  = actData[ai];
-      const type = (row[ACT_COL_TYPE] || '').toString();
-      if (type !== 'ARKA_ACTTYP_BOOKREAD') continue;
-      const mid  = (row[ACT_COL_MEMBER_ID] || '').toString();
+    for (let si = 1; si < shelfData.length; si++) {
+      const row    = shelfData[si];
+      const shelfId = (row[SHELF_COL_SHELF_ID] || '').toString();
+      if (!shelfId) continue;
+      const mid    = (row[SHELF_COL_MEMBER_ID] || '').toString();
       if (!mid) continue;
-      const ts   = _chalpassParseDate_(row[ACT_COL_DATE]);
+      const status = (row[SHELF_COL_STATUS] || '').toString();
+      if (status !== 'Finished') continue;  // excludes Deleted, Reading, Want-to-Read, DNF
+      const ts = _chalpassParseDate_(row[SHELF_COL_DATE_FINISHED] || row[SHELF_COL_DATE_UPDATED]);
       if (isNaN(ts.getTime())) continue;
-      const bookId = (row[ACT_COL_DESC] || '').toString();
+      const bookId = (row[SHELF_COL_BOOK_ID] || '').toString();
       if (!bookReadByMember[mid]) bookReadByMember[mid] = [];
-      bookReadByMember[mid].push({ dateMs: ts.getTime(), bookId: bookId });
+      bookReadByMember[mid].push({ dateMs: ts.getTime(), shelfId: shelfId, bookId: bookId });
     }
 
     // ── Collect updates: {rowIndex (1-based), progressValue, stateJson, tsStr} ──
@@ -518,7 +533,7 @@ function _computePageCountState_(chal, memberId, enrolledOn, pageLogs, now, exis
  *   chal       {Object} - challenge record
  *   memberId   {string}
  *   enrolledOn {Date}
- *   bookReads  {Array}  - [{dateMs, bookId}] from ActivityLogDB ARKA_ACTTYP_BOOKREAD
+ *   bookReads  {Array}  - [{dateMs, shelfId, bookId}] from MemberShelfDB Finished rows
  *   now        {Date}
  *   existing   {Object} - existing progressStateJson
  * Return Type: {progressValue: number, state: Object}
@@ -541,7 +556,7 @@ function _computeBookCountState_(chal, memberId, enrolledOn, bookReads, now, exi
   for (let bi = 0; bi < bookReads.length; bi++) {
     const ev = bookReads[bi];
     if (ev.dateMs < windowStartMs || ev.dateMs > windowEndMs) continue;
-    booksRead.push({ bookId: ev.bookId, finishedOn: _chalpassFmtDdMmmYyyy_(new Date(ev.dateMs)) });
+    booksRead.push({ shelfId: ev.shelfId, finishedOn: _chalpassFmtDdMmmYyyy_(new Date(ev.dateMs)) });
 
     const d    = new Date(ev.dateMs);
     const mKey = d.getFullYear() + '-' + _pad2_(d.getMonth() + 1);
