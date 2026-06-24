@@ -4115,8 +4115,11 @@
       }
       .chal-spine:hover, .chal-spine:focus { transform: translateY(-6px); outline: none; }
       .chal-spine-txt {
-        font-size: 0.28rem; color: rgba(255,255,255,0.72);
-        writing-mode: vertical-rl; font-weight: 800; padding: 3px 0;
+        font-size: 0.42rem; color: rgba(255,255,255,0.82);
+        writing-mode: vertical-rl; text-orientation: mixed;
+        font-weight: 600; letter-spacing: 0.03em;
+        padding: 4px 0; overflow: hidden;
+        max-height: 100%; line-height: 1.2;
       }
       .chal-spine-empty {
         flex-shrink: 0; width: 17px; height: 58px;
