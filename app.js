@@ -1,5 +1,5 @@
 		/**
-       * ArkaClubApp — frontend    v3.8.1
+       * ArkaClubApp — frontend    v3.8.2
        * Full version history: VERSIONS.md
        *
        * T0: JS execution start time.
@@ -32381,8 +32381,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           const projV      = projection > 0 ? projection : (curPaceV > 0 ? curPaceV * 365 : 0);
 
           // Monthly avg pg/day velocity bars
+          const curYear = new Date().getFullYear();
           const paces = months.map(function(m, i) {
-            const p = Number(monthBreakdown[m]) || 0;
+            const mKey = curYear + '-' + String(i + 1).padStart(2, '0');
+            const p = Number(monthBreakdown[mKey]) || 0;
             return (i <= curMonthIdx && p > 0) ? Math.round(p / MONTH_DAYS[i]) : 0;
           });
           const maxPaceV = Math.max(...paces, neededPaceV + 5, 1);
@@ -32454,8 +32456,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         } else {
           // BOOK_COUNT: original bar chart
-          const monthCols = months.map(function(m) {
-            const val    = Number(monthBreakdown[m]) || 0;
+          const bcYear = new Date().getFullYear();
+          const monthCols = months.map(function(m, i) {
+            const mKey = bcYear + '-' + String(i + 1).padStart(2, '0');
+            const val    = Number(monthBreakdown[mKey]) || 0;
             const barPx  = val > 0 ? Math.max(2, Math.round((val / maxMonthVal) * BAR_ZONE_PX)) : 0;
             const valStr = val > 0 ? val.toString() : '';
             return `
@@ -32481,8 +32485,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // PAGE_COUNT: monthly breakdown as a compact list below projection card
         let pagesMonthlyList = '';
         if (isPages) {
+          const listYear = new Date().getFullYear();
           const pastMonths = months.slice(0, curMonthIdx + 1).map(function(m, i) {
-            return { m: m, p: Number(monthBreakdown[m]) || 0, d: MONTH_DAYS[i] };
+            const mKey = listYear + '-' + String(i + 1).padStart(2, '0');
+            return { m: m, p: Number(monthBreakdown[mKey]) || 0, d: MONTH_DAYS[i] };
           }).reverse();
           const nowP = new Date();
           const yearEndP = new Date(nowP.getFullYear(), 11, 31);

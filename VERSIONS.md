@@ -78,6 +78,7 @@ Full history lives here.
 | 3.7.1 | Jun 2026 | Remove confidence band labels from badge proximity strip (too much explanation needed) |
 | 3.8.0 | Jun 2026 | 10PAGESADAY challenge detail page — Habit Pulse EKG hero, monthly constellation rings, 3-stat strip (Wks Hit / Max Gap / Recovery), qualification tracker bar, habit science blurb (B.J. Fogg / James Clear) |
 | 3.8.1 | Jun 2026 | Fix BOOK_COUNT and PAGE_COUNT frontend sync: monthlyBreakdown keys now YYYY-MM (was short name); weeklyBreakdown keys now YYYY-Www (was W03 without year) — matches GAS schema |
+| 3.8.2 | Jun 2026 | Fix chart rendering: monthlyBreakdown lookups in velocity timeline and monthly list now use YYYY-MM keys; BOOK_COUNT bar chart uses YYYY-MM keys — all reads match write format |
 
 ---
 
@@ -102,6 +103,17 @@ Full history lives here.
 |---|---|---|
 | 1.0.0 | Jun 2026 | Standalone nightly challenge pass — 10PAGESADAY habitScore engine (weeksHit, maxGap, recoveryRate, earlyWeeksHit hidden), zero-state bootstrap, LockService guard, installArkaChallengePassTrigger() |
 | 1.1.0 | Jun 2026 | BOOK_COUNT: booksRead entries now store `bookId` (from ActivityLogDB desc) + `finishedOn` in dd-MMM-yyyy format; added `_chalpassFmtDdMmmYyyy_()` helper |
+
+---
+
+## ArkaMainAppCode.gs
+
+**Current: `1.1.0`** *(versioning started Jun 2026)*
+
+| Version | Date | Summary |
+|---|---|---|
+| 1.0.0 | pre-Jun 2026 | Core backend — page logging, shelf writes, challenge sync (BOOK_COUNT/PAGE_COUNT), completion detection |
+| 1.1.0 | Jun 2026 | Fix progressStateJson key formats: monthlyBreakdown → YYYY-MM (was short name), weeklyBreakdown → YYYY-Www (was W03 without year), both BOOK_COUNT and PAGE_COUNT |
 
 ---
 
