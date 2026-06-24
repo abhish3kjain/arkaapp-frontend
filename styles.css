@@ -4046,7 +4046,7 @@
         display: flex;
         align-items: center;
         position: absolute;
-        top: 20px;  /* flush wrapper sits 20px inside the app-header zone; offset to appear below app-header */
+        top: 0;  /* flush wrapper sits 20px inside the app-header zone; offset to appear below app-header */
         left: 0;
         right: 0;
         z-index: 2;
