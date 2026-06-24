@@ -61,7 +61,7 @@ Full history lives here.
 
 ## app.js (ArkaClubApp frontend)
 
-**Current: `3.7.0`**
+**Current: `3.8.0`**
 
 | Version | Date | Summary |
 |---|---|---|
@@ -76,6 +76,7 @@ Full history lives here.
 | 3.6.0 | Jun 2026 | RSE V1 wired into 4 features: insight card pace, pace warning (genre/mood context), serendipity MOOD_MATCH, challenge pace table |
 | 3.7.0 | Jun 2026 | Badge proximity confidence bands — 🟢 Easy / 🟡 Stretch / 🔴 Aggressive based on moodMultiplier |
 | 3.7.1 | Jun 2026 | Remove confidence band labels from badge proximity strip (too much explanation needed) |
+| 3.8.0 | Jun 2026 | Challenges page bento revamp; 10PAGESADAY wired — banner fire tile, list card progress bar, detail view renderer (stat strip, habit stats card, monthly breakdown chart) |
 
 ---
 

@@ -30657,9 +30657,12 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           try { fireCfg = JSON.parse(fireChal.goalConfigJson || '{}'); } catch(e) {}
 
           const totalPages  = fireState.totalPages  || 0;
-          const targetPages = fireCfg.targetPages   || fireCfg.durationDays * 10 || 1;
+          const targetPages = (fireCfg.dailyGoal || 10) * 365 || fireChal.goalValue || 3650;
           const barPct      = Math.min(100, Math.round(totalPages / targetPages * 100));
-          const statText    = barPct + '%' + (fireState.aheadBehindTarget ? ' · ' + fireState.aheadBehindTarget : '');
+          const avgPpd      = fireState.avgPagesPerDay ? (+fireState.avgPagesPerDay).toFixed(1) : null;
+          const statText    = avgPpd
+            ? avgPpd + ' avg pg/day' + (fireState.isQualified ? ' · ✓ Qualified' : '')
+            : barPct + '%';
 
           html += '<div class="chal-fire-tile">' +
             '<div class="chal-tile-label">🔥 10 Pages/Day</div>' +
@@ -30834,7 +30837,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
             done  = doneSet.size; total = cells.length || 1;
             unit  = done + ' / ' + total + ' cells done'; colour = '#7F77DD';
           } else if (c.challengeType === '10PAGESADAY') {
-            const target = cfg.targetPages || (cfg.durationDays * 10) || 1;
+            const target = (cfg.dailyGoal || 10) * 365 || c.goalValue || 3650;
             done  = state.totalPages || 0; total = target;
             unit  = (done).toLocaleString() + ' / ' + target.toLocaleString() + ' pages';
             colour = '#E05A47';
@@ -31726,7 +31729,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const renderers = {
           BINGO_GRID    : renderBingoProgress,
           BOOK_COUNT    : renderCountProgress,
-          PAGE_COUNT    : renderCountProgress
+          PAGE_COUNT    : renderCountProgress,
+          '10PAGESADAY' : render10PagesADayProgress
         };
     
         const renderer = renderers[challenge.challengeType];
@@ -32055,6 +32059,112 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         }
     
         return syncBtn + statTiles + progressBar + barChart + booksHtml;
+      }
+
+      /**
+       * Function: render10PagesADayProgress()
+       * Renders the My Progress detail view for 10PAGESADAY challenges.
+       * Stat strip: total pages / avg pg-per-day / qualified status.
+       * Progress bar vs yearly goal. Habit stats card (habitScore, weeksHit).
+       * Monthly breakdown chart (keys are YYYY-MM, distinct from BOOK/PAGE_COUNT
+       * which use month abbreviations).
+       */
+      function render10PagesADayProgress(challenge, enrollment, state) {
+        let cfg = {};
+        try { cfg = JSON.parse(challenge.goalConfigJson || '{}'); } catch(e) {}
+
+        const totalPages  = state.totalPages      || 0;
+        const yearlyGoal  = state.yearlyGoal      || (cfg.dailyGoal || 10) * 365 || challenge.goalValue || 3650;
+        const avgPpd      = state.avgPagesPerDay  ? (+state.avgPagesPerDay).toFixed(1) : '—';
+        const habitScore  = state.habitScore      || 0;
+        const isQualified = !!state.isQualified;
+        const weeksHit    = state.weeksHit        || 0;
+        const dailyGoal   = cfg.dailyGoal         || 10;
+        const pct         = Math.min(100, Math.round(totalPages / yearlyGoal * 100));
+        const colour      = '#E05A47';
+
+        const statTiles = `
+          <div class="chal-stat-strip">
+            <div class="chal-stat-tile">
+              <div class="chal-stat-num" style="color:${colour};">${totalPages.toLocaleString()}</div>
+              <div class="chal-stat-label">pages read</div>
+            </div>
+            <div class="chal-stat-tile">
+              <div class="chal-stat-num">${avgPpd}</div>
+              <div class="chal-stat-label">avg pg / day</div>
+            </div>
+            <div class="chal-stat-tile">
+              <div class="chal-stat-num" style="color:${isQualified ? 'var(--color-success)' : 'var(--text-muted)'};">
+                ${isQualified ? '✓' : '—'}
+              </div>
+              <div class="chal-stat-label">qualified</div>
+            </div>
+          </div>`;
+
+        const progressBarHtml = `
+          <div style="height:10px;background:var(--border-soft);border-radius:6px;overflow:hidden;margin-bottom:6px;">
+            <div style="height:100%;width:${pct}%;background:${colour};border-radius:6px;transition:width 0.4s;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;">
+            <span>${totalPages.toLocaleString()} / ${yearlyGoal.toLocaleString()} pages (${pct}%)</span>
+            <span>${dailyGoal} pg/day goal</span>
+          </div>`;
+
+        const habitCard = `
+          <div class="card" style="padding:12px 14px;margin-bottom:14px;">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;
+                        letter-spacing:0.5px;margin-bottom:10px;">Habit Stats</div>
+            <div style="display:flex;gap:0;justify-content:space-around;">
+              <div style="text-align:center;">
+                <div style="font-size:1.4rem;font-weight:800;color:${colour};">${habitScore}</div>
+                <div style="font-size:0.62rem;color:var(--text-muted);">habit score</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:1.4rem;font-weight:800;color:${colour};">${weeksHit}</div>
+                <div style="font-size:0.62rem;color:var(--text-muted);">weeks hit</div>
+              </div>
+            </div>
+          </div>`;
+
+        // Monthly breakdown — keys are YYYY-MM (not month abbreviations)
+        const monthlyBreakdown = state.monthlyBreakdown || {};
+        const year = state.year || new Date().getFullYear();
+        const BAR_ZONE_PX = 50;
+        const monthDefs = [
+          ['Jan','01'],['Feb','02'],['Mar','03'],['Apr','04'],
+          ['May','05'],['Jun','06'],['Jul','07'],['Aug','08'],
+          ['Sep','09'],['Oct','10'],['Nov','11'],['Dec','12']
+        ];
+        const maxMonthVal = Math.max(1, ...monthDefs.map(function(md) {
+          return Number(monthlyBreakdown[year + '-' + md[1]]) || 0;
+        }));
+
+        const monthCols = monthDefs.map(function(md) {
+          const key    = year + '-' + md[1];
+          const val    = Number(monthlyBreakdown[key]) || 0;
+          const barPx  = val > 0 ? Math.max(2, Math.round((val / maxMonthVal) * BAR_ZONE_PX)) : 0;
+          const valStr = val > 0 ? (val >= 1000 ? Math.round(val / 100) / 10 + 'k' : val) : '';
+          return `
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;">
+              <div style="height:14px;display:flex;align-items:flex-end;justify-content:center;
+                          font-size:0.5rem;color:${colour};font-weight:600;line-height:1;">${valStr}</div>
+              <div style="height:${BAR_ZONE_PX}px;width:80%;display:flex;align-items:flex-end;">
+                <div style="width:100%;height:${barPx}px;background:${val > 0 ? colour : 'var(--border-soft)'};
+                            border-radius:3px 3px 0 0;transition:height 0.4s;min-height:${val > 0 ? 2 : 0}px;"></div>
+              </div>
+              <div style="height:14px;display:flex;align-items:center;justify-content:center;
+                          font-size:0.52rem;color:var(--text-faint);margin-top:2px;">${md[0]}</div>
+            </div>`;
+        }).join('');
+
+        const barChart = `
+          <div class="card" style="padding:12px 14px;margin-bottom:14px;">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;
+                        letter-spacing:0.5px;margin-bottom:10px;">Monthly breakdown</div>
+            <div style="display:flex;gap:2px;align-items:flex-end;">${monthCols}</div>
+          </div>`;
+
+        return statTiles + progressBarHtml + habitCard + barChart;
       }
 
       /**
