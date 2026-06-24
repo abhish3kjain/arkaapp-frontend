@@ -61,7 +61,7 @@ Full history lives here.
 
 ## app.js (ArkaClubApp frontend)
 
-**Current: `3.8.0`**
+**Current: `3.8.4`**
 
 | Version | Date | Summary |
 |---|---|---|
@@ -80,6 +80,7 @@ Full history lives here.
 | 3.8.1 | Jun 2026 | Fix BOOK_COUNT and PAGE_COUNT frontend sync: monthlyBreakdown keys now YYYY-MM (was short name); weeklyBreakdown keys now YYYY-Www (was W03 without year) — matches GAS schema |
 | 3.8.2 | Jun 2026 | Fix chart rendering: monthlyBreakdown lookups in velocity timeline and monthly list now use YYYY-MM keys; BOOK_COUNT bar chart uses YYYY-MM keys — all reads match write format |
 | 3.8.3 | Jun 2026 | BOOK_COUNT: booksRead entries use shelfId (not bookId); spine and book-list renderers resolve bookId via shelvesMap.get(shelfId) at render time; globalShelvesDB already excludes Deleted rows |
+| 3.8.4 | Jun 2026 | Fix 10PAGESADAY banner fire tile and list card progress bar: targetPages was falling back to 1 (goalConfigJson uses dailyGoal, not targetPages/durationDays); now uses dailyGoal×365 || goalValue; fire tile stat text shows avg pg/day + qualified status |
 
 ---
 
