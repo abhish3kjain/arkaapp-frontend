@@ -30812,15 +30812,32 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               ? '<div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">' + escapeHtml(c.status) + '</div>'
               : '';
 
-            const enrolBtn = c.status === 'Active'
-              ? '<button class="chal-enrol-btn" onclick="openChalEnrolSheet(\'' + c.challengeId + '\')">Enrol →</button>'
+            let enrolCfg = {};
+            try { enrolCfg = JSON.parse(c.goalConfigJson || '{}'); } catch(e) {}
+            const enrolDeadline  = enrolCfg.enrollmentDeadline || null;
+            const todayMidnight  = (function() { var d = new Date(); d.setHours(0,0,0,0); return d.getTime(); })();
+            const deadlinePassed = enrolDeadline
+              ? grExport_parseArkaDateClient_(enrolDeadline) < todayMidnight
+              : false;
+
+            const deadlineLine = enrolDeadline
+              ? '<div class="uc-enrol-deadline' + (deadlinePassed ? ' uc-deadline-closed' : '') + '">' +
+                  (deadlinePassed ? '🔒 Enrolment closed' : '⏳ Enrol by ' + enrolDeadline) +
+                '</div>'
               : '';
+
+            const enrolBtn = (c.status === 'Active' && !deadlinePassed)
+              ? '<button class="chal-enrol-btn" onclick="event.stopPropagation();openChalEnrolSheet(\'' + c.challengeId + '\')">Enrol →</button>'
+              : (c.status === 'Active' && deadlinePassed)
+                ? '<span class="chal-enrol-closed">Closed</span>'
+                : '';
 
             return '<div class="chal-card chal-card-unenrolled" role="button" tabindex="0" data-action onclick="openChallengeDetailView(\'' + c.challengeId + '\')">' +
               statusBanner +
               '<span class="chal-type-badge chal-type-' + c.challengeType + '">' + c.challengeType.replace(/_/g,' ') + '</span>' +
               '<div class="chal-card-title" style="margin:6px 0 3px;">' + escapeHtml(c.title) + '</div>' +
               '<div class="chal-card-meta">' + dateStr + '</div>' +
+              deadlineLine +
               '<div class="uc-foot" style="display:flex;justify-content:space-between;align-items:center;">' +
                 '<div class="cc-mini-chips">' +
                   '<span class="cc-mini-chip">👥 ' + enrolledCount + ' joined</span>' +
