@@ -31370,9 +31370,20 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
     
         // ── Header ───────────────────────────────────────────────────────────────
         document.getElementById('chalDetailTitle').textContent = challenge.title;
-    
-        const badge      = document.getElementById('chalDetailStatusBadge');
+
         const hasDarkHero = ['BOOK_COUNT', 'PAGE_COUNT', '10PAGESADAY'].indexOf(challenge.challengeType) !== -1;
+        const headerEl = document.querySelector('.chal-detail-header');
+        if (headerEl) headerEl.style.background = hasDarkHero ? 'transparent' : 'var(--text-strong)';
+
+        // Fill the view background with the hero's start color so the container
+        // background never shows through any gap above the hero.
+        const detailViewEl = document.getElementById('challengeDetailView');
+        if (detailViewEl) {
+          const heroBgMap = { BOOK_COUNT: '#1a2332', PAGE_COUNT: '#0a0a20', '10PAGESADAY': '#050f0a' };
+          detailViewEl.style.background = heroBgMap[challenge.challengeType] || '';
+        }
+
+        const badge      = document.getElementById('chalDetailStatusBadge');
         const statusCols = hasDarkHero
           ? { Active  : 'background:rgba(94,255,194,.15);color:#5effc2;border:1px solid rgba(94,255,194,.3);',
               Finisher: 'background:rgba(94,255,194,.15);color:#5effc2;border:1px solid rgba(94,255,194,.3);',
@@ -31630,6 +31641,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           }
         });
         currentViewedChallengeId = null;
+        // Clear hero background so the view is clean for next challenge open
+        const dv = document.getElementById('challengeDetailView');
+        if (dv) dv.style.background = '';
         // NOTE: navPop handles scroll restoration — do NOT call window.scrollTo here.
       }
     
