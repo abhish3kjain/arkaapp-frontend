@@ -1,5 +1,5 @@
 		/**
-       * ArkaClubApp — frontend    v3.9.3
+       * ArkaClubApp — frontend    v3.9.4
        * Full version history: VERSIONS.md
        *
        * T0: JS execution start time.
@@ -26387,7 +26387,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const meStatPagesYearEl = document.getElementById('meStatPagesYear');
         if (meStatPagesYearEl) meStatPagesYearEl.innerText = pagesThisYear.toLocaleString();
         updateStatRing('PAGE_COUNT', 'ANNUAL_PAGE_GOAL', pagesThisYear, currentYear,
-                       'meStatPagesRingArc', 'meStatPagesGoalSub', 'meStatPagesAddGoalCta');
+                       'meStatPagesRingArc', 'meStatPagesGoalSub', 'meStatPagesAddGoalCta', 'meStatPagesCircleWrap');
 
         const meStatBooksYearEl = document.getElementById('meStatBooksYear');
         if (meStatBooksYearEl) meStatBooksYearEl.innerText = booksThisYear;
@@ -33703,17 +33703,24 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
        *  3. No challenge exists this year → empty ring, no CTA
        */
       function updateStatRing(challengeType, seriesTag, currentValue, currentYear,
-                              arcId, subId, ctaId) {
+                              arcId, subId, ctaId, wrapId) {
         const CIRC = 2 * Math.PI * 44; // circumference for r=44 → ≈ 276.5
 
-        const arcEl = document.getElementById(arcId);
-        const subEl = document.getElementById(subId);
-        const ctaEl = document.getElementById(ctaId);
+        const arcEl  = document.getElementById(arcId);
+        const subEl  = document.getElementById(subId);
+        const ctaEl  = document.getElementById(ctaId);
+        const wrapEl = wrapId ? document.getElementById(wrapId) : null;
         if (!arcEl) return;
 
         // Hide optional elements by default
         if (subEl) subEl.style.display = 'none';
         if (ctaEl) ctaEl.style.display = 'none';
+
+        // Clear any previously-set challenge tap handler; reset cursor on pages circle
+        if (wrapEl) {
+          wrapEl._chalTapHandler = null;
+          if (wrapId === 'meStatPagesCircleWrap') wrapEl.style.cursor = '';
+        }
 
         // Find the challenge for this year with the matching seriesTag
         const yearChallenge = globalChallengesDB.find(function(c) {
@@ -33745,7 +33752,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           return;
         }
 
-        // State 1: enrolled — compute progress and fill ring
+        // State 1: enrolled — compute progress, fill ring, wire tap to challenge detail
         let state = {};
         try { state = JSON.parse(enrollment.progressStateJson || '{}'); } catch (ex) {}
         const goal = state.personalGoal || yearChallenge.goalValue || 1;
@@ -33755,6 +33762,14 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         if (subEl) {
           subEl.textContent = 'of ' + goal.toLocaleString();
           subEl.style.display = '';
+        }
+        if (wrapEl) {
+          const cid = yearChallenge.challengeId;
+          wrapEl._chalTapHandler = function(e) {
+            if (e.target.closest && e.target.closest('a')) return;
+            openChallengeDetailView(cid, 'me');
+          };
+          if (wrapId === 'meStatPagesCircleWrap') wrapEl.style.cursor = 'pointer';
         }
       }
 
@@ -33784,7 +33799,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         var el = document.getElementById('meStatBooksYear');
         if (el) el.innerText = count;
         updateStatRing('BOOK_COUNT', 'ANNUAL_BOOK_GOAL', count, yr,
-                       'meStatBooksRingArc', 'meStatBooksGoalSub', 'meStatBooksAddGoalCta');
+                       'meStatBooksRingArc', 'meStatBooksGoalSub', 'meStatBooksAddGoalCta', 'meStatBooksCircleWrap');
       }
 
     // ── Auto-hide app header on scroll ────────────────────────────────────────

@@ -962,7 +962,8 @@
           <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px;">
 
             <!-- Pages ring circle -->
-            <div style="aspect-ratio:1/1; position:relative;" id="meStatPagesCircleWrap">
+            <div style="aspect-ratio:1/1; position:relative;" id="meStatPagesCircleWrap"
+                 onclick="if(this._chalTapHandler){this._chalTapHandler(event);}">
               <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
                 <circle cx="50" cy="50" r="44" fill="white" stroke="var(--border-soft)" stroke-width="9"/>
                 <circle id="meStatPagesRingArc" cx="50" cy="50" r="44" fill="none"
@@ -988,7 +989,7 @@
 
             <!-- Books ring circle -->
             <div style="aspect-ratio:1/1; position:relative; cursor:pointer;" id="meStatBooksCircleWrap"
-                 onclick="openFullShelf(currentUser,'Finished',new Date().getFullYear().toString())"
+                 onclick="if(this._chalTapHandler){this._chalTapHandler(event);}else{openFullShelf(currentUser,'Finished',new Date().getFullYear().toString());}"
                  title="View my finished books this year">
               <svg viewBox="0 0 100 100" style="position:absolute;top:0;left:0;width:100%;height:100%;">
                 <circle cx="50" cy="50" r="44" fill="white" stroke="var(--border-soft)" stroke-width="9"/>
