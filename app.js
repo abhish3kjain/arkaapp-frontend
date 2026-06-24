@@ -1,5 +1,5 @@
 		/**
-       * ArkaClubApp — frontend    v3.8.3
+       * ArkaClubApp — frontend    v3.8.4
        * Full version history: VERSIONS.md
        *
        * T0: JS execution start time.
@@ -31794,16 +31794,16 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           scoreRow.innerHTML =
             '<div style="flex:1;">' +
               '<div style="font-size:3.2rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-2px;">' + habitScore + '</div>' +
-              '<div style="font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:3px;">Habit Score</div>' +
+              '<div style="font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:3px;">Habit Score</div>' +
             '</div>' +
             qualPillHtml;
         }
 
         const avgNote = document.getElementById('tenPpaHeroAvgNote');
         if (avgNote) {
-          avgNote.innerHTML = 'Rolling avg <strong style="color:rgba(255,255,255,.6);">' +
-            avgPagesPerDay.toFixed(1) + ' pg/day</strong> · ' + daysSinceEnrollment + ' days in · ' +
-            totalPages.toLocaleString() + ' total pages';
+          avgNote.innerHTML = '<span style="color:rgba(255,255,255,.55);">Rolling avg </span><strong style="color:#fff;">' +
+            avgPagesPerDay.toFixed(1) + ' pg/day</strong><span style="color:rgba(255,255,255,.55);"> · ' + daysSinceEnrollment + ' days in · ' +
+            totalPages.toLocaleString() + ' total pages</span>';
         }
 
         // ── EKG canvas ───────────────────────────────────────────────────────
@@ -31883,7 +31883,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           strip.innerHTML = stats.map(function(s) {
             return '<div style="background:#050f0a;padding:10px 6px;text-align:center;">' +
               '<div style="font-size:1rem;font-weight:800;line-height:1;color:' + s.col + ';">' + s.v + '</div>' +
-              '<div style="font-size:0.4rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:3px;">' + s.l + '</div>' +
+              '<div style="font-size:0.4rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:3px;">' + s.l + '</div>' +
             '</div>';
           }).join('');
         }
@@ -31934,13 +31934,15 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const qualPct = Math.min(100, Math.round((avgPagesPerDay / dailyGoal) * 100));
 
         // ── Monthly habit rings ──────────────────────────────────────────────
-        // For each calendar month: pages logged + weeks hit in that month.
-        // Week-to-month mapping derived from enrollment.enrolledOn + week index.
-        const enrolledOn    = _parseEnrolledOn_(enrollment.enrolledOn);
-        const totalWeeksEl  = Math.floor(daysSinceEnrollment / 7);
-        const mData         = {};  // "YYYY-MM" → { hitWeeks, totalWeeks }
+        // Include all weeks up to and including the current in-progress week so the
+        // current month shows the right denominator (e.g. "3/4" not "2/3" mid-week-4).
+        const enrolledOn       = _parseEnrolledOn_(enrollment.enrolledOn);
+        const completedWeeks   = Math.floor(daysSinceEnrollment / 7);
+        const hasPartialWeek   = (daysSinceEnrollment % 7) > 0;
+        const totalWeeksToShow = completedWeeks + (hasPartialWeek ? 1 : 0);
+        const mData            = {};  // "YYYY-MM" → { hitWeeks, totalWeeks }
 
-        for (var wi = 0; wi < totalWeeksEl; wi++) {
+        for (var wi = 0; wi < totalWeeksToShow; wi++) {
           const wStartMs = enrolledOn.getTime() + wi * 7 * 86400000;
           const wDate    = new Date(wStartMs);
           const mKey     = wDate.getFullYear() + '-' + _pad2Str_(wDate.getMonth() + 1);
@@ -31970,7 +31972,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           ringsHtml +=
             '<div style="flex-shrink:0;width:56px;background:' + cardBg + ';border:1px solid ' + cardBdr + ';' +
               'border-radius:10px;padding:8px 4px;text-align:center;">' +
-              '<div style="font-size:0.5rem;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:5px;">' + mName + '</div>' +
+              '<div style="font-size:0.5rem;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:5px;">' + mName + '</div>' +
               '<div style="position:relative;width:32px;height:32px;margin:0 auto 5px;">' +
                 '<svg width="32" height="32" viewBox="0 0 30 30" style="transform:rotate(-90deg);">' +
                   '<circle cx="15" cy="15" r="12" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="3"/>' +
@@ -31985,7 +31987,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                 '</div>' +
               '</div>' +
               '<div style="font-size:0.58rem;font-weight:700;color:rgba(255,255,255,.7);">' + pgLabel + '</div>' +
-              '<div style="font-size:0.44rem;color:rgba(255,255,255,.2);margin-top:1px;">pages</div>' +
+              '<div style="font-size:0.44rem;color:rgba(255,255,255,.5);margin-top:1px;">pages</div>' +
             '</div>';
         });
 
@@ -31993,18 +31995,18 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
         if (ringsHtml) {
           html += '<div style="background:#060d08;border-radius:10px;padding:12px;margin-bottom:12px;">' +
-            '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:10px;">Monthly Consistency</div>' +
+            '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:10px;">Monthly Consistency</div>' +
             '<div style="display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;">' +
               ringsHtml +
             '</div>' +
             '<div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">' +
-              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.25);">' +
+              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.55);">' +
                 '<div style="width:7px;height:7px;border-radius:50%;background:#5effc2;"></div>Great (≥75% wks)' +
               '</div>' +
-              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.25);">' +
+              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.55);">' +
                 '<div style="width:7px;height:7px;border-radius:50%;background:#A984BA;"></div>Good (≥50%)' +
               '</div>' +
-              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.25);">' +
+              '<div style="display:flex;align-items:center;gap:4px;font-size:0.46rem;color:rgba(255,255,255,.55);">' +
                 '<div style="width:7px;height:7px;border-radius:50%;background:#e67e22;"></div>Building' +
               '</div>' +
             '</div>' +
@@ -32014,22 +32016,22 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         // ── Qualification tracker ────────────────────────────────────────────
         html += '<div style="background:#0a1a0e;border-radius:10px;padding:12px;margin-bottom:12px;">' +
           '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;">' +
-            '<div style="font-size:0.55rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);">Qualification — Rolling Avg</div>' +
+            '<div style="font-size:0.55rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.6);">Qualification — Rolling Avg</div>' +
             '<div style="font-size:1rem;font-weight:800;color:#5effc2;">' + avgPagesPerDay.toFixed(1) + ' pg/day</div>' +
           '</div>' +
           '<div style="height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;position:relative;">' +
             '<div style="height:100%;width:' + qualPct + '%;background:linear-gradient(90deg,#1D6B52,#5effc2);border-radius:3px;transition:width 1s ease;"></div>' +
             '<div style="position:absolute;top:-3px;left:50%;width:2px;height:12px;background:#e67e22;border-radius:1px;"></div>' +
           '</div>' +
-          '<div style="display:flex;justify-content:space-between;font-size:0.46rem;color:rgba(255,255,255,.2);margin-top:4px;">' +
-            '<span>0</span><span style="color:#e67e22;">10 pg/day ← threshold</span><span>20+</span>' +
+          '<div style="display:flex;justify-content:space-between;font-size:0.46rem;color:rgba(255,255,255,.5);margin-top:4px;">' +
+            '<span>0</span><span style="color:#e67e22;font-weight:600;">10 pg/day ← threshold</span><span>20+</span>' +
           '</div>' +
         '</div>';
 
         // ── Habit theory blurb ───────────────────────────────────────────────
         html += '<div style="background:#060d08;border:1px solid rgba(94,255,194,.08);border-radius:10px;padding:12px;">' +
           '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(94,255,194,.4);margin-bottom:7px;">The Science Behind This Challenge</div>' +
-          '<div style="font-size:0.7rem;color:rgba(255,255,255,.45);line-height:1.65;">' +
+          '<div style="font-size:0.7rem;color:rgba(255,255,255,.65);line-height:1.65;">' +
             'This challenge applies B.J. Fogg’s <em>Tiny Habits</em> (Stanford, 2019): small, consistent daily actions ' +
             'wire new behaviours into identity faster than large sporadic efforts. James Clear’s <em>Atomic Habits</em> (2018) ' +
             'extends this — what matters is not how much you read in a session, but whether you show up. ' +
@@ -32113,19 +32115,19 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         const bdr = 'rgba(255,255,255,.05)';
 
         let html = '<div style="display:flex;justify-content:space-between;margin-bottom:10px;">' +
-          '<span style="font-size:0.72rem;color:rgba(255,255,255,.3);">' + enrollments.length + ' enrolled</span>' +
-          '<span style="font-size:0.66rem;color:rgba(255,255,255,.2);">Qualified ranked by Habit Score</span>' +
+          '<span style="font-size:0.72rem;color:rgba(0,0,0,.5);">' + enrollments.length + ' enrolled</span>' +
+          '<span style="font-size:0.66rem;color:rgba(0,0,0,.35);">Qualified ranked by Habit Score</span>' +
         '</div>';
 
         if (qualified.length > 0) {
-          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:#5effc2;margin-bottom:7px;">✓ Qualified (' + qualified.length + ')</div>' +
+          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:#1a7a4a;font-weight:700;margin-bottom:7px;">✓ Qualified (' + qualified.length + ')</div>' +
             '<div style="background:' + bg + ';border:1px solid ' + bdr + ';border-radius:10px;padding:10px 12px;margin-bottom:12px;">';
           qualified.forEach(function(item, idx) { html += _clubRow_(item, idx + 1, true); });
           html += '</div>';
         }
 
         if (notQualified.length > 0) {
-          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:7px;">Working Toward It (' + notQualified.length + ')</div>' +
+          html += '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(0,0,0,.4);font-weight:600;margin-bottom:7px;">Working Toward It (' + notQualified.length + ')</div>' +
             '<div style="background:' + bg + ';border:1px solid ' + bdr + ';border-radius:10px;padding:10px 12px;">';
           notQualified.forEach(function(item, idx) { html += _clubRow_(item, idx + 1, false); });
           html += '</div>';
