@@ -1,1333 +1,1055 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>10 Pages a Day — Design Mockups</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:ital@0;1&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arka 10 Pages a Day — 3 Design Options</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #1a1a2e; color: #fff; min-height: 100vh; }
+:root {
+  --arka-accent:#A984BA;
+  --ten-col:#1D6B52;       /* deep teal-green — discipline / habit */
+  --ten-dark:#0d2e24;
+  --ten-mint:#5effc2;
+  --text-strong:#2c3e50;
+  --text-muted:#5b6b6e;
+  --surface-alt:#f8f9fa;
+  --border-soft:#ecf0f1;
+  --color-success:#1D9E75;
+  --color-danger:#e74c3c;
+  --color-warning:#e67e22;
+  --color-gold:#EF9F27;
+  --font-body:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  --font-display:'Cinzel',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-body);background:#c8ced8;min-height:100vh;}
 
-  /* ── Nav ── */
-  .nav { position: sticky; top: 0; z-index: 100; background: #0d0d1a; border-bottom: 1px solid rgba(255,255,255,.1); display: flex; gap: 0; }
-  .nav-btn { flex: 1; padding: 14px 8px; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border: none; background: none; color: rgba(255,255,255,.4); cursor: pointer; transition: all .2s; border-bottom: 2px solid transparent; }
-  .nav-btn.active { color: #5effc2; border-bottom-color: #5effc2; }
-  .nav-btn span { display: block; font-size: 0.55rem; font-weight: 400; margin-top: 2px; opacity: .7; }
+/* ── PAGE CHROME ───────────────────────────────────────── */
+.page-header{background:#0a1a14;color:#fff;padding:14px 20px;text-align:center;}
+.page-header h1{font-family:var(--font-display);font-size:1.1rem;letter-spacing:1px;color:var(--ten-mint);}
+.page-header p{font-size:0.7rem;opacity:.5;margin-top:3px;}
 
-  /* ── Panels ── */
-  .panel { display: none; }
-  .panel.active { display: block; }
+.opt-nav{display:flex;background:#060f0b;overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid #010503;}
+.opt-nav::-webkit-scrollbar{display:none;}
+.onb{flex:none;padding:11px 18px;background:transparent;border:none;color:rgba(255,255,255,.4);font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:all .2s;letter-spacing:.3px;}
+.onb.active{color:var(--ten-mint);border-bottom-color:var(--ten-mint);}
 
-  /* ══════════════════════════════════════════
-     OPTION 1 — HABIT PULSE (EKG / Vitality)
-  ══════════════════════════════════════════ */
-  .p1-shell {
-    background: linear-gradient(180deg, #050510 0%, #0a0a20 100%);
-    min-height: 100vh;
-  }
+.opt-desc{background:#fff;border-bottom:1px solid var(--border-soft);padding:10px 16px;display:flex;gap:12px;align-items:flex-start;}
+.opt-badge{flex-shrink:0;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+.opt-body{flex:1;min-width:0;}
+.opt-body strong{font-size:0.78rem;color:var(--text-strong);}
+.opt-body p{font-size:0.68rem;color:var(--text-muted);margin-top:2px;line-height:1.45;}
 
-  /* Hero */
-  .p1-hero {
-    background: linear-gradient(135deg, #050510 0%, #0e0b30 50%, #1a0a3a 100%);
-    padding: 18px 16px 0;
-    position: relative;
-    overflow: hidden;
-  }
-  .p1-hero::before {
-    content: '';
-    position: absolute; top: -60px; right: -60px;
-    width: 200px; height: 200px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(94,255,194,.08) 0%, transparent 70%);
-  }
+.phones{display:flex;gap:20px;justify-content:center;padding:24px 20px 48px;overflow-x:auto;-webkit-overflow-scrolling:touch;align-items:flex-start;}
+.phones::-webkit-scrollbar{height:4px;}
+.phones::-webkit-scrollbar-thumb{background:rgba(0,0,0,.25);border-radius:2px;}
 
-  .p1-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-  .p1-back { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.1); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
-  .p1-title { font-size: 0.85rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #fff; flex: 1; }
-  .p1-qual-badge {
-    padding: 4px 10px; border-radius: 20px; font-size: 0.6rem; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase;
-  }
-  .p1-qual-badge.qualified { background: rgba(94,255,194,.15); color: #5effc2; border: 1px solid rgba(94,255,194,.3); }
-  .p1-qual-badge.at-risk { background: rgba(231,126,22,.15); color: #e67e22; border: 1px solid rgba(231,126,22,.3); }
+/* ── PHONE FRAME ───────────────────────────────────────── */
+.phone-frame{flex-shrink:0;width:360px;border-radius:44px;overflow:hidden;
+  box-shadow:0 32px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08);
+  background:#fff;border:6px solid #111;}
+.phone-statusbar{padding:8px 20px 5px;display:flex;justify-content:space-between;align-items:center;}
+.phone-statusbar span{font-size:0.6rem;font-weight:600;}
+.app-header{display:flex;align-items:center;padding:10px 14px;gap:10px;}
+.app-logo{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:700;overflow:hidden;flex-shrink:0;}
+.app-title-txt{font-family:var(--font-display);font-size:0.88rem;color:#fff;font-weight:700;letter-spacing:1px;}
 
-  /* Score row */
-  .p1-score-row { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 6px; }
-  .p1-score-big { font-size: 3.5rem; font-weight: 900; line-height: 1; color: #fff; }
-  .p1-score-meta { padding-bottom: 6px; }
-  .p1-score-lbl { font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.4); }
-  .p1-score-delta { font-size: 0.9rem; font-weight: 700; margin-top: 2px; }
-  .p1-score-delta.up { color: #5effc2; }
-  .p1-score-delta.down { color: #e74c3c; }
+.view{display:none;overflow-y:auto;max-height:600px;}
+.view.active{display:block;}
 
-  .p1-avg-row { font-size: 0.7rem; color: rgba(255,255,255,.4); margin-bottom: 14px; }
-  .p1-avg-row strong { color: rgba(255,255,255,.7); }
+.bottom-nav{display:flex;background:#fff;border-top:1px solid #eee;padding:8px 0 12px;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
+.bnav-item i{font-size:1rem;color:#aaa;}
+.bnav-item.active i{color:var(--ten-col);}
+.bnav-item span{font-size:0.5rem;color:#aaa;}
+.bnav-item.active span{color:var(--ten-col);}
 
-  /* EKG Canvas */
-  .p1-ekg-wrap { position: relative; margin: 0 -16px; }
-  .p1-ekg-wrap canvas { display: block; width: 100%; }
-  .p1-threshold-lbl {
-    position: absolute; right: 16px; font-size: 0.5rem;
-    letter-spacing: 1px; color: rgba(231,126,22,.7);
-    text-transform: uppercase;
-  }
+/* ── SHARED INNER TABS ─────────────────────────────────── */
+.inner-tabs{display:flex;border-bottom:1px solid #eee;}
+.inner-tab{flex:1;padding:10px;text-align:center;font-size:0.7rem;font-weight:700;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
 
-  /* Stats strip */
-  .p1-stats-strip {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 1px; background: rgba(255,255,255,.05);
-    margin: 0 -16px;
-  }
-  .p1-stat { background: #050510; padding: 12px 8px; text-align: center; }
-  .p1-stat .n { font-size: 1.1rem; font-weight: 800; line-height: 1; }
-  .p1-stat .l { font-size: 0.42rem; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,.35); margin-top: 3px; }
-  .p1-stat.hit .n { color: #5effc2; }
-  .p1-stat.early .n { color: #EF9F27; }
-  .p1-stat.gap .n { color: #e74c3c; }
-  .p1-stat.rec .n { color: #A984BA; }
-
-  /* Body */
-  .p1-body { padding: 16px; }
-
-  /* Week Grid */
-  .p1-section-title { font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.3); margin-bottom: 10px; }
-
-  .p1-week-grid {
-    display: grid; grid-template-columns: repeat(13, 1fr);
-    gap: 3px; margin-bottom: 6px;
-  }
-  .p1-week {
-    aspect-ratio: 1; border-radius: 2px;
-    cursor: pointer; position: relative;
-    transition: transform .15s;
-  }
-  .p1-week:active { transform: scale(.85); }
-  .p1-week.hit { background: #1D9E75; }
-  .p1-week.partial { background: #534AB7; }
-  .p1-week.miss { background: rgba(255,255,255,.08); }
-  .p1-week.future { background: rgba(255,255,255,.03); }
-  .p1-week.early { box-shadow: 0 0 0 1.5px #EF9F27; }
-  .p1-week.current { box-shadow: 0 0 0 1.5px #5effc2; }
-
-  .p1-week-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-  .p1-legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.5rem; color: rgba(255,255,255,.4); }
-  .p1-legend-dot { width: 8px; height: 8px; border-radius: 1px; }
-
-  /* Tooltip */
-  .p1-week-tooltip {
-    background: #1a1a3a; border: 1px solid rgba(255,255,255,.1);
-    border-radius: 8px; padding: 10px 12px;
-    font-size: 0.72rem; color: rgba(255,255,255,.8);
-    min-height: 48px; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .p1-week-tooltip .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-
-  /* Rolling avg card */
-  .p1-avg-card {
-    background: #0d0d28; border-radius: 12px; padding: 14px;
-    margin-bottom: 12px;
-  }
-  .p1-avg-bar-wrap { height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; margin: 8px 0 4px; }
-  .p1-avg-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #534AB7, #5effc2); transition: width 1s ease; }
-  .p1-avg-labels { display: flex; justify-content: space-between; font-size: 0.5rem; color: rgba(255,255,255,.3); }
-
-  /* Tabs */
-  .p1-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 14px; }
-  .p1-tab { flex: 1; padding: 10px; text-align: center; font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,.35); cursor: pointer; border-bottom: 2px solid transparent; }
-  .p1-tab.active { color: #5effc2; border-bottom-color: #5effc2; }
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
 
 
-  /* ══════════════════════════════════════════
-     OPTION 2 — CONSISTENCY CONSTELLATION
-  ══════════════════════════════════════════ */
-  .p2-shell {
-    background: linear-gradient(180deg, #08001a 0%, #0d0525 100%);
-    min-height: 100vh;
-  }
+/* ═══════════════════════════════════════════════════
+   OPTION 1 — HABIT PULSE  (EKG / vitality theme)
+═══════════════════════════════════════════════════ */
+.p1-sb{background:#050f0a;}
+.p1-ah{background:linear-gradient(180deg,#050f0a,#091a10);}
 
-  .p2-hero {
-    padding: 18px 16px 20px;
-    background: linear-gradient(160deg, #08001a 0%, #150535 60%, #1f0845 100%);
-    position: relative; overflow: hidden;
-  }
-  .p2-hero::after {
-    content: '';
-    position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(169,132,186,.4), transparent);
-  }
+.p1-hero{
+  background:linear-gradient(160deg,#050f0a 0%,#0a1f14 50%,#112a1a 100%);
+  position:relative;overflow:hidden;
+}
+.p1-hero::before{
+  content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;
+  border-radius:50%;background:radial-gradient(circle,rgba(94,255,194,.07) 0%,transparent 70%);
+}
+.p1-toprow{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 0;}
+.p1-back{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;flex-shrink:0;}
+.p1-title{font-size:0.9rem;font-weight:700;color:#fff;flex:1;margin:0 8px;}
+.p1-qual{padding:4px 9px;border-radius:20px;font-size:0.58rem;font-weight:700;letter-spacing:.5px;}
+.p1-qual.yes{background:rgba(94,255,194,.15);color:#5effc2;border:1px solid rgba(94,255,194,.3);}
+.p1-qual.no{background:rgba(231,126,22,.15);color:#e67e22;border:1px solid rgba(231,126,22,.3);}
 
-  .p2-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-  .p2-back { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
-  .p2-title-block { flex: 1; }
-  .p2-title { font-family: 'Cinzel', serif; font-size: 0.9rem; color: #fff; letter-spacing: 1px; }
-  .p2-subtitle { font-size: 0.55rem; color: rgba(255,255,255,.35); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
-  .p2-status-pill {
-    padding: 5px 12px; border-radius: 20px; font-size: 0.58rem; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 5px;
-  }
-  .p2-status-pill.q { background: rgba(94,255,194,.12); color: #5effc2; border: 1px solid rgba(94,255,194,.25); }
-  .p2-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse2 1.8s infinite; }
-  @keyframes pulse2 { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
+/* Big score */
+.p1-score-block{padding:10px 14px 6px;display:flex;align-items:flex-end;gap:10px;}
+.p1-score-num{font-size:3.2rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-2px;}
+.p1-score-meta{padding-bottom:4px;}
+.p1-score-lbl{font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);}
+.p1-score-delta{font-size:0.8rem;font-weight:700;margin-top:3px;}
+.p1-score-delta.up{color:#5effc2;}
+.p1-score-delta.dn{color:#e74c3c;}
+.p1-avg-note{font-size:0.62rem;color:rgba(255,255,255,.35);padding:0 14px 6px;}
+.p1-avg-note strong{color:rgba(255,255,255,.6);}
 
-  /* Constellation canvas */
-  .p2-constellation-wrap {
-    position: relative; display: flex; justify-content: center;
-    margin-bottom: 16px;
-  }
-  .p2-constellation-wrap canvas { max-width: 100%; }
+/* EKG canvas */
+.p1-ekg-wrap{position:relative;height:80px;margin:0;}
+.p1-ekg-wrap canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
 
-  /* Central score overlay */
-  .p2-center-score {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-    text-align: center; pointer-events: none;
-  }
-  .p2-center-num { font-size: 2.4rem; font-weight: 900; color: #fff; line-height: 1; }
-  .p2-center-lbl { font-size: 0.5rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.35); margin-top: 2px; }
-  .p2-center-delta { font-size: 0.75rem; font-weight: 700; color: #5effc2; margin-top: 4px; }
+/* Stats strip */
+.p1-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.05);margin:0;}
+.p1-stat{background:#050f0a;padding:10px 6px;text-align:center;}
+.p1-stat .n{font-size:1rem;font-weight:800;line-height:1;}
+.p1-stat .l{font-size:0.4rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:3px;}
+.p1-stat.wh .n{color:#5effc2;}
+.p1-stat.ew .n{color:#EF9F27;}
+.p1-stat.mg .n{color:#e74c3c;}
+.p1-stat.rr .n{color:#A984BA;}
 
-  /* 4-stat row */
-  .p2-stat-row { display: flex; gap: 8px; margin-bottom: 16px; }
-  .p2-stat-card { flex: 1; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: 10px 6px; text-align: center; }
-  .p2-stat-card .n { font-size: 1.1rem; font-weight: 800; line-height: 1; }
-  .p2-stat-card .l { font-size: 0.42rem; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,.3); margin-top: 3px; }
-  .p2-stat-card.wh .n { color: #5effc2; }
-  .p2-stat-card.ew .n { color: #EF9F27; }
-  .p2-stat-card.mg .n { color: #e74c3c; }
-  .p2-stat-card.rr .n { color: #A984BA; }
+.p1-tabs .inner-tab{color:rgba(255,255,255,.35);background:#080f0b;}
+.p1-tabs .inner-tab.active{color:#5effc2;border-bottom-color:#5effc2;background:#060d08;}
+.p1-body{padding:14px;background:#060d08;}
 
-  .p2-body { padding: 0 16px 16px; }
+/* Week grid */
+.p1-wg-title{font-size:0.52rem;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:8px;}
+.p1-week-grid{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;margin-bottom:5px;}
+.p1-wk{aspect-ratio:1;border-radius:2px;cursor:pointer;transition:transform .12s;}
+.p1-wk:active{transform:scale(.8);}
+.p1-wk.hit{background:#1D9E75;}
+.p1-wk.partial{background:#534AB7;}
+.p1-wk.miss{background:rgba(255,255,255,.07);}
+.p1-wk.future{background:rgba(255,255,255,.02);}
+.p1-wk.early{box-shadow:0 0 0 1.5px #EF9F27;}
+.p1-wk.now{box-shadow:0 0 0 1.5px #5effc2;}
+.p1-wk-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.p1-wk-leg{display:flex;align-items:center;gap:3px;font-size:0.48rem;color:rgba(255,255,255,.3);}
+.p1-wk-dot{width:7px;height:7px;border-radius:1px;}
 
-  /* Month arc cards */
-  .p2-months-title { font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.25); margin-bottom: 10px; }
-  .p2-month-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; margin-bottom: 16px; }
-  .p2-month-row::-webkit-scrollbar { display: none; }
-  .p2-month-card {
-    flex-shrink: 0; width: 52px; background: rgba(255,255,255,.04);
-    border: 1px solid rgba(255,255,255,.07); border-radius: 10px;
-    padding: 8px 4px; text-align: center; cursor: pointer;
-    transition: all .2s;
-  }
-  .p2-month-card:active { transform: scale(.95); }
-  .p2-month-card.great { border-color: rgba(94,255,194,.3); background: rgba(94,255,194,.06); }
-  .p2-month-card.good { border-color: rgba(83,74,183,.4); background: rgba(83,74,183,.08); }
-  .p2-month-card.low { border-color: rgba(231,126,22,.3); background: rgba(231,126,22,.05); }
-  .p2-month-card.future { opacity: .3; }
-  .p2-month-name { font-size: 0.55rem; color: rgba(255,255,255,.4); margin-bottom: 6px; text-transform: uppercase; }
-  .p2-month-ring { position: relative; width: 32px; height: 32px; margin: 0 auto 5px; }
-  .p2-month-ring canvas { position: absolute; top: 0; left: 0; }
-  .p2-month-pct { font-size: 0.6rem; font-weight: 700; color: #fff; }
+/* Tooltip */
+.p1-tooltip{background:#0d1f14;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:9px 11px;font-size:0.68rem;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:7px;min-height:44px;margin-bottom:12px;}
+.p1-tt-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 
-  /* Qualification bar */
-  .p2-qual-card {
-    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
-    border-radius: 12px; padding: 14px; margin-bottom: 12px;
-  }
-  .p2-qual-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-  .p2-qual-title { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,.4); }
-  .p2-qual-value { font-size: 1rem; font-weight: 800; color: #5effc2; }
-  .p2-qual-sub { font-size: 0.5rem; color: rgba(255,255,255,.3); margin-top: 1px; }
-  .p2-qual-track { height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; position: relative; margin-bottom: 4px; }
-  .p2-qual-fill { height: 100%; border-radius: 3px; transition: width 1.2s ease; }
-  .p2-qual-marker { position: absolute; top: -3px; width: 2px; height: 12px; background: #e67e22; border-radius: 1px; }
-  .p2-qual-labels { display: flex; justify-content: space-between; font-size: 0.48rem; color: rgba(255,255,255,.25); }
+/* Qual tracker */
+.p1-qual-card{background:#0a1a0e;border-radius:10px;padding:12px;margin-bottom:0;}
+.p1-qual-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;}
+.p1-qual-lbl{font-size:0.55rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);}
+.p1-qual-val{font-size:1rem;font-weight:800;color:#5effc2;}
+.p1-qual-track{height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;position:relative;margin-bottom:4px;}
+.p1-qual-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#1D6B52,#5effc2);transition:width 1s ease;}
+.p1-qual-marker{position:absolute;top:-3px;width:2px;height:12px;background:#e67e22;border-radius:1px;}
+.p1-qual-sub{display:flex;justify-content:space-between;font-size:0.46rem;color:rgba(255,255,255,.2);}
 
-  /* Club leaderboard */
-  .p2-lb-row {
-    display: flex; align-items: center; gap: 8px; padding: 9px 0;
-    border-bottom: 1px solid rgba(255,255,255,.04);
-  }
-  .p2-lb-rank { font-size: 0.75rem; font-weight: 700; width: 20px; color: rgba(255,255,255,.3); }
-  .p2-lb-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
-  .p2-lb-name { flex: 1; font-size: 0.78rem; }
-  .p2-lb-score { font-size: 0.85rem; font-weight: 700; }
-  .p2-lb-q { font-size: 0.45rem; color: rgba(255,255,255,.3); }
-  .p2-lb-row.me { background: rgba(83,74,183,.12); border-radius: 8px; padding: 9px 8px; border: none; margin: 2px -8px; }
+/* Club panel */
+.p1-club-section{margin-bottom:12px;}
+.p1-club-head{font-size:0.52rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.2);padding:8px 0 6px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:8px;}
+.p1-club-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;margin-bottom:4px;}
+.p1-club-row.me{background:rgba(83,74,183,.15);}
+.p1-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:700;flex-shrink:0;}
+.p1-cname{flex:1;font-size:0.72rem;}
+.p1-cscore{font-size:0.8rem;font-weight:700;}
+.p1-cavg{font-size:0.46rem;color:rgba(255,255,255,.3);}
 
 
-  /* ══════════════════════════════════════════
-     OPTION 3 — THE DISCIPLINE ENGINE
-  ══════════════════════════════════════════ */
-  .p3-shell {
-    background: #0a0a0a;
-    min-height: 100vh;
-  }
+/* ═══════════════════════════════════════════════════
+   OPTION 2 — CONSTELLATION  (star map / orbital)
+═══════════════════════════════════════════════════ */
+.p2-sb{background:#08001e;}
+.p2-ah{background:linear-gradient(180deg,#08001e,#100030);}
 
-  .p3-hero {
-    background: linear-gradient(180deg, #0a0a0a 0%, #111118 100%);
-    padding: 18px 16px 0;
-    position: relative; overflow: hidden;
-  }
+.p2-hero{
+  background:linear-gradient(160deg,#08001e 0%,#120040 55%,#1a0050 100%);
+  position:relative;overflow:hidden;padding:0;
+}
+.p2-hero::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(169,132,186,.4),transparent);
+}
+.p2-toprow{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 6px;}
+.p2-back{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;flex-shrink:0;}
+.p2-title{font-family:var(--font-display);font-size:0.88rem;color:#fff;flex:1;margin:0 8px;letter-spacing:.5px;}
+.p2-qual-pill{padding:4px 9px;border-radius:20px;font-size:0.55rem;font-weight:700;display:flex;align-items:center;gap:4px;}
+.p2-qual-pill.yes{background:rgba(94,255,194,.1);color:#5effc2;border:1px solid rgba(94,255,194,.2);}
+.p2-qual-pill.no{background:rgba(231,126,22,.1);color:#e67e22;border:1px solid rgba(231,126,22,.2);}
+.p2-qdot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:qdot 1.8s ease infinite;}
+@keyframes qdot{0%,100%{opacity:1}50%{opacity:.3}}
 
-  /* Gear decoration */
-  .p3-gear-bg {
-    position: absolute; right: -30px; top: -30px;
-    width: 160px; height: 160px;
-    opacity: .04;
-    animation: spin-slow 30s linear infinite;
-  }
-  @keyframes spin-slow { to { transform: rotate(360deg); } }
+/* Constellation canvas */
+.p2-const-wrap{display:flex;justify-content:center;padding:6px 0 0;position:relative;}
+.p2-const-wrap canvas{max-width:100%;}
+.p2-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;}
+.p2-center .num{font-size:2.2rem;font-weight:900;color:#fff;line-height:1;}
+.p2-center .lbl{font-size:0.46rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:2px;}
+.p2-center .delta{font-size:0.7rem;font-weight:700;color:#5effc2;margin-top:4px;}
 
-  .p3-header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; position: relative; }
-  .p3-back { width: 32px; height: 32px; border-radius: 50%; background: #1a1a1a; border: 1px solid #333; color: #aaa; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
-  .p3-title { font-size: 0.78rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #888; flex: 1; }
-  .p3-engine-status {
-    display: flex; align-items: center; gap: 5px;
-    font-size: 0.58rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-  }
-  .p3-engine-status.running { color: #5effc2; }
-  .p3-engine-status.risk { color: #e67e22; }
-  .p3-status-light { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-  .p3-status-light.running { animation: blink 1.2s ease infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+/* 4-stat row */
+.p2-stats{display:flex;gap:6px;padding:6px 14px 12px;}
+.p2-sc{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:9px 4px;text-align:center;}
+.p2-sc .n{font-size:1rem;font-weight:800;line-height:1;}
+.p2-sc .l{font-size:0.4rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-top:3px;}
+.p2-sc.wh .n{color:#5effc2;}.p2-sc.ew .n{color:#EF9F27;}.p2-sc.mg .n{color:#e74c3c;}.p2-sc.rr .n{color:#A984BA;}
 
-  /* Main gauge */
-  .p3-gauge-section {
-    display: flex; align-items: center; gap: 0;
-    margin-bottom: 0; position: relative;
-  }
-  .p3-gauge-wrap { position: relative; width: 160px; flex-shrink: 0; }
-  .p3-gauge-wrap canvas { display: block; }
-  .p3-gauge-center {
-    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-    text-align: center;
-  }
-  .p3-gauge-num { font-size: 2rem; font-weight: 900; color: #fff; line-height: 1; font-variant-numeric: tabular-nums; }
-  .p3-gauge-lbl { font-size: 0.42rem; letter-spacing: 2px; text-transform: uppercase; color: #555; margin-top: 1px; }
+/* Tabs */
+.p2-tabs .inner-tab{color:rgba(255,255,255,.3);background:#0c0028;}
+.p2-tabs .inner-tab.active{color:#A984BA;border-bottom-color:#A984BA;background:#0a0020;}
+.p2-body{padding:14px;background:#0a0020;}
 
-  /* Instrument cluster */
-  .p3-instruments { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .p3-instrument {
-    background: #111; border: 1px solid #222; border-radius: 8px;
-    padding: 8px; position: relative; overflow: hidden;
-  }
-  .p3-instrument::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  }
-  .p3-instrument.green::before { background: #5effc2; }
-  .p3-instrument.gold::before { background: #EF9F27; }
-  .p3-instrument.red::before { background: #e74c3c; }
-  .p3-instrument.purple::before { background: #A984BA; }
-  .p3-instrument .val { font-size: 1.2rem; font-weight: 900; line-height: 1; color: #fff; }
-  .p3-instrument .lbl { font-size: 0.42rem; letter-spacing: 1px; text-transform: uppercase; color: #444; margin-top: 3px; }
-  .p3-instrument.green .val { color: #5effc2; }
-  .p3-instrument.gold .val { color: #EF9F27; }
-  .p3-instrument.red .val { color: #e74c3c; }
-  .p3-instrument.purple .val { color: #A984BA; }
+/* Month arc scroll */
+.p2-month-scroll{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin-bottom:12px;padding-bottom:2px;}
+.p2-month-scroll::-webkit-scrollbar{display:none;}
+.p2-mc{flex-shrink:0;width:50px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:7px 4px;text-align:center;cursor:pointer;transition:all .15s;}
+.p2-mc:active{transform:scale(.93);}
+.p2-mc.great{border-color:rgba(94,255,194,.25);background:rgba(94,255,194,.05);}
+.p2-mc.good{border-color:rgba(169,132,186,.25);background:rgba(169,132,186,.05);}
+.p2-mc.low{border-color:rgba(231,126,22,.25);background:rgba(231,126,22,.05);}
+.p2-mc.future{opacity:.25;}
+.p2-mc-name{font-size:0.52rem;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:5px;}
+.p2-ring-wrap{position:relative;width:30px;height:30px;margin:0 auto 4px;}
+.p2-ring-wrap canvas{position:absolute;top:0;left:0;}
+.p2-ring-pct{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.52rem;font-weight:700;}
 
-  /* Fuel cells — week grid */
-  .p3-fuel-section {
-    background: #0d0d0d; border-top: 1px solid #1a1a1a;
-    padding: 14px 16px;
-  }
-  .p3-fuel-title {
-    font-size: 0.5rem; letter-spacing: 2px; text-transform: uppercase; color: #333;
-    margin-bottom: 8px; display: flex; justify-content: space-between;
-  }
-  .p3-fuel-title span { color: #555; }
+/* Score breakdown */
+.p2-score-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px;margin-bottom:12px;}
+.p2-sc-title{font-size:0.52rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:10px;}
+.p2-sc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.p2-sc-row:last-child{border:none;padding-top:8px;margin-top:2px;}
+.p2-sc-lbl{font-size:0.65rem;color:rgba(255,255,255,.4);}
+.p2-sc-val{font-size:0.82rem;font-weight:700;}
 
-  .p3-fuel-grid {
-    display: grid; grid-template-columns: repeat(26, 1fr);
-    gap: 2px; margin-bottom: 4px;
-  }
-  .p3-fuel-cell {
-    aspect-ratio: 1; border-radius: 1px;
-    cursor: pointer; transition: opacity .15s;
-    position: relative;
-  }
-  .p3-fuel-cell.hit { background: #5effc2; }
-  .p3-fuel-cell.partial { background: #534AB7; }
-  .p3-fuel-cell.miss { background: #1a1a1a; border: 1px solid #222; }
-  .p3-fuel-cell.future { background: #111; }
-  .p3-fuel-cell.early { border-bottom: 2px solid #EF9F27; }
-  .p3-fuel-row-lbl { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
-  .p3-fuel-lbl-item { display: flex; align-items: center; gap: 3px; font-size: 0.45rem; color: #444; }
-  .p3-fuel-lbl-dot { width: 7px; height: 7px; border-radius: 1px; }
+/* Qual track */
+.p2-qual-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px;margin-bottom:12px;}
+.p2-qt-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;}
+.p2-qt-lbl{font-size:0.55rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.25);}
+.p2-qt-val{font-size:1rem;font-weight:800;color:#5effc2;}
+.p2-qt-bar{height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;position:relative;margin-bottom:4px;}
+.p2-qt-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#534AB7,#5effc2);transition:width 1.2s ease;}
+.p2-qt-marker{position:absolute;top:-3px;width:2px;height:12px;background:#e67e22;border-radius:1px;}
+.p2-qt-labels{display:flex;justify-content:space-between;font-size:0.45rem;color:rgba(255,255,255,.2);}
 
-  /* Readout strip */
-  .p3-readout {
-    background: #080808; padding: 12px 16px;
-    border-top: 1px solid #1a1a1a;
-    min-height: 52px; display: flex; align-items: center; gap: 10px;
-  }
-  .p3-readout-icon { font-size: 1.2rem; flex-shrink: 0; }
-  .p3-readout-text { font-size: 0.72rem; color: #666; line-height: 1.4; }
-  .p3-readout-text strong { color: #aaa; }
+/* Club */
+.p2-lb-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.p2-lb-row.me{background:rgba(83,74,183,.12);border-radius:7px;padding:8px 7px;margin:3px -7px;border:none;}
+.p2-rank{width:20px;font-size:0.72rem;font-weight:700;color:rgba(255,255,255,.25);}
+.p2-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:700;flex-shrink:0;}
+.p2-lname{flex:1;font-size:0.72rem;}
+.p2-lscore{text-align:right;}
+.p2-lscore .s{font-size:0.82rem;font-weight:700;}
+.p2-lscore .a{font-size:0.45rem;color:rgba(255,255,255,.25);}
 
-  /* Rolling avg engine */
-  .p3-body { padding: 0 16px 16px; background: #0a0a0a; }
 
-  .p3-engine-card {
-    background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 12px;
-    overflow: hidden; margin-bottom: 12px;
-  }
-  .p3-engine-top {
-    background: #111; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid #1a1a1a;
-  }
-  .p3-engine-lbl { font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase; color: #555; }
-  .p3-engine-val { font-size: 1.1rem; font-weight: 800; color: #fff; }
-  .p3-engine-sub { font-size: 0.48rem; color: #444; margin-top: 2px; text-align: right; }
+/* ═══════════════════════════════════════════════════
+   OPTION 3 — DISCIPLINE ENGINE  (industrial dark)
+═══════════════════════════════════════════════════ */
+.p3-sb{background:#080808;}
+.p3-ah{background:#0d0d0d;}
 
-  .p3-engine-track { height: 8px; background: #1a1a1a; position: relative; }
-  .p3-engine-fill { height: 100%; transition: width 1.2s ease; }
-  .p3-engine-threshold {
-    position: absolute; top: -4px; width: 2px; height: 16px;
-    background: #e67e22;
-  }
-  .p3-engine-bottom { padding: 10px 14px; display: flex; justify-content: space-between; }
-  .p3-engine-note { font-size: 0.5rem; color: #444; }
-  .p3-engine-note.ok { color: #5effc2; }
-  .p3-engine-note.warn { color: #e67e22; }
+.p3-hero{
+  background:linear-gradient(180deg,#080808 0%,#0f0f0f 100%);
+  position:relative;overflow:hidden;
+}
+.p3-gear{
+  position:absolute;right:-20px;top:-20px;width:130px;height:130px;
+  opacity:.04;animation:spin-slow 25s linear infinite;
+}
+@keyframes spin-slow{to{transform:rotate(360deg);}}
 
-  /* Tabs shared */
-  .shared-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,.06); margin: 0 -16px 14px; padding: 0 16px; }
-  .shared-tab { flex: 1; padding: 10px; text-align: center; font-size: 0.68rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; transition: all .2s; }
+.p3-toprow{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 0;position:relative;}
+.p3-back{width:30px;height:30px;border-radius:50%;background:#1a1a1a;border:1px solid #2a2a2a;color:#888;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;flex-shrink:0;}
+.p3-title{font-size:0.82rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#666;flex:1;margin:0 8px;}
+.p3-engine-status{display:flex;align-items:center;gap:5px;font-size:0.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.p3-engine-status.run{color:#5effc2;}
+.p3-engine-status.risk{color:#e67e22;}
+.p3-sled{width:7px;height:7px;border-radius:50%;background:currentColor;}
+.p3-sled.run{animation:blink 1.2s ease infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
-  .p1-body .shared-tab { color: rgba(255,255,255,.3); }
-  .p1-body .shared-tab.active { color: #5effc2; border-bottom-color: #5effc2; }
+/* Gauge + instruments */
+.p3-main{display:flex;align-items:center;padding:8px 10px 4px;}
+.p3-gauge-wrap{position:relative;width:150px;flex-shrink:0;}
+.p3-gauge-wrap canvas{display:block;}
+.p3-gauge-center{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);text-align:center;}
+.p3-gauge-num{font-size:1.9rem;font-weight:900;color:#fff;line-height:1;font-variant-numeric:tabular-nums;}
+.p3-gauge-lbl{font-size:0.4rem;letter-spacing:2px;text-transform:uppercase;color:#444;margin-top:1px;}
 
-  .p2-body .shared-tab { color: rgba(255,255,255,.3); }
-  .p2-body .shared-tab.active { color: #A984BA; border-bottom-color: #A984BA; }
+.p3-instruments{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.p3-inst{background:#111;border:1px solid #1e1e1e;border-radius:7px;padding:7px;position:relative;overflow:hidden;}
+.p3-inst::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.p3-inst.g::before{background:#5effc2;}.p3-inst.gold::before{background:#EF9F27;}
+.p3-inst.r::before{background:#e74c3c;}.p3-inst.p::before{background:#A984BA;}
+.p3-inst .v{font-size:1.1rem;font-weight:900;line-height:1;}
+.p3-inst .lb{font-size:0.4rem;letter-spacing:1px;text-transform:uppercase;color:#444;margin-top:3px;}
+.p3-inst.g .v{color:#5effc2;}.p3-inst.gold .v{color:#EF9F27;}
+.p3-inst.r .v{color:#e74c3c;}.p3-inst.p .v{color:#A984BA;}
 
-  .p3-body .shared-tab { color: #444; }
-  .p3-body .shared-tab.active { color: #5effc2; border-bottom-color: #5effc2; }
+/* Fuel cells */
+.p3-fuel{background:#0c0c0c;border-top:1px solid #181818;padding:10px 14px;}
+.p3-fuel-head{display:flex;justify-content:space-between;font-size:0.48px;margin-bottom:6px;}
+.p3-fuel-title{font-size:0.48rem;letter-spacing:2px;text-transform:uppercase;color:#2a2a2a;}
+.p3-fuel-count{font-size:0.48rem;color:#444;}
+.p3-fuel-grid{display:grid;grid-template-columns:repeat(26,1fr);gap:2px;margin-bottom:5px;}
+.p3-cell{aspect-ratio:1;border-radius:1px;cursor:pointer;transition:opacity .1s;}
+.p3-cell.hit{background:#5effc2;}
+.p3-cell.partial{background:#534AB7;}
+.p3-cell.miss{background:#1a1a1a;border:1px solid #242424;}
+.p3-cell.future{background:#0d0d0d;}
+.p3-cell.early{border-bottom:2px solid #EF9F27;}
+.p3-fuel-legend{display:flex;gap:10px;flex-wrap:wrap;}
+.p3-leg{display:flex;align-items:center;gap:3px;font-size:0.44rem;color:#333;}
+.p3-leg-dot{width:7px;height:7px;border-radius:1px;}
 
-  /* Club panels */
-  .club-panel { display: none; }
-  .club-panel.active { display: block; }
+/* Readout bar */
+.p3-readout{background:#080808;border-top:1px solid #141414;padding:9px 14px;min-height:44px;display:flex;align-items:center;gap:8px;}
+.p3-readout-icon{font-size:1rem;flex-shrink:0;}
+.p3-readout-txt{font-size:0.65rem;color:#555;line-height:1.3;}
+.p3-readout-txt strong{color:#888;}
 
-  /* Option label ribbon */
-  .option-ribbon {
-    background: #A984BA; color: #fff; text-align: center;
-    padding: 8px; font-size: 0.65rem; font-weight: 700; letter-spacing: 1px;
-    text-transform: uppercase;
-  }
+/* Tabs */
+.p3-tabs .inner-tab{color:#333;background:#0a0a0a;}
+.p3-tabs .inner-tab.active{color:#5effc2;border-bottom-color:#5effc2;background:#080808;}
+.p3-body{padding:14px;background:#080808;}
+
+/* Engine card */
+.p3-eng-card{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:10px;overflow:hidden;margin-bottom:10px;}
+.p3-eng-top{background:#111;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #181818;}
+.p3-eng-lbl{font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;color:#444;}
+.p3-eng-val{font-size:0.95rem;font-weight:800;color:#fff;}
+.p3-eng-sub{font-size:0.45rem;color:#333;margin-top:1px;text-align:right;}
+.p3-eng-track{height:7px;background:#141414;position:relative;}
+.p3-eng-fill{height:100%;transition:width 1.2s ease;}
+.p3-eng-thresh{position:absolute;top:-3px;width:2px;height:13px;background:#e67e22;}
+.p3-eng-foot{padding:8px 12px;display:flex;justify-content:space-between;}
+.p3-eng-note{font-size:0.48rem;color:#333;}
+.p3-eng-note.ok{color:#5effc2;}.p3-eng-note.warn{color:#e67e22;}
+
+/* Score log */
+.p3-log-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #111;font-family:monospace;}
+.p3-log-row:last-child{border:none;padding-top:8px;border-top:1px solid #1a1a1a;margin-top:2px;}
+.p3-log-lbl{font-size:0.62rem;color:#444;}
+.p3-log-val{font-size:0.78rem;font-weight:700;}
+
+/* Club */
+.p3-lb-row{display:flex;align-items:center;gap:7px;padding:8px 0;border-bottom:1px solid #0d0d0d;}
+.p3-lb-row.me{background:#111;border-radius:7px;padding:8px 7px;margin:3px -7px;border:none;}
+.p3-rank{width:20px;font-size:0.68rem;font-weight:700;color:#333;}
+.p3-av2{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:700;color:#000;flex-shrink:0;}
+.p3-lname{flex:1;font-size:0.7rem;}
+.p3-lbar{flex:none;width:60px;}
+.p3-lbar-bg{height:3px;background:#1a1a1a;border-radius:2px;overflow:hidden;margin-top:3px;}
+.p3-lbar-fill{height:100%;border-radius:2px;}
+.p3-lscore2{font-size:0.8rem;font-weight:700;text-align:right;min-width:32px;}
+
 </style>
 </head>
 <body>
 
-<!-- Nav -->
-<div class="nav">
-  <button class="nav-btn active" onclick="showPanel(0,this)">
-    Habit Pulse
-    <span>Option 1</span>
-  </button>
-  <button class="nav-btn" onclick="showPanel(1,this)">
-    Constellation
-    <span>Option 2</span>
-  </button>
-  <button class="nav-btn" onclick="showPanel(2,this)">
-    Discipline Engine
-    <span>Option 3</span>
-  </button>
+<!-- Page header -->
+<div class="page-header">
+  <h1>10 Pages a Day — Design Concepts</h1>
+  <p>3 options · Interactive mockups · Tap week cells and month rings</p>
 </div>
 
-
-<!-- ═══════════════════════════════════════
-     OPTION 1 — HABIT PULSE
-═══════════════════════════════════════ -->
-<div class="panel active" id="panel0">
-<div class="p1-shell">
-  <div class="option-ribbon">Option 1 · Habit Pulse — EKG Vitality Theme</div>
-
-  <!-- Hero -->
-  <div class="p1-hero">
-    <div class="p1-header">
-      <button class="p1-back"><i class="fa-solid fa-chevron-left"></i></button>
-      <div class="p1-title">10 Pages a Day</div>
-      <div class="p1-qual-badge qualified">✓ Qualified</div>
-    </div>
-
-    <div class="p1-score-row">
-      <div class="p1-score-big">431</div>
-      <div class="p1-score-meta">
-        <div class="p1-score-lbl">Habit Score</div>
-        <div class="p1-score-delta up">↑ 18 this month</div>
-      </div>
-    </div>
-    <div class="p1-avg-row">Rolling avg <strong>14.2 pg/day</strong> · Enrolled 14 Mar 2026</div>
-
-    <!-- EKG -->
-    <div class="p1-ekg-wrap">
-      <canvas id="p1EkgCanvas" height="90"></canvas>
-    </div>
-
-    <!-- Stats -->
-    <div class="p1-stats-strip">
-      <div class="p1-stat hit"><div class="n">34</div><div class="l">Weeks Hit</div></div>
-      <div class="p1-stat early"><div class="n">9</div><div class="l">Early Weeks</div></div>
-      <div class="p1-stat gap"><div class="n">2</div><div class="l">Max Gap</div></div>
-      <div class="p1-stat rec"><div class="n">85%</div><div class="l">Recovery</div></div>
-    </div>
-  </div>
-
-  <!-- Body -->
-  <div class="p1-body">
-    <div class="shared-tabs p1-tabs-inner" style="display:flex;border-bottom:1px solid rgba(255,255,255,.06);margin:0 -16px 14px;padding:0 16px;">
-      <div class="shared-tab p1-body active" onclick="switchP1Tab('mine',this)">My Progress</div>
-      <div class="shared-tab p1-body" onclick="switchP1Tab('club',this)">Club</div>
-    </div>
-
-    <!-- Mine -->
-    <div id="p1-mine" class="club-panel active">
-      <div class="p1-section-title">Your 2026 Week by Week</div>
-      <div class="p1-week-grid" id="p1WeekGrid"></div>
-      <div class="p1-week-legend">
-        <div class="p1-legend-item"><div class="p1-legend-dot" style="background:#1D9E75;"></div>Hit (≥70 pg)</div>
-        <div class="p1-legend-item"><div class="p1-legend-dot" style="background:#534AB7;"></div>Partial</div>
-        <div class="p1-legend-item"><div class="p1-legend-dot" style="background:rgba(255,255,255,.08);"></div>Miss</div>
-        <div class="p1-legend-item"><div class="p1-legend-dot" style="border:1.5px solid #EF9F27;width:8px;height:8px;border-radius:1px;"></div>Early weeks</div>
-      </div>
-      <div class="p1-week-tooltip" id="p1WeekTooltip">
-        <div class="dot" style="background:#1D9E75;"></div>
-        Tap any week to see details
-      </div>
-
-      <!-- Rolling avg -->
-      <div class="p1-avg-card">
-        <div class="p1-section-title" style="margin-bottom:4px;">Qualification Tracker</div>
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:2px;">
-          <div style="font-size:0.72rem;color:rgba(255,255,255,.5);">Rolling avg vs 10 pg/day threshold</div>
-          <div style="font-size:1.1rem;font-weight:800;color:#5effc2;">14.2</div>
-        </div>
-        <div class="p1-avg-bar-wrap">
-          <div class="p1-avg-bar" id="p1AvgBar" style="width:0%"></div>
-        </div>
-        <div class="p1-avg-labels">
-          <span>0 pg/day</span>
-          <span style="color:#e67e22;">10 pg/day ← threshold</span>
-          <span>20 pg/day</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Club -->
-    <div id="p1-club" class="club-panel">
-      <div class="p1-section-title" style="margin-bottom:10px;">Habit Score Leaderboard</div>
-      <div style="font-size:0.62rem;color:rgba(255,255,255,.3);margin-bottom:12px;">Only qualified members ranked · Non-qualified shown below</div>
-      <div id="p1ClubContent"></div>
-    </div>
-  </div>
-</div>
+<!-- Option nav -->
+<div class="opt-nav">
+  <button class="onb active" onclick="showOpt(0,this)">① Habit Pulse</button>
+  <button class="onb" onclick="showOpt(1,this)">② Constellation</button>
+  <button class="onb" onclick="showOpt(2,this)">③ Discipline Engine</button>
 </div>
 
-
-<!-- ═══════════════════════════════════════
-     OPTION 2 — CONSISTENCY CONSTELLATION
-═══════════════════════════════════════ -->
-<div class="panel" id="panel1">
-<div class="p2-shell">
-  <div class="option-ribbon" style="background:#534AB7;">Option 2 · Consistency Constellation — Star Map Theme</div>
-
-  <div class="p2-hero">
-    <div class="p2-header">
-      <button class="p2-back"><i class="fa-solid fa-chevron-left"></i></button>
-      <div class="p2-title-block">
-        <div class="p2-title">10 Pages · A Day</div>
-        <div class="p2-subtitle">2026 Habit Challenge</div>
-      </div>
-      <div class="p2-status-pill q">
-        <div class="p2-status-dot"></div>
-        Qualified
-      </div>
-    </div>
-
-    <!-- Constellation -->
-    <div class="p2-constellation-wrap">
-      <canvas id="p2Canvas" width="300" height="300"></canvas>
-      <div class="p2-center-score">
-        <div class="p2-center-num">431</div>
-        <div class="p2-center-lbl">Habit Score</div>
-        <div class="p2-center-delta">↑ 18 pts</div>
-      </div>
-    </div>
-
-    <!-- 4 stats -->
-    <div class="p2-stat-row">
-      <div class="p2-stat-card wh"><div class="n">34</div><div class="l">Wks Hit</div></div>
-      <div class="p2-stat-card ew"><div class="n">9/10</div><div class="l">Early Wks</div></div>
-      <div class="p2-stat-card mg"><div class="n">2</div><div class="l">Max Gap</div></div>
-      <div class="p2-stat-card rr"><div class="n">85%</div><div class="l">Recovery</div></div>
-    </div>
+<!-- Option descriptions -->
+<div class="opt-desc" id="desc0">
+  <div class="opt-badge" style="background:#0a1a14;">⚡</div>
+  <div class="opt-body">
+    <strong>Habit Pulse — EKG / Vitality</strong>
+    <p>Your 26-week reading history rendered as a heartbeat. Hit weeks spike green above the 70 pg threshold; misses flatline. Habit Score leads with a delta arrow. The week grid and qualification tracker complete the picture. Dark forest-green palette — feels like a health/fitness app but for reading.</p>
   </div>
+</div>
+<div class="opt-desc" id="desc1" style="display:none;">
+  <div class="opt-badge" style="background:#08001e;">✦</div>
+  <div class="opt-body">
+    <strong>Constellation — Star Map / Orbital</strong>
+    <p>52 weeks arranged in 4 concentric rings — the further out, the later in the year. Hit weeks glow bright; early weeks (ring 1) glow gold. Missed weeks are dim. The centre shows Habit Score. Monthly habit rings scroll below. Deep space indigo palette — ceremonial, rare, earned.</p>
+  </div>
+</div>
+<div class="opt-desc" id="desc2" style="display:none;">
+  <div class="opt-badge" style="background:#111;">⚙</div>
+  <div class="opt-body">
+    <strong>Discipline Engine — Industrial Precision</strong>
+    <p>A mechanical gauge dial for the Habit Score, flanked by 4 instrument readouts. Below, 52 "fuel cells" show the year's weekly output log — charged (hit), partial, or depleted (miss). A monospace score computation log shows exactly how the number is built. Pure black — the most distinctive look in the app.</p>
+  </div>
+</div>
 
-  <div class="p2-body">
-    <div style="display:flex;border-bottom:1px solid rgba(255,255,255,.06);margin:0 -16px 14px;padding:0 16px;">
-      <div class="shared-tab p2-body active" onclick="switchP2Tab('mine',this)" style="color:rgba(255,255,255,.3);">My Progress</div>
-      <div class="shared-tab p2-body" onclick="switchP2Tab('club',this)" style="color:rgba(255,255,255,.3);">Club</div>
+<!-- Phone frames -->
+<div class="phones">
+
+  <!-- ═══ OPTION 1 — HABIT PULSE ═══ -->
+  <div class="phone-frame" id="phone0">
+    <div class="phone-statusbar p1-sb">
+      <span style="color:#5effc2;">9:41</span>
+      <span style="color:rgba(255,255,255,.5);">●●●●  ▲  🔋</span>
+    </div>
+    <div class="app-header p1-ah">
+      <div class="app-logo" style="background:rgba(94,255,194,.15);color:#5effc2;">A</div>
+      <div class="app-title-txt" style="color:#5effc2;">Arka</div>
     </div>
 
-    <div id="p2-mine" class="club-panel active">
-      <!-- Month arcs -->
-      <div class="p2-months-title">Monthly Habit Rate</div>
-      <div class="p2-month-row" id="p2MonthRow"></div>
-
-      <!-- Qualification bar -->
-      <div class="p2-qual-card">
-        <div class="p2-qual-top">
-          <div>
-            <div class="p2-qual-title">Qualification Status</div>
-            <div style="font-size:0.62rem;color:rgba(255,255,255,.4);margin-top:3px;">Rolling avg must stay ≥ 10 pg/day</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="p2-qual-value">14.2 pg/day</div>
-            <div class="p2-qual-sub">+4.2 above threshold</div>
+    <div class="view active" id="v1-mine">
+      <!-- Hero -->
+      <div class="p1-hero">
+        <div class="p1-toprow">
+          <button class="p1-back"><i class="fa-solid fa-chevron-left"></i></button>
+          <div class="p1-title">10 Pages a Day</div>
+          <div class="p1-qual yes">✓ Qualified</div>
+        </div>
+        <div class="p1-score-block">
+          <div class="p1-score-num">431</div>
+          <div class="p1-score-meta">
+            <div class="p1-score-lbl">Habit Score</div>
+            <div class="p1-score-delta up">↑ 18 this month</div>
           </div>
         </div>
-        <div class="p2-qual-track">
-          <div class="p2-qual-fill" id="p2QualFill" style="width:0%;background:linear-gradient(90deg,#534AB7,#5effc2);"></div>
-          <div class="p2-qual-marker" style="left:50%;"></div>
+        <div class="p1-avg-note">Rolling avg <strong>14.2 pg/day</strong> · 180 days in</div>
+        <div class="p1-ekg-wrap">
+          <canvas id="p1Ekg"></canvas>
         </div>
-        <div class="p2-qual-labels">
-          <span>0</span><span style="color:#e67e22;">10 ← must be here</span><span>20+</span>
-        </div>
-      </div>
-
-      <!-- Score breakdown -->
-      <div class="p2-qual-card" style="margin-bottom:0;">
-        <div class="p2-qual-title" style="margin-bottom:10px;">Habit Score Breakdown</div>
-        <div id="p2ScoreBreakdown"></div>
-      </div>
-    </div>
-
-    <div id="p2-club" class="club-panel">
-      <div id="p2ClubContent"></div>
-    </div>
-  </div>
-</div>
-</div>
-
-
-<!-- ═══════════════════════════════════════
-     OPTION 3 — DISCIPLINE ENGINE
-═══════════════════════════════════════ -->
-<div class="panel" id="panel2">
-<div class="p3-shell">
-  <div class="option-ribbon" style="background:#1a1a1a;border-bottom:1px solid #5effc2;color:#5effc2;">Option 3 · Discipline Engine — Industrial / Precision Theme</div>
-
-  <div class="p3-hero">
-    <!-- Gear SVG bg -->
-    <svg class="p3-gear-bg" viewBox="0 0 100 100" fill="none">
-      <path d="M50 15 L55 5 L60 15 L70 10 L68 22 L80 20 L78 32 L90 35 L85 45 L95 50 L85 55 L90 65 L78 68 L80 80 L68 78 L70 90 L60 85 L55 95 L50 85 L45 95 L40 85 L30 90 L32 78 L20 80 L22 68 L10 65 L15 55 L5 50 L15 45 L10 35 L22 32 L20 20 L32 22 L30 10 L40 15 Z" stroke="#5effc2" stroke-width="2" fill="none"/>
-      <circle cx="50" cy="50" r="20" stroke="#5effc2" stroke-width="2"/>
-      <circle cx="50" cy="50" r="8" stroke="#5effc2" stroke-width="2"/>
-    </svg>
-
-    <div class="p3-header">
-      <button class="p3-back"><i class="fa-solid fa-chevron-left"></i></button>
-      <div class="p3-title">10 Pages · A Day</div>
-      <div class="p3-engine-status running">
-        <div class="p3-status-light running"></div>
-        Engine Running
-      </div>
-    </div>
-
-    <!-- Gauge + Instruments -->
-    <div class="p3-gauge-section">
-      <div class="p3-gauge-wrap">
-        <canvas id="p3GaugeCanvas" width="160" height="110"></canvas>
-        <div class="p3-gauge-center">
-          <div class="p3-gauge-num">431</div>
-          <div class="p3-gauge-lbl">Habit Score</div>
+        <div class="p1-stats">
+          <div class="p1-stat wh"><div class="n">34</div><div class="l">Wks Hit</div></div>
+          <div class="p1-stat ew"><div class="n">9</div><div class="l">Early</div></div>
+          <div class="p1-stat mg"><div class="n">2</div><div class="l">Max Gap</div></div>
+          <div class="p1-stat rr"><div class="n">85%</div><div class="l">Recovery</div></div>
         </div>
       </div>
-      <div class="p3-instruments">
-        <div class="p3-instrument green">
-          <div class="val">34</div>
-          <div class="lbl">Weeks Hit</div>
-        </div>
-        <div class="p3-instrument gold">
-          <div class="val">9</div>
-          <div class="lbl">Early Wks</div>
-        </div>
-        <div class="p3-instrument red">
-          <div class="val">2</div>
-          <div class="lbl">Max Gap</div>
-        </div>
-        <div class="p3-instrument purple">
-          <div class="val">85%</div>
-          <div class="lbl">Recovery</div>
-        </div>
+
+      <!-- Tabs -->
+      <div class="inner-tabs p1-tabs">
+        <div class="inner-tab active" onclick="p1Tab('mine',this)">My Progress</div>
+        <div class="inner-tab" onclick="p1Tab('club',this)">Club</div>
       </div>
-    </div>
-  </div>
 
-  <!-- Fuel cells -->
-  <div class="p3-fuel-section">
-    <div class="p3-fuel-title">
-      Fuel Cells — 52 Week Output Log
-      <span id="p3FuelCount">34 / 52 charged</span>
-    </div>
-    <div class="p3-fuel-grid" id="p3FuelGrid"></div>
-    <div class="p3-fuel-row-lbl">
-      <div class="p3-fuel-lbl-item"><div class="p3-fuel-lbl-dot" style="background:#5effc2;"></div>Hit</div>
-      <div class="p3-fuel-lbl-item"><div class="p3-fuel-lbl-dot" style="background:#534AB7;"></div>Partial</div>
-      <div class="p3-fuel-lbl-item"><div class="p3-fuel-lbl-dot" style="background:#1a1a1a;border:1px solid #222;"></div>Miss</div>
-      <div class="p3-fuel-lbl-item"><div class="p3-fuel-lbl-dot" style="background:#1a1a1a;border-bottom:2px solid #EF9F27;"></div>Early (Wk 1–10)</div>
-    </div>
-  </div>
-
-  <!-- Readout -->
-  <div class="p3-readout" id="p3Readout">
-    <div class="p3-readout-icon">⚡</div>
-    <div class="p3-readout-text">Tap any cell to inspect that week's output</div>
-  </div>
-
-  <!-- Body -->
-  <div class="p3-body">
-    <div style="display:flex;border-bottom:1px solid #1a1a1a;margin:0 -16px 14px;padding:0 16px;">
-      <div class="shared-tab p3-body active" onclick="switchP3Tab('mine',this)" style="color:#444;">My Progress</div>
-      <div class="shared-tab p3-body" onclick="switchP3Tab('club',this)" style="color:#444;">Club</div>
-    </div>
-
-    <div id="p3-mine" class="club-panel active">
-      <!-- Rolling avg engine -->
-      <div class="p3-engine-card">
-        <div class="p3-engine-top">
-          <div>
-            <div class="p3-engine-lbl">Rolling Average Output</div>
-            <div style="font-size:0.55rem;color:#444;margin-top:3px;">Total pages ÷ days since enrollment</div>
+      <!-- My Progress -->
+      <div class="p1-body">
+        <div id="p1-mine-panel" class="tab-panel active">
+          <div class="p1-wg-title">Your 2026 — Week by Week</div>
+          <div class="p1-week-grid" id="p1Grid"></div>
+          <div class="p1-wk-legend">
+            <div class="p1-wk-leg"><div class="p1-wk-dot" style="background:#1D9E75;"></div>Hit ≥70 pg</div>
+            <div class="p1-wk-leg"><div class="p1-wk-dot" style="background:#534AB7;"></div>Partial</div>
+            <div class="p1-wk-leg"><div class="p1-wk-dot" style="background:rgba(255,255,255,.07);"></div>Miss</div>
+            <div class="p1-wk-leg"><div class="p1-wk-dot" style="box-shadow:0 0 0 1.5px #EF9F27;width:7px;height:7px;"></div>Early wk</div>
           </div>
-          <div style="text-align:right;">
-            <div class="p3-engine-val">14.2 <span style="font-size:0.6rem;font-weight:400;color:#444;">pg/day</span></div>
-            <div class="p3-engine-sub">↑ above threshold</div>
+          <div class="p1-tooltip" id="p1Tip">
+            <div class="p1-tt-dot" style="background:#1D9E75;"></div>Tap any week cell to see details
+          </div>
+          <div class="p1-qual-card">
+            <div class="p1-qual-head">
+              <div class="p1-qual-lbl">Qualification — Rolling Avg</div>
+              <div class="p1-qual-val">14.2 pg/day</div>
+            </div>
+            <div class="p1-qual-track">
+              <div class="p1-qual-fill" id="p1QFill" style="width:0%;"></div>
+              <div class="p1-qual-marker" style="left:50%;"></div>
+            </div>
+            <div class="p1-qual-sub">
+              <span>0</span><span style="color:#e67e22;">10 pg/day ← threshold</span><span>20+</span>
+            </div>
           </div>
         </div>
-        <div class="p3-engine-track">
-          <div class="p3-engine-fill" id="p3EngineFill" style="width:0%;background:linear-gradient(90deg,#534AB7,#5effc2);"></div>
-          <div class="p3-engine-threshold" style="left:50%;"></div>
-        </div>
-        <div class="p3-engine-bottom">
-          <div class="p3-engine-note">Threshold: 10 pg/day</div>
-          <div class="p3-engine-note ok">✓ Qualified</div>
-        </div>
-      </div>
 
-      <!-- Score breakdown -->
-      <div class="p3-engine-card">
-        <div class="p3-engine-top">
-          <div><div class="p3-engine-lbl">Score Computation Log</div></div>
+        <div id="p1-club-panel" class="tab-panel">
+          <div id="p1ClubContent"></div>
         </div>
-        <div id="p3ScoreLog" style="padding:12px 14px;"></div>
       </div>
     </div>
 
-    <div id="p3-club" class="club-panel">
-      <div id="p3ClubContent"></div>
+    <div class="bottom-nav">
+      <div class="bnav-item"><i class="fa-solid fa-house"></i><span>Home</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-book-open"></i><span>Library</span></div>
+      <div class="bnav-item active"><i class="fa-solid fa-user"></i><span>Me</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-users"></i><span>Club</span></div>
     </div>
   </div>
-</div>
-</div>
 
+
+  <!-- ═══ OPTION 2 — CONSTELLATION ═══ -->
+  <div class="phone-frame" id="phone1" style="display:none;">
+    <div class="phone-statusbar p2-sb">
+      <span style="color:#A984BA;">9:41</span>
+      <span style="color:rgba(255,255,255,.4);">●●●●  ▲  🔋</span>
+    </div>
+    <div class="app-header p2-ah">
+      <div class="app-logo" style="background:rgba(169,132,186,.15);color:#A984BA;">A</div>
+      <div class="app-title-txt" style="color:#A984BA;">Arka</div>
+    </div>
+
+    <div class="view active">
+      <div class="p2-hero">
+        <div class="p2-toprow">
+          <button class="p2-back"><i class="fa-solid fa-chevron-left"></i></button>
+          <div class="p2-title">10 Pages · A Day</div>
+          <div class="p2-qual-pill yes"><div class="p2-qdot"></div>Qualified</div>
+        </div>
+        <div class="p2-const-wrap">
+          <canvas id="p2Canvas" width="280" height="280"></canvas>
+          <div class="p2-center">
+            <div class="num">431</div>
+            <div class="lbl">Habit Score</div>
+            <div class="delta">↑ 18 pts</div>
+          </div>
+        </div>
+        <div class="p2-stats">
+          <div class="p2-sc wh"><div class="n">34</div><div class="l">Wks Hit</div></div>
+          <div class="p2-sc ew"><div class="n">9/10</div><div class="l">Early</div></div>
+          <div class="p2-sc mg"><div class="n">2</div><div class="l">Max Gap</div></div>
+          <div class="p2-sc rr"><div class="n">85%</div><div class="l">Recovery</div></div>
+        </div>
+      </div>
+
+      <div class="inner-tabs p2-tabs">
+        <div class="inner-tab active" onclick="p2Tab('mine',this)">My Progress</div>
+        <div class="inner-tab" onclick="p2Tab('club',this)">Club</div>
+      </div>
+
+      <div class="p2-body">
+        <div id="p2-mine-panel" class="tab-panel active">
+          <div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:8px;">Monthly Habit Rate</div>
+          <div class="p2-month-scroll" id="p2MonthRow"></div>
+
+          <div class="p2-qual-card">
+            <div class="p2-qt-head">
+              <div class="p2-qt-lbl">Qualification — Rolling Avg</div>
+              <div class="p2-qt-val">14.2 pg/day</div>
+            </div>
+            <div class="p2-qt-bar">
+              <div class="p2-qt-fill" id="p2QFill" style="width:0%;"></div>
+              <div class="p2-qt-marker" style="left:50%;"></div>
+            </div>
+            <div class="p2-qt-labels"><span>0</span><span style="color:#e67e22;">10 pg/day</span><span>20+</span></div>
+          </div>
+
+          <div class="p2-score-card">
+            <div class="p2-sc-title">Habit Score Breakdown</div>
+            <div class="p2-sc-row"><div class="p2-sc-lbl">Weeks Hit (34 × 10)</div><div class="p2-sc-val" style="color:#5effc2;">+340</div></div>
+            <div class="p2-sc-row"><div class="p2-sc-lbl">Early Weeks Hit (9 × 10)</div><div class="p2-sc-val" style="color:#EF9F27;">+90</div></div>
+            <div class="p2-sc-row"><div class="p2-sc-lbl">Recovery Rate (0.85 × 50)</div><div class="p2-sc-val" style="color:#A984BA;">+42</div></div>
+            <div class="p2-sc-row"><div class="p2-sc-lbl">Max Gap Penalty (2 × 5)</div><div class="p2-sc-val" style="color:#e74c3c;">−10</div></div>
+            <div class="p2-sc-row" style="margin-top:4px;"><div class="p2-sc-lbl" style="color:rgba(255,255,255,.6);font-weight:700;">Total</div><div class="p2-sc-val" style="color:#fff;font-size:1rem;">462</div></div>
+          </div>
+        </div>
+
+        <div id="p2-club-panel" class="tab-panel">
+          <div id="p2ClubContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav" style="background:#0a0020;border-top-color:#1a1a3a;">
+      <div class="bnav-item"><i class="fa-solid fa-house" style="color:#2a2a5a;"></i><span style="color:#2a2a5a;">Home</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-book-open" style="color:#2a2a5a;"></i><span style="color:#2a2a5a;">Library</span></div>
+      <div class="bnav-item active" style="--ten-col:#A984BA;"><i class="fa-solid fa-user" style="color:#A984BA;"></i><span style="color:#A984BA;">Me</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-users" style="color:#2a2a5a;"></i><span style="color:#2a2a5a;">Club</span></div>
+    </div>
+  </div>
+
+
+  <!-- ═══ OPTION 3 — DISCIPLINE ENGINE ═══ -->
+  <div class="phone-frame" id="phone2" style="display:none;">
+    <div class="phone-statusbar p3-sb">
+      <span style="color:#aaa;">9:41</span>
+      <span style="color:#444;">●●●●  ▲  🔋</span>
+    </div>
+    <div class="app-header p3-ah" style="border-bottom:1px solid #1a1a1a;">
+      <div class="app-logo" style="background:#1a1a1a;color:#5effc2;">A</div>
+      <div class="app-title-txt" style="color:#aaa;font-family:var(--font-body);letter-spacing:3px;font-size:0.7rem;">ARKA</div>
+    </div>
+
+    <div class="view active">
+      <div class="p3-hero">
+        <svg class="p3-gear" viewBox="0 0 100 100" fill="none">
+          <path d="M50 10 L55 2 L60 10 L68 6 L66 16 L76 14 L74 24 L84 26 L80 35 L90 40 L83 48 L90 56 L80 60 L82 70 L72 70 L70 80 L60 77 L55 86 L50 78 L45 86 L40 77 L30 80 L28 70 L18 70 L20 60 L10 56 L17 48 L10 40 L20 35 L16 26 L26 24 L24 14 L34 16 L32 6 L40 10 Z" stroke="#5effc2" stroke-width="2"/>
+          <circle cx="50" cy="48" r="18" stroke="#5effc2" stroke-width="2"/>
+          <circle cx="50" cy="48" r="7" stroke="#5effc2" stroke-width="2"/>
+        </svg>
+        <div class="p3-toprow">
+          <button class="p3-back"><i class="fa-solid fa-chevron-left"></i></button>
+          <div class="p3-title">10 Pages / Day</div>
+          <div class="p3-engine-status run"><div class="p3-sled run"></div>Running</div>
+        </div>
+        <div class="p3-main">
+          <div class="p3-gauge-wrap">
+            <canvas id="p3Gauge" width="150" height="105"></canvas>
+            <div class="p3-gauge-center">
+              <div class="p3-gauge-num">431</div>
+              <div class="p3-gauge-lbl">Habit Score</div>
+            </div>
+          </div>
+          <div class="p3-instruments">
+            <div class="p3-inst g"><div class="v">34</div><div class="lb">Wks Hit</div></div>
+            <div class="p3-inst gold"><div class="v">9</div><div class="lb">Early Wks</div></div>
+            <div class="p3-inst r"><div class="v">2</div><div class="lb">Max Gap</div></div>
+            <div class="p3-inst p"><div class="v">85%</div><div class="lb">Recovery</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fuel cells -->
+      <div class="p3-fuel">
+        <div class="p3-fuel-head">
+          <div class="p3-fuel-title">52 Week Output Log</div>
+          <div class="p3-fuel-count" id="p3FuelCount">34 / 52 charged</div>
+        </div>
+        <div class="p3-fuel-grid" id="p3Grid"></div>
+        <div class="p3-fuel-legend">
+          <div class="p3-leg"><div class="p3-leg-dot" style="background:#5effc2;"></div>Hit</div>
+          <div class="p3-leg"><div class="p3-leg-dot" style="background:#534AB7;"></div>Partial</div>
+          <div class="p3-leg"><div class="p3-leg-dot" style="background:#1a1a1a;border:1px solid #222;"></div>Miss</div>
+          <div class="p3-leg"><div class="p3-leg-dot" style="background:#111;border-bottom:2px solid #EF9F27;"></div>Early</div>
+        </div>
+      </div>
+
+      <!-- Readout -->
+      <div class="p3-readout" id="p3Readout">
+        <div class="p3-readout-icon">⚡</div>
+        <div class="p3-readout-txt">Tap any cell to inspect week output</div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="inner-tabs p3-tabs">
+        <div class="inner-tab active" onclick="p3Tab('mine',this)">My Progress</div>
+        <div class="inner-tab" onclick="p3Tab('club',this)">Club</div>
+      </div>
+
+      <div class="p3-body">
+        <div id="p3-mine-panel" class="tab-panel active">
+          <div class="p3-eng-card">
+            <div class="p3-eng-top">
+              <div><div class="p3-eng-lbl">Rolling Avg Output</div><div style="font-size:0.45rem;color:#2a2a2a;margin-top:2px;">Total pages ÷ days enrolled</div></div>
+              <div style="text-align:right;"><div class="p3-eng-val">14.2 <span style="font-size:0.58rem;font-weight:400;color:#444;">pg/day</span></div><div class="p3-eng-sub">↑ above threshold</div></div>
+            </div>
+            <div class="p3-eng-track">
+              <div class="p3-eng-fill" id="p3EFill" style="width:0%;background:linear-gradient(90deg,#534AB7,#5effc2);"></div>
+              <div class="p3-eng-thresh" style="left:50%;"></div>
+            </div>
+            <div class="p3-eng-foot">
+              <div class="p3-eng-note">Threshold: 10 pg/day</div>
+              <div class="p3-eng-note ok">✓ Qualified</div>
+            </div>
+          </div>
+
+          <div class="p3-eng-card">
+            <div class="p3-eng-top"><div><div class="p3-eng-lbl">Score Computation Log</div></div></div>
+            <div style="padding:10px 12px;">
+              <div class="p3-log-row"><div class="p3-log-lbl">+ weeksHit (34 × 10)</div><div class="p3-log-val" style="color:#5effc2;">+340</div></div>
+              <div class="p3-log-row"><div class="p3-log-lbl">+ earlyWeeksHit (9 × 10)</div><div class="p3-log-val" style="color:#EF9F27;">+90</div></div>
+              <div class="p3-log-row"><div class="p3-log-lbl">+ recoveryRate (0.85 × 50)</div><div class="p3-log-val" style="color:#A984BA;">+42</div></div>
+              <div class="p3-log-row"><div class="p3-log-lbl">− maxGap (2 × 5)</div><div class="p3-log-val" style="color:#e74c3c;">−10</div></div>
+              <div class="p3-log-row" style="padding-top:8px;border-top:1px solid #1a1a1a;"><div class="p3-log-lbl" style="color:#888;font-weight:700;">HABIT SCORE</div><div class="p3-log-val" style="color:#5effc2;font-size:0.9rem;">462</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="p3-club-panel" class="tab-panel">
+          <div id="p3ClubContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav" style="background:#080808;border-top-color:#1a1a1a;">
+      <div class="bnav-item"><i class="fa-solid fa-house" style="color:#222;"></i><span style="color:#222;">Home</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-book-open" style="color:#222;"></i><span style="color:#222;">Library</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-user" style="color:#5effc2;"></i><span style="color:#5effc2;">Me</span></div>
+      <div class="bnav-item"><i class="fa-solid fa-users" style="color:#222;"></i><span style="color:#222;">Club</span></div>
+    </div>
+  </div>
+
+</div><!-- /phones -->
 
 <script>
-// ── Shared data ──────────────────────────────────────────
+// ── Shared data ──────────────────────────────────────────────────────────
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const NOW_WEEK = 26; // simulated current week (out of 52)
-
-// Simulated week data (0=future, 1=hit, 2=partial, 3=miss)
-// Weeks 1-10 are "early weeks"
-const weekData = [
-  1,1,1,2,1,1,1,1,1,1, // wks 1-10 (early) → 9 hits, 1 partial
-  1,1,3,3,1,1,1,2,1,1, // wks 11-20 → gap of 2 at 13-14
-  1,1,1,1,1,2,          // wks 21-26 (current)
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0  // future
+const NOW_WK = 26;
+// 0=future 1=hit 2=partial 3=miss
+const WK = [
+  1,1,1,2,1,1,1,1,1,1,  // 1-10 early
+  1,1,3,3,1,1,1,2,1,1,  // 11-20
+  1,1,1,1,1,2,           // 21-26
+  ...Array(26).fill(0)
 ];
-const weekPages = [
-  82,74,91,55,78,88,70,95,76,84,
-  80,73,42,38,71,88,95,62,78,82,
-  74,88,91,76,80,58,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-];
+const WK_PG = [82,74,91,55,78,88,70,95,76,84,80,73,42,38,71,88,95,62,78,82,74,88,91,76,80,58,...Array(26).fill(0)];
 
-const clubData = [
-  { name:'Priya S.', score:512, avg:16.4, qualified:true, isMe:false, color:'#534AB7' },
-  { name:'Rahul M.', score:467, avg:15.1, qualified:true, isMe:false, color:'#1D9E75' },
-  { name:'You', score:431, avg:14.2, qualified:true, isMe:true, color:'#A984BA' },
-  { name:'Anika T.', score:398, avg:13.8, qualified:true, isMe:false, color:'#EF9F27' },
-  { name:'Dev K.', score:8.4, avg:8.4, qualified:false, isMe:false, color:'#555', scoreDisplay:'8.4 avg' },
-  { name:'Meera J.', score:7.1, avg:7.1, qualified:false, isMe:false, color:'#555', scoreDisplay:'7.1 avg' },
+const CLUB = [
+  {name:'Priya S.',score:512,avg:16.4,q:true,isMe:false,col:'#534AB7'},
+  {name:'Rahul M.',score:467,avg:15.1,q:true,isMe:false,col:'#1D9E75'},
+  {name:'You',score:431,avg:14.2,q:true,isMe:true,col:'#A984BA'},
+  {name:'Anika T.',score:398,avg:13.8,q:true,isMe:false,col:'#EF9F27'},
+  {name:'Dev K.',score:0,avg:8.4,q:false,isMe:false,col:'#333'},
+  {name:'Meera J.',score:0,avg:7.1,q:false,isMe:false,col:'#333'},
 ];
 
-// ── Nav ──────────────────────────────────────────────────
-function showPanel(idx, btn) {
-  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===idx));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+const MONTH_PG = [320,280,350,310,290,260,0,0,0,0,0,0];
+const MONTH_GOAL = [310,280,310,300,310,300,310,310,300,310,300,310];
+
+// ── Nav ──────────────────────────────────────────────────────────────────
+function showOpt(i, btn) {
+  [0,1,2].forEach(j => {
+    document.getElementById('phone'+j).style.display = j===i?'':'none';
+    document.getElementById('desc'+j).style.display = j===i?'flex':'none';
+  });
+  document.querySelectorAll('.onb').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
 }
 
-// ── Tab helpers ──────────────────────────────────────────
-function switchTab(mineId, clubId, tabEl) {
-  const mine = document.getElementById(mineId);
-  const club = document.getElementById(clubId);
-  const tabs = tabEl.closest('[style*="display:flex"]') || tabEl.parentElement;
-  tabs.querySelectorAll('.shared-tab').forEach(t => t.classList.remove('active'));
-  tabEl.classList.add('active');
-  const isClub = tabEl.textContent.includes('Club');
-  if (mine) mine.classList.toggle('active', !isClub);
-  if (club) club.classList.toggle('active', isClub);
+// ── Tab helpers ──────────────────────────────────────────────────────────
+function switchInnerTab(mineId, clubId, el) {
+  const container = el.closest('.view') || el.closest('.phone-frame');
+  container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  container.querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const isClub = el.textContent.includes('Club');
+  document.getElementById(isClub ? clubId : mineId).classList.add('active');
 }
-function switchP1Tab(which, el) { switchTab('p1-mine','p1-club',el); }
-function switchP2Tab(which, el) { switchTab('p2-mine','p2-club',el); }
-function switchP3Tab(which, el) { switchTab('p3-mine','p3-club',el); }
+function p1Tab(w,el){switchInnerTab('p1-mine-panel','p1-club-panel',el);}
+function p2Tab(w,el){switchInnerTab('p2-mine-panel','p2-club-panel',el);}
+function p3Tab(w,el){switchInnerTab('p3-mine-panel','p3-club-panel',el);}
 
 
-// ══════════════════════════════════════
+// ═══════════════════════════════════════════
 // OPTION 1 — HABIT PULSE
-// ══════════════════════════════════════
+// ═══════════════════════════════════════════
 function initP1() {
   drawP1Ekg();
-  buildP1WeekGrid();
-  buildP1Club();
-  setTimeout(() => {
-    document.getElementById('p1AvgBar').style.width = '71%'; // 14.2/20
-  }, 300);
+  buildP1Grid();
+  buildClub('p1ClubContent', 'dark-green');
+  setTimeout(()=>{ document.getElementById('p1QFill').style.width='71%'; },400);
 }
 
 function drawP1Ekg() {
-  const canvas = document.getElementById('p1EkgCanvas');
-  const W = canvas.offsetWidth || 360;
-  canvas.width = W * window.devicePixelRatio;
-  canvas.height = 90 * window.devicePixelRatio;
+  const canvas = document.getElementById('p1Ekg');
+  const W = canvas.offsetWidth || 348;
+  const H = 80;
+  canvas.width = W * devicePixelRatio;
+  canvas.height = H * devicePixelRatio;
   const ctx = canvas.getContext('2d');
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  const w = W, h = 90;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
 
-  const THRESHOLD = 70;
-  const MAX_PAGES = 100;
-  const pastWeeks = weekData.slice(0, NOW_WEEK);
-  const stepW = w / pastWeeks.length;
+  const past = WK.slice(0, NOW_WK);
+  const step = W / past.length;
+  const THRESH = 70, MAX = 100;
 
-  // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,.04)';
-  ctx.lineWidth = 1;
-  for (let y = 0; y <= h; y += h/4) {
-    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
-  }
+  // Faint grid
+  ctx.strokeStyle='rgba(255,255,255,.04)'; ctx.lineWidth=1;
+  [20,40,60,H-10].forEach(y=>{ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();});
 
   // Threshold line
-  const threshY = h - (THRESHOLD / MAX_PAGES) * (h - 16) - 8;
-  ctx.strokeStyle = 'rgba(231,126,22,.4)';
-  ctx.setLineDash([4,4]); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(0, threshY); ctx.lineTo(w, threshY); ctx.stroke();
+  const ty = H - (THRESH/MAX)*(H-12)-6;
+  ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(231,126,22,.4)'; ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,ty);ctx.lineTo(W,ty);ctx.stroke();
   ctx.setLineDash([]);
 
-  // Threshold label
-  ctx.fillStyle = 'rgba(231,126,22,.7)';
-  ctx.font = '7px Segoe UI';
-  ctx.fillText('70 pg/wk', w - 52, threshY - 3);
+  // Points
+  const pts = past.map((t,i)=>({
+    x: i*step+step/2,
+    y: H-(WK_PG[i]/MAX)*(H-12)-6,
+    t, pg:WK_PG[i]
+  }));
 
-  // Plot EKG
-  const pts = pastWeeks.map((type, i) => {
-    const pages = weekPages[i];
-    const x = i * stepW + stepW/2;
-    const y = h - (pages / MAX_PAGES) * (h - 16) - 8;
-    return { x, y, pages, type };
-  });
+  // Fill gradient
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(94,255,194,.12)'); grad.addColorStop(1,'rgba(94,255,194,0)');
+  ctx.fillStyle=grad;
+  ctx.beginPath(); ctx.moveTo(pts[0].x,H);
+  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,H); ctx.closePath(); ctx.fill();
 
-  // Fill area under curve
-  const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, 'rgba(94,255,194,.15)');
-  grad.addColorStop(1, 'rgba(94,255,194,0)');
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, h);
-  pts.forEach(p => ctx.lineTo(p.x, p.y));
-  ctx.lineTo(pts[pts.length-1].x, h);
-  ctx.closePath(); ctx.fill();
-
-  // Line
-  ctx.lineWidth = 1.5;
-  for (let i = 1; i < pts.length; i++) {
-    const hit = pts[i].type === 1;
-    ctx.strokeStyle = hit ? '#5effc2' : pts[i].type === 2 ? '#534AB7' : 'rgba(255,255,255,.2)';
-    ctx.beginPath();
-    ctx.moveTo(pts[i-1].x, pts[i-1].y);
-    ctx.lineTo(pts[i].x, pts[i].y);
-    ctx.stroke();
+  // Line segments
+  for(let i=1;i<pts.length;i++){
+    ctx.lineWidth=1.5; ctx.lineCap='round';
+    ctx.strokeStyle=pts[i].t===1?'#5effc2':pts[i].t===2?'#534AB7':'rgba(255,255,255,.15)';
+    ctx.beginPath(); ctx.moveTo(pts[i-1].x,pts[i-1].y); ctx.lineTo(pts[i].x,pts[i].y); ctx.stroke();
   }
 
   // Dots
-  pts.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
-    ctx.fillStyle = p.type===1 ? '#5effc2' : p.type===2 ? '#534AB7' : 'rgba(255,255,255,.2)';
-    ctx.fill();
+  pts.forEach(p=>{
+    ctx.beginPath(); ctx.arc(p.x,p.y,1.8,0,Math.PI*2);
+    ctx.fillStyle=p.t===1?'#5effc2':p.t===2?'#534AB7':'rgba(255,255,255,.15)'; ctx.fill();
   });
 
-  // Current week glow dot
-  const last = pts[pts.length-1];
-  ctx.beginPath();
-  ctx.arc(last.x, last.y, 5, 0, Math.PI*2);
-  ctx.fillStyle = 'rgba(94,255,194,.3)';
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(last.x, last.y, 2.5, 0, Math.PI*2);
-  ctx.fillStyle = '#5effc2'; ctx.fill();
+  // Current week glow
+  const last=pts[pts.length-1];
+  ctx.beginPath(); ctx.arc(last.x,last.y,6,0,Math.PI*2);
+  ctx.fillStyle='rgba(94,255,194,.2)'; ctx.fill();
+  ctx.beginPath(); ctx.arc(last.x,last.y,2.5,0,Math.PI*2);
+  ctx.fillStyle='#5effc2'; ctx.fill();
 }
 
-function buildP1WeekGrid() {
-  const grid = document.getElementById('p1WeekGrid');
-  grid.innerHTML = '';
-  weekData.forEach((type, i) => {
-    const div = document.createElement('div');
-    div.className = 'p1-week';
-    if (type === 1) div.classList.add('hit');
-    else if (type === 2) div.classList.add('partial');
-    else if (type === 3) div.classList.add('miss');
-    else div.classList.add('future');
-    if (i < 10) div.classList.add('early');
-    if (i === NOW_WEEK - 1) div.classList.add('current');
-
-    div.addEventListener('click', () => {
-      const tooltip = document.getElementById('p1WeekTooltip');
-      if (type === 0) { tooltip.innerHTML = '<div class="dot" style="background:#333;"></div>Week ' + (i+1) + ' — not yet reached'; return; }
-      const pages = weekPages[i];
-      const hit = type === 1;
-      const col = hit ? '#1D9E75' : type===2 ? '#534AB7' : 'rgba(255,255,255,.2)';
-      const status = hit ? '✓ Hit' : type===2 ? '~ Partial' : '✗ Missed';
-      const earlyNote = i < 10 ? ' · <span style="color:#EF9F27;">Early Week</span>' : '';
-      tooltip.innerHTML = `<div class="dot" style="background:${col};"></div>
-        <div><strong>Week ${i+1}</strong> ${earlyNote}<br>
-        <span style="color:${col}">${status}</span> · ${pages} pages logged</div>`;
+function buildP1Grid() {
+  const grid = document.getElementById('p1Grid');
+  WK.forEach((t,i)=>{
+    const d = document.createElement('div');
+    d.className='p1-wk'+(t===1?' hit':t===2?' partial':t===3?' miss':' future')+(i<10?' early':'')+(i===NOW_WK-1?' now':'');
+    d.addEventListener('click',()=>{
+      const tip = document.getElementById('p1Tip');
+      if(t===0){tip.innerHTML='<div class="p1-tt-dot" style="background:#1a2a1a;"></div>Week '+(i+1)+' — not yet reached';return;}
+      const col=t===1?'#1D9E75':t===2?'#534AB7':'rgba(255,255,255,.15)';
+      const st=t===1?'✓ Hit':t===2?'~ Partial':'✗ Missed';
+      const eg=i<10?'<span style="color:#EF9F27;"> · early week</span>':'';
+      tip.innerHTML=`<div class="p1-tt-dot" style="background:${col};"></div><div><strong>Week ${i+1}${eg}</strong><br><span style="color:${col};">${st}</span> · ${WK_PG[i]} pages`;
     });
-    grid.appendChild(div);
+    grid.appendChild(d);
   });
 }
 
-function buildP1Club() {
-  const el = document.getElementById('p1ClubContent');
-  const qualified = clubData.filter(m => m.qualified);
-  const notq = clubData.filter(m => !m.qualified);
 
-  let html = '<div style="background:rgba(94,255,194,.06);border:1px solid rgba(94,255,194,.15);border-radius:10px;padding:10px 14px;margin-bottom:12px;">';
-  html += '<div style="font-size:0.55rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(94,255,194,.6);margin-bottom:8px;">Qualified — Habit Score Ranked</div>';
-  qualified.forEach((m, i) => {
-    const rank = i+1;
-    const med = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
-    html += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);${m.isMe?'background:rgba(83,74,183,.15);border-radius:6px;padding:8px;margin:2px -8px;':''}">
-      <div style="width:20px;font-size:0.75rem;font-weight:700;color:rgba(255,255,255,.3);">${med}</div>
-      <div style="width:28px;height:28px;border-radius:50%;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;flex-shrink:0;">${m.name[0]}</div>
-      <div style="flex:1;font-size:0.78rem;${m.isMe?'font-weight:700;color:#A984BA;':''}"> ${m.name}${m.isMe?' (you)':''}</div>
-      <div style="text-align:right;">
-        <div style="font-size:0.85rem;font-weight:700;color:${m.isMe?'#A984BA':'#5effc2'};">${m.score}</div>
-        <div style="font-size:0.48rem;color:rgba(255,255,255,.3);">${m.avg} pg/day</div>
-      </div>
-    </div>`;
-  });
-  html += '</div>';
-
-  if (notq.length) {
-    html += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 14px;">';
-    html += '<div style="font-size:0.55rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:8px;">Not Yet Qualified — ranked by avg pg/day</div>';
-    notq.forEach(m => {
-      const gap = (10 - m.avg).toFixed(1);
-      html += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">
-        <div style="width:28px;height:28px;border-radius:50%;background:#2a2a2a;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#666;flex-shrink:0;">${m.name[0]}</div>
-        <div style="flex:1;font-size:0.78rem;color:rgba(255,255,255,.5);">${m.name}</div>
-        <div style="text-align:right;">
-          <div style="font-size:0.8rem;color:#e67e22;">${m.avg} pg/day</div>
-          <div style="font-size:0.48rem;color:rgba(255,255,255,.25);">need +${gap} to qualify</div>
-        </div>
-      </div>`;
-    });
-    html += '</div>';
-  }
-  el.innerHTML = html;
-}
-
-
-// ══════════════════════════════════════
+// ═══════════════════════════════════════════
 // OPTION 2 — CONSTELLATION
-// ══════════════════════════════════════
+// ═══════════════════════════════════════════
 function initP2() {
-  drawP2Constellation();
+  drawConstellation();
   buildP2Months();
-  buildP2ScoreBreakdown();
-  buildP2Club();
-  setTimeout(() => {
-    document.getElementById('p2QualFill').style.width = '71%';
-  }, 400);
+  buildClub('p2ClubContent','dark-purple');
+  setTimeout(()=>{ document.getElementById('p2QFill').style.width='71%'; },400);
 }
 
-function drawP2Constellation() {
+function drawConstellation() {
   const canvas = document.getElementById('p2Canvas');
-  const SIZE = 300;
-  canvas.width = SIZE * window.devicePixelRatio;
-  canvas.height = SIZE * window.devicePixelRatio;
+  const S = 280;
+  canvas.width = S * devicePixelRatio;
+  canvas.height = S * devicePixelRatio;
   const ctx = canvas.getContext('2d');
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  const cx = SIZE/2, cy = SIZE/2;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  const cx=S/2, cy=S/2;
 
-  // Background circles
-  [120,90,60,30].forEach(r => {
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI*2);
-    ctx.strokeStyle = 'rgba(255,255,255,.05)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+  // Background rings
+  [110,82,56,30].forEach(r=>{
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,255,255,.04)'; ctx.lineWidth=1; ctx.stroke();
   });
 
-  // Cross hairs
-  ctx.strokeStyle = 'rgba(255,255,255,.03)';
-  ctx.beginPath(); ctx.moveTo(cx,10); ctx.lineTo(cx,SIZE-10); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(10,cy); ctx.lineTo(SIZE-10,cy); ctx.stroke();
+  // Ring assignments: 0-11=ring1(r=30), 12-25=ring2(r=56), 26-38=ring3(r=82), 39-51=ring4(r=110)
+  const rings=[
+    {start:0,end:12,r:30,total:12},
+    {start:12,end:26,r:56,total:14},
+    {start:26,end:39,r:82,total:13},
+    {start:39,end:52,r:110,total:13}
+  ];
 
-  // Place 52 weeks in a spiral from inside out
-  const pastWeeks = weekData.slice(0, NOW_WEEK);
-  const totalWeeks = 52;
+  function getPos(i) {
+    let ring=rings.find(r=>i>=r.start&&i<r.end)||rings[3];
+    const idx=i-ring.start;
+    const a=(idx/ring.total)*Math.PI*2-Math.PI/2;
+    return {x:cx+ring.r*Math.cos(a),y:cy+ring.r*Math.sin(a),ring};
+  }
 
-  for (let i = 0; i < totalWeeks; i++) {
-    const type = weekData[i];
-    const pages = weekPages[i];
-    // Arrange in rings: ring 1 = wks 1-12, ring 2 = 13-26, ring 3 = 27-39, ring 4 = 40-52
-    let ring, indexInRing, ringTotal;
-    if (i < 12) { ring=1; indexInRing=i; ringTotal=12; }
-    else if (i < 26) { ring=2; indexInRing=i-12; ringTotal=14; }
-    else if (i < 39) { ring=3; indexInRing=i-26; ringTotal=13; }
-    else { ring=4; indexInRing=i-39; ringTotal=13; }
-
-    const radius = ring * 30;
-    const angle = (indexInRing / ringTotal) * Math.PI * 2 - Math.PI/2;
-    const x = cx + radius * Math.cos(angle);
-    const y = cy + radius * Math.sin(angle);
-
-    const size = type===1 ? 5 : type===2 ? 3.5 : type===3 ? 2.5 : 1.5;
-    const opacity = type===1 ? 1 : type===2 ? 0.6 : type===3 ? 0.2 : 0.08;
-
-    // Glow for hit weeks
-    if (type === 1) {
-      ctx.beginPath();
-      ctx.arc(x, y, size+3, 0, Math.PI*2);
-      ctx.fillStyle = i < 10 ? 'rgba(239,159,39,.15)' : 'rgba(94,255,194,.1)';
-      ctx.fill();
-    }
-
-    // Early weeks golden ring
-    if (i < 10 && type !== 0) {
-      ctx.beginPath();
-      ctx.arc(x, y, size+1.5, 0, Math.PI*2);
-      ctx.strokeStyle = 'rgba(239,159,39,.6)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-
-    // Main dot
-    ctx.beginPath();
-    ctx.arc(x, y, size, 0, Math.PI*2);
-    let col;
-    if (type===1) col = i<10 ? `rgba(239,159,39,${opacity})` : `rgba(94,255,194,${opacity})`;
-    else if (type===2) col = `rgba(83,74,183,${opacity})`;
-    else if (type===3) col = `rgba(255,255,255,${opacity})`;
-    else col = `rgba(255,255,255,${opacity})`;
-    ctx.fillStyle = col;
-    ctx.fill();
-
-    // Connect consecutive hit weeks with faint lines
-    if (i > 0 && type===1 && weekData[i-1]===1 && i < NOW_WEEK) {
-      // find prev position
-      let pr, pri, prt;
-      if (i-1 < 12) { pr=1; pri=i-1; prt=12; }
-      else if (i-1 < 26) { pr=2; pri=i-1-12; prt=14; }
-      else if (i-1 < 39) { pr=3; pri=i-1-26; prt=13; }
-      else { pr=4; pri=i-1-39; prt=13; }
-      const pr2 = pr * 30;
-      const pa = (pri/prt)*Math.PI*2 - Math.PI/2;
-      const px = cx + pr2*Math.cos(pa);
-      const py = cy + pr2*Math.sin(pa);
-      ctx.beginPath();
-      ctx.moveTo(px, py); ctx.lineTo(x, y);
-      ctx.strokeStyle = 'rgba(94,255,194,.12)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+  // Draw connection lines between consecutive hit weeks first
+  for(let i=1;i<NOW_WK;i++){
+    if(WK[i]===1&&WK[i-1]===1){
+      const a=getPos(i), b=getPos(i-1);
+      ctx.beginPath(); ctx.moveTo(b.x,b.y); ctx.lineTo(a.x,a.y);
+      ctx.strokeStyle='rgba(94,255,194,.1)'; ctx.lineWidth=1; ctx.stroke();
     }
   }
 
-  // Current week pulsing indicator
-  if (NOW_WEEK <= 52) {
-    const i = NOW_WEEK - 1;
-    let ring, indexInRing, ringTotal;
-    if (i < 12) { ring=1; indexInRing=i; ringTotal=12; }
-    else if (i < 26) { ring=2; indexInRing=i-12; ringTotal=14; }
-    else if (i < 39) { ring=3; indexInRing=i-26; ringTotal=13; }
-    else { ring=4; indexInRing=i-39; ringTotal=13; }
-    const radius = ring * 30;
-    const angle = (indexInRing / ringTotal) * Math.PI * 2 - Math.PI/2;
-    const x = cx + radius * Math.cos(angle);
-    const y = cy + radius * Math.sin(angle);
-    ctx.beginPath();
-    ctx.arc(x, y, 8, 0, Math.PI*2);
-    ctx.strokeStyle = 'rgba(94,255,194,.4)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+  // Draw dots
+  for(let i=0;i<52;i++){
+    const t=WK[i];
+    if(t===0&&i>=NOW_WK) {
+      // future — tiny dim dot
+      const {x,y}=getPos(i);
+      ctx.beginPath(); ctx.arc(x,y,1,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,.05)'; ctx.fill();
+      continue;
+    }
+    const {x,y}=getPos(i);
+    const isEarly=i<10;
+    const sz=t===1?5:t===2?3.5:t===3?2.5:1.5;
+
+    if(t===1){
+      ctx.beginPath(); ctx.arc(x,y,sz+4,0,Math.PI*2);
+      ctx.fillStyle=isEarly?'rgba(239,159,39,.12)':'rgba(94,255,194,.1)'; ctx.fill();
+    }
+    if(isEarly&&t!==0){
+      ctx.beginPath(); ctx.arc(x,y,sz+1.5,0,Math.PI*2);
+      ctx.strokeStyle='rgba(239,159,39,.5)'; ctx.lineWidth=1; ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(x,y,sz,0,Math.PI*2);
+    const op=t===1?1:t===2?.6:t===3?.2:.3;
+    ctx.fillStyle=t===1?(isEarly?`rgba(239,159,39,${op})`:`rgba(94,255,194,${op})`):
+                  t===2?`rgba(83,74,183,${op})`:`rgba(255,255,255,${op})`;
+    ctx.fill();
+  }
+
+  // Current week ring
+  if(NOW_WK<=52){
+    const {x,y}=getPos(NOW_WK-1);
+    ctx.beginPath(); ctx.arc(x,y,9,0,Math.PI*2);
+    ctx.strokeStyle='rgba(94,255,194,.35)'; ctx.lineWidth=1.5; ctx.stroke();
   }
 }
 
 function buildP2Months() {
-  const monthPages = [320, 280, 350, 310, 290, 260, 0,0,0,0,0,0];
-  const monthGoals = [310,280,310,300,310,300,310,310,300,310,300,310];
   const row = document.getElementById('p2MonthRow');
-  MONTHS.forEach((m, i) => {
+  MONTHS.forEach((m,i)=>{
+    const pct = MONTH_GOAL[i]>0?Math.min(100,(MONTH_PG[i]/MONTH_GOAL[i])*100):0;
+    const future = MONTH_PG[i]===0&&i>=6;
+    const col = pct>=90?'#5effc2':pct>=60?'#A984BA':'#e67e22';
+    const cls = future?'future':pct>=90?'great':pct>=60?'good':pct>0?'low':'';
+
     const card = document.createElement('div');
-    const pct = monthGoals[i] > 0 ? Math.min(100, (monthPages[i]/monthGoals[i])*100) : 0;
-    const isFuture = monthPages[i] === 0 && i >= 6;
-    card.className = 'p2-month-card' + (isFuture ? ' future' : pct>=90?' great':pct>=60?' good':pct>0?' low':'');
-
-    const col = pct>=90?'#5effc2':pct>=60?'#534AB7':'#e67e22';
-
-    card.innerHTML = `
-      <div class="p2-month-name">${m}</div>
-      <div class="p2-month-ring">
-        <canvas width="32" height="32" data-pct="${pct}" data-col="${col}"></canvas>
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.55rem;font-weight:700;color:${isFuture?'#333':col};">${isFuture?'—':Math.round(pct)+'%'}</div>
+    card.className='p2-mc '+cls;
+    card.innerHTML=`
+      <div class="p2-mc-name">${m}</div>
+      <div class="p2-ring-wrap">
+        <canvas width="30" height="30"></canvas>
+        <div class="p2-ring-pct" style="color:${future?'#333':col};">${future?'—':Math.round(pct)+'%'}</div>
       </div>
-      <div style="font-size:0.55rem;color:rgba(255,255,255,.3);">${isFuture?'—':monthPages[i]+' pg'}</div>
-    `;
-
-    card.addEventListener('click', () => {
-      if (isFuture) return;
-      const detail = document.querySelector('.p2-qual-title');
-    });
-
+      <div style="font-size:0.5rem;color:rgba(255,255,255,.25);">${future?'—':MONTH_PG[i]+' pg'}</div>`;
     row.appendChild(card);
 
-    // Draw ring
-    if (!isFuture) {
-      const c = card.querySelector('canvas');
-      const ctx = c.getContext('2d');
-      ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
-      const cx=16,cy=16,r=13;
-      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
-      ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=3; ctx.stroke();
-      const start = -Math.PI/2;
-      const end = start + (pct/100)*Math.PI*2;
-      ctx.beginPath(); ctx.arc(cx,cy,r,start,end);
-      ctx.strokeStyle=col; ctx.lineWidth=3;
-      ctx.lineCap='round'; ctx.stroke();
+    if(!future){
+      const c=card.querySelector('canvas');
+      const ctx2=c.getContext('2d');
+      const r=11,px=15,py=15;
+      ctx2.beginPath();ctx2.arc(px,py,r,0,Math.PI*2);
+      ctx2.strokeStyle='rgba(255,255,255,.07)';ctx2.lineWidth=3;ctx2.stroke();
+      const e=-Math.PI/2+(pct/100)*Math.PI*2;
+      ctx2.beginPath();ctx2.arc(px,py,r,-Math.PI/2,e);
+      ctx2.strokeStyle=col;ctx2.lineWidth=3;ctx2.lineCap='round';ctx2.stroke();
     }
   });
 }
 
-function buildP2ScoreBreakdown() {
-  const items = [
-    { label:'Weeks Hit (34 × 10)', value:'+340', color:'#5effc2', pct:340 },
-    { label:'Early Weeks Hit (9 × 10)', value:'+90', color:'#EF9F27', pct:90 },
-    { label:'Recovery Rate (0.85 × 50)', value:'+42', color:'#A984BA', pct:42 },
-    { label:'Max Gap Penalty (2 × 5)', value:'−10', color:'#e74c3c', pct:-10, neg:true },
-  ];
-  const el = document.getElementById('p2ScoreBreakdown');
-  let html = '';
-  items.forEach(it => {
-    html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);">
-      <div style="flex:1;font-size:0.7rem;color:rgba(255,255,255,.5);">${it.label}</div>
-      <div style="font-size:0.85rem;font-weight:700;color:${it.color};">${it.value}</div>
-    </div>`;
-  });
-  html += `<div style="display:flex;justify-content:space-between;padding:10px 0 0;border-top:1px solid rgba(255,255,255,.08);margin-top:4px;">
-    <div style="font-size:0.7rem;color:rgba(255,255,255,.5);font-weight:600;">Habit Score</div>
-    <div style="font-size:1rem;font-weight:800;color:#fff;">462</div>
-  </div>`;
-  el.innerHTML = html;
-}
 
-function buildP2Club() {
-  const el = document.getElementById('p2ClubContent');
-  let html = `<div style="font-size:0.55rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:10px;">Qualified Members — Habit Score Ranked</div>`;
-  const qualified = clubData.filter(m=>m.qualified);
-  const notq = clubData.filter(m=>!m.qualified);
-  qualified.forEach((m,i) => {
-    const rank=i+1, med=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
-    html+=`<div class="p2-lb-row${m.isMe?' me':''}">
-      <div class="p2-lb-rank">${med}</div>
-      <div class="p2-lb-avatar" style="background:${m.color};">${m.name[0]}</div>
-      <div style="flex:1;">
-        <div class="p2-lb-name" style="${m.isMe?'color:#A984BA;font-weight:700;':''}">${m.name}${m.isMe?' (you)':''}</div>
-        <div class="p2-lb-q">${m.avg} pg/day avg</div>
-      </div>
-      <div style="text-align:right;"><div class="p2-lb-score" style="color:${m.isMe?'#A984BA':'#fff'};">${m.score}</div><div class="p2-lb-q">habit score</div></div>
-    </div>`;
-  });
-  if(notq.length){
-    html+=`<div style="margin-top:14px;font-size:0.55rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.15);margin-bottom:8px;">Not Yet Qualified</div>`;
-    notq.forEach(m=>{
-      html+=`<div class="p2-lb-row">
-        <div class="p2-lb-rank" style="color:#333;">—</div>
-        <div class="p2-lb-avatar" style="background:#1a1a1a;color:#444;">${m.name[0]}</div>
-        <div style="flex:1;"><div class="p2-lb-name" style="color:rgba(255,255,255,.3);">${m.name}</div><div class="p2-lb-q">${m.avg} pg/day</div></div>
-        <div style="text-align:right;"><div style="font-size:0.65rem;color:#e67e22;">Need ${(10-m.avg).toFixed(1)} more</div></div>
-      </div>`;
-    });
-  }
-  el.innerHTML = html;
-}
-
-
-// ══════════════════════════════════════
+// ═══════════════════════════════════════════
 // OPTION 3 — DISCIPLINE ENGINE
-// ══════════════════════════════════════
+// ═══════════════════════════════════════════
 function initP3() {
   drawP3Gauge();
-  buildP3FuelGrid();
-  buildP3ScoreLog();
-  buildP3Club();
-  setTimeout(() => {
-    document.getElementById('p3EngineFill').style.width = '71%';
-  }, 400);
+  buildP3Grid();
+  buildClub('p3ClubContent','dark-engine');
+  setTimeout(()=>{ document.getElementById('p3EFill').style.width='71%'; },400);
 }
 
 function drawP3Gauge() {
-  const canvas = document.getElementById('p3GaugeCanvas');
-  const W=160, H=110;
-  canvas.width = W * window.devicePixelRatio;
-  canvas.height = H * window.devicePixelRatio;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  const cx=W/2, cy=H-18, r=55;
+  const canvas=document.getElementById('p3Gauge');
+  const W=150,H=105;
+  canvas.width=W*devicePixelRatio; canvas.height=H*devicePixelRatio;
+  const ctx=canvas.getContext('2d');
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  const cx=W/2,cy=H-16,r=52;
+  const sA=Math.PI*1.1,eA=Math.PI*1.9;
+  const score=431,max=670;
+  const scoreA=sA+(score/max)*(eA-sA);
 
-  const startA = Math.PI * 1.1;
-  const endA = Math.PI * 1.9;
-  const score = 431;
-  const maxScore = 670;
-  const scoreA = startA + (score/maxScore) * (endA - startA);
+  ctx.beginPath();ctx.arc(cx,cy,r,sA,eA);
+  ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=9;ctx.lineCap='round';ctx.stroke();
 
-  // Background arc
-  ctx.beginPath(); ctx.arc(cx, cy, r, startA, endA);
-  ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
+  const g=ctx.createLinearGradient(cx-r,cy,cx+r,cy);
+  g.addColorStop(0,'#534AB7');g.addColorStop(.5,'#A984BA');g.addColorStop(1,'#5effc2');
+  ctx.beginPath();ctx.arc(cx,cy,r,sA,scoreA);
+  ctx.strokeStyle=g;ctx.lineWidth=9;ctx.lineCap='round';ctx.stroke();
 
-  // Colored arc
-  const grad = ctx.createLinearGradient(cx-r,cy,cx+r,cy);
-  grad.addColorStop(0,'#534AB7');
-  grad.addColorStop(0.5,'#A984BA');
-  grad.addColorStop(1,'#5effc2');
-  ctx.beginPath(); ctx.arc(cx, cy, r, startA, scoreA);
-  ctx.strokeStyle=grad; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
-
-  // Tick marks
   for(let t=0;t<=10;t++){
-    const a = startA + (t/10)*(endA-startA);
-    const inner = t%5===0 ? r-16 : r-10;
-    ctx.beginPath();
-    ctx.moveTo(cx+Math.cos(a)*(r+2), cy+Math.sin(a)*(r+2));
-    ctx.lineTo(cx+Math.cos(a)*inner, cy+Math.sin(a)*inner);
-    ctx.strokeStyle=t%5===0?'rgba(255,255,255,.3)':'rgba(255,255,255,.1)';
-    ctx.lineWidth=t%5===0?1.5:1; ctx.stroke();
+    const a=sA+(t/10)*(eA-sA);
+    const inn=t%5===0?r-14:r-9;
+    ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*(r+2),cy+Math.sin(a)*(r+2));
+    ctx.lineTo(cx+Math.cos(a)*inn,cy+Math.sin(a)*inn);
+    ctx.strokeStyle=t%5===0?'rgba(255,255,255,.25)':'rgba(255,255,255,.08)';
+    ctx.lineWidth=t%5===0?1.5:1;ctx.stroke();
   }
 
-  // Needle
-  const needleA = scoreA;
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(cx+Math.cos(needleA)*(r-18), cy+Math.sin(needleA)*(r-18));
-  ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.stroke();
-
-  // Center dot
-  ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2);
-  ctx.fillStyle='#fff'; ctx.fill();
-
-  // Labels
-  ctx.fillStyle='rgba(255,255,255,.25)';
-  ctx.font='7px Segoe UI';
-  ctx.textAlign='center';
-  ctx.fillText('0', cx + Math.cos(startA)*( r+12), cy + Math.sin(startA)*(r+12)+4);
-  ctx.fillText('670', cx + Math.cos(endA)*(r+14), cy + Math.sin(endA)*(r+14)+4);
+  ctx.beginPath();ctx.moveTo(cx,cy);
+  ctx.lineTo(cx+Math.cos(scoreA)*(r-16),cy+Math.sin(scoreA)*(r-16));
+  ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.lineCap='round';ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,3.5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
 }
 
-function buildP3FuelGrid() {
-  const grid = document.getElementById('p3FuelGrid');
-  grid.innerHTML = '';
-  weekData.forEach((type, i) => {
-    const cell = document.createElement('div');
-    cell.className = 'p3-fuel-cell';
-    if (type===1) cell.classList.add('hit');
-    else if (type===2) cell.classList.add('partial');
-    else if (type===3) cell.classList.add('miss');
-    else cell.classList.add('future');
-    if (i < 10) cell.classList.add('early');
-
-    cell.addEventListener('click', () => {
-      const readout = document.getElementById('p3Readout');
-      if (type===0) {
-        readout.innerHTML = '<div class="p3-readout-icon">⏳</div><div class="p3-readout-text">Week ' + (i+1) + ' — not yet reached</div>';
-        return;
-      }
-      const pages = weekPages[i];
-      const icons = {1:'⚡',2:'◐',3:'✗'};
-      const descs = {
-        1: `<strong>Week ${i+1}${i<10?' <span style="color:#EF9F27;">(early week)</span>':''}:</strong> ${pages} pages · Hit ≥70 · Fully charged`,
-        2: `<strong>Week ${i+1}:</strong> ${pages} pages · Partial output (below 70 pg threshold)`,
-        3: `<strong>Week ${i+1}:</strong> ${pages} pages · Cell depleted — gap recorded`
-      };
-      readout.innerHTML = `<div class="p3-readout-icon">${icons[type]||'○'}</div><div class="p3-readout-text">${descs[type]||''}</div>`;
+function buildP3Grid() {
+  const grid=document.getElementById('p3Grid');
+  WK.forEach((t,i)=>{
+    const cell=document.createElement('div');
+    cell.className='p3-cell'+(t===1?' hit':t===2?' partial':t===3?' miss':' future')+(i<10?' early':'');
+    cell.addEventListener('click',()=>{
+      const r=document.getElementById('p3Readout');
+      if(t===0){r.innerHTML='<div class="p3-readout-icon">⏳</div><div class="p3-readout-txt">Week '+(i+1)+' — not yet reached</div>';return;}
+      const ico={1:'⚡',2:'◐',3:'✗'}[t];
+      const pg=WK_PG[i];
+      const eg=i<10?' <span style="color:#EF9F27;">(early)</span>':'';
+      const msg={
+        1:`<strong>Wk ${i+1}${eg}:</strong> ${pg} pg · ≥70 threshold met · Cell charged`,
+        2:`<strong>Wk ${i+1}:</strong> ${pg} pg · Below 70 pg threshold · Partial charge`,
+        3:`<strong>Wk ${i+1}:</strong> ${pg} pg · Cell depleted · Gap recorded`
+      }[t];
+      r.innerHTML=`<div class="p3-readout-icon">${ico}</div><div class="p3-readout-txt">${msg}</div>`;
     });
     grid.appendChild(cell);
   });
 }
 
-function buildP3ScoreLog() {
-  const el = document.getElementById('p3ScoreLog');
-  const rows = [
-    { op:'+', label:'weeksHit', val:34, mult:10, result:340, color:'#5effc2' },
-    { op:'+', label:'earlyWeeksHit', val:9, mult:10, result:90, color:'#EF9F27' },
-    { op:'+', label:'recoveryRate × 50', val:'0.85', mult:50, result:42, color:'#A984BA' },
-    { op:'−', label:'maxGap × 5', val:2, mult:5, result:10, color:'#e74c3c' },
-  ];
-  let html = `<div style="font-family:monospace;font-size:0.68rem;">`;
-  rows.forEach(r => {
-    html+=`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a1a1a;color:#555;">
-      <div><span style="color:${r.color};">${r.op}</span> ${r.label}</div>
-      <div style="color:${r.color};">${r.op==='+'?'+':'−'}${r.result}</div>
-    </div>`;
-  });
-  html += `<div style="display:flex;justify-content:space-between;padding:8px 0 0;color:#fff;">
-    <div style="font-weight:700;">HABIT SCORE</div>
-    <div style="font-weight:900;color:#5effc2;font-size:0.9rem;">462</div>
-  </div></div>`;
-  el.innerHTML = html;
-}
 
-function buildP3Club() {
-  const el = document.getElementById('p3ClubContent');
-  let html = `<div style="font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;color:#333;margin-bottom:10px;">Engine Output Rankings</div>`;
-  const qualified = clubData.filter(m=>m.qualified);
-  const notq = clubData.filter(m=>!m.qualified);
-  qualified.forEach((m,i)=>{
-    const rank=i+1, med=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'#'+rank;
-    const barW = Math.round((m.score/512)*100);
-    html+=`<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #111;${m.isMe?'background:#111;border-radius:6px;padding:9px 8px;margin:2px -8px;border:none;':''}">
-      <div style="width:22px;font-size:0.75rem;color:#444;">${med}</div>
-      <div style="width:26px;height:26px;border-radius:50%;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#000;flex-shrink:0;">${m.name[0]}</div>
+// ═══════════════════════════════════════════
+// SHARED CLUB BUILDER
+// ═══════════════════════════════════════════
+function buildClub(elId, theme) {
+  const el=document.getElementById(elId);
+  const dark=theme==='dark-engine';
+  const purple=theme==='dark-purple';
+  const bg=dark?'#0d0d0d':purple?'rgba(255,255,255,.04)':'rgba(255,255,255,.04)';
+  const border=dark?'#1a1a1a':purple?'rgba(255,255,255,.06)':'rgba(255,255,255,.06)';
+  const rowBg=dark?'#111':purple?'rgba(83,74,183,.12)':'rgba(83,74,183,.12)';
+  const headCol=dark?'#2a2a2a':purple?'rgba(255,255,255,.15)':'rgba(255,255,255,.15)';
+  const nameCol=dark?'#5effc2':purple?'#A984BA':'#5effc2';
+
+  const qual=CLUB.filter(m=>m.q), notq=CLUB.filter(m=>!m.q);
+  let html=`<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:${headCol};padding:4px 0 8px;border-bottom:1px solid ${border};margin-bottom:8px;">Qualified · Ranked by Habit Score</div>`;
+
+  qual.forEach((m,i)=>{
+    const rank=i+1,med=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'#'+rank;
+    const barW=Math.round((m.score/512)*100);
+    html+=`<div style="display:flex;align-items:center;gap:7px;padding:7px ${m.isMe?'7px':'0'};border-radius:7px;margin:2px ${m.isMe?'-7px':'0'};border-bottom:${m.isMe?'none':'1px solid '+border};background:${m.isMe?rowBg:'transparent'};">
+      <div style="width:18px;font-size:0.7rem;color:rgba(255,255,255,.25);">${med}</div>
+      <div style="width:24px;height:24px;border-radius:50%;background:${m.col};display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:700;color:${dark?'#000':'#fff'};flex-shrink:0;">${m.name[0]}</div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-          <div style="font-size:0.75rem;${m.isMe?'color:#5effc2;font-weight:700;':'color:#666;'}">${m.name}${m.isMe?' (you)':''}</div>
-          <div style="font-size:0.8rem;font-weight:700;color:${m.isMe?'#5effc2':'#aaa'};">${m.score}</div>
+          <div style="font-size:0.7rem;${m.isMe?'color:'+nameCol+';font-weight:700;':'color:rgba(255,255,255,.6);'}">${m.name}${m.isMe?' (you)':''}</div>
+          <div style="font-size:0.78rem;font-weight:700;color:${m.isMe?nameCol:'#fff'};">${m.score}</div>
         </div>
-        <div style="height:3px;background:#1a1a1a;border-radius:2px;overflow:hidden;">
-          <div style="height:100%;width:${barW}%;background:${m.isMe?'#5effc2':m.color};border-radius:2px;"></div>
+        <div style="height:3px;background:${dark?'#1a1a1a':'rgba(255,255,255,.07)'};border-radius:2px;overflow:hidden;">
+          <div style="height:100%;width:${barW}%;background:${m.isMe?nameCol:m.col};border-radius:2px;"></div>
         </div>
       </div>
     </div>`;
   });
-  if(notq.length){
-    html+=`<div style="margin-top:14px;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;color:#222;margin-bottom:8px;">Engines Below Threshold</div>`;
-    notq.forEach(m=>{
-      html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #0d0d0d;opacity:.6;">
-        <div style="width:22px;font-size:0.75rem;color:#333;">—</div>
-        <div style="width:26px;height:26px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#333;flex-shrink:0;">${m.name[0]}</div>
-        <div style="flex:1;font-size:0.75rem;color:#444;">${m.name}</div>
-        <div style="font-size:0.65rem;color:#e67e22;">${m.avg} avg · need ${(10-m.avg).toFixed(1)} more</div>
-      </div>`;
-    });
-  }
-  el.innerHTML = html;
+
+  html+=`<div style="font-size:0.48rem;letter-spacing:1.5px;text-transform:uppercase;color:${dark?'#1e1e1e':headCol};margin:14px 0 6px;padding-top:8px;border-top:1px solid ${border};">Not Yet Qualified</div>`;
+  notq.forEach(m=>{
+    html+=`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid ${border};opacity:.5;">
+      <div style="width:18px;font-size:0.7rem;color:#333;">—</div>
+      <div style="width:24px;height:24px;border-radius:50%;background:${dark?'#1a1a1a':'rgba(255,255,255,.06)'};display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#555;flex-shrink:0;">${m.name[0]}</div>
+      <div style="flex:1;font-size:0.7rem;color:rgba(255,255,255,.3);">${m.name}</div>
+      <div style="font-size:0.62rem;color:#e67e22;">${m.avg} avg · need +${(10-m.avg).toFixed(1)}</div>
+    </div>`;
+  });
+
+  el.innerHTML=html;
 }
 
 
-// ── Init all ─────────────────────────────────────────────
-window.addEventListener('load', () => {
-  initP1();
-  initP2();
-  initP3();
+// ── Boot ─────────────────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  initP1(); initP2(); initP3();
+  document.getElementById('desc1').style.display='none';
+  document.getElementById('desc2').style.display='none';
 });
 </script>
 </body>
