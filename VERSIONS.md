@@ -77,6 +77,7 @@ Full history lives here.
 | 3.7.0 | Jun 2026 | Badge proximity confidence bands — 🟢 Easy / 🟡 Stretch / 🔴 Aggressive based on moodMultiplier |
 | 3.7.1 | Jun 2026 | Remove confidence band labels from badge proximity strip (too much explanation needed) |
 | 3.8.0 | Jun 2026 | 10PAGESADAY challenge detail page — Habit Pulse EKG hero, monthly constellation rings, 3-stat strip (Wks Hit / Max Gap / Recovery), qualification tracker bar, habit science blurb (B.J. Fogg / James Clear) |
+| 3.8.1 | Jun 2026 | Fix BOOK_COUNT and PAGE_COUNT frontend sync: monthlyBreakdown keys now YYYY-MM (was short name); weeklyBreakdown keys now YYYY-Www (was W03 without year) — matches GAS schema |
 
 ---
 
