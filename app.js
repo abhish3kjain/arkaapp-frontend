@@ -19158,18 +19158,19 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           var paceEl = document.getElementById('rtPaceTable');
           if (!paceEl) return;
 
-          // Per-member stats: totalLogged, earliestLogMs, latestLogMs
-          var memberStats = new Map(); // memberId → {total, earliestMs, latestMs}
+          // Per-member stats: totalLogged, earliestLogMs, latestLogMs, sessions
+          var memberStats = new Map(); // memberId → {total, earliestMs, latestMs, sessions}
           pageLogs.forEach(function(log) {
               var ts = parseGoogleDate(log.timestamp);
               if (!ts || isNaN(ts.getTime())) return;
               var ms  = ts.getTime();
               var rec = memberStats.get(log.memberId);
               if (!rec) {
-                  rec = { total: 0, earliestMs: ms, latestMs: ms };
+                  rec = { total: 0, earliestMs: ms, latestMs: ms, sessions: 0 };
                   memberStats.set(log.memberId, rec);
               }
               rec.total      += log.pagesDelta;
+              rec.sessions++;
               if (ms < rec.earliestMs) rec.earliestMs = ms;
               if (ms > rec.latestMs)   rec.latestMs   = ms;
           });
@@ -19205,14 +19206,19 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   ? Math.min(100, Math.round((currentPg / bookPages) * 100))
                   : 0;
 
-              // Pace: pages per day since first log for this book
+              // Pace: pages per day since first log for this book.
+              // Single-session members (one log entry) are excluded — the span is
+              // forced to 1 day by Math.max, producing an artificially inflated rate
+              // that doesn't reflect actual reading cadence.
               var paceLabel = '—';
               var lastReadLabel = '—';
               if (stats) {
-                  var daysActive = Math.max(1,
-                      Math.round((stats.latestMs - stats.earliestMs) / MS_PER_DAY));
-                  var pacePerDay = Math.round(stats.total / daysActive);
-                  paceLabel     = pacePerDay > 0 ? pacePerDay + ' pg/day' : '—';
+                  if (stats.sessions >= 2) {
+                      var daysActive = Math.max(1,
+                          Math.round((stats.latestMs - stats.earliestMs) / MS_PER_DAY));
+                      var pacePerDay = Math.round(stats.total / daysActive);
+                      paceLabel = pacePerDay > 0 ? pacePerDay + ' pg/day' : '—';
+                  }
                   lastReadLabel = _rtLastReadLabel_(stats.latestMs);
               }
 

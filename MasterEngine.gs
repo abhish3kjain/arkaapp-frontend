@@ -1669,7 +1669,7 @@ function computeMemberReadingSpeed_(memberId, pageLogData, shelfData, bookMetaMa
 
   // 1. Index this member's page logs by bookId
   // HISTORICAL_IMPORT pages included in totals; their timestamps excluded from span.
-  var bookLogIndex = {}; // bookId → { total, earliestMs, latestMs, hasRealTs }
+  var bookLogIndex = {}; // bookId → { total, earliestMs, latestMs, hasRealTs, sessions }
   for (var pi = 1; pi < pageLogData.length; pi++) {
     var pMid   = (pageLogData[pi][2] || '').toString();
     if (pMid !== memberId) continue;
@@ -1680,10 +1680,11 @@ function computeMemberReadingSpeed_(memberId, pageLogData, shelfData, bookMetaMa
     if (!pTs) continue;
     var pMs = pTs.getTime();
     if (!bookLogIndex[pBookId]) {
-      bookLogIndex[pBookId] = { total: 0, earliestMs: pMs, latestMs: pMs, hasRealTs: false };
+      bookLogIndex[pBookId] = { total: 0, earliestMs: pMs, latestMs: pMs, hasRealTs: false, sessions: 0 };
     }
     var rec = bookLogIndex[pBookId];
     rec.total += pPages;
+    rec.sessions++;
     if (pBookId !== HIST_FLAG) {
       rec.hasRealTs = true;
       if (pMs < rec.earliestMs) rec.earliestMs = pMs;
@@ -1719,7 +1720,7 @@ function computeMemberReadingSpeed_(memberId, pageLogData, shelfData, bookMetaMa
   for (var bid in finishedBookIds) {
     if (!finishedBookIds.hasOwnProperty(bid)) continue;
     var rec2 = bookLogIndex[bid];
-    if (!rec2 || !rec2.hasRealTs || rec2.total <= 0) continue;
+    if (!rec2 || !rec2.hasRealTs || rec2.total <= 0 || rec2.sessions < 2) continue;
     var spanDays = Math.max(1, (rec2.latestMs - rec2.earliestMs) / MS_PER_DAY);
     var pace     = rec2.total / spanDays;
     var meta     = bookMetaMap[bid] || {};
