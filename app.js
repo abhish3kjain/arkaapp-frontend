@@ -32110,20 +32110,23 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
         '</div>';
 
         // ── Habit theory blurb ───────────────────────────────────────────────
-        html += '<div style="background:#060d08;border:1px solid rgba(94,255,194,.08);border-radius:10px;padding:12px;">' +
-          '<div style="font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(94,255,194,.4);margin-bottom:7px;">The Science Behind This Challenge</div>' +
-          '<div style="font-size:0.7rem;color:rgba(255,255,255,.65);line-height:1.65;">' +
-            'This challenge applies B.J. Fogg’s <em>Tiny Habits</em> (Stanford, 2019): small, consistent daily actions ' +
-            'wire new behaviours into identity faster than large sporadic efforts. James Clear’s <em>Atomic Habits</em> (2018) ' +
-            'extends this — what matters is not how much you read in a session, but whether you show up. ' +
-            'Miss one week, no problem. Miss two in a row — that’s the habit to break.' +
-            '<br><br>' +
-            'Your Habit Score measures <strong style="color:rgba(255,255,255,.65);">consistency over volume</strong> — ' +
-            'sustained weekly reading scores higher than occasional binges. Bouncing back quickly after a miss is rewarded. ' +
-            'Long stretches without reading reduce your score. The goal: become someone who reads every day, ' +
-            'not just someone who has read a lot.' +
-          '</div>' +
-        '</div>';
+        html += '<div style="background:#060d08; border:1px solid rgba(94,255,194,.08); border-radius:12px; padding:16px;">' +
+	        '<div style="font-size:0.6rem; letter-spacing:1.5px; text-transform:uppercase; color:rgba(94,255,194,.6); margin-bottom:10px;">The Science of Consistency</div>' +
+	        '<div style="font-size:0.85rem; color:rgba(255,255,255,.8); line-height:1.7;">' +
+	          '"Success is the product of daily habits—not once-in-a-lifetime transformations." — <em>James Clear</em>' +
+	          '<br><br>' +
+	          'This challenge is built on <strong>Tiny Habits</strong> research (B.J. Fogg, Stanford). It proves that small, daily actions rewire your brain for reading faster than intense, sporadic efforts. ' +
+	          'As <em>Atomic Habits</em> teaches, identity is formed by showing up consistently, not by the volume of a single session.' +
+	          '<br><br>' +
+	          '<strong>Why Join This Challenge?</strong>' +
+	          '<ul style="margin: 8px 0; padding-left: 20px;">' +
+	            '<li><strong>Build Identity, Not Just Streaks:</strong> We aren\'t interested in anxiety-inducing streaks. We care about habit resilience. Whether you read for five minutes or an hour, you are reinforcing your identity as a reader.</li>' +
+	            '<li><strong>The "Never Miss Twice" Advantage:</strong> Life is unpredictable. This challenge is forgiving—we reward how quickly you bounce back, not just perfect streaks.</li>' +
+	            '<li><strong>Join the Club’s Pulse:</strong> See how your small, consistent daily actions add up alongside fellow members, creating a shared rhythm of growth.</li>' +
+	          '</ul>' +
+	          'The bottom line: You’re not here to be a marathon runner who burns out. You’re here to be a daily reader who finds peace, one page at a time. Let\'s grow this habit together.' +
+	        '</div>' +
+	      '</div>';
 
         return html;
       }
