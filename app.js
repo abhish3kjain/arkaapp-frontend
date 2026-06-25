@@ -15923,7 +15923,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               // Without this cutoff, allLevelUpKeys pulls from the full 2000-row ActivityLogDB
               // window (months of history), making every member appear to start from their
               // all-time lowest level — "Novice Level 1 → [current]" — every week.
-              var levelUpWindowMs  = FEED_CONFIG.ZONE2_SIGNAL_CUTOFF_DAYS * 24 * 60 * 60 * 1000;
+              var levelUpWindowMs  = 7 * 24 * 60 * 60 * 1000;
               var levelUpCutoffMs  = Date.now() - levelUpWindowMs;
 
               var allLevelUpKeys = Object.keys(groupedFeed).filter(function(gk) {
@@ -15941,8 +15941,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   var b   = groupedFeed[gk];
                   var mid = b.member.id;
                   var parts    = (b.levelUpDesc || '').split('|');
-                  var oldLevel = parts.length === 2 ? parts[0].replace('Previous Level:', '').trim() : '';
-                  var newLevel = parts.length === 2 ? parts[1].replace('New Level:', '').trim()      : '';
+                  var oldLevel = parts.length >= 2 ? parts[0].replace('Previous Level:', '').trim() : '';
+                  var newLevel = parts.length >= 2 ? parts[1].replace('New Level:', '').trim()      : '';
                   if (!byMember[mid]) byMember[mid] = [];
                   byMember[mid].push({ oldLevel: oldLevel, newLevel: newLevel, dateObj: b.dateObj, key: gk, member: b.member });
               });
@@ -17076,8 +17076,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           // ── Solo variant ──────────────────────────────────────────────────────
           const member = item.member;
           const parts  = (item.levelUpDesc || '').split('|');
-          const oldLvl = parts.length === 2 ? parts[0].replace('Previous Level:', '').trim() : '';
-          const newLvl = parts.length === 2 ? parts[1].replace('New Level:', '').trim()      : item.levelUpDesc;
+          const oldLvl = parts.length >= 2 ? parts[0].replace('Previous Level:', '').trim() : '';
+          const newLvl = parts.length >= 2 ? parts[1].replace('New Level:', '').trim()      : item.levelUpDesc;
           const soloTierStyle = getTierStyle(newLvl);
 
           const init   = member.displayName.charAt(0).toUpperCase();
