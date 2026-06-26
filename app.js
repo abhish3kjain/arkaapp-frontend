@@ -16044,20 +16044,25 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           })();
 
           // ── 3F: Old finished-book batch ────────────────────────────────────────
-          // BOOKREAD entries older than FINISHED_BOOK_SIGNAL_CUTOFF_DAYS are
-          // collapsed per member into a single compact "added to finished shelf"
-          // card. Books within the cutoff window keep their full rich signal card.
-          // This runs before Pass 5 so old entries never enter BUDDY_FINISH detection.
+          // BOOKREAD entries whose shelf.dateFinished is older than
+          // FINISHED_BOOK_SIGNAL_CUTOFF_DAYS are collapsed per member into a single
+          // compact "added to finished shelf" card. The activity date is irrelevant
+          // here — a member can log a past book yesterday (within the 15-day ZONE2
+          // window) but with a dateFinished from a year ago; that case should show
+          // the compact card, not the full rich signal card.
+          // Runs before Pass 5 so these entries never enter BUDDY_FINISH detection.
           (function() {
               var finishedCutoffMs = FEED_CONFIG.FINISHED_BOOK_SIGNAL_CUTOFF_DAYS * 24 * 60 * 60 * 1000;
               var nowMs2 = Date.now();
 
-              // Collect BOOKREAD buckets older than the cutoff, grouped by member.
+              // Collect BOOKREAD buckets whose shelf.dateFinished is beyond the cutoff, grouped by member.
               var oldByMember = {}; // memberId → [{ key, book, dateObj }]
               Object.keys(groupedFeed).forEach(function(gk) {
                   var b = groupedFeed[gk];
                   if (!b.activities.includes('ARKA_ACTTYP_BOOKREAD')) return;
-                  if ((nowMs2 - b.dateObj.getTime()) <= finishedCutoffMs) return;
+                  var finishedDate = b.shelf ? parseGoogleDate(b.shelf.dateFinished) : null;
+                  if (!finishedDate || isNaN(finishedDate.getTime())) return; // no finished date — keep full card
+                  if ((nowMs2 - finishedDate.getTime()) <= finishedCutoffMs) return; // within cutoff — keep full card
                   var mid = b.member.id;
                   if (!oldByMember[mid]) oldByMember[mid] = [];
                   oldByMember[mid].push({ key: gk, book: b.book, dateObj: b.dateObj, member: b.member });
