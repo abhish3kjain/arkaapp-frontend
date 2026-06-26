@@ -15481,6 +15481,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
           ENROLL_WAVE_WINDOW_MS            : 7  * 24 * 60 * 60 * 1000,
           // Zone 2: signal/spark cards older than this cutoff are silently dropped.
           ZONE2_SIGNAL_CUTOFF_DAYS         : 15,
+          // Finished books within this window get the full rich signal card.
+          // Older finishes are collapsed into a compact "added to shelf" batch card.
+          FINISHED_BOOK_SIGNAL_CUTOFF_DAYS : 90,
           // Zone 1.5: how many secondary strip cells to show (max 3 on mobile).
           WEEKLY_PULSE_SEC_POOL_SIZE       : 3,
           // Zone 1.5: how many info rows to show (max 3).
@@ -16038,6 +16041,67 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
               // Delete all individual level-up buckets — they are now represented by batchKey.
               allLevelUpKeys.forEach(function(gk) { delete groupedFeed[gk]; });
+          })();
+
+          // ── 3F: Old finished-book batch ────────────────────────────────────────
+          // BOOKREAD entries older than FINISHED_BOOK_SIGNAL_CUTOFF_DAYS are
+          // collapsed per member into a single compact "added to finished shelf"
+          // card. Books within the cutoff window keep their full rich signal card.
+          // This runs before Pass 5 so old entries never enter BUDDY_FINISH detection.
+          (function() {
+              var finishedCutoffMs = FEED_CONFIG.FINISHED_BOOK_SIGNAL_CUTOFF_DAYS * 24 * 60 * 60 * 1000;
+              var nowMs2 = Date.now();
+
+              // Collect BOOKREAD buckets older than the cutoff, grouped by member.
+              var oldByMember = {}; // memberId → [{ key, book, dateObj }]
+              Object.keys(groupedFeed).forEach(function(gk) {
+                  var b = groupedFeed[gk];
+                  if (!b.activities.includes('ARKA_ACTTYP_BOOKREAD')) return;
+                  if ((nowMs2 - b.dateObj.getTime()) <= finishedCutoffMs) return;
+                  var mid = b.member.id;
+                  if (!oldByMember[mid]) oldByMember[mid] = [];
+                  oldByMember[mid].push({ key: gk, book: b.book, dateObj: b.dateObj, member: b.member });
+              });
+
+              Object.keys(oldByMember).forEach(function(mid) {
+                  var entries = oldByMember[mid];
+                  if (entries.length === 0) return;
+
+                  // Sort by most-recent finish first for dateObj of the synthetic card.
+                  entries.sort(function(a, b) { return b.dateObj - a.dateObj; });
+
+                  var batchKey = 'OLD_FINISH_BATCH_' + mid + '_' + entries[0].dateObj.getTime();
+                  groupedFeed[batchKey] = {
+                      dateObj            : entries[0].dateObj,
+                      member             : entries[0].member,
+                      book               : entries[0].book,
+                      shelf              : null,
+                      source             : 'ArkaClubApp ' + currentAppVersion,
+                      activities         : ['OLD_FINISH_BATCH'],
+                      latestRating       : 0,
+                      latestReview       : '',
+                      externalDesc       : '',
+                      levelUpDesc        : '',
+                      eventId            : '',
+                      rsvpId             : '',
+                      enrollmentId       : '',
+                      awardId            : '',
+                      bookPostId         : '',
+                      attendedMembers    : null,
+                      attendanceEventId  : '',
+                      rolledUpPageCount  : 0,
+                      rolledUpSessions   : 0,
+                      isUnlinkedPageLog  : false,
+                      oldFinishBooks     : entries.map(function(e) { return e.book; }).filter(Boolean),
+                      isOldFinishBatch   : true,
+                      isSynthetic        : true,
+                      shouldSkip         : false,
+                      archetypeType      : 'SOCIAL_SPARK',
+                      priorityScore      : FEED_CONFIG.SCORE_TIER_SOCIAL_SPARK
+                  };
+
+                  entries.forEach(function(e) { delete groupedFeed[e.key]; });
+              });
           })();
 
           // ─────────────────────────────────────────────────────────────────────
@@ -16625,6 +16689,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
       function renderSignalCard(item) {
           const acts = item.activities;
 
+          if (item.isOldFinishBatch)                        return buildOldFinishShelfCard(item);
           if (acts.includes('ARKA_ACTTYP_BOOKREAD'))        return buildFinishedBookCard(item);
           if (acts.includes('ARKA_ACTTYP_CHALLENGE_WIN'))   return buildChallengeResultCard(item, 'WIN');
           if (acts.includes('ARKA_ACTTYP_CHALLENGE_FINISH'))return buildChallengeResultCard(item, 'FINISH');
@@ -16753,6 +16818,71 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               <div class="feed-sc-cta-row">${primaryCta}${bookDetailCta}${secondaryCta}${shareCta}</div>
             </div>
           </div>`;
+      }
+
+      // ─────────────────────────────────────────────────────────────────────────
+      // SS-F · Old finished-shelf batch card (OLD_FINISH_BATCH)
+      // ─────────────────────────────────────────────────────────────────────────
+
+      /**
+       * buildOldFinishShelfCard — SS-F.
+       * Compact card for books finished beyond FINISHED_BOOK_SIGNAL_CUTOFF_DAYS.
+       * Shows a scrollable strip of book covers so multiple finishes per member
+       * collapse into one card instead of flooding the feed.
+       *
+       * @param   {Object} item - FeedItem with isOldFinishBatch = true
+       * @returns {string}       HTML string
+       */
+      function buildOldFinishShelfCard(item) {
+          const member  = item.member;
+          const books   = item.oldFinishBooks || [];
+          const timeAgo = getSmartTimeAgo(item.dateObj);
+          const count   = books.length;
+
+          const init   = member.displayName.charAt(0).toUpperCase();
+          const avHtml = member.imageURL
+              ? `<img src="${member.imageURL}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'">`
+              : `<div style="width:32px;height:32px;border-radius:50%;background:var(--border-soft);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text-muted);flex-shrink:0;">${init}</div>`;
+
+          const bookLabel = count === 1 ? '1 book' : `${count} books`;
+
+          // Scrollable horizontal cover strip — each cover is tappable.
+          const coversHtml = books.map(function(book) {
+              if (!book) return '';
+              const color = getBookColor(book.title);
+              const coverEl = book.coverImageURL
+                  ? `<img src="${book.coverImageURL}"
+                          style="width:52px;height:76px;border-radius:4px;object-fit:cover;flex-shrink:0;display:block;"
+                          onerror="this.style.display='none'">`
+                  : `<div style="width:52px;height:76px;border-radius:4px;background:${color};flex-shrink:0;"></div>`;
+              return `<div role="button" tabindex="0" data-action
+                           onclick="openBookDetailView('${book.id}','home')"
+                           title="${escapeHtml(book.title)}"
+                           style="flex-shrink:0;cursor:pointer;">
+                        ${coverEl}
+                      </div>`;
+          }).join('');
+
+          return `
+            <div class="feed-sc" style="border-left:3px solid var(--border-soft);">
+              <div class="feed-sc-body">
+                <div class="feed-sc-meta" style="align-items:flex-start;margin-bottom:10px;">
+                  <div role="button" tabindex="0" data-action onclick="showMemberProfile('${member.id}')"
+                       style="cursor:pointer;flex-shrink:0;">${avHtml}</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;line-height:1.4;">
+                      <span class="feed-sc-name" onclick="showMemberProfile('${member.id}')"
+                            style="font-weight:700;">${escapeHtml(member.displayName)}</span>
+                      <span class="feed-sc-action"> added ${bookLabel} to their Finished Shelf</span>
+                    </div>
+                    <div class="feed-sc-time" style="margin-top:2px;">${timeAgo}</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+                  ${coversHtml}
+                </div>
+              </div>
+            </div>`;
       }
 
       // ─────────────────────────────────────────────────────────────────────────
