@@ -16444,7 +16444,10 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
 
           Object.values(groupedFeed).forEach(function(item) {
               if (item.shouldSkip) return;
-              if (item.isSynthetic) return;  // already scored at synthesis time
+              // OLD_FINISH_BATCH is synthetic but still subject to the activity-date
+              // zone2 cutoff — if the member logged the old book more than 15 days ago
+              // it drops to DIGEST just like any other item.
+              if (item.isSynthetic && !item.isOldFinishBatch) return;  // already scored at synthesis time
 
               // Zone 2 age cutoff: items older than ZONE2_SIGNAL_CUTOFF_DAYS are
               // reclassified to DIGEST so they appear only in the timeline strip,
@@ -16455,6 +16458,9 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                   item.priorityScore = FEED_CONFIG.SCORE_TIER_DIGEST;
                   return;
               }
+
+              // OLD_FINISH_BATCH is already scored — skip archetype rule matching.
+              if (item.isOldFinishBatch) return;
 
               // Determine archetype from rules.
               var matched = false;
