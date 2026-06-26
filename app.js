@@ -15605,7 +15605,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               var shelfRecord = null;
 
               if (SHELF_BASED_TYPES.has(type)) {
-                  shelfRecord = shelvesMap.get(log.activityDesc);
+                  var shelfId = (log.activityDesc || '').split('|')[0].trim();
+                  shelfRecord = shelvesMap.get(shelfId);
                   bookId      = shelfRecord ? shelfRecord.bookId : "";
               } else if (type === "ARKA_ACTTYP_BOOKADDED" || type === "ARKA_ACTTYP_BOOKUPDATE") {
                   bookId = log.activityDesc;
@@ -15739,7 +15740,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               }
 
               if (type === "ARKA_ACTTYP_BADGEAWARD" || type === "ARKA_ACTTYP_BADGEREVOKE") {
-                  bucket.awardId = (log.activityDesc || "").trim();
+                  bucket.awardId = (log.activityDesc || "").split('|')[0].trim();
               }
 
               if (type === "ARKA_ACTTYP_BOOKPOST") {
