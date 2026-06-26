@@ -15739,7 +15739,7 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               }
 
               if (type === "ARKA_ACTTYP_BADGEAWARD" || type === "ARKA_ACTTYP_BADGEREVOKE") {
-                  bucket.awardId = (log.activityDesc || "").trim();
+                  bucket.awardId = (log.activityDesc || "").split('|')[0].trim();
               }
 
               if (type === "ARKA_ACTTYP_BOOKPOST") {
@@ -16101,8 +16101,8 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
                       isOldFinishBatch   : true,
                       isSynthetic        : true,
                       shouldSkip         : false,
-                      archetypeType      : 'SOCIAL_SPARK',
-                      priorityScore      : FEED_CONFIG.SCORE_TIER_SOCIAL_SPARK
+                      archetypeType      : 'SIGNAL',
+                      priorityScore      : FEED_CONFIG.SCORE_TIER_SIGNAL
                   };
 
                   entries.forEach(function(e) { delete groupedFeed[e.key]; });
