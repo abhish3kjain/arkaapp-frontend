@@ -16863,18 +16863,24 @@ if (ARKA_LAUNCH_PARAMS && ARKA_LAUNCH_PARAMS.eid) {
               const color      = getBookColor(book.title);
               const safeTitle  = escapeHtml(book.title  || '');
               const safeAuthor = escapeHtml((book.author || '').split(',')[0].trim());
-              const autoCover  = `<div class="auto-cover"
-                                       style="width:52px;height:76px;margin-right:0;
-                                              background-color:${color};border-radius:3px 5px 5px 3px;">
-                                    <div class="auto-cover-title"  style="font-size:0.45rem;">${safeTitle}</div>
-                                    <div class="auto-cover-divider"></div>
-                                    <div class="auto-cover-author" style="font-size:0.42rem;">${safeAuthor}</div>
-                                  </div>`;
               const coverEl = book.coverImageURL
                   ? `<img src="${book.coverImageURL}"
                           style="width:52px;height:76px;border-radius:3px 5px 5px 3px;object-fit:cover;flex-shrink:0;display:block;"
-                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">${autoCover}`
-                  : autoCover;
+                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                     <div class="auto-cover"
+                          style="width:52px;height:76px;margin-right:0;display:none;
+                                 background-color:${color};border-radius:3px 5px 5px 3px;">
+                       <div class="auto-cover-title"  style="font-size:0.45rem;">${safeTitle}</div>
+                       <div class="auto-cover-divider"></div>
+                       <div class="auto-cover-author" style="font-size:0.42rem;">${safeAuthor}</div>
+                     </div>`
+                  : `<div class="auto-cover"
+                          style="width:52px;height:76px;margin-right:0;
+                                 background-color:${color};border-radius:3px 5px 5px 3px;">
+                       <div class="auto-cover-title"  style="font-size:0.45rem;">${safeTitle}</div>
+                       <div class="auto-cover-divider"></div>
+                       <div class="auto-cover-author" style="font-size:0.42rem;">${safeAuthor}</div>
+                     </div>`;
               return `<div role="button" tabindex="0" data-action
                            onclick="openBookDetailView('${book.id}','home')"
                            title="${escapeHtml(book.title)}"
